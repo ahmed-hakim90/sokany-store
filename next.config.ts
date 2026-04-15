@@ -1,7 +1,59 @@
 import type { NextConfig } from "next";
 
+function siteImagePatterns(): NonNullable<
+  NonNullable<NextConfig["images"]>["remotePatterns"]
+> {
+  const patterns: NonNullable<
+    NonNullable<NextConfig["images"]>["remotePatterns"]
+  > = [];
+  const raw = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  if (raw) {
+    try {
+      const u = new URL(raw);
+      patterns.push({
+        protocol: u.protocol === "https:" ? "https" : "http",
+        hostname: u.hostname,
+        ...(u.port ? { port: u.port } : {}),
+        pathname: "/**",
+      });
+    } catch {
+      /* ignore invalid URL */
+    }
+  }
+  patterns.push(
+    { protocol: "http", hostname: "localhost", pathname: "/**" },
+    { protocol: "http", hostname: "127.0.0.1", pathname: "/**" },
+  );
+  return patterns;
+}
+
 const nextConfig: NextConfig = {
-  /* config options here */
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "sokany-eg.com",
+        pathname: "/wp-content/**",
+      },
+      ...siteImagePatterns(),
+    ],
+  },
+  async headers() {
+    return [
+      {
+        source: "/(.*)",
+        headers: [
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "X-Frame-Options", value: "DENY" },
+          { key: "X-XSS-Protection", value: "1; mode=block" },
+          {
+            key: "Referrer-Policy",
+            value: "strict-origin-when-cross-origin",
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;

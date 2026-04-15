@@ -1,26 +1,85 @@
 @import "tailwindcss";
 
 :root {
+  /* True white for cards / inputs */
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #000000;
+  --sokany-accent: #daff00;
+  --sokany-black: #000000;
+  --sokany-gray-1: #afb7b9;
+  --sokany-gray-2: #d4d4d4;
+  --sokany-gray-3: #808080;
+  --sokany-white: #ffffff;
+  /* Cool-tint page canvas (soft blue-gray) */
+  --page: #edf1f6;
+  /* Neutral chrome behind product/category thumbnails */
+  --image-well: #eef1f4;
+  --sokany-muted-bg: #e2e8ef;
+  --sokany-border: #d5dde8;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-page: var(--page);
+  --color-image-well: var(--image-well);
+  --font-sans: var(--font-noto-arabic), system-ui, sans-serif;
+  --font-display: var(--font-montserrat), var(--font-noto-arabic), system-ui,
+    sans-serif;
+  --color-accent: var(--sokany-accent);
+  --color-ink: var(--sokany-black);
+  --color-muted: var(--sokany-gray-3);
+  --color-muted-foreground: var(--sokany-gray-3);
+  --color-border: var(--sokany-border);
+  --color-surface-muted: var(--sokany-muted-bg);
+  /* Lime-first scale + ink tones — keeps existing `brand-*` utilities on-brand */
+  --color-brand-50: #fbfff0;
+  --color-brand-100: #f4ffcc;
+  --color-brand-200: #e8ff99;
+  --color-brand-300: #deff66;
+  --color-brand-400: #daff33;
+  --color-brand-500: #daff00;
+  --color-brand-600: #c4e600;
+  --color-brand-700: #2e2e2e;
+  --color-brand-800: #1f1f1f;
+  --color-brand-900: #141414;
+  --color-brand-950: #0a0a0a;
+  --animate-fade-in: fade-in 0.5s ease-out forwards;
+  --animate-slide-up: slide-up 0.45s ease-out forwards;
+  --animate-shimmer: shimmer 1.5s linear infinite;
 }
 
 body {
-  background: var(--background);
+  background: var(--page);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
