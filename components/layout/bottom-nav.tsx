@@ -48,7 +48,7 @@ export function BottomNavInner() {
                 href={href}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "flex w-full max-w-[5.25rem] flex-col items-center gap-1 rounded-2xl px-1 py-1.5 text-xs font-semibold leading-tight transition-colors duration-200",
+                  "flex max-w-none flex-col items-center gap-1 rounded-2xl px-1 py-1.5 text-xs font-semibold leading-tight transition-colors duration-200",
                   active
                     ? "bg-brand-950 text-[var(--sokany-accent)]"
                     : "text-muted-foreground hover:text-foreground/70",

@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/Button";
 import { Container } from "@/components/Container";
@@ -16,6 +15,7 @@ import { HomeTrustStrip } from "@/features/home/components/home-trust-strip";
 import { ROUTES, STORE_HERO_VIDEO_URL } from "@/lib/constants";
 import { useCategories } from "@/features/categories/hooks/useCategories";
 import { CategoryScroller } from "@/features/categories/components/CategoryScroller";
+import { CategoryScrollerSkeleton } from "@/features/categories/components/CategoryScrollerSkeleton";
 import { useProducts } from "@/features/products/hooks/useProducts";
 
 function ShieldIcon() {
@@ -54,19 +54,21 @@ function CheckSealIcon() {
   );
 }
 
+/*
+ * الصفحة الرئيسية (/): عمود واحد داخل Container بمسافات رأسية تتسع تدريجياً (sm → md).
+ * التسلسل: هيرو → شريط تصنيفات (عند توفر البيانات) → شريط ثقة (نسختان حسب md) → الأكثر مبيعاً
+ * (سكة أفقية) → أقسام الأب للتصنيفات → بطاقة عرض ترويجي في الأسفل.
+ */
 export function HomePageContent() {
   const router = useRouter();
   const featured = useProducts({ featured: true, per_page: 8 });
   const categories = useCategories({ per_page: 100 });
-  const { items, setProductLineQuantity } = useCart();
-  const getCartLineQuantity = useCallback(
-    (productId: number) => items.find((i) => i.productId === productId)?.quantity ?? 0,
-    [items],
-  );
+  const { getCartLineQuantity, setProductLineQuantity } = useCart();
 
   return (
     <div className="animate-fade-in bg-page">
       <Container className="space-y-5 pb-8 pt-3 sm:space-y-6 sm:pb-10">
+        {/* أعلى الصفحة: شرائح هيرو داخل المكوّن؛ العرض كامل عرض الحاوية */}
         <HomeHeroBanner
           compact
           slides={[
@@ -96,10 +98,13 @@ export function HomePageContent() {
           ]}
         />
 
-        {categories.data && categories.data.length > 0 ? (
+        {categories.isPending ? (
+          <CategoryScrollerSkeleton />
+        ) : categories.data && categories.data.length > 0 ? (
           <CategoryScroller compact categories={categories.data} />
         ) : null}
 
+        {/* من md فما فوق: ثلاثية ثقة بعرض الشبكة؛ مخفية على الجوال */}
         <HomeTrustStrip
           className="hidden md:grid"
           items={[
@@ -121,6 +126,7 @@ export function HomePageContent() {
           ]}
         />
 
+        {/* الجوال فقط: نسخة مختصرة من شريط الثقة؛ تختفي من md */}
         <HomeTrustStrip
           className="grid md:hidden"
           items={[
@@ -129,6 +135,7 @@ export function HomePageContent() {
           ]}
         />
 
+        {/* قسم الأكثر مبيعاً: عنوان وسطي + سكة منتجات أفقية داخل نفس العمود */}
         <section className="space-y-4" aria-labelledby="home-bestsellers-title">
           <div className="flex flex-col items-center gap-2 text-center">
             <h2
@@ -175,6 +182,7 @@ export function HomePageContent() {
           )}
         </section>
 
+        {/* أقسام رأسية لكل تصنيف أب: شبكات/سكك داخل نفس العمود عند توفر التصنيفات */}
         {categories.data && categories.data.length > 0 ? (
           <HomeParentCategorySections
             categories={categories.data}
@@ -183,6 +191,7 @@ export function HomePageContent() {
           />
         ) : null}
 
+        {/* أسفل الصفحة: بطاقة ترويج كاملة العرض داخل الحاوية */}
         <HomePromoCard
           eyebrow="حصرياً"
           title="مجموعة تحضير القهوة"

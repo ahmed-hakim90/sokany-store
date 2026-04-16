@@ -40,7 +40,7 @@ export function AboutAfterSalesSection({
       <div className="pt-2">
         <Link
           href={ctaHref}
-          className="inline-flex h-12 w-full items-center justify-center rounded-full bg-brand-500 px-8 text-sm font-bold text-black transition-colors hover:bg-brand-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-950 sm:w-auto sm:min-w-[200px]"
+          className="inline-flex h-12 min-w-0 max-w-none items-center justify-center rounded-full bg-brand-500 px-8 text-sm font-bold text-black transition-colors hover:bg-brand-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-950 sm:w-auto sm:min-w-[200px]"
         >
           {ctaLabel}
         </Link>

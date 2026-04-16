@@ -58,7 +58,7 @@ export function ProductGallery({
               className="relative h-[4.25rem] w-[4.25rem] shrink-0 overflow-hidden rounded-xl border-2 border-dashed border-brand-400/70 bg-brand-50/90 text-[0.95rem] font-bold text-brand-900 transition-[border-color,ring] hover:border-brand-500 hover:bg-brand-100"
               onClick={() => setActiveSrc(list[THUMB_MAX_INLINE - 1]?.src ?? list[0].src)}
             >
-              <span className="flex h-full w-full items-center justify-center">+{overflowCount}</span>
+              <span className="flex h-full  items-center justify-center">+{overflowCount}</span>
             </button>
           ) : null}
           {thumbSlice.map((img) => (

@@ -117,7 +117,7 @@ export function NavbarSearch() {
   }, [isProductsPage, router, searchParams, value]);
 
   return (
-    <div ref={rootRef} className="relative w-full min-w-0">
+    <div ref={rootRef} className="relative min-w-0 max-w-none">
       <SearchField
         ref={inputRef}
         id={inputId}
@@ -147,8 +147,8 @@ export function NavbarSearch() {
             e.preventDefault();
             goSearch();
           }
-        }}
-        className="w-full rounded-2xl border-zinc-200/90 bg-white shadow-sm"
+        }}  
+        className="min-w-0 max-w-none ro  unded-2xl border-zinc-200/90 bg-white shadow-sm"
         compact
         leading={
           <svg
@@ -237,7 +237,7 @@ export function NavbarSearch() {
           <div className="border-t border-border/80 p-2">
             <button
               type="button"
-              className="w-full rounded-md py-2 text-center text-sm font-medium text-brand-900 hover:bg-surface-muted/80"
+              className="min-w-0 max-w-none rounded-md py-2 text-center text-sm font-medium text-brand-900 hover:bg-surface-muted/80"
               onClick={goSearch}
             >
               عرض الكل

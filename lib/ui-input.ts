@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 /** Shared field chrome for text inputs and selects */
 export function inputSurfaceClass(opts?: { compact?: boolean; invalid?: boolean }) {
   return cn(
-    "w-full rounded-md border border-border bg-white text-foreground transition-[box-shadow,border-color]",
+    " rounded-md border border-border bg-white text-foreground transition-[box-shadow,border-color]",
     "px-3 text-sm outline-none",
     opts?.compact ? "py-1.5" : "py-2",
     "placeholder:text-muted-foreground/80",

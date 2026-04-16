@@ -7,6 +7,10 @@ import { ServiceCenterCard } from "@/features/service-centers/components/Service
 import { ServiceCentersEmergencyCard } from "@/features/service-centers/components/service-centers-emergency-card";
 import { mockServiceCenters } from "@/features/service-centers/mock";
 
+/*
+ * مراكز الخدمة (/service-centers): عمود رأسي بعرض الصفحة؛ رأس متمركز على الجوال ومحاذي للبداية من md.
+ * ثلاث كتل Container متتابعة: عنوان — بطاقة مميزة — قائمة فروع — بطاقة طوارئ.
+ */
 export function ServiceCentersPageContent() {
   const featured = useMemo(
     () => mockServiceCenters.find((c) => c.featured) ?? mockServiceCenters[0],
@@ -21,6 +25,7 @@ export function ServiceCentersPageContent() {
   return (
     <div className="flex min-w-0 flex-col gap-8 pb-6 pt-2 md:gap-10 md:pt-6">
       <Container>
+        {/* رأس الصفحة: عنوان ووصف */}
         <header className="space-y-3 text-center md:text-start">
           <h1 className="font-display text-2xl font-bold leading-tight text-brand-950 sm:text-3xl md:text-4xl">
             مراكز الخدمة والفروع
@@ -32,10 +37,12 @@ export function ServiceCentersPageContent() {
       </Container>
 
       <Container>
+        {/* فرع مميز بعرض الحاوية */}
         <FeaturedServiceCenterCard center={featured} />
       </Container>
 
       <Container>
+        {/* قائمة عمودية لباقي الفروع */}
         {listCenters.length === 0 ? (
           <p className="text-center text-sm text-muted-foreground md:text-start">
             لا توجد فروع إضافية في القائمة.
@@ -52,6 +59,7 @@ export function ServiceCentersPageContent() {
       </Container>
 
       <Container>
+        {/* تنبيه/طوارئ في أسفل المسار */}
         <ServiceCentersEmergencyCard />
       </Container>
     </div>

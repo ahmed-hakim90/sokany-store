@@ -34,7 +34,7 @@ export function FormField({
       .join(" ") || undefined;
 
   return (
-    <div className={cn("flex w-full flex-col gap-1.5", className)}>
+    <div className={cn("flex min-w-0 max-w-none flex-col gap-1.5", className)}>
       <label
         htmlFor={id}
         className="text-start text-sm font-medium text-brand-900"

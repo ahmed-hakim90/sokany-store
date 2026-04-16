@@ -25,7 +25,7 @@ export function AboutStoryBlock({
   const resolvedMedia =
     media ??
     (mediaSrc ? (
-      <div className="relative aspect-[16/10] w-full overflow-hidden rounded-xl border border-border bg-image-well">
+      <div className="relative aspect-[16/10] min-w-0 max-w-none overflow-hidden rounded-xl border border-border bg-image-well">
         <AppImage src={mediaSrc} alt={mediaAlt} fill sizes="(max-width: 768px) 100vw, 50vw" />
       </div>
     ) : null);

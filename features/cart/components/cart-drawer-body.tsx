@@ -50,7 +50,7 @@ export function CartDrawerPeekFooter({
         type="button"
         variant="primary"
         size="lg"
-        className="w-full font-bold"
+        className="min-w-0 max-w-none font-bold"
         onClick={onCheckout}
       >
         الانتقال للدفع

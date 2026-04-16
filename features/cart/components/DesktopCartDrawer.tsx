@@ -63,7 +63,7 @@ export function DesktopCartDrawer() {
         <Drawer.Content
           id="desktop-cart-drawer-panel"
           className={cn(
-            "fixed bottom-2 left-2 top-2 z-[100] flex h-[calc(100%-1rem)] max-h-[calc(100dvh-1rem)] w-full max-w-md flex-col rounded-2xl border border-border/80 bg-page outline-none",
+            "fixed bottom-2 left-2 top-2 z-[100] flex h-[calc(100%-1rem)] max-h-[calc(100dvh-1rem)] min-w-0 max-w-none max-w-md flex-col rounded-2xl border border-border/80 bg-page outline-none",
           )}
         >
           <Drawer.Title className="border-b border-border/80 px-4 py-3 text-center font-display text-base font-semibold text-brand-950">

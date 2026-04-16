@@ -15,7 +15,7 @@ export type CheckoutShippingFormProps = {
 };
 
 function FieldSep() {
-  return <div className="h-px w-full bg-border/70" aria-hidden />;
+  return <div className="h-px  bg-border/70" aria-hidden />;
 }
 
 export function CheckoutShippingForm({
@@ -44,101 +44,40 @@ export function CheckoutShippingForm({
           <div className="space-y-3">
             <FormField
               label="الاسم الأول"
-              id="billingFirstName"
-              name="billingFirstName"
-              value={values.billingFirstName}
-              onChange={(e) => onChange("billingFirstName", e.target.value)}
-              error={errors.billingFirstName}
+              id="contactFirstName"
+              name="contactFirstName"
+              value={values.contactFirstName}
+              onChange={(e) => onChange("contactFirstName", e.target.value)}
+              error={errors.contactFirstName}
               required
             />
             <FormField
               label="اسم العائلة"
-              id="billingLastName"
-              name="billingLastName"
-              value={values.billingLastName}
-              onChange={(e) => onChange("billingLastName", e.target.value)}
-              error={errors.billingLastName}
+              id="contactLastName"
+              name="contactLastName"
+              value={values.contactLastName}
+              onChange={(e) => onChange("contactLastName", e.target.value)}
+              error={errors.contactLastName}
               required
             />
             <FormField
               label="البريد الإلكتروني"
-              id="billingEmail"
-              name="billingEmail"
+              id="contactEmail"
+              name="contactEmail"
               type="email"
-              value={values.billingEmail}
-              onChange={(e) => onChange("billingEmail", e.target.value)}
-              error={errors.billingEmail}
+              value={values.contactEmail}
+              onChange={(e) => onChange("contactEmail", e.target.value)}
+              error={errors.contactEmail}
               required
             />
             <FormField
               label="رقم الهاتف"
-              id="billingPhone"
-              name="billingPhone"
+              id="contactPhone"
+              name="contactPhone"
               inputMode="tel"
-              value={values.billingPhone}
-              onChange={(e) => onChange("billingPhone", e.target.value)}
-              error={errors.billingPhone}
-              required
-            />
-          </div>
-        </div>
-
-        <FieldSep />
-
-        <div>
-          <p className="mb-3 text-xs font-medium text-muted-foreground">عنوان الفوترة</p>
-          <div className="space-y-3">
-            <FormField
-              label="العنوان — السطر 1"
-              id="billingAddress1"
-              name="billingAddress1"
-              value={values.billingAddress1}
-              onChange={(e) => onChange("billingAddress1", e.target.value)}
-              error={errors.billingAddress1}
-              required
-            />
-            <FormField
-              label="العنوان — السطر 2 (اختياري)"
-              id="billingAddress2"
-              name="billingAddress2"
-              value={values.billingAddress2}
-              onChange={(e) => onChange("billingAddress2", e.target.value)}
-              error={errors.billingAddress2}
-            />
-            <FormField
-              label="المدينة"
-              id="billingCity"
-              name="billingCity"
-              value={values.billingCity}
-              onChange={(e) => onChange("billingCity", e.target.value)}
-              error={errors.billingCity}
-              required
-            />
-            <FormField
-              label="المحافظة / المنطقة"
-              id="billingState"
-              name="billingState"
-              value={values.billingState}
-              onChange={(e) => onChange("billingState", e.target.value)}
-              error={errors.billingState}
-              required
-            />
-            <FormField
-              label="الرمز البريدي"
-              id="billingPostcode"
-              name="billingPostcode"
-              value={values.billingPostcode}
-              onChange={(e) => onChange("billingPostcode", e.target.value)}
-              error={errors.billingPostcode}
-              required
-            />
-            <FormField
-              label="رمز الدولة"
-              id="billingCountry"
-              name="billingCountry"
-              value={values.billingCountry}
-              onChange={(e) => onChange("billingCountry", e.target.value)}
-              error={errors.billingCountry}
+              value={values.contactPhone}
+              onChange={(e) => onChange("contactPhone", e.target.value)}
+              error={errors.contactPhone}
               required
             />
           </div>

@@ -12,6 +12,10 @@ import { ROUTES } from "@/lib/constants";
 import { formatPrice } from "@/lib/utils";
 import { CartSummaryPanel } from "@/features/cart/components/CartSummaryPanel";
 
+/*
+ * صفحة السلة (/cart): عنوان ثم إما حالة فارغة أو شبكة من عمودين من lg.
+ * الجوال/التابلت: قائمة البطاقات فقط؛ ملخص الطلب والدفع يظهر في لوحة جانبية من lg في العمود الأيمن.
+ */
 export function CartPageContent() {
   const router = useRouter();
   const { items, totalPrice, isEmpty, updateProductQuantity, removeProduct } =
@@ -23,6 +27,7 @@ export function CartPageContent() {
         سلة التسوق
       </h1>
 
+      {/* سلة فارغة: رسالة وسطية تحت العنوان */}
       {isEmpty ? (
         <div className="mt-8">
           <EmptyState
@@ -36,7 +41,9 @@ export function CartPageContent() {
           />
         </div>
       ) : (
-        <div className="mt-8 grid min-w-0 gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(260px,320px)]">
+        <>
+          {/* سلة بها عناصر: عمود بطاقات المنتجات + عمود ملخص يظهر من lg */}
+          <div className="mt-8 grid min-w-0 gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(260px,320px)]">
           <div className="min-w-0 space-y-4">
             {items.map((item) => (
               <div
@@ -88,6 +95,7 @@ export function CartPageContent() {
             ))}
           </div>
 
+          {/* من lg: عمود ثابت لملخص الطلب وزر إتمام الطلب */}
           <aside className="hidden lg:block">
             <CartSummaryPanel
               items={items}
@@ -96,7 +104,7 @@ export function CartPageContent() {
               footer={
                 <Button
                   type="button"
-                  className="w-full"
+                  className="min-w-0 max-w-none"
                   size="lg"
                   onClick={() => router.push(ROUTES.CHECKOUT)}
                 >
@@ -106,6 +114,7 @@ export function CartPageContent() {
             />
           </aside>
         </div>
+        </>
       )}
     </Container>
   );

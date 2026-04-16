@@ -11,6 +11,9 @@ export type AboutFeatureBlockProps = {
   className?: string;
 };
 
+/*
+ * شبكة بطاقات ميزات: عمود واحد على الجوال، عمودان من sm، ثلاثة أعمدة من lg؛ كل بطاقة بنفس الارتفاع المرن داخل الشبكة.
+ */
 export function AboutFeatureBlock({ items, className }: AboutFeatureBlockProps) {
   return (
     <div

@@ -67,7 +67,7 @@ export function ProductReviewForm({ productId }: { productId: number }) {
         </label>
         <select
           id="review-rating"
-          className="mt-1.5 flex h-10 w-full max-w-[120px] rounded-md border border-border bg-white px-3 text-sm"
+          className="mt-1.5 flex h-10  max-w-[120px] rounded-md border border-border bg-white px-3 text-sm"
           value={fields.rating}
           onChange={(e) =>
             setFields((p) => ({ ...p, rating: Number.parseInt(e.target.value, 10) || 5 }))
@@ -87,7 +87,7 @@ export function ProductReviewForm({ productId }: { productId: number }) {
         <textarea
           id="review-body"
           rows={4}
-          className="mt-1.5 w-full rounded-md border border-border bg-white px-3 py-2 text-sm outline-none ring-brand-500 focus-visible:ring-2"
+          className="mt-1.5  rounded-md border border-border bg-white px-3 py-2 text-sm outline-none ring-brand-500 focus-visible:ring-2"
           value={fields.review}
           onChange={(e) => setFields((p) => ({ ...p, review: e.target.value }))}
           placeholder="صف تجربتك مع المنتج…"
@@ -95,7 +95,7 @@ export function ProductReviewForm({ productId }: { productId: number }) {
       </div>
       <Button
         type="button"
-        className="mt-4 w-full sm:w-auto"
+        className="mt-4  sm:w-auto"
         loading={createReview.isPending}
         onClick={() => void submit()}
       >

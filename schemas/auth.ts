@@ -7,3 +7,13 @@ export const loginSessionResponseSchema = z.object({
   userNicename: z.string(),
   userDisplayName: z.string(),
 });
+
+/** JSON body from `POST /api/auth/register` on success. */
+export const registerResponseSchema = z.object({
+  ok: z.literal(true),
+});
+
+/** JSON body from `POST /api/auth/logout` on success. */
+export const logoutResponseSchema = z.object({
+  ok: z.literal(true),
+});

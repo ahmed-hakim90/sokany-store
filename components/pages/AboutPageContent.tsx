@@ -9,10 +9,16 @@ import { AboutValueFeatureBlock } from "@/features/about/components/about-value-
 import { aboutContent } from "@/features/about/content";
 import { Container } from "@/components/Container";
 
+/*
+ * صفحة من نحن (/about): خلفية الصفحة ثم عمود واحد داخل Container بمسافات رأسية كبيرة تتسع (sm/md).
+ * الأقسام تُعرض بالترتيب من الأعلى للأسفل: هيرو تحريري → ثقة → شريط إحصاء → بطاقة ميديا داكنة
+ * → قيم → عرض خدمة → ما بعد البيع → اقتباس.
+ */
 export function AboutPageContent() {
   return (
     <div className="bg-page pb-6 pt-1 md:pb-12 md:pt-2">
       <Container className="flex flex-col gap-14 sm:gap-16 md:gap-20">
+        {/* كل مكوّن أدناه يشغل كامل عرض الحاوية؛ التباعد الرأسي بين المكوّنات فقط */}
         <AboutEditorialHero
           headline={aboutContent.hero.headline}
           imageSrc={aboutContent.hero.imageSrc}

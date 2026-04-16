@@ -31,29 +31,26 @@ export function toCreateOrderPayload(
   values: CheckoutFormData,
   items: CartItem[],
 ): CreateOrderPayload {
+  const shipping = {
+    first_name: values.shippingFirstName,
+    last_name: values.shippingLastName,
+    address_1: values.shippingAddress1,
+    address_2: values.shippingAddress2,
+    city: values.shippingCity,
+    state: values.shippingState,
+    postcode: values.shippingPostcode,
+    country: values.shippingCountry,
+  } as const;
+
   return {
     billing: {
-      first_name: values.billingFirstName,
-      last_name: values.billingLastName,
-      address_1: values.billingAddress1,
-      address_2: values.billingAddress2,
-      city: values.billingCity,
-      state: values.billingState,
-      postcode: values.billingPostcode,
-      country: values.billingCountry,
-      email: values.billingEmail,
-      phone: values.billingPhone,
+      ...shipping,
+      first_name: values.contactFirstName || shipping.first_name,
+      last_name: values.contactLastName || shipping.last_name,
+      email: values.contactEmail,
+      phone: values.contactPhone,
     },
-    shipping: {
-      first_name: values.shippingFirstName,
-      last_name: values.shippingLastName,
-      address_1: values.shippingAddress1,
-      address_2: values.shippingAddress2,
-      city: values.shippingCity,
-      state: values.shippingState,
-      postcode: values.shippingPostcode,
-      country: values.shippingCountry,
-    },
+    shipping,
     line_items: items.map((item) => ({
       product_id: item.productId,
       quantity: item.quantity,

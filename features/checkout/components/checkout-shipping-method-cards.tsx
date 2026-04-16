@@ -43,7 +43,7 @@ export function CheckoutShippingMethodCards({
               aria-checked={selected}
               onClick={() => onChange(opt.value)}
               className={cn(
-                "w-full rounded-xl border-2 px-3 py-2.5 text-start text-sm transition-[border-color,box-shadow,background-color]",
+                " rounded-xl border-2 px-3 py-2.5 text-start text-sm transition-[border-color,box-shadow,background-color]",
                 selected
                   ? "border-brand-500 bg-brand-500/12 shadow-[inset_0_0_0_1px_rgba(218,255,0,0.45)]"
                   : "border-border/80 bg-surface-muted/40 hover:border-brand-500/35 hover:bg-white",

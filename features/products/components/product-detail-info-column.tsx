@@ -95,7 +95,7 @@ export function ProductDetailInfoColumn({
             onChange={onQuantityChange}
             disabled={!product.inStock}
             layout="segmented"
-            className="w-full max-w-[11rem] self-start"
+            className=" max-w-[11rem] self-start"
           />
         ) : null}
 
@@ -103,7 +103,7 @@ export function ProductDetailInfoColumn({
           <Button
             size="lg"
             className={cn(
-              "h-12 w-full border-0 bg-gradient-to-b from-brand-400 to-brand-500 text-base font-bold text-black shadow-md hover:from-brand-300 hover:to-brand-400 sm:flex-1",
+              "h-12  border-0 bg-gradient-to-b from-brand-400 to-brand-500 text-base font-bold text-black shadow-md hover:from-brand-300 hover:to-brand-400 sm:flex-1",
             )}
             disabled={!product.inStock}
             onClick={onAddToCart}
@@ -116,7 +116,7 @@ export function ProductDetailInfoColumn({
               type="button"
               variant="secondary"
               size="lg"
-              className="h-12 w-full border-border bg-white text-base font-semibold text-foreground hover:bg-surface-muted sm:w-auto sm:min-w-[9.5rem]"
+              className="h-12  border-border bg-white text-base font-semibold text-foreground hover:bg-surface-muted sm:w-auto sm:min-w-[9.5rem]"
               disabled={!product.inStock}
               onClick={onBuyNow}
             >

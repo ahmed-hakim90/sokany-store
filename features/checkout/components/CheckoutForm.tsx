@@ -1,9 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { toast } from "sonner";
 import { Button } from "@/components/Button";
-import { useCart } from "@/hooks/useCart";
 import { CheckoutCouponRow } from "@/features/checkout/components/checkout-coupon-row";
 import { CheckoutFooterMeta } from "@/features/checkout/components/checkout-footer-meta";
 import { CheckoutLegalNote } from "@/features/checkout/components/checkout-legal-note";
@@ -13,99 +10,32 @@ import { CheckoutReassuranceNote } from "@/features/checkout/components/checkout
 import { CheckoutShippingForm } from "@/features/checkout/components/CheckoutShippingForm";
 import { CheckoutSummary } from "@/features/checkout/components/CheckoutSummary";
 import { CheckoutSupportFooter } from "@/features/checkout/components/checkout-support-footer";
-import {
-  CheckoutOrderMutationError,
-  useCheckoutOrderMutation,
-} from "@/features/checkout/hooks/useCheckoutOrderMutation";
-import {
-  shippingFeeForMethod,
-  shippingMethodTitleFor,
-} from "@/features/checkout/lib/to-create-order-payload";
-import type { CheckoutFormData } from "@/features/checkout/types";
+import { useCheckoutForm } from "@/features/checkout/hooks/useCheckoutForm";
 
-const initialValues: CheckoutFormData = {
-  billingFirstName: "",
-  billingLastName: "",
-  billingEmail: "",
-  billingPhone: "",
-  billingAddress1: "",
-  billingAddress2: "",
-  billingCity: "",
-  billingState: "",
-  billingPostcode: "",
-  billingCountry: "EG",
-  shippingFirstName: "",
-  shippingLastName: "",
-  shippingAddress1: "",
-  shippingAddress2: "",
-  shippingCity: "",
-  shippingState: "",
-  shippingPostcode: "",
-  shippingCountry: "EG",
-  shippingMethod: "flat_rate",
-  paymentMethod: "cod",
-  customerNote: "",
-};
-
+/*
+ * نموذج إتمام الطلب: على الجوال عمود واحد — الملخص أولاً (order-1) ثم حقول الشحن والدفع (order-2).
+ * من lg: صف أفقي بعرض أقصى أوسع — عمود النموذج يتمدد، عمود الملخص max-width مع sticky عند التمرير.
+ */
 export function CheckoutForm() {
-  const [values, setValues] = useState<CheckoutFormData>(initialValues);
-  const [errors, setErrors] = useState<Partial<Record<keyof CheckoutFormData, string>>>({});
-  const { items, totalPrice, clearCart } = useCart();
-  const checkoutOrder = useCheckoutOrderMutation();
+  const {
+    values,
+    errors,
+    items,
+    totalPrice,
+    shippingFee,
+    orderTotal,
+    shippingMethodTitle,
+    cartEmpty,
+    isSubmitting,
+    update,
+    updateShippingMethod,
+    updatePaymentMethod,
+    submitOrder,
+  } = useCheckoutForm();
 
-  const shippingFee = shippingFeeForMethod(values.shippingMethod);
-  const orderTotal = totalPrice + shippingFee;
-
-  const shippingMethodTitle = useMemo(
-    () => shippingMethodTitleFor(values),
-    [values],
-  );
-
-  const update = (key: keyof CheckoutFormData, value: string) => {
-    setValues((prev) => ({ ...prev, [key]: value }));
-  };
-
-  const updateShippingMethod = (value: CheckoutFormData["shippingMethod"]) => {
-    setValues((prev) => ({ ...prev, shippingMethod: value }));
-  };
-
-  const updatePaymentMethod = (value: CheckoutFormData["paymentMethod"]) => {
-    setValues((prev) => ({ ...prev, paymentMethod: value }));
-  };
-
-  const submitOrder = () => {
-    setErrors({});
-    checkoutOrder.mutate(
-      { values, items },
-      {
-        onSuccess: () => {
-          clearCart();
-          toast.success("تم استلام الطلب بنجاح!");
-          setValues(initialValues);
-          setErrors({});
-        },
-        onError: (error) => {
-          if (CheckoutOrderMutationError.is(error)) {
-            setErrors(error.fieldErrors);
-            if (error.kind === "empty_cart") {
-              toast.error("السلة فارغة.");
-            } else if (error.kind === "checkout") {
-              toast.error("يرجى تصحيح الحقول المظللة.");
-            } else if (error.kind === "payload") {
-              toast.error("تعذر التحقق من بيانات الطلب. راجع الحقول أو حاول لاحقاً.");
-            }
-            return;
-          }
-          toast.error("حدث خطأ. حاول مرة أخرى.");
-        },
-      },
-    );
-  };
-
-  const cartEmpty = items.length === 0;
-
+  /* عمود الملخص: يتقدم بصرياً على الجوال؛ يلتصق أعلى الشاشة على الشاشات العريضة أثناء التمرير */
   const summaryColumn = (
-    <div className="order-1 flex w-full flex-col gap-3 lg:order-2 lg:max-w-md lg:shrink-0 lg:sticky lg:top-6">
+    <div className="order-1 flex flex-col gap-3 p-3 lg:order-2 lg:max-w-md lg:shrink-0 lg:sticky lg:top-6">
       <CheckoutSummary
         items={items}
         subtotal={totalPrice}
@@ -113,11 +43,11 @@ export function CheckoutForm() {
         shippingAmount={shippingFee}
         shippingLabel={shippingMethodTitle}
       />
-      <CheckoutCouponRow />
       <CheckoutReassuranceNote />
     </div>
   );
 
+  /* عمود الحقول: شحن ثم دفع ثم ملاحظات قانونية وأزرار ودعم */
   const formColumn = (
     <div className="order-2 flex min-w-0 flex-1 flex-col gap-3 lg:order-1">
       <CheckoutShippingForm
@@ -132,13 +62,14 @@ export function CheckoutForm() {
         onPaymentMethodChange={updatePaymentMethod}
         onCustomerNoteChange={(v) => update("customerNote", v)}
       />
+      <CheckoutCouponRow />
       <CheckoutLegalNote />
       <Button
         type="button"
-        loading={checkoutOrder.isPending}
+        loading={isSubmitting}
         disabled={cartEmpty}
         size="lg"
-        className="h-14 w-full rounded-2xl text-base font-bold shadow-[0_14px_34px_-18px_rgba(218,255,0,0.85)]"
+        className="h-14 base font-bold shadow-[0_14px_34px_-18px_rgba(218,255,0,0.85)]"
         onClick={() => void submitOrder()}
       >
         تأكيد الطلب والدفع
@@ -150,9 +81,10 @@ export function CheckoutForm() {
 
   return (
     <>
-      <CheckoutLoadingOverlay visible={checkoutOrder.isPending} />
+      <CheckoutLoadingOverlay visible={isSubmitting} />
+      {/* حاوية مركزية: ضيقة على الجوال/تابلت، تتسع وتتحول لصف من عمودين من lg */}
       <div
-        className="mx-auto flex w-full min-w-0 max-w-lg flex-col gap-3 pb-10 sm:max-w-xl md:max-w-2xl lg:max-w-6xl lg:flex-row lg:items-start lg:gap-10"
+        className="mx-auto flex min-w-0 max-w-none flex-col gap-3 pb-10 sm:max-w-xl md:max-w-2xl lg:max-w-6xl lg:flex-row lg:items-start lg:gap-10"
         role="group"
         aria-label="إتمام الطلب"
       >

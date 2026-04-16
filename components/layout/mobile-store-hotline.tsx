@@ -62,7 +62,7 @@ export function MobileStoreHotline({ className }: { className?: string }) {
     return (
       <span
         className={cn(
-          "inline-flex h-11 min-w-0 max-w-full shrink items-center font-wordmark text-sm font-semibold tracking-tight text-muted-foreground/35",
+          "inline-flex h-11 min-w-0 max-w-none shrink items-center font-wordmark text-sm font-semibold tracking-tight text-muted-foreground/35",
           "animate-pulse",
           className,
         )}
@@ -79,7 +79,7 @@ export function MobileStoreHotline({ className }: { className?: string }) {
     <Link
       href={`tel:${tel}`}
       className={cn(
-        "inline-flex h-11 min-w-0 max-w-full shrink items-center justify-center rounded-none border-0 bg-transparent p-0 shadow-none",
+        "inline-flex h-11 min-w-0 max-w-none shrink items-center justify-center rounded-none border-0 bg-transparent p-0 shadow-none",
         "text-sm font-semibold tracking-tight text-brand-950",
         "underline-offset-2 transition-opacity hover:opacity-80 hover:underline",
         "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500",

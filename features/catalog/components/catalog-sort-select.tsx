@@ -45,7 +45,7 @@ export function CatalogSortSelect() {
         ترتيب حسب
       </span>
       <select
-        className="h-10 min-w-[10.5rem] max-w-full rounded-xl border border-border bg-white px-3 text-sm font-semibold text-foreground outline-none ring-brand-500/0 focus-visible:ring-2 focus-visible:ring-brand-500/35"
+        className="h-10 min-w-[10.5rem] max- rounded-xl border border-border bg-white px-3 text-sm font-semibold text-foreground outline-none ring-brand-500/0 focus-visible:ring-2 focus-visible:ring-brand-500/35"
         value={OPTIONS.some((o) => o.value === value) ? value : "popularity:desc"}
         onChange={(e) => onChange(e.target.value)}
         aria-label="ترتيب المنتجات"

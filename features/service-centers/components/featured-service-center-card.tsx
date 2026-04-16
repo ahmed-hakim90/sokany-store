@@ -55,7 +55,7 @@ export function FeaturedServiceCenterCard({ center, className }: FeaturedService
           </Link>
         </div>
       </div>
-      <div className="relative aspect-[16/10] w-full bg-image-well">
+      <div className="relative aspect-[16/10]  bg-image-well">
         <AppImage
           src={imageSrc}
           alt=""

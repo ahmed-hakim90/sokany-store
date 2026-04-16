@@ -12,7 +12,7 @@ export function CategoryCard({ category }: { category: Category }) {
     >
       <div
         className={cn(
-          "relative flex w-full items-center justify-center bg-gradient-to-b from-slate-100 to-slate-200/90",
+          "relative flex  items-center justify-center bg-gradient-to-b from-slate-100 to-slate-200/90",
           "aspect-[4/3]",
         )}
       >

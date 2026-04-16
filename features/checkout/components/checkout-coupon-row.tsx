@@ -19,7 +19,7 @@ export function CheckoutCouponRow() {
   };
 
   return (
-    <div className="flex items-stretch gap-2 rounded-2xl border border-border/80 bg-white p-1.5 shadow-[0_6px_22px_-14px_rgba(15,23,42,0.18)]">
+    <div className="flex items-center gap-2 rounded-2xl border border-border/80 bg-white p-1.5 shadow-[0_6px_22px_-14px_rgba(15,23,42,0.18)]">
       <label className="sr-only" htmlFor="checkout-coupon">
         رمز الخصم
       </label>
@@ -31,13 +31,13 @@ export function CheckoutCouponRow() {
         placeholder="أدخل رمز الكوبون"
         className={cn(
           inputSurfaceClass({ compact: true }),
-          "min-w-0 flex-1 border-transparent bg-page/40 py-2.5 shadow-none focus-visible:bg-white",
+          "h-10 min-w-0 flex-1 border-transparent bg-page/40 py-0 shadow-none focus-visible:bg-white",
         )}
       />
       <Button
         type="button"
-        size="sm"
-        className="h-auto shrink-0 rounded-xl px-4 text-xs font-bold"
+        size="md"
+        className="h-10 shrink-0 rounded-xl px-4 text-sm font-bold"
         onClick={apply}
       >
         تطبيق

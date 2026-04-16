@@ -1,8 +1,11 @@
+"use client";
+
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { ROUTES } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import type { Category } from "@/features/categories/types";
+import { usePrefetchProducts } from "@/features/products/hooks/usePrefetchProducts";
 
 function RowMarker({ active }: { active: boolean }) {
   return (
@@ -46,6 +49,11 @@ export function CategorySidebar({
   allProductsActive = false,
 }: CategorySidebarProps) {
   const isProductsMode = linkMode === "productsQuery";
+  const prefetchProducts = usePrefetchProducts();
+  const prefetchAllProducts = () => {
+    if (!isProductsMode) return;
+    void prefetchProducts({ page: 1, per_page: 12 });
+  };
 
   const allActive = isProductsMode
     ? allProductsActive
@@ -72,6 +80,8 @@ export function CategorySidebar({
                 "group flex items-start gap-2.5 rounded-xl px-2 py-2 transition-colors",
                 allActive ? "bg-brand-500 text-black" : "hover:bg-black/[0.03]",
               )}
+              onMouseEnter={prefetchAllProducts}
+              onFocus={prefetchAllProducts}
             >
               <RowMarker active={allActive} />
               <span
@@ -125,6 +135,16 @@ export function CategorySidebar({
                       ? "bg-brand-500/[0.12]"
                       : "hover:bg-black/[0.03]",
                 )}
+                onMouseEnter={
+                  isProductsMode
+                    ? () => void prefetchProducts({ category: category.id, page: 1, per_page: 12 })
+                    : undefined
+                }
+                onFocus={
+                  isProductsMode
+                    ? () => void prefetchProducts({ category: category.id, page: 1, per_page: 12 })
+                    : undefined
+                }
               >
                 <RowMarker active={active} />
                 <span className="min-w-0 flex-1">

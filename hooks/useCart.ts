@@ -45,12 +45,19 @@ export function useCart() {
     }
   }, []);
 
+  const getCartLineQuantity = useCallback(
+    (productId: number) =>
+      useCartStore.getState().items.find((item) => item.productId === productId)?.quantity ?? 0,
+    [],
+  );
+
   return {
     hasHydrated,
     items: safeItems,
     totalItems: safeTotalItems,
     totalPrice: safeTotalPrice,
     isEmpty: safeItems.length === 0,
+    getCartLineQuantity,
     setProductLineQuantity,
     addProduct(product: Product, quantity = 1) {
       addToCart(product, quantity);

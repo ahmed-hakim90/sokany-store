@@ -1,16 +1,10 @@
 import { z } from "zod";
 
 export const checkoutSchema = z.object({
-  billingFirstName: z.string().min(1, "Required"),
-  billingLastName: z.string().min(1, "Required"),
-  billingEmail: z.string().email("Invalid email"),
-  billingPhone: z.string().min(6, "Required"),
-  billingAddress1: z.string().min(1, "Required"),
-  billingAddress2: z.string(),
-  billingCity: z.string().min(1, "Required"),
-  billingState: z.string().min(1, "Required"),
-  billingPostcode: z.string().min(1, "Required"),
-  billingCountry: z.string().min(2, "Required"),
+  contactFirstName: z.string().min(1, "Required"),
+  contactLastName: z.string().min(1, "Required"),
+  contactEmail: z.string().email("Invalid email"),
+  contactPhone: z.string().min(6, "Required"),
   shippingFirstName: z.string().min(1, "Required"),
   shippingLastName: z.string().min(1, "Required"),
   shippingAddress1: z.string().min(1, "Required"),

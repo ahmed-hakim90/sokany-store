@@ -121,6 +121,7 @@ export function Navbar() {
 
   const trailing = (
     <div className="hidden items-center gap-2 md:flex">
+      <MobileStoreHotline className="h-10 shrink-0 whitespace-nowrap px-1 text-sm" />
       <Link
         href={ROUTES.ACCOUNT}
         className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border/80 bg-white text-brand-950 shadow-sm transition-colors hover:bg-surface-muted/50"

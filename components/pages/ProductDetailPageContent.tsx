@@ -16,6 +16,10 @@ import { ProductGrid } from "@/features/products/components/ProductGrid";
 import { ProductSkeleton } from "@/features/products/components/ProductSkeleton";
 import { ProductReviewForm } from "@/features/reviews/components/ProductReviewForm";
 
+/*
+ * صفحة تفاصيل المنتج (/products/[id]): عمود واحد داخل Container؛ التخطيط التفصيلي داخل ProductDetail
+ * (معرض + عمود معلومات/شراء يتكيف مع الشاشة). أسفلها أقسام عمودية: التقييمات ثم منتجات ذات صلة بشبكة.
+ */
 export function ProductDetailPageContent({ id }: { id: number }) {
   const router = useRouter();
   const {
@@ -28,11 +32,7 @@ export function ProductDetailPageContent({ id }: { id: number }) {
     goToProducts,
   } = useProductDetailPage(id);
 
-  const { items, setProductLineQuantity } = useCart();
-  const getCartLineQuantity = useCallback(
-    (productId: number) => items.find((i) => i.productId === productId)?.quantity ?? 0,
-    [items],
-  );
+  const { getCartLineQuantity, setProductLineQuantity } = useCart();
 
   const buyNow = useCallback(
     (product: Product, quantity: number) => {
@@ -44,7 +44,8 @@ export function ProductDetailPageContent({ id }: { id: number }) {
 
   return (
     <Container className="py-4 sm:py-10">
-      {productQuery.isLoading ? (
+      {/* حالات التحميل/الخطأ/غياب المنتج: محتوى واحد بعرض الحاوية */}
+      {productQuery.isPending ? (
         <ProductSkeleton />
       ) : productQuery.isError ? (
         <ErrorState
@@ -63,6 +64,7 @@ export function ProductDetailPageContent({ id }: { id: number }) {
         />
       ) : (
         <>
+          {/* كتلة المنتج الرئيسية: PDP كامل العرض داخل الحاوية */}
           <ProductDetail
             product={productQuery.data}
             onAddToCart={addProductToCart}
@@ -70,14 +72,31 @@ export function ProductDetailPageContent({ id }: { id: number }) {
             specs={specs}
           />
 
+          {/* أسفل المنتج: حد فاصل ثم قسم التقييمات (نموذج + قائمة) بعرض كامل */}
           <section className="mt-16 min-w-0 border-t border-border pt-12">
             <h2 className="font-display text-lg font-bold tracking-tight sm:text-xl">
               التقييمات
             </h2>
             <ProductReviewForm productId={productQuery.data.id} />
             <div className="mt-4">
-              {reviewsQuery.isLoading ? (
-                <p className="text-sm text-zinc-600">جاري تحميل التقييمات…</p>
+              {reviewsQuery.isPending ? (
+                <ul className="space-y-4" aria-label="جاري تحميل التقييمات">
+                  {Array.from({ length: 3 }).map((_, index) => (
+                    <li
+                      key={index}
+                      className="rounded-xl border border-black/[0.06] bg-white p-4 shadow-[0_2px_16px_-4px_rgba(15,23,42,0.07)]"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="h-4 w-28 animate-shimmer rounded bg-border/70" />
+                        <div className="h-3 w-14 animate-shimmer rounded bg-border/70" />
+                      </div>
+                      <div className="mt-3 space-y-2">
+                        <div className="h-3 animate-shimmer rounded bg-surface-muted" />
+                        <div className="h-3 w-11/12 animate-shimmer rounded bg-surface-muted" />
+                      </div>
+                    </li>
+                  ))}
+                </ul>
               ) : reviewsQuery.isError ? (
                 <ErrorState
                   message={reviewsQuery.error.message}
@@ -109,6 +128,7 @@ export function ProductDetailPageContent({ id }: { id: number }) {
             </div>
           </section>
 
+          {/* أسفل التقييمات: عنوان الصف + رابط الكل؛ الشبكة تتمدد بعرض الحاوية */}
           <section className="mt-16 min-w-0 border-t border-border pt-12">
             <div className="flex min-w-0 flex-wrap items-center justify-between gap-4">
               <h2 className="font-display text-lg font-bold tracking-tight sm:text-xl">
@@ -131,7 +151,7 @@ export function ProductDetailPageContent({ id }: { id: number }) {
                 <ProductGrid
                   className="lg:grid-cols-4"
                   status={
-                    relatedQuery.isLoading
+                    relatedQuery.isPending
                       ? "loading"
                       : relatedProducts.length === 0
                         ? "empty"

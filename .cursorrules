@@ -48,3 +48,12 @@ Do not assume `components/products` or top-level `services/` unless introduced d
 
 - **Images:** Use `next/image` via the shared `AppImage` wrapper (or `Image` with the same constraints) for raster content; avoid raw `<img>` in TSX.
 - **Loading:** Provide skeletons or explicit loading UI for user-visible `useQuery` pending states (product grids, category lists, product detail, etc.).
+
+## 7. Page layout comments (storefront pages)
+
+- **Scope:** Any new or heavily edited route-level page body — typically `components/pages/*PageContent.tsx`, or an `app/**/page.tsx` that owns substantial layout JSX (e.g. checkout shell) plus the main form/layout child when that is where structure lives.
+- **Language:** Use **Arabic** multi-line `/* … */` blocks for human-readable layout maps (what the shopper sees, where on screen, and how **responsive breakpoints** split mobile vs desktop).
+- **Required shape:**
+  - One **file-level** (or top export) block summarising overall layout and the breakpoints actually used (`sm` / `md` / `lg`, etc.).
+  - **Section** blocks above major structural wrappers (mobile-only column + rail, desktop grid + sidebar, hero stack, catalog grid, etc.).
+- **Maintenance:** Whenever layout or visible sections change, **update the same PR** so comments stay accurate; do not leave stale layout narration.

@@ -27,7 +27,7 @@ export function MobileAccordionSection({
     <div className={cn(!noBorder && "border-b border-border/80", className)}>
       <button
         type="button"
-        className="flex min-h-11 w-full items-center justify-between gap-2 py-2.5 text-start font-display text-sm font-semibold text-brand-950"
+        className="flex min-h-11 min-w-0 max-w-none items-center justify-between gap-2 py-2.5 text-start font-display text-sm font-semibold text-brand-950"
         aria-expanded={open}
         aria-controls={panelId}
         onClick={() => setOpen((v) => !v)}

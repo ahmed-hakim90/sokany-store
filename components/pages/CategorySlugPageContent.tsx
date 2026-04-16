@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo } from "react";
+import { useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/Button";
@@ -11,14 +11,92 @@ import { useCart } from "@/hooks/useCart";
 import { ROUTES } from "@/lib/constants";
 import { useCategories } from "@/features/categories/hooks/useCategories";
 import { useCategory } from "@/features/categories/hooks/useCategory";
-import { CategoryScroller } from "@/features/categories/components/CategoryScroller";
-import { CategorySidebar } from "@/features/categories/components/CategorySidebar";
-import { CategoryCatalogRail } from "@/features/categories/components/category-catalog-rail";
+import { CategoryBrowseSplitLayout } from "@/features/categories/components/category-browse-split-layout";
 import { useProducts } from "@/features/products/hooks/useProducts";
 import { CatalogPromoTile } from "@/features/catalog/components/catalog-promo-tile";
 import { ProductGrid } from "@/features/products/components/ProductGrid";
 import { ProductSkeleton } from "@/features/products/components/ProductSkeleton";
+import type { Product } from "@/features/products/types";
 
+function CategorySlugHeader({
+  categoryId,
+  title,
+  description,
+}: {
+  categoryId: number;
+  title: string;
+  description: string;
+}) {
+  return (
+    <div>
+      <h1 className="font-display text-xl font-bold tracking-tight text-brand-950 sm:text-2xl md:text-3xl">
+        {title}
+      </h1>
+      <p className="mt-2 max-w-2xl break-words text-sm text-zinc-700">{description}</p>
+      <p className="mt-6">
+        <Link
+          href={`${ROUTES.PRODUCTS}?category=${categoryId}`}
+          className="text-sm font-semibold text-brand-900 underline-offset-4 hover:underline"
+        >
+          تصفح كل المنتجات في هذا التصنيف
+        </Link>
+      </p>
+    </div>
+  );
+}
+
+function CategorySlugProductsSection({
+  productsQuery,
+  getCartLineQuantity,
+  onCartLineQuantityChange,
+  router,
+}: {
+  productsQuery: ReturnType<typeof useProducts>;
+  getCartLineQuantity: (productId: number) => number;
+  onCartLineQuantityChange: (product: Product, next: number) => void;
+  router: ReturnType<typeof useRouter>;
+}) {
+  return productsQuery.isError ? (
+    <ErrorState
+      message={productsQuery.error.message}
+      onRetry={() => void productsQuery.refetch()}
+    />
+  ) : (
+    <ProductGrid
+      status={
+        productsQuery.isPending
+          ? "loading"
+          : !productsQuery.data?.length
+            ? "empty"
+            : "ready"
+      }
+      products={productsQuery.data ?? []}
+      getCartLineQuantity={getCartLineQuantity}
+      onCartLineQuantityChange={onCartLineQuantityChange}
+      cardVariant="mobileCompact"
+      cardVariantMd="desktopCatalogWide"
+      leadingSlot={<CatalogPromoTile />}
+      gridClassName="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4 xl:grid-cols-5"
+      empty={
+        <EmptyState
+          title="لا توجد منتجات في هذا التصنيف"
+          description="جرّب تصنيفاً آخر أو تصفح كل المنتجات."
+          action={
+            <Button type="button" onClick={() => router.push(ROUTES.PRODUCTS)}>
+              تصفح المنتجات
+            </Button>
+          }
+        />
+      }
+    />
+  );
+}
+
+/*
+ * صفحة تصنيف بالمسار (/categories/[slug]): نفس منطق التقسيم مثل صفحة التصنيفات الجذرية —
+ * تحت lg عمود تمرير + CategoryCatalogRail؛ من lg شبكة مع CategorySidebar فقط عند توفر التنقل.
+ * أعلى المحتوى: اسم التصنيف ووصف ورابط لكل منتجات التصنيف في الكتالوج.
+ */
 export function CategorySlugPageContent({ slug }: { slug: string }) {
   const router = useRouter();
   const categoryQuery = useCategory(slug);
@@ -36,11 +114,7 @@ export function CategorySlugPageContent({ slug }: { slug: string }) {
   const productsQuery = useProducts(productParams, {
     enabled: Boolean(categoryId),
   });
-  const { items, setProductLineQuantity } = useCart();
-  const getCartLineQuantity = useCallback(
-    (productId: number) => items.find((i) => i.productId === productId)?.quantity ?? 0,
-    [items],
-  );
+  const { getCartLineQuantity, setProductLineQuantity } = useCart();
 
   const navCategories = categoriesNav.data;
   const hasNavCategories = Boolean(navCategories?.length);
@@ -48,7 +122,8 @@ export function CategorySlugPageContent({ slug }: { slug: string }) {
   return (
     <div className="flex min-h-0 min-w-0 flex-1 flex-col">
       <Container className="flex min-h-0 flex-1 flex-col px-4 py-4 sm:px-6 lg:px-8 lg:py-10">
-        {categoryQuery.isLoading ? (
+        {/* تحميل / خطأ / غير موجود: حالات بعرض الحاوية */}
+        {categoryQuery.isPending ? (
           <div className="space-y-8">
             <div className="h-10 w-1/3 animate-shimmer rounded bg-brand-100" />
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -72,139 +147,35 @@ export function CategorySlugPageContent({ slug }: { slug: string }) {
               </Button>
             }
           />
-        ) : (
-          <>
-            <div className="flex min-h-0 max-h-[calc(100dvh-7rem-var(--mobile-commerce-chrome-height))] flex-1 flex-row gap-2 lg:hidden">
-              <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-y-contain pb-2">
-                <div>
-                  <h1 className="font-display text-xl font-bold tracking-tight text-brand-950 sm:text-2xl md:text-3xl">
-                    {categoryQuery.data.name}
-                  </h1>
-                  <p className="mt-2 max-w-2xl break-words text-sm text-zinc-700">
-                    {categoryQuery.data.description}
-                  </p>
-                  <p className="mt-6">
-                    <Link
-                      href={`${ROUTES.PRODUCTS}?category=${categoryQuery.data.id}`}
-                      className="text-sm font-semibold text-brand-900 underline-offset-4 hover:underline"
-                    >
-                      تصفح كل المنتجات في هذا التصنيف
-                    </Link>
-                  </p>
-                </div>
-                {productsQuery.isError ? (
-                  <ErrorState
-                    message={productsQuery.error.message}
-                    onRetry={() => void productsQuery.refetch()}
-                  />
-                ) : (
-                  <ProductGrid
-                    status={
-                      productsQuery.isLoading
-                        ? "loading"
-                        : !productsQuery.data?.length
-                          ? "empty"
-                          : "ready"
-                    }
-                    products={productsQuery.data ?? []}
-                    getCartLineQuantity={getCartLineQuantity}
-                    onCartLineQuantityChange={setProductLineQuantity}
-                    cardVariant="mobileCompact"
-                    cardVariantMd="desktopCatalogWide"
-                    leadingSlot={<CatalogPromoTile />}
-                    gridClassName="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-2 xl:grid-cols-3"
-                    empty={
-                      <EmptyState
-                        title="لا توجد منتجات في هذا التصنيف"
-                        description="جرّب تصنيفاً آخر أو تصفح كل المنتجات."
-                        action={
-                          <Button type="button" onClick={() => router.push(ROUTES.PRODUCTS)}>
-                            تصفح المنتجات
-                          </Button>
-                        }
-                      />
-                    }
-                  />
-                )}
-              </div>
-              {hasNavCategories && navCategories ? (
-                <CategoryCatalogRail
-                  categories={navCategories}
-                  linkMode="slug"
-                  activeSlug={slug}
-                />
-              ) : null}
-            </div>
-
-            <div className="hidden min-w-0 lg:grid lg:grid-cols-[minmax(200px,220px)_minmax(0,1fr)] lg:items-start lg:gap-8">
-              {hasNavCategories && navCategories ? (
-                <aside className="mb-8">
-                  <CategorySidebar categories={navCategories} activeSlug={slug} />
-                </aside>
-              ) : null}
-              <div className="min-w-0">
-                {hasNavCategories && navCategories ? (
-                  <div className="mb-8">
-                    <CategoryScroller compact categories={navCategories} />
-                  </div>
-                ) : null}
-                <div>
-                  <h1 className="font-display text-xl font-bold tracking-tight text-brand-950 sm:text-2xl md:text-3xl">
-                    {categoryQuery.data.name}
-                  </h1>
-                  <p className="mt-2 max-w-2xl break-words text-sm text-zinc-700">
-                    {categoryQuery.data.description}
-                  </p>
-                  <p className="mt-6">
-                    <Link
-                      href={`${ROUTES.PRODUCTS}?category=${categoryQuery.data.id}`}
-                      className="text-sm font-semibold text-brand-900 underline-offset-4 hover:underline"
-                    >
-                      تصفح كل المنتجات في هذا التصنيف
-                    </Link>
-                  </p>
-                </div>
-
-                <div className="mt-8">
-                  {productsQuery.isError ? (
-                    <ErrorState
-                      message={productsQuery.error.message}
-                      onRetry={() => void productsQuery.refetch()}
+        ) : (() => {
+          const category = categoryQuery.data;
+          return (
+            <CategoryBrowseSplitLayout
+              categories={navCategories ?? []}
+              activeSlug={slug}
+              showNavChrome={hasNavCategories}
+              renderMainContent={(viewport) => (
+                <>
+                  {viewport === "desktop" ? (
+                    <CategorySlugHeader
+                      categoryId={category.id}
+                      title={category.name}
+                      description={category.description}
                     />
-                  ) : (
-                    <ProductGrid
-                      status={
-                        productsQuery.isLoading
-                          ? "loading"
-                          : !productsQuery.data?.length
-                            ? "empty"
-                            : "ready"
-                      }
-                      products={productsQuery.data ?? []}
+                  ) : null}
+                  <div className={viewport === "desktop" ? "mt-8" : undefined}>
+                    <CategorySlugProductsSection
+                      productsQuery={productsQuery}
                       getCartLineQuantity={getCartLineQuantity}
                       onCartLineQuantityChange={setProductLineQuantity}
-                      cardVariant="mobileCompact"
-                      cardVariantMd="desktopCatalogWide"
-                      leadingSlot={<CatalogPromoTile />}
-                      gridClassName="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-2 xl:grid-cols-3"
-                      empty={
-                        <EmptyState
-                          title="لا توجد منتجات في هذا التصنيف"
-                          description="جرّب تصنيفاً آخر أو تصفح كل المنتجات."
-                          action={
-                            <Button type="button" onClick={() => router.push(ROUTES.PRODUCTS)}>
-                              تصفح المنتجات
-                            </Button>
-                          }
-                        />
-                      }
+                      router={router}
                     />
-                  )}
-                </div>
-              </div>
-            </div>
-          </>
-        )}
+                  </div>
+                </>
+              )}
+            />
+          );
+        })()}
       </Container>
     </div>
   );

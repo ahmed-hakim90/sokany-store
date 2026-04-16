@@ -22,6 +22,10 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
+/*
+ * غلاف صفحة إتمام الطلب: خلفية الصفحة + Container بمسافة علوية بسيطة (أكبر قليلاً من md).
+ * التخطيط التفصيلي للنموذج داخل CheckoutForm.
+ */
 export default function CheckoutPage() {
   return (
     <div className="min-h-0 min-w-0 flex-1 bg-page">

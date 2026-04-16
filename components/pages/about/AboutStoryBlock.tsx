@@ -11,6 +11,10 @@ export type AboutStoryBlockProps = {
   className?: string;
 };
 
+/*
+ * قصة/نص طويل في بطاقة: على الجوال عمود واحد (نص فوق صورة إن وُجدت).
+ * من lg مع وجود media: شبكة عمودين — النص في أحد الجانبين والصورة في الآخر بارتفاع أدنى للصورة.
+ */
 export function AboutStoryBlock({
   title,
   paragraphs,
@@ -19,7 +23,7 @@ export function AboutStoryBlock({
   className,
 }: AboutStoryBlockProps) {
   const media = mediaSrc ? (
-    <div className="relative aspect-[16/11] w-full overflow-hidden rounded-xl border border-border bg-image-well lg:aspect-auto lg:min-h-[280px]">
+    <div className="relative aspect-[16/11] min-w-0 max-w-none overflow-hidden rounded-xl border border-border bg-image-well lg:aspect-auto lg:min-h-[280px]">
       <AppImage
         src={mediaSrc}
         alt={mediaAlt}

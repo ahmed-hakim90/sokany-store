@@ -84,7 +84,7 @@ export function HomeHeroBanner({
         }
         pagination={{ clickable: true }}
         className={cn(
-          "hero-swiper w-full",
+          "hero-swiper ",
           compact
             ? "min-h-[132px] sm:min-h-[168px] md:min-h-[220px] lg:min-h-[260px]"
             : "min-h-[160px] sm:min-h-[190px] md:min-h-[240px] lg:min-h-[280px]",
@@ -122,7 +122,7 @@ function HeroSlideContent({
   return (
     <div
       className={cn(
-        "relative w-full",
+        "relative ",
         compact
           ? "min-h-[132px] sm:min-h-[168px] md:min-h-[220px] lg:min-h-[260px]"
           : "min-h-[160px] sm:min-h-[190px] md:min-h-[240px] lg:min-h-[280px]",
@@ -159,7 +159,7 @@ function HeroSlideContent({
         </TitleTag>
         <p
           className={cn(
-            "mx-auto mt-1 max-w-full text-pretty break-words text-white/88 sm:mt-2 sm:max-w-lg md:mx-0",
+            "mx-auto mt-1 max- text-pretty break-words text-white/88 sm:mt-2 sm:max-w-lg md:mx-0",
             compact ? "text-xs sm:text-sm md:text-base" : "text-sm sm:text-base md:text-lg",
           )}
         >

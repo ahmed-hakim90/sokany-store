@@ -36,12 +36,12 @@ export function ServiceCentersEmergencyCard({ className }: ServiceCentersEmergen
           </ul>
           <Link
             href={`mailto:${CONTACT_EMAIL}?subject=دعم%20عاجل%20-%20مراكز%20الخدمة`}
-            className="inline-flex h-11 w-full items-center justify-center rounded-xl bg-brand-500 px-5 text-sm font-bold text-black shadow-sm transition-colors hover:bg-brand-400 sm:w-auto"
+            className="inline-flex h-11  items-center justify-center rounded-xl bg-brand-500 px-5 text-sm font-bold text-black shadow-sm transition-colors hover:bg-brand-400 sm:w-auto"
           >
             تواصل مع الدعم
           </Link>
         </div>
-        <div className="relative mx-auto aspect-[4/3] w-full max-w-[200px] shrink-0 overflow-hidden rounded-xl bg-black/30 sm:mx-0 sm:max-w-[220px]">
+        <div className="relative mx-auto aspect-[4/3]  max-w-[200px] shrink-0 overflow-hidden rounded-xl bg-black/30 sm:mx-0 sm:max-w-[220px]">
           <AppImage
             src="/images/placeholder.png"
             alt=""

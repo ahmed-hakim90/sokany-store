@@ -121,7 +121,7 @@ export function ProductCard({
     >
       <Link
         href={ROUTES.PRODUCT(product.id)}
-        className="relative block aspect-square w-full overflow-hidden bg-image-well p-1 sm:p-1.5"
+        className="relative block aspect-square low-hidden bg-image-well p-1 sm:p-1.5"
         onMouseEnter={handlePrefetch}
         onFocus={handlePrefetch}
       >
@@ -178,7 +178,7 @@ export function ProductCard({
                 compareAt={compareAt}
                 compact={priceCompact}
                 emphasized={variant === "featured"}
-                className="min-w-0 max-w-full justify-center"
+                className="min-w-0 max-w-none"
               />
               <QtyControl
                 min={0}
@@ -197,7 +197,7 @@ export function ProductCard({
                 compareAt={compareAt}
                 compact={priceCompact}
                 emphasized={variant === "featured"}
-                className="min-w-0 max-w-full"
+                className="min-w-0 max-w-none"
               />
             </div>
           )}

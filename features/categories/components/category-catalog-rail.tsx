@@ -1,7 +1,10 @@
+"use client";
+
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { CategoryIcon } from "@/features/categories/category-icon-registry";
+import { usePrefetchProducts } from "@/features/products/hooks/usePrefetchProducts";
 import { ROUTES } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import type { Category } from "@/features/categories/types";
@@ -31,11 +34,17 @@ type RailTileProps = {
   active: boolean;
   label: string;
   children: ReactNode;
+  onPrefetch?: () => void;
 };
 
-function RailTile({ href, active, label, children }: RailTileProps) {
+function RailTile({ href, active, label, children, onPrefetch }: RailTileProps) {
   return (
-    <Link href={href} className="block w-full shrink-0">
+    <Link
+      href={href}
+      className="block  shrink-0"
+      onMouseEnter={onPrefetch}
+      onFocus={onPrefetch}
+    >
       <Card
         variant="surface"
         className={cn(
@@ -53,7 +62,7 @@ function RailTile({ href, active, label, children }: RailTileProps) {
         >
           {children}
         </div>
-        <span className="line-clamp-2 w-full px-0.5 text-[9px] font-semibold leading-tight text-brand-950">
+        <span className="line-clamp-2  px-0.5 text-[9px] font-semibold leading-tight text-brand-950">
           {label}
         </span>
       </Card>
@@ -77,6 +86,7 @@ export type CategoryCatalogRailProps = {
 );
 
 export function CategoryCatalogRail(props: CategoryCatalogRailProps) {
+  const prefetchProducts = usePrefetchProducts();
   const { categories, className } = props;
   if (categories.length === 0) return null;
 
@@ -99,6 +109,7 @@ export function CategoryCatalogRail(props: CategoryCatalogRailProps) {
           href={ROUTES.PRODUCTS}
           active={allActive}
           label="الكل"
+          onPrefetch={() => void prefetchProducts({ page: 1, per_page: 12 })}
         >
           <AllCategoriesGlyph className="h-6 w-6" />
         </RailTile>
@@ -121,7 +132,17 @@ export function CategoryCatalogRail(props: CategoryCatalogRailProps) {
           : props.activeSlug === category.slug;
 
         return (
-          <RailTile key={category.id} href={href} active={active} label={category.name}>
+          <RailTile
+            key={category.id}
+            href={href}
+            active={active}
+            label={category.name}
+            onPrefetch={
+              isProducts
+                ? () => void prefetchProducts({ category: category.id, page: 1, per_page: 12 })
+                : undefined
+            }
+          >
             <CategoryIcon slug={category.slug} className="h-6 w-6" />
           </RailTile>
         );

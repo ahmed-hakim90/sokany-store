@@ -1,22 +1,13 @@
 "use client";
 
-import { useMemo } from "react";
-import { useQueries } from "@tanstack/react-query";
 import Link from "next/link";
-import { STALE_TIME } from "@/lib/constants";
 import { ROUTES } from "@/lib/constants";
-import { getProducts } from "@/features/products/services/getProducts";
 import type { Category } from "@/features/categories/types";
 import type { Product } from "@/features/products/types";
 import { HomeCategoryExclusiveBanner } from "@/features/home/components/home-category-exclusive-banner";
 import { ProductHorizontalRail } from "@/features/home/components/product-horizontal-rail";
+import { useHomeParentCategoryRails } from "@/features/home/hooks/useHomeParentCategoryRails";
 import { cn } from "@/lib/utils";
-
-function parentCategoriesForHome(categories: Category[]): Category[] {
-  return [...categories]
-    .filter((c) => c.parentId === 0 && c.count > 0)
-    .sort((a, b) => a.name.localeCompare(b.name, "ar"));
-}
 
 export type HomeParentCategorySectionsProps = {
   categories: Category[];
@@ -29,24 +20,7 @@ export function HomeParentCategorySections({
   getCartLineQuantity,
   onCartLineQuantityChange,
 }: HomeParentCategorySectionsProps) {
-  const parents = useMemo(() => parentCategoriesForHome(categories), [categories]);
-
-  const queries = useQueries({
-    queries: parents.map((cat) => ({
-      queryKey: [
-        "products",
-        { category: cat.id, per_page: 8, orderby: "popularity", order: "desc" },
-      ] as const,
-      queryFn: () =>
-        getProducts({
-          category: cat.id,
-          per_page: 8,
-          orderby: "popularity",
-          order: "desc",
-        }),
-      staleTime: STALE_TIME.MEDIUM,
-    })),
-  });
+  const { parents, queries } = useHomeParentCategoryRails(categories);
 
   if (parents.length === 0) return null;
 
@@ -72,7 +46,7 @@ export function HomeParentCategorySections({
 
             <section
               className={cn(
-                "space-y-3 rounded-2xl border border-border/80  p-4 sm:p-5",
+                "space-y-3 rounded-2xl   p-4 sm:p-5",
               )}
               aria-labelledby={`home-cat-${cat.id}-title`}
             >

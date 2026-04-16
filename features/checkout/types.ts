@@ -3,16 +3,10 @@ export type ShippingMethod = "flat_rate" | "local_pickup" | "free_shipping";
 export type PaymentMethod = "cod" | "card";
 
 export type CheckoutFormData = {
-  billingFirstName: string;
-  billingLastName: string;
-  billingEmail: string;
-  billingPhone: string;
-  billingAddress1: string;
-  billingAddress2: string;
-  billingCity: string;
-  billingState: string;
-  billingPostcode: string;
-  billingCountry: string;
+  contactFirstName: string;
+  contactLastName: string;
+  contactEmail: string;
+  contactPhone: string;
   shippingFirstName: string;
   shippingLastName: string;
   shippingAddress1: string;

@@ -26,7 +26,7 @@ export function CategoryShortcutGrid({
   const isHome = layout === "home";
 
   return (
-    <div className={cn("w-full", className)}>
+    <div className={cn("", className)}>
       {!isHome ? (
         <p className="mb-3 text-xs font-medium uppercase tracking-wide text-muted-foreground">
           Browse categories
