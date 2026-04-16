@@ -21,15 +21,15 @@ export function ProductDetail({
   const [quantity, setQuantity] = useState(1);
 
   return (
-    <div className="space-y-10 lg:space-y-14">
-      <div className="grid gap-10 lg:grid-cols-2">
+    <div className="min-w-0 space-y-10 lg:space-y-14">
+      <div className="grid min-w-0 gap-10 lg:grid-cols-2">
         <ProductGallery
           images={product.images}
           productName={product.name}
           fallbackSrc={product.thumbnail}
           priority
         />
-        <div>
+        <div className="min-w-0">
           <ProductInfoPanel
             product={product}
             quantity={quantity}

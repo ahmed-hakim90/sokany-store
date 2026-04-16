@@ -25,6 +25,8 @@ export const CONTACT_EMAIL = "support@sokanystore.com";
 export const ROUTES = {
   HOME: "/",
   PRODUCTS: "/products",
+  /** Dedicated search results (query param `q`). */
+  SEARCH: "/search",
   PRODUCT: (id: number | string) => `/products/${id}`,
   CATEGORIES: "/categories",
   CATEGORY: (slug: string) => `/categories/${slug}`,
@@ -36,6 +38,9 @@ export const ROUTES = {
   LOGIN: "/login",
   REGISTER: "/register",
 } as const;
+
+/** Prefix for header product search input `id` (suffix from `useId()`; two instances may exist). */
+export const GLOBAL_PRODUCT_SEARCH_INPUT_ID = "global-product-search";
 
 /** WordPress JWT Auth plugin token endpoint path (relative to WC_BASE_URL origin). */
 export const WP_JWT_AUTH_TOKEN_PATH = "/wp-json/jwt-auth/v1/token";

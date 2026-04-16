@@ -35,7 +35,7 @@ export default function RootLayout({
       dir="rtl"
       className={`${notoArabic.variable} ${montserrat.variable} h-full antialiased`}
     >
-      <body className="flex min-h-full flex-col bg-page text-foreground">
+      <body className="flex min-h-full min-w-0 flex-col bg-page text-foreground">
         <OrganizationJsonLd />
         <QueryProvider>
           <ToastProvider />

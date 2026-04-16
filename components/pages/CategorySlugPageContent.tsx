@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/Button";
 import { Container } from "@/components/Container";
@@ -15,11 +16,9 @@ import { CategorySidebar } from "@/features/categories/components/CategorySideba
 import { useProducts } from "@/features/products/hooks/useProducts";
 import { ProductGrid } from "@/features/products/components/ProductGrid";
 import { ProductSkeleton } from "@/features/products/components/ProductSkeleton";
-import { SearchField } from "@/components/ui/search-field";
 
 export function CategorySlugPageContent({ slug }: { slug: string }) {
   const router = useRouter();
-  const [listSearch, setListSearch] = useState("");
   const categoryQuery = useCategory(slug);
   const categoriesNav = useCategories();
 
@@ -36,18 +35,6 @@ export function CategorySlugPageContent({ slug }: { slug: string }) {
     enabled: Boolean(categoryId),
   });
   const { addProduct } = useCart();
-
-  const submitCategorySearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    const id = categoryQuery.data?.id;
-    if (!id) return;
-    const q = listSearch.trim();
-    router.push(
-      q
-        ? `${ROUTES.PRODUCTS}?category=${id}&search=${encodeURIComponent(q)}`
-        : `${ROUTES.PRODUCTS}?category=${id}`,
-    );
-  };
 
   return (
     <Container className="py-10">
@@ -76,7 +63,7 @@ export function CategorySlugPageContent({ slug }: { slug: string }) {
           }
         />
       ) : (
-        <div className="lg:grid lg:grid-cols-[minmax(200px,220px)_1fr] lg:items-start lg:gap-8">
+        <div className="min-w-0 lg:grid lg:grid-cols-[minmax(200px,220px)_minmax(0,1fr)] lg:items-start lg:gap-8">
           {categoriesNav.data && categoriesNav.data.length > 0 ? (
             <aside className="mb-8 hidden lg:block">
               <CategorySidebar
@@ -85,9 +72,9 @@ export function CategorySlugPageContent({ slug }: { slug: string }) {
               />
             </aside>
           ) : null}
-          <div>
+          <div className="min-w-0">
             {categoriesNav.data && categoriesNav.data.length > 0 ? (
-              <div className="mb-8 lg:hidden">
+              <div className="mb-8">
                 <CategoryScroller compact categories={categoriesNav.data} />
               </div>
             ) : null}
@@ -95,24 +82,17 @@ export function CategorySlugPageContent({ slug }: { slug: string }) {
               <h1 className="font-display text-2xl font-bold tracking-tight text-brand-950 sm:text-3xl">
                 {categoryQuery.data.name}
               </h1>
-              <p className="mt-2 max-w-2xl text-sm text-zinc-700">
+              <p className="mt-2 max-w-2xl break-words text-sm text-zinc-700">
                 {categoryQuery.data.description}
               </p>
-              <form
-                onSubmit={submitCategorySearch}
-                className="mt-6 flex max-w-xl flex-col gap-2 sm:flex-row sm:items-stretch"
-              >
-                <SearchField
-                  className="flex-1"
-                  placeholder="ابحث داخل هذا التصنيف (في صفحة المنتجات)…"
-                  value={listSearch}
-                  onChange={(ev) => setListSearch(ev.target.value)}
-                  aria-label="بحث في التصنيف"
-                />
-                <Button type="submit" variant="secondary" className="shrink-0 sm:w-auto">
-                  بحث
-                </Button>
-              </form>
+              <p className="mt-6">
+                <Link
+                  href={`${ROUTES.PRODUCTS}?category=${categoryQuery.data.id}`}
+                  className="text-sm font-semibold text-brand-900 underline-offset-4 hover:underline"
+                >
+                  تصفح كل المنتجات في هذا التصنيف
+                </Link>
+              </p>
             </div>
 
             <div className="mt-8">

@@ -1,5 +1,6 @@
 "use client";
 
+import { forwardRef } from "react";
 import { cn } from "@/lib/utils";
 
 export type SearchFieldProps = Omit<
@@ -12,15 +13,20 @@ export type SearchFieldProps = Omit<
   inputClassName?: string;
 };
 
-export function SearchField({
-  className,
-  inputClassName,
-  compact,
-  leading,
-  trailing,
-  disabled,
-  ...inputProps
-}: SearchFieldProps) {
+export const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>(
+  function SearchField(
+    {
+      className,
+      inputClassName,
+      compact,
+      leading,
+      trailing,
+      disabled,
+      type = "search",
+      ...inputProps
+    },
+    ref,
+  ) {
   return (
     <div
       className={cn(
@@ -39,7 +45,8 @@ export function SearchField({
         </span>
       ) : null}
       <input
-        type="search"
+        ref={ref}
+        type={type}
         disabled={disabled}
         className={cn(
           "min-w-0 flex-1 border-0 bg-transparent text-foreground outline-none ring-0 placeholder:text-muted-foreground/80",
@@ -60,4 +67,5 @@ export function SearchField({
       ) : null}
     </div>
   );
-}
+  },
+);

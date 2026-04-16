@@ -50,8 +50,10 @@ export function ProductDetailPageContent({ id }: { id: number }) {
             specs={specs}
           />
 
-          <section className="mt-16 border-t border-border pt-12">
-            <h2 className="font-display text-xl font-bold tracking-tight">التقييمات</h2>
+          <section className="mt-16 min-w-0 border-t border-border pt-12">
+            <h2 className="font-display text-lg font-bold tracking-tight sm:text-xl">
+              التقييمات
+            </h2>
             <ProductReviewForm productId={productQuery.data.id} />
             <div className="mt-4">
               {reviewsQuery.isLoading ? (
@@ -79,7 +81,7 @@ export function ProductDetailPageContent({ id }: { id: number }) {
                           {review.rating.toFixed(1)} / 5
                         </span>
                       </div>
-                      <p className="mt-2 text-sm text-zinc-700">{review.review}</p>
+                      <p className="mt-2 break-words text-sm text-zinc-700">{review.review}</p>
                     </li>
                   ))}
                 </ul>
@@ -87,9 +89,9 @@ export function ProductDetailPageContent({ id }: { id: number }) {
             </div>
           </section>
 
-          <section className="mt-16 border-t border-border pt-12">
-            <div className="flex items-center justify-between gap-4">
-              <h2 className="font-display text-xl font-bold tracking-tight">
+          <section className="mt-16 min-w-0 border-t border-border pt-12">
+            <div className="flex min-w-0 flex-wrap items-center justify-between gap-4">
+              <h2 className="font-display text-lg font-bold tracking-tight sm:text-xl">
                 منتجات ذات صلة
               </h2>
               <Link

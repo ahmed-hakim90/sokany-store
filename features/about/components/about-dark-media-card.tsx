@@ -29,7 +29,9 @@ export function AboutDarkMediaCard({
         <h2 className="max-w-[20ch] text-pretty font-display text-2xl font-bold leading-tight text-white sm:text-3xl">
           {title}
         </h2>
-        <p className="mt-3 max-w-xl text-pretty text-sm leading-relaxed text-white/88 sm:text-[15px]">{subtitle}</p>
+        <p className="mt-3 max-w-full text-pretty text-sm leading-relaxed break-words text-white/88 sm:max-w-xl sm:text-[15px]">
+          {subtitle}
+        </p>
       </div>
     </div>
   );

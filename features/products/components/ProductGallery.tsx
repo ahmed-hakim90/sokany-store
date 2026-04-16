@@ -25,7 +25,7 @@ export function ProductGallery({
   const [activeSrc, setActiveSrc] = useState(initial);
 
   return (
-    <div className={cn("flex flex-col gap-3", className)}>
+    <div className={cn("flex min-w-0 flex-col gap-3", className)}>
       <div className="relative aspect-square overflow-hidden rounded-xl border border-border bg-image-well">
         <AppImage
           src={activeSrc}

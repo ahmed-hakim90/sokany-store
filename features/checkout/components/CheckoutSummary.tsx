@@ -50,7 +50,7 @@ export function CheckoutSummary({
           {preview.map((item) => (
             <li
               key={item.productId}
-              className="flex gap-3 rounded-xl border border-border/60 bg-page/35 p-3"
+              className="flex min-w-0 gap-3 rounded-xl border border-border/60 bg-page/35 p-3"
             >
               <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-border/80 bg-image-well">
                 <AppImage src={item.thumbnail} alt="" fill sizes="56px" />

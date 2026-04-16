@@ -2,12 +2,17 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AppImage } from "@/components/AppImage";
+import { NavbarSearch } from "@/components/layout/navbar-search";
 import { TopHeader } from "@/components/layout/top-header";
 import { IconButton } from "@/components/ui/icon-button";
 import { useCart } from "@/hooks/useCart";
-import { ROUTES, SITE_NAME, SITE_WORDMARK } from "@/lib/constants";
+import {
+  ROUTES,
+  SITE_NAME,
+  SITE_WORDMARK,
+} from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 const links = [
@@ -20,8 +25,6 @@ const links = [
 
 const mobileIconTapClass =
   "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-brand-900/50 transition-colors hover:bg-surface-muted/45 hover:text-brand-950 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500";
-
-const mobileIconSvgClass = "h-[17px] w-[17px] shrink-0 stroke-[1.45]";
 
 function MobileCartLink({
   totalItems,
@@ -64,6 +67,15 @@ export function Navbar() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const { totalItems } = useCart();
+
+  useEffect(() => {
+    if (!open) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [open]);
 
   const isCheckout = pathname === ROUTES.CHECKOUT;
   const isAbout = pathname === ROUTES.ABOUT;
@@ -137,6 +149,10 @@ export function Navbar() {
     </IconButton>
   );
 
+  const mobileLeadingSpacer = (
+    <span className="inline-flex h-8 w-8 shrink-0" aria-hidden />
+  );
+
   const mobileLeading = isCheckout ? (
     <Link
       href={ROUTES.CART}
@@ -148,12 +164,7 @@ export function Navbar() {
   ) : isAbout ? (
     mobileMenuButton
   ) : (
-    <Link href={ROUTES.PRODUCTS} className={mobileIconTapClass} aria-label="بحث">
-      <svg viewBox="0 0 24 24" className={mobileIconSvgClass} fill="none" stroke="currentColor" aria-hidden>
-        <circle cx="11" cy="11" r="7" />
-        <path d="M20 20l-3-3" strokeLinecap="round" />
-      </svg>
-    </Link>
+    mobileLeadingSpacer
   );
 
   const mobileWordmark = isCheckout ? (
@@ -219,14 +230,17 @@ export function Navbar() {
   return (
     <TopHeader
       logo={logo}
+      center={<NavbarSearch />}
       desktopNav={desktopNav}
       trailing={trailing}
       mobileWordmark={mobileWordmark}
       mobileLeading={mobileLeading}
       mobileTrailing={mobileTrailing}
+      mobileToolbarBelow={isCheckout ? undefined : <NavbarSearch />}
       mobileSecondary={mobileSecondary}
       mobilePanel={mobilePanel}
       mobilePanelOpen={open}
+      onMobilePanelClose={() => setOpen(false)}
     />
   );
 }

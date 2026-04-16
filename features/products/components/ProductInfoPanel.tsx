@@ -33,11 +33,12 @@ export function ProductInfoPanel({
         {!product.inStock ? <ProductBadge variant="outOfStock" /> : null}
       </div>
       <div>
-        <h1 className="font-display text-2xl font-semibold text-foreground sm:text-3xl lg:text-4xl">
+        <h1 className="text-pretty font-display text-2xl font-semibold break-words text-foreground sm:text-3xl lg:text-4xl">
           {product.name}
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          SKU: <span className="font-mono text-foreground">{product.sku}</span>
+          SKU:{" "}
+          <span className="break-all font-mono text-foreground">{product.sku}</span>
         </p>
         <p className="mt-1 text-sm text-muted-foreground">
           {product.inStock ? (
@@ -56,9 +57,9 @@ export function ProductInfoPanel({
         />
       </div>
       <div className="space-y-3 text-sm leading-relaxed text-zinc-700">
-        <p>{product.shortDescription || product.description}</p>
+        <p className="break-words">{product.shortDescription || product.description}</p>
         {product.description.length > 0 && product.shortDescription ? (
-          <p className="text-zinc-600">{product.description}</p>
+          <p className="break-words text-zinc-600">{product.description}</p>
         ) : null}
       </div>
       <div className="mt-2 flex flex-col gap-4 sm:flex-row sm:items-center">

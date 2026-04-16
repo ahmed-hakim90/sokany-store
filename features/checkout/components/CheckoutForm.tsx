@@ -108,7 +108,7 @@ export function CheckoutForm() {
     <>
       <CheckoutLoadingOverlay visible={checkoutOrder.isPending} />
       <div
-        className="mx-auto flex w-full max-w-lg flex-col gap-3 pb-10"
+        className="mx-auto flex w-full min-w-0 max-w-lg flex-col gap-3 pb-10 sm:max-w-xl md:max-w-2xl lg:max-w-3xl"
         role="group"
         aria-label="إتمام الطلب"
       >

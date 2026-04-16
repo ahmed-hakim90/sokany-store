@@ -2,12 +2,10 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
 import { Button } from "@/components/Button";
 import { Container } from "@/components/Container";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorState } from "@/components/ErrorState";
-import { SearchField } from "@/components/ui/search-field";
 import { useCart } from "@/hooks/useCart";
 import { HomeHeroBanner } from "@/features/home/components/home-hero-banner";
 import { HomePromoCard } from "@/features/home/components/home-promo-card";
@@ -39,53 +37,13 @@ function TruckIcon() {
 
 export function HomePageContent() {
   const router = useRouter();
-  const [searchDraft, setSearchDraft] = useState("");
   const featured = useProducts({ featured: true, per_page: 8 });
   const categories = useCategories();
   const { addProduct } = useCart();
 
-  const submitSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    const q = searchDraft.trim();
-    if (!q) {
-      router.push(ROUTES.PRODUCTS);
-      return;
-    }
-    router.push(`${ROUTES.PRODUCTS}?search=${encodeURIComponent(q)}`);
-  };
-
   return (
     <div className="animate-fade-in bg-page">
       <Container className="space-y-5 pb-8 pt-3 sm:space-y-6 sm:pb-10">
-        <form onSubmit={submitSearch} className="w-full">
-          <SearchField
-            className="h-12 rounded-full border-0 bg-white pe-1 shadow-[0_6px_22px_-10px_rgba(15,23,42,0.12)] ring-1 ring-black/[0.05] focus-within:ring-2 focus-within:ring-brand-500/40"
-            inputClassName="py-2.5 text-[15px] placeholder:text-muted-foreground/75"
-            placeholder="ابحث عن منتجات سوكانى…"
-            value={searchDraft}
-            onChange={(ev) => setSearchDraft(ev.target.value)}
-            aria-label="بحث في المنتجات"
-            leading={
-              <svg viewBox="0 0 24 24" className="h-5 w-5 text-muted-foreground" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-                <circle cx="11" cy="11" r="7" />
-                <path d="M20 20l-3-3" strokeLinecap="round" />
-              </svg>
-            }
-            trailing={
-              <button
-                type="submit"
-                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-page text-black transition-colors hover:bg-surface-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500"
-                aria-label="تنفيذ البحث"
-              >
-                <svg viewBox="0 0 24 24" className="h-4 w-4 text-muted-foreground" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden>
-                  <circle cx="11" cy="11" r="7" />
-                  <path d="M20 20l-3-3" strokeLinecap="round" />
-                </svg>
-              </button>
-            }
-          />
-        </form>
-
         {categories.data && categories.data.length > 0 ? (
           <CategoryShortcutGrid categories={categories.data} layout="home" limit={6} />
         ) : null}

@@ -70,7 +70,7 @@ export function ProductGrid({
 
   if (status === "loading") {
     return (
-      <div className={cn(gridClass, className)}>
+      <div className={cn("min-w-0", gridClass, className)}>
         {loading ?? (
           <>
             {Array.from({ length: 8 }).map((_, i) => (
@@ -83,14 +83,16 @@ export function ProductGrid({
   }
 
   if (status === "empty") {
-    return <div className={className}>{empty ?? null}</div>;
+    return <div className={cn("min-w-0", className)}>{empty ?? null}</div>;
   }
 
   return (
-    <div className={cn(gridClass, className)}>
+    <div className={cn("min-w-0", gridClass, className)}>
       {products.map((product) =>
         renderItem ? (
-          <div key={product.id}>{renderItem(product)}</div>
+          <div key={product.id} className="min-w-0">
+            {renderItem(product)}
+          </div>
         ) : (
           <ProductCard
             key={product.id}

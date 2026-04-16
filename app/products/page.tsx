@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { ProductsCatalogSkeleton } from "@/components/pages/ProductsCatalogSkeleton";
 import { ProductsPageContent } from "@/components/pages/ProductsPageContent";
 import { getSiteUrl } from "@/lib/site";
 
@@ -31,7 +32,7 @@ export const metadata: Metadata = {
 
 export default function ProductsPage() {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<ProductsCatalogSkeleton />}>
       <ProductsPageContent />
     </Suspense>
   );

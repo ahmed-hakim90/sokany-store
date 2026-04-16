@@ -7,6 +7,8 @@ export type MobileTopHeaderProps = {
   trailing: React.ReactNode;
   /** Inline-start control (search icon, back arrow, etc.). */
   leading: React.ReactNode;
+  /** Full-width row under the logo row (e.g. product search). */
+  toolbarBelow?: React.ReactNode;
   /** Optional muted metadata row under the wordmark. */
   secondary?: React.ReactNode;
   className?: string;
@@ -20,6 +22,7 @@ export function MobileTopHeader({
   wordmark,
   trailing,
   leading,
+  toolbarBelow,
   secondary,
   className,
 }: MobileTopHeaderProps) {
@@ -44,6 +47,9 @@ export function MobileTopHeader({
           {trailing}
         </div>
       </div>
+      {toolbarBelow ? (
+        <div className="min-w-0 px-5 pb-2 pt-0.5 sm:px-7">{toolbarBelow}</div>
+      ) : null}
       {secondary ? (
         <div className="px-5 pb-2.5 text-center sm:px-7">
           <div className="text-[11px] font-medium leading-snug text-muted-foreground sm:text-xs">

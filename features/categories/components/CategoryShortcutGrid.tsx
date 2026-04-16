@@ -10,7 +10,7 @@ export type CategoryShortcutGridProps = {
   className?: string;
   /** Max tiles to show (home shortcuts). */
   limit?: number;
-  /** Home: 3×2 rounded tiles on a soft gray fill (reference layout). */
+  /** Home: one horizontal row of rounded tiles (soft gray), scroll-x on small screens. */
   layout?: "default" | "home";
 };
 
@@ -33,15 +33,23 @@ export function CategoryShortcutGrid({
         </p>
       ) : null}
       <div
+        role={isHome ? "region" : undefined}
+        aria-label={isHome ? "تصفح التصنيفات" : undefined}
         className={cn(
-          "grid gap-3",
-          isHome ? "grid-cols-3" : "grid-cols-2 sm:grid-cols-3 md:grid-cols-4",
+          "gap-3",
+          isHome
+            ? "flex flex-row flex-nowrap snap-x snap-mandatory overflow-x-auto overscroll-x-contain pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            : "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4",
         )}
       >
         {list.map((category) => {
           const src = category.image ?? "/images/placeholder.png";
           return (
-            <Link key={category.id} href={ROUTES.CATEGORY(category.slug)} className="min-w-0">
+            <Link
+              key={category.id}
+              href={ROUTES.CATEGORY(category.slug)}
+              className={cn(isHome ? "w-[96px] shrink-0 snap-start" : "min-w-0")}
+            >
               <Card
                 variant="surface"
                 className={cn(

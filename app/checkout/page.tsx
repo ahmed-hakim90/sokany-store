@@ -24,7 +24,7 @@ export const metadata: Metadata = {
 
 export default function CheckoutPage() {
   return (
-    <div className="min-h-0 flex-1 bg-page">
+    <div className="min-h-0 min-w-0 flex-1 bg-page">
       <Container className="pt-3 md:pt-4">
         <CheckoutForm />
       </Container>

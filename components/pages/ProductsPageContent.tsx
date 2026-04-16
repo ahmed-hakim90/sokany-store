@@ -1,19 +1,29 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
 import { Container } from "@/components/Container";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorState } from "@/components/ErrorState";
 import { PillFilter } from "@/components/ui/pill-filter";
-import { SearchField } from "@/components/ui/search-field";
 import { useProductsCatalog } from "@/hooks/useProductsCatalog";
 import { ROUTES } from "@/lib/constants";
+import { focusProductSearchHeaderInput } from "@/lib/product-search-header";
 import { ProductGrid } from "@/features/products/components/ProductGrid";
 
 export function ProductsPageContent() {
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (window.location.hash !== "#catalog-search") return;
+    const frame = window.requestAnimationFrame(() => {
+      focusProductSearchHeaderInput();
+    });
+    const { pathname, search } = window.location;
+    window.history.replaceState(null, "", `${pathname}${search}`);
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
+
   const {
-    searchDraft,
-    setSearchDraft,
     productsQuery,
     categoriesQuery,
     isFeatured,
@@ -27,7 +37,7 @@ export function ProductsPageContent() {
     <Container className="py-10">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="font-display text-3xl font-bold tracking-tight text-brand-950">
+          <h1 className="font-display text-2xl font-bold tracking-tight text-brand-950 sm:text-3xl">
             المنتجات
           </h1>
           <p className="text-sm text-muted-foreground">
@@ -36,30 +46,7 @@ export function ProductsPageContent() {
         </div>
       </div>
 
-      <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center">
-        <SearchField
-          className="max-w-xl flex-1"
-          placeholder="ابحث عن منتج…"
-          value={searchDraft}
-          onChange={(event) => setSearchDraft(event.target.value)}
-          aria-label="بحث المنتجات"
-          leading={
-            <svg
-              viewBox="0 0 24 24"
-              className="h-4 w-4"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              aria-hidden
-            >
-              <circle cx="11" cy="11" r="7" />
-              <path d="M20 20l-3-3" strokeLinecap="round" />
-            </svg>
-          }
-        />
-      </div>
-
-      <div className="mt-4 flex flex-wrap gap-2">
+      <div className="mt-6 flex flex-wrap gap-2">
         <PillFilter active={allActive} onClick={() => pushFilters({ clear: true })}>
           الكل
         </PillFilter>

@@ -81,7 +81,7 @@ export function ProductCard({
     <Card
       variant="product"
       className={cn(
-        "flex h-full flex-col transition-transform hover:-translate-y-0.5",
+        "flex h-full min-w-0 flex-col transition-transform hover:-translate-y-0.5",
         layout.card,
         className,
       )}

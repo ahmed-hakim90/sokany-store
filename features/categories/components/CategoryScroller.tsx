@@ -21,8 +21,10 @@ export function CategoryScroller({
 
   return (
     <div
+      role="region"
+      aria-label="تصفح التصنيفات"
       className={cn(
-        "flex gap-3 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+        "flex snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
         className,
       )}
     >
@@ -32,7 +34,7 @@ export function CategoryScroller({
         ) : (
           <div
             key={category.id}
-            className="w-[min(280px,72vw)] shrink-0 sm:w-[240px]"
+            className="w-[min(280px,72vw)] shrink-0 snap-start sm:w-[240px]"
           >
             <CategoryCard category={category} />
           </div>
@@ -45,7 +47,10 @@ export function CategoryScroller({
 function CompactCategoryTile({ category }: { category: Category }) {
   const src = category.image ?? "/images/placeholder.png";
   return (
-    <Link href={ROUTES.CATEGORY(category.slug)} className="shrink-0">
+    <Link
+      href={ROUTES.CATEGORY(category.slug)}
+      className="shrink-0 snap-start"
+    >
       <Card
         variant="surface"
         className="flex w-[100px] flex-col items-center gap-2 p-2 text-center transition hover:border-brand-300 sm:w-[120px]"

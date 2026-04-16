@@ -1,9 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { startTransition, useCallback, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ROUTES } from "@/lib/constants";
-import { useDebounce } from "@/hooks/useDebounce";
 import { useCart } from "@/hooks/useCart";
 import { useCategories } from "@/features/categories/hooks/useCategories";
 import { useProducts } from "@/features/products/hooks/useProducts";
@@ -19,37 +18,6 @@ export function useProductsCatalog() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { addProduct } = useCart();
-  const [searchDraft, setSearchDraft] = useState(
-    () => searchParams.get("search")?.trim() ?? "",
-  );
-
-  useEffect(() => {
-    const nextSearch = searchParams.get("search")?.trim() ?? "";
-    queueMicrotask(() => {
-      setSearchDraft(nextSearch);
-    });
-  }, [searchParams]);
-
-  const debouncedSearch = useDebounce(searchDraft, 400);
-
-  useEffect(() => {
-    const current = (searchParams.get("search") ?? "").trim();
-    const next = debouncedSearch.trim();
-    if (next === current) return;
-
-    const params = new URLSearchParams(searchParams.toString());
-    if (next) {
-      params.set("search", next);
-    } else {
-      params.delete("search");
-    }
-    params.delete("page");
-
-    const qs = params.toString();
-    router.replace(qs ? `${ROUTES.PRODUCTS}?${qs}` : ROUTES.PRODUCTS, {
-      scroll: false,
-    });
-  }, [debouncedSearch, router, searchParams]);
 
   const params = useMemo<ProductQueryParams>(() => {
     const searchRaw = searchParams.get("search");
@@ -76,7 +44,9 @@ export function useProductsCatalog() {
   const pushFilters = useCallback(
     (next: { featured?: boolean; category?: number | null; clear?: boolean }) => {
       if (next.clear) {
-        router.push(ROUTES.PRODUCTS);
+        startTransition(() => {
+          router.push(ROUTES.PRODUCTS, { scroll: false });
+        });
         return;
       }
 
@@ -94,14 +64,16 @@ export function useProductsCatalog() {
       }
 
       const qs = params.toString();
-      router.push(qs ? `${ROUTES.PRODUCTS}?${qs}` : ROUTES.PRODUCTS);
+      startTransition(() => {
+        router.push(qs ? `${ROUTES.PRODUCTS}?${qs}` : ROUTES.PRODUCTS, {
+          scroll: false,
+        });
+      });
     },
     [router, searchParams],
   );
 
   return {
-    searchDraft,
-    setSearchDraft,
     productsQuery,
     categoriesQuery,
     isFeatured,

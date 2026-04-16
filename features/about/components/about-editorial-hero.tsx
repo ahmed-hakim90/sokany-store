@@ -28,7 +28,7 @@ export function AboutEditorialHero({
       />
       <div className="relative flex min-h-[272px] flex-col justify-end sm:min-h-[300px] md:min-h-[340px]">
         <div className="px-7 pb-9 pt-16 sm:px-9 sm:pb-10 md:px-11 md:pb-11">
-          <h1 className="max-w-[18ch] text-pretty font-display text-[1.7rem] font-bold leading-[1.12] tracking-tight text-white sm:text-[1.85rem] md:text-4xl">
+          <h1 className="max-w-[18ch] text-pretty font-display text-[1.7rem] font-bold leading-[1.12] tracking-tight break-words text-white sm:text-[1.85rem] md:text-4xl">
             {headline}
           </h1>
         </div>

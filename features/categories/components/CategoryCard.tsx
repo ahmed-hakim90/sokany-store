@@ -23,7 +23,10 @@ export function CategoryCard({ category }: { category: Category }) {
         <h3 className="font-display text-lg font-semibold text-foreground group-hover:text-brand-600">
           {category.name}
         </h3>
-        <p className="text-sm text-zinc-600">{category.count} products</p>
+        <p className="text-sm text-muted-foreground">
+          {category.count}{" "}
+          {category.count === 1 ? "منتج" : "منتجات"}
+        </p>
       </div>
     </Link>
   );

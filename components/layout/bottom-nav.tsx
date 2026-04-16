@@ -50,21 +50,14 @@ export function BottomNavInner() {
                 className={cn(
                   "flex w-full max-w-[4.5rem] flex-col items-center gap-0.5 rounded-full px-1 py-1 text-[9px] font-semibold leading-tight transition-[color,background-color,box-shadow] duration-200",
                   active
-                    ? "bg-brand-500 text-brand-950 shadow-[0_2px_10px_-2px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.45)]"
+                    ? "bg-brand-950 text-brand-200 shadow-inner ring-1 ring-brand-500/35"
                     : "text-muted-foreground hover:text-foreground/55",
                 )}
               >
                 <span className="relative inline-flex">
                   <Icon />
                   {isCart && totalItems > 0 ? (
-                    <span
-                      className={cn(
-                        "absolute -end-0.5 -top-0.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full px-0.5 text-[8px] font-bold leading-none",
-                        active
-                          ? "bg-brand-950 text-brand-400"
-                          : "bg-brand-500 text-black",
-                      )}
-                    >
+                    <span className="absolute -end-0.5 -top-0.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-brand-500 px-0.5 text-[8px] font-bold leading-none text-black">
                       {totalItems > 99 ? "99+" : totalItems}
                     </span>
                   ) : null}

@@ -70,7 +70,7 @@ export function HomeHeroBanner({
           </h1>
           <p
             className={cn(
-              "mt-1.5 max-w-md text-pretty text-white/88 sm:mt-2",
+              "mt-1.5 max-w-full text-pretty break-words text-white/88 sm:mt-2 sm:max-w-md",
               compact ? "text-xs sm:text-sm" : "text-sm sm:text-base",
             )}
           >

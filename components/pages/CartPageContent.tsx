@@ -19,7 +19,7 @@ export function CartPageContent() {
 
   return (
     <Container className="py-10">
-      <h1 className="font-display text-3xl font-bold tracking-tight text-brand-950">
+      <h1 className="font-display text-2xl font-bold tracking-tight text-brand-950 sm:text-3xl">
         سلة التسوق
       </h1>
 
@@ -36,14 +36,14 @@ export function CartPageContent() {
           />
         </div>
       ) : (
-        <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_320px]">
-          <div className="space-y-4">
+        <div className="mt-8 grid min-w-0 gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(260px,320px)]">
+          <div className="min-w-0 space-y-4">
             {items.map((item) => (
               <div
                 key={item.productId}
-                className="flex gap-4 rounded-xl border border-black/[0.06] bg-white p-4 shadow-[0_2px_16px_-4px_rgba(15,23,42,0.07)]"
+                className="flex flex-col gap-4 rounded-xl border border-black/[0.06] bg-white p-4 shadow-[0_2px_16px_-4px_rgba(15,23,42,0.07)] sm:flex-row sm:items-stretch"
               >
-                <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-lg border border-border bg-image-well">
+                <div className="relative mx-auto h-24 w-24 shrink-0 overflow-hidden rounded-lg border border-border bg-image-well sm:mx-0">
                   <AppImage
                     src={item.thumbnail}
                     alt={item.name}
