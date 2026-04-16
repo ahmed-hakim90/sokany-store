@@ -2,10 +2,10 @@ export const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === "true";
 export const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000";
 export const SITE_NAME =
-  process.env.NEXT_PUBLIC_SITE_NAME ?? "Hakimo-Ecommerce";
+  process.env.NEXT_PUBLIC_SITE_NAME ?? "Sokany-Eg";
 /** Compact mobile header wordmark (Latin mark; override via env). */
 export const SITE_WORDMARK =
-  process.env.NEXT_PUBLIC_SITE_WORDMARK ?? "SOKANYEgypt";
+  process.env.NEXT_PUBLIC_SITE_WORDMARK ?? "SOKANY-Eg";
 export const DEFAULT_CURRENCY =
   process.env.NEXT_PUBLIC_DEFAULT_CURRENCY ?? "EGP";
 export const CURRENCY_LOCALE =

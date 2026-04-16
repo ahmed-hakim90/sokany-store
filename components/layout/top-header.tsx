@@ -51,7 +51,7 @@ export function TopHeader({
       <div className="mx-auto hidden w-full min-w-0 max-w-7xl items-center gap-3 px-4 py-2.5 sm:gap-4 sm:px-6 lg:gap-5 lg:px-8 md:flex">
         <div className="flex min-w-0 shrink-0 items-center gap-2">{logo}</div>
         {desktopNav ? (
-          <nav className="hidden min-w-0 shrink-0 items-center gap-4 overflow-x-auto whitespace-nowrap text-sm font-medium md:flex lg:gap-6">
+          <nav className="hidden min-w-0 shrink-0 items-center gap-4 overflow-x-auto overflow-y-hidden whitespace-nowrap text-sm font-medium md:flex lg:gap-6">
             {desktopNav}
           </nav>
         ) : null}

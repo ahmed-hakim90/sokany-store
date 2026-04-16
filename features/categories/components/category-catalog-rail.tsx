@@ -105,7 +105,7 @@ export function CategoryCatalogRail(props: CategoryCatalogRailProps) {
       ) : (
         <RailTile
           href={ROUTES.CATEGORIES}
-          active={false}
+          active={props.activeSlug === ""}
           label="كل التصنيفات"
         >
           <AllCategoriesGlyph className="h-6 w-6" />

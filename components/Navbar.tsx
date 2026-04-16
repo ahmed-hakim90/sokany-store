@@ -188,10 +188,6 @@ export function Navbar() {
     </IconButton>
   );
 
-  const mobileLeadingSpacer = (
-    <span className="inline-flex h-11 w-11 shrink-0" aria-hidden />
-  );
-
   const mobileLeading = isCheckout ? (
     <Link
       href={ROUTES.CART}
@@ -202,10 +198,8 @@ export function Navbar() {
     </Link>
   ) : isAbout ? (
     mobileMenuButton
-  ) : pathname === ROUTES.HOME ? (
-    <MobileStoreHotline />
   ) : (
-    mobileLeadingSpacer
+    <MobileStoreHotline />
   );
 
   const mobileWordmark = isCheckout ? (
