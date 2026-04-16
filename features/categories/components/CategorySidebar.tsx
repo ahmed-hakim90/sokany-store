@@ -20,11 +20,20 @@ function RowMarker({ active }: { active: boolean }) {
 
 export type CategorySidebarProps = {
   categories: Category[];
-  /** Highlights the active category slug; omit on the all-categories page. */
+  /** Highlights the active category slug on category pages. */
   activeSlug?: string | null;
   className?: string;
-  /** Optional slot below the list (e.g. future filters). */
+  /** Optional slot below the list (e.g. price filter). */
   footerSlot?: ReactNode;
+  /**
+   * `slug`: links to `/categories/...` (default).
+   * `productsQuery`: links to `/products?category=id` for catalog filtering.
+   */
+  linkMode?: "slug" | "productsQuery";
+  /** When `linkMode` is `productsQuery`, highlights the active category id. */
+  activeCategoryId?: number | null;
+  /** When `linkMode` is `productsQuery`, true when no category filter is applied. */
+  allProductsActive?: boolean;
 };
 
 export function CategorySidebar({
@@ -32,69 +41,107 @@ export function CategorySidebar({
   activeSlug,
   className,
   footerSlot,
+  linkMode = "slug",
+  activeCategoryId,
+  allProductsActive = false,
 }: CategorySidebarProps) {
+  const isProductsMode = linkMode === "productsQuery";
+
+  const allActive = isProductsMode
+    ? allProductsActive
+    : !activeSlug;
+
   return (
     <nav
       className={cn(
-        "rounded-lg border border-border/70 bg-white/85 p-3 backdrop-blur-sm",
+        "rounded-[var(--radius-editorial,1.5rem)] border border-border/70 bg-white/90 p-4 shadow-sm backdrop-blur-sm",
         className,
       )}
-      aria-label="Category navigation"
+      aria-label="تصفية التصنيفات"
     >
-      <header className="mb-2 border-b border-border/50 pb-2">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-          Categories
-        </p>
+      <header className="mb-3 border-b border-border/50 pb-2">
+        <p className="text-sm font-bold text-foreground">تصفية النتائج</p>
+        <p className="mt-0.5 text-[11px] text-muted-foreground">اختر التصنيف أو ضيّق السعر</p>
       </header>
       <ul className="divide-y divide-border/40">
         <li className="py-0.5 first:pt-0">
-          <Link
-            href={ROUTES.CATEGORIES}
-            className={cn(
-              "group flex items-start gap-2.5 rounded-md px-1 py-1.5 transition-colors",
-              !activeSlug
-                ? "bg-brand-500/[0.07]"
-                : "hover:bg-black/[0.025]",
-            )}
-          >
-            <RowMarker active={!activeSlug} />
-            <span
+          {isProductsMode ? (
+            <Link
+              href={ROUTES.PRODUCTS}
               className={cn(
-                "min-w-0 flex-1 text-sm leading-snug transition-colors",
-                !activeSlug
-                  ? "font-semibold text-foreground"
-                  : "font-medium text-muted-foreground group-hover:text-foreground",
+                "group flex items-start gap-2.5 rounded-xl px-2 py-2 transition-colors",
+                allActive ? "bg-brand-500 text-black" : "hover:bg-black/[0.03]",
               )}
             >
-              All categories
-            </span>
-          </Link>
+              <RowMarker active={allActive} />
+              <span
+                className={cn(
+                  "min-w-0 flex-1 text-sm leading-snug",
+                  allActive ? "font-bold" : "font-medium text-muted-foreground group-hover:text-foreground",
+                )}
+              >
+                الكل
+              </span>
+            </Link>
+          ) : (
+            <Link
+              href={ROUTES.CATEGORIES}
+              className={cn(
+                "group flex items-start gap-2.5 rounded-xl px-2 py-2 transition-colors",
+                allActive ? "bg-brand-500/[0.12]" : "hover:bg-black/[0.03]",
+              )}
+            >
+              <RowMarker active={allActive} />
+              <span
+                className={cn(
+                  "min-w-0 flex-1 text-sm leading-snug",
+                  allActive
+                    ? "font-bold text-foreground"
+                    : "font-medium text-muted-foreground group-hover:text-foreground",
+                )}
+              >
+                كل التصنيفات
+              </span>
+            </Link>
+          )}
         </li>
         {categories.map((category) => {
-          const active = activeSlug === category.slug;
+          const active = isProductsMode
+            ? activeCategoryId === category.id
+            : activeSlug === category.slug;
+          const href = isProductsMode
+            ? `${ROUTES.PRODUCTS}?category=${category.id}`
+            : ROUTES.CATEGORY(category.slug);
+
           return (
             <li key={category.id} className="py-0.5">
               <Link
-                href={ROUTES.CATEGORY(category.slug)}
+                href={href}
                 className={cn(
-                  "group flex items-start gap-2.5 rounded-md px-1 py-1.5 transition-colors",
-                  active ? "bg-brand-500/[0.07]" : "hover:bg-black/[0.025]",
+                  "group flex items-start gap-2.5 rounded-xl px-2 py-2 transition-colors",
+                  active && isProductsMode
+                    ? "bg-brand-500 text-black"
+                    : active
+                      ? "bg-brand-500/[0.12]"
+                      : "hover:bg-black/[0.03]",
                 )}
               >
                 <RowMarker active={active} />
                 <span className="min-w-0 flex-1">
                   <span
                     className={cn(
-                      "line-clamp-2 text-sm leading-snug transition-colors",
-                      active
-                        ? "font-semibold text-foreground"
-                        : "font-medium text-muted-foreground group-hover:text-foreground",
+                      "line-clamp-2 text-sm leading-snug",
+                      active && isProductsMode
+                        ? "font-bold"
+                        : active
+                          ? "font-bold text-foreground"
+                          : "font-medium text-muted-foreground group-hover:text-foreground",
                     )}
                   >
                     {category.name}
                   </span>
                   <span className="mt-0.5 block text-[11px] font-normal leading-tight text-muted-foreground/85">
-                    {category.count} products
+                    {category.count} منتج
                   </span>
                 </span>
               </Link>
@@ -103,7 +150,7 @@ export function CategorySidebar({
         })}
       </ul>
       {footerSlot ? (
-        <div className="mt-3 border-t border-border/50 pt-3 text-sm">{footerSlot}</div>
+        <div className="mt-4 border-t border-border/50 pt-4 text-sm">{footerSlot}</div>
       ) : null}
     </nav>
   );

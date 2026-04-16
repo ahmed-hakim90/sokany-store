@@ -48,17 +48,15 @@ export function TopHeader({
         />
       </div>
 
-      <div className="mx-auto hidden w-full min-w-0 max-w-7xl items-center gap-3 px-4 py-2.5 sm:px-6 lg:px-8 md:flex">
+      <div className="mx-auto hidden w-full min-w-0 max-w-7xl items-center gap-3 px-4 py-2.5 sm:gap-4 sm:px-6 lg:gap-5 lg:px-8 md:flex">
         <div className="flex min-w-0 shrink-0 items-center gap-2">{logo}</div>
-        {center ? (
-          <div className="mx-auto hidden min-w-0 max-w-xl flex-1 md:block">
-            {center}
-          </div>
-        ) : null}
         {desktopNav ? (
-          <nav className="hidden flex-1 items-center justify-center gap-8 md:flex">
+          <nav className="hidden min-w-0 shrink-0 items-center gap-4 overflow-x-auto whitespace-nowrap text-sm font-medium md:flex lg:gap-6">
             {desktopNav}
           </nav>
+        ) : null}
+        {center ? (
+          <div className="mx-auto min-w-0 max-w-md flex-1 px-2 lg:max-w-lg">{center}</div>
         ) : null}
         <div className="ms-auto flex shrink-0 items-center gap-2">{trailing}</div>
       </div>

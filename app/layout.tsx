@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Montserrat, Noto_Sans_Arabic } from "next/font/google";
+import { Cairo, Montserrat } from "next/font/google";
 import { SiteShell } from "@/components/layout/site-shell";
 import { OrganizationJsonLd } from "@/components/seo/OrganizationJsonLd";
 import { QueryProvider } from "@/providers/QueryProvider";
@@ -7,9 +7,9 @@ import { ToastProvider } from "@/providers/ToastProvider";
 import { getSiteUrl } from "@/lib/site";
 import "./globals.css";
 
-const notoArabic = Noto_Sans_Arabic({
+const cairo = Cairo({
   subsets: ["arabic", "latin"],
-  variable: "--font-noto-arabic",
+  variable: "--font-cairo",
   display: "swap",
 });
 
@@ -33,7 +33,7 @@ export default function RootLayout({
     <html
       lang="ar"
       dir="rtl"
-      className={`${notoArabic.variable} ${montserrat.variable} h-full antialiased`}
+      className={`${cairo.variable} ${montserrat.variable} h-full antialiased`}
     >
       <body className="flex min-h-full min-w-0 flex-col bg-page text-foreground">
         <OrganizationJsonLd />

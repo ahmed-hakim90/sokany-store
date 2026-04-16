@@ -98,9 +98,9 @@ export function MobileCartBottomSheet({
             </button>
           </Drawer.Trigger>
           <Button
-            variant="dark"
+            variant="primary"
             size="sm"
-            className="shrink-0 self-center"
+            className="shrink-0 self-center font-bold"
             type="button"
             onClick={(e) => {
               e.preventDefault();
@@ -108,7 +108,7 @@ export function MobileCartBottomSheet({
               goCheckout();
             }}
           >
-            إتمام الطلب
+            الانتقال للدفع
           </Button>
         </div>
       </div>
@@ -148,12 +148,12 @@ export function MobileCartBottomSheet({
           <div className="shrink-0 border-t border-border bg-white px-4 pt-3 shadow-[0_-4px_20px_-6px_rgba(15,23,42,0.08)]">
             <Button
               type="button"
-              variant="dark"
+              variant="primary"
               size="lg"
-              className="w-full"
+              className="w-full font-bold"
               onClick={goCheckout}
             >
-              إتمام الطلب
+              الانتقال للدفع
             </Button>
           </div>
         </Drawer.Content>
@@ -189,7 +189,7 @@ const CartSheetLine = memo(function CartSheetLine({
         <div className="flex items-start justify-between gap-2">
           <Link
             href={ROUTES.PRODUCT(item.productId)}
-            className="line-clamp-2 text-start text-sm font-semibold text-foreground hover:text-brand-700"
+            className="line-clamp-2 text-start text-sm font-semibold text-foreground hover:text-brand-600"
           >
             {item.name}
           </Link>

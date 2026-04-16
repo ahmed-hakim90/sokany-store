@@ -121,14 +121,14 @@ export function NavbarSearch() {
       <SearchField
         ref={inputRef}
         id={inputId}
-        data-product-search-header
         role="combobox"
         aria-expanded={showPanel}
         aria-controls={listboxId}
         aria-autocomplete="list"
         aria-haspopup="listbox"
         aria-label="بحث في المنتجات"
-        placeholder="ابحث عن منتج…"
+        data-product-search-header=""
+        placeholder="ابحث عن أجهزة سوكاني…"
         value={value}
         onChange={(e) => {
           setValue(e.target.value);
@@ -148,7 +148,7 @@ export function NavbarSearch() {
             goSearch();
           }
         }}
-        className="w-full"
+        className="w-full rounded-2xl border-zinc-200/90 bg-white shadow-sm"
         compact
         leading={
           <svg

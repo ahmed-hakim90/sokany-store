@@ -14,6 +14,7 @@ import { useCategory } from "@/features/categories/hooks/useCategory";
 import { CategoryScroller } from "@/features/categories/components/CategoryScroller";
 import { CategorySidebar } from "@/features/categories/components/CategorySidebar";
 import { useProducts } from "@/features/products/hooks/useProducts";
+import { CatalogPromoTile } from "@/features/catalog/components/catalog-promo-tile";
 import { ProductGrid } from "@/features/products/components/ProductGrid";
 import { ProductSkeleton } from "@/features/products/components/ProductSkeleton";
 
@@ -112,10 +113,14 @@ export function CategorySlugPageContent({ slug }: { slug: string }) {
                   }
                   products={productsQuery.data ?? []}
                   onAddToCart={addProduct}
+                  cardVariant="mobileCompact"
+                  cardVariantMd="desktopCatalogWide"
+                  leadingSlot={<CatalogPromoTile />}
+                  gridClassName="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-2 xl:grid-cols-3"
                   empty={
                     <EmptyState
-                      title="No products in this category"
-                      description="Try another category or browse all products."
+                      title="لا توجد منتجات في هذا التصنيف"
+                      description="جرّب تصنيفاً آخر أو تصفح كل المنتجات."
                       action={
                         <Button type="button" onClick={() => router.push(ROUTES.PRODUCTS)}>
                           تصفح المنتجات

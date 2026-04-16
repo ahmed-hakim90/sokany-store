@@ -7,6 +7,8 @@ export type HomePromoCardProps = {
   subtitle: string;
   href: string;
   ctaLabel: string;
+  /** Small label above the title (e.g. «حصرياً»). */
+  eyebrow?: string;
   imageSrc?: string;
   imageAlt?: string;
   className?: string;
@@ -17,6 +19,7 @@ export function HomePromoCard({
   subtitle,
   href,
   ctaLabel,
+  eyebrow,
   imageSrc = "/images/hero-banner.jpg",
   imageAlt = "",
   className,
@@ -24,25 +27,46 @@ export function HomePromoCard({
   return (
     <section
       className={cn(
-        "relative isolate overflow-hidden rounded-2xl border border-brand-900/40 bg-brand-950 shadow-md",
+        "relative isolate overflow-hidden rounded-2xl border border-brand-900/50 bg-brand-950 shadow-lg",
         className,
       )}
     >
-      <div className="absolute inset-0 -z-10">
-        <AppImage src={imageSrc} alt={imageAlt} fill sizes="100vw" className="object-cover opacity-35" />
-        <div className="absolute inset-0 bg-gradient-to-l from-brand-950 via-brand-950/92 to-brand-900/85" />
+      <div className="absolute inset-0 -z-10 md:hidden">
+        <AppImage src={imageSrc} alt="" fill sizes="100vw" className="object-cover opacity-30" />
+        <div className="absolute inset-0 bg-gradient-to-b from-brand-950 via-brand-950/95 to-brand-950" />
       </div>
-      <div className="flex flex-col gap-4 px-5 py-6 sm:flex-row sm:items-center sm:justify-between sm:px-10 sm:py-10">
-        <div className="max-w-xl">
-          <h2 className="font-display text-lg font-bold leading-snug text-white sm:text-2xl">{title}</h2>
-          <p className="mt-1.5 text-pretty text-xs text-white/78 sm:mt-2 sm:text-base">{subtitle}</p>
+
+      <div className="flex flex-col md:min-h-[15rem] md:flex-row md:items-stretch">
+        <div className="relative z-10 flex flex-1 flex-col justify-center gap-2 px-5 py-7 sm:px-8 md:max-w-[52%] md:py-9 lg:px-10">
+          {eyebrow ? (
+            <span className="text-[11px] font-bold uppercase tracking-wide text-brand-400 sm:text-xs">
+              {eyebrow}
+            </span>
+          ) : null}
+          <h2 className="font-display text-xl font-bold leading-snug text-white sm:text-2xl md:text-3xl">
+            {title}
+          </h2>
+          <p className="max-w-xl text-pretty text-xs leading-relaxed text-white/80 sm:text-sm md:text-base">
+            {subtitle}
+          </p>
+          <Link
+            href={href}
+            className="mt-1 inline-flex w-fit text-sm font-bold text-brand-400 underline decoration-brand-400 decoration-2 underline-offset-[5px] transition-colors hover:text-brand-300 hover:decoration-brand-300"
+          >
+            {ctaLabel}
+          </Link>
         </div>
-        <Link
-          href={href}
-          className="inline-flex h-10 w-full shrink-0 items-center justify-center rounded-lg bg-brand-500 px-6 text-sm font-semibold text-black transition-colors hover:bg-brand-400 sm:h-12 sm:w-auto"
-        >
-          {ctaLabel}
-        </Link>
+
+        <div className="relative hidden min-h-0 flex-1 md:block">
+          <AppImage
+            src={imageSrc}
+            alt={imageAlt}
+            fill
+            sizes="(max-width: 1280px) 45vw, 520px"
+            className="object-cover object-center"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-brand-950 via-brand-950/25 to-transparent" />
+        </div>
       </div>
     </section>
   );

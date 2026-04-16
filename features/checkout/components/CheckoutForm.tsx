@@ -104,48 +104,60 @@ export function CheckoutForm() {
 
   const cartEmpty = items.length === 0;
 
+  const summaryColumn = (
+    <div className="order-1 flex w-full flex-col gap-3 lg:order-2 lg:max-w-md lg:shrink-0 lg:sticky lg:top-6">
+      <CheckoutSummary
+        items={items}
+        subtotal={totalPrice}
+        total={orderTotal}
+        shippingAmount={shippingFee}
+        shippingLabel={shippingMethodTitle}
+      />
+      <CheckoutCouponRow />
+      <CheckoutReassuranceNote />
+    </div>
+  );
+
+  const formColumn = (
+    <div className="order-2 flex min-w-0 flex-1 flex-col gap-3 lg:order-1">
+      <CheckoutShippingForm
+        values={values}
+        errors={errors}
+        onChange={update}
+        onShippingMethodChange={updateShippingMethod}
+      />
+      <CheckoutPaymentForm
+        values={values}
+        errors={errors}
+        onPaymentMethodChange={updatePaymentMethod}
+        onCustomerNoteChange={(v) => update("customerNote", v)}
+      />
+      <CheckoutLegalNote />
+      <Button
+        type="button"
+        loading={checkoutOrder.isPending}
+        disabled={cartEmpty}
+        size="lg"
+        className="h-14 w-full rounded-2xl text-base font-bold shadow-[0_14px_34px_-18px_rgba(218,255,0,0.85)]"
+        onClick={() => void submitOrder()}
+      >
+        تأكيد الطلب والدفع
+      </Button>
+      <CheckoutSupportFooter />
+      <CheckoutFooterMeta />
+    </div>
+  );
+
   return (
     <>
       <CheckoutLoadingOverlay visible={checkoutOrder.isPending} />
       <div
-        className="mx-auto flex w-full min-w-0 max-w-lg flex-col gap-3 pb-10 sm:max-w-xl md:max-w-2xl lg:max-w-3xl"
+        className="mx-auto flex w-full min-w-0 max-w-lg flex-col gap-3 pb-10 sm:max-w-xl md:max-w-2xl lg:max-w-6xl lg:flex-row lg:items-start lg:gap-10"
         role="group"
         aria-label="إتمام الطلب"
       >
-        <CheckoutSummary
-          items={items}
-          subtotal={totalPrice}
-          total={orderTotal}
-          shippingAmount={shippingFee}
-          shippingLabel={shippingMethodTitle}
-        />
-        <CheckoutCouponRow />
-        <CheckoutReassuranceNote />
-        <CheckoutShippingForm
-          values={values}
-          errors={errors}
-          onChange={update}
-          onShippingMethodChange={updateShippingMethod}
-        />
-        <CheckoutPaymentForm
-          values={values}
-          errors={errors}
-          onPaymentMethodChange={updatePaymentMethod}
-          onCustomerNoteChange={(v) => update("customerNote", v)}
-        />
-        <CheckoutLegalNote />
-        <Button
-          type="button"
-          loading={checkoutOrder.isPending}
-          disabled={cartEmpty}
-          size="lg"
-          className="h-14 w-full rounded-2xl text-base font-bold shadow-[0_14px_34px_-18px_rgba(218,255,0,0.85)]"
-          onClick={() => void submitOrder()}
-        >
-          تأكيد الطلب والدفع
-        </Button>
-        <CheckoutSupportFooter />
-        <CheckoutFooterMeta />
+        {summaryColumn}
+        {formColumn}
       </div>
     </>
   );

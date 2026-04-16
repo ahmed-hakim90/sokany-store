@@ -22,6 +22,10 @@ html {
   --image-well: #eef1f4;
   --sokany-muted-bg: #e2e8ef;
   --sokany-border: #d5dde8;
+  /* Legacy olive (prefer lime/black in UI; kept for gradual migration) */
+  --sokany-olive: #556b2f;
+  /* Editorial cards / hero radii (~24px) */
+  --radius-editorial: 1.5rem;
   /* Mobile fixed commerce chrome (bottom nav ± cart); overridden by JS when mounted */
   --mobile-commerce-chrome-height: 12rem;
 }
@@ -31,15 +35,17 @@ html {
   --color-foreground: var(--foreground);
   --color-page: var(--page);
   --color-image-well: var(--image-well);
-  --font-sans: var(--font-noto-arabic), system-ui, sans-serif;
-  --font-display: var(--font-montserrat), var(--font-noto-arabic), system-ui,
-    sans-serif;
+  --font-sans: var(--font-cairo), system-ui, sans-serif;
+  /* Latin wordmarks + headings; Cairo fallback for Arabic glyphs */
+  --font-display: var(--font-montserrat), var(--font-cairo), system-ui, sans-serif;
+  --font-wordmark: var(--font-montserrat), var(--font-cairo), system-ui, sans-serif;
   --color-accent: var(--sokany-accent);
   --color-ink: var(--sokany-black);
   --color-muted: var(--sokany-gray-3);
   --color-muted-foreground: var(--sokany-gray-3);
   --color-border: var(--sokany-border);
   --color-surface-muted: var(--sokany-muted-bg);
+  --color-olive: var(--sokany-olive);
   /* Lime-first scale + ink tones — keeps existing `brand-*` utilities on-brand */
   --color-brand-50: #fbfff0;
   --color-brand-100: #f4ffcc;

@@ -50,7 +50,7 @@ export function CartSummaryPanel({
               <div className="min-w-0 flex-1">
                 <Link
                   href={ROUTES.PRODUCT(item.productId)}
-                  className="line-clamp-2 font-medium text-foreground hover:text-brand-700"
+                  className="line-clamp-2 font-medium text-foreground transition-colors hover:text-brand-600"
                 >
                   {item.name}
                 </Link>

@@ -4,7 +4,7 @@ export type CardVariant = "product" | "feature" | "summary" | "surface";
 
 const variantClasses: Record<CardVariant, string> = {
   product:
-    "rounded-xl border border-black/[0.06] bg-white shadow-[0_2px_16px_-4px_rgba(15,23,42,0.07)] transition-shadow hover:shadow-[0_8px_24px_-6px_rgba(15,23,42,0.1)]",
+    "rounded-2xl border border-black/[0.06] bg-white shadow-[0_4px_22px_-8px_rgba(15,23,42,0.12)] transition-shadow hover:shadow-[0_10px_28px_-10px_rgba(15,23,42,0.14)]",
   feature:
     "rounded-2xl border border-black/[0.06] bg-white p-6 shadow-[0_2px_16px_-4px_rgba(15,23,42,0.07)] md:p-8",
   summary:

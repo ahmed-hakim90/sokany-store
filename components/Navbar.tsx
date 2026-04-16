@@ -11,15 +11,25 @@ import { IconButton } from "@/components/ui/icon-button";
 import { useCategories } from "@/features/categories/hooks/useCategories";
 import { useCart } from "@/hooks/useCart";
 import { ROUTES, SITE_NAME, SITE_WORDMARK } from "@/lib/constants";
+import { focusProductSearchHeaderInput } from "@/lib/product-search-header";
 import { cn } from "@/lib/utils";
 
-const links = [
+/** Primary strip (desktop) + top of drawer — matches storefront reference. */
+const primaryNavLinks = [
   { href: ROUTES.HOME, label: "الرئيسية" },
-  { href: ROUTES.PRODUCTS, label: "المنتجات" },
-  { href: ROUTES.CATEGORIES, label: "التصنيفات" },
+  { href: ROUTES.CATEGORY("home-appliances"), label: "الأجهزة المنزلية" },
+  { href: ROUTES.CATEGORY("kitchen-supplies"), label: "المطبخ" },
+  { href: ROUTES.CATEGORY("personal-care"), label: "العناية الشخصية" },
+  { href: ROUTES.PRODUCTS, label: "العروض" },
+] as const;
+
+const drawerExtraLinks = [
+  { href: ROUTES.CATEGORIES, label: "كل التصنيفات" },
   { href: ROUTES.ABOUT, label: "من نحن" },
   { href: ROUTES.SERVICE_CENTERS, label: "الفروع" },
 ] as const;
+
+const drawerLinks = [...primaryNavLinks, ...drawerExtraLinks] as const;
 
 const mobileIconTapClass =
   "inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-brand-900/50 transition-colors hover:bg-surface-muted/45 hover:text-brand-950 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500";
@@ -87,11 +97,11 @@ export function Navbar() {
 
   const desktopNav = (
     <>
-      {links.map((l) => (
+      {primaryNavLinks.map((l) => (
         <Link
           key={l.href}
           href={l.href}
-          className="text-sm font-medium text-muted-foreground hover:text-brand-900"
+          className="text-muted-foreground transition-colors hover:text-brand-950"
         >
           {l.label}
         </Link>
@@ -100,29 +110,34 @@ export function Navbar() {
   );
 
   const trailing = (
-    <Link
-      href={ROUTES.CART}
-      className="relative hidden h-9 w-9 items-center justify-center rounded-full border border-border/80 bg-white text-brand-950 shadow-sm transition-colors hover:bg-surface-muted/50 md:inline-flex md:h-10 md:w-10"
-      aria-label="السلة"
-    >
-      <svg
-        viewBox="0 0 24 24"
-        className="h-[18px] w-[18px] md:h-5 md:w-5"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        aria-hidden
+    <div className="hidden items-center gap-2 md:flex">
+      <Link
+        href={ROUTES.ACCOUNT}
+        className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border/80 bg-white text-brand-950 shadow-sm transition-colors hover:bg-surface-muted/50"
+        aria-label="حسابي"
       >
-        <path d="M6 6h15l-1.5 9h-12z" />
-        <circle cx="9" cy="20" r="1" />
-        <circle cx="18" cy="20" r="1" />
-      </svg>
-      {totalItems > 0 ? (
-        <span className="absolute -top-1 -end-1 inline-flex min-h-[1.25rem] min-w-[1.25rem] items-center justify-center rounded-full bg-brand-500 px-1 text-[10px] font-bold text-black">
-          {totalItems > 99 ? "99+" : totalItems}
-        </span>
-      ) : null}
-    </Link>
+        <UserGlyph className="h-[18px] w-[18px]" />
+      </Link>
+      <Link
+        href={ROUTES.ACCOUNT}
+        className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border/80 bg-white text-brand-950 shadow-sm transition-colors hover:bg-surface-muted/50"
+        aria-label="المفضلة"
+      >
+        <WishlistHeartGlyph className="h-[18px] w-[18px]" />
+      </Link>
+      <Link
+        href={ROUTES.CART}
+        className="relative inline-flex h-10 items-center gap-2 rounded-xl bg-brand-500 px-4 text-sm font-bold text-black shadow-sm transition-colors hover:bg-brand-400 lg:h-11 lg:px-5"
+      >
+        <CartGlyph className="h-[18px] w-[18px]" />
+        <span>سلة التسوق</span>
+        {totalItems > 0 ? (
+          <span className="absolute -top-1.5 -end-1.5 inline-flex min-h-[1.15rem] min-w-[1.15rem] items-center justify-center rounded-full bg-black px-1 text-[10px] font-bold text-brand-400">
+            {totalItems > 99 ? "99+" : totalItems}
+          </span>
+        ) : null}
+      </Link>
+    </div>
   );
 
   const menuIconButtonClass =
@@ -158,6 +173,17 @@ export function Navbar() {
     </Link>
   ) : isAbout ? (
     mobileMenuButton
+  ) : pathname === ROUTES.HOME ? (
+    <IconButton
+      type="button"
+      variant="ghost"
+      size="sm"
+      aria-label="البحث في المنتجات"
+      className={menuIconButtonClass}
+      onClick={() => focusProductSearchHeaderInput()}
+    >
+      <SearchGlyph />
+    </IconButton>
   ) : (
     mobileLeadingSpacer
   );
@@ -182,7 +208,7 @@ export function Navbar() {
   ) : (
     <Link
       href={ROUTES.HOME}
-      className="block truncate font-display text-[0.9375rem] font-semibold tracking-[0.03em] text-brand-950 sm:text-base"
+      className="block truncate font-display text-[0.9375rem] font-semibold tracking-[0.04em] text-brand-950 sm:text-base"
       onClick={() => setOpen(false)}
     >
       {SITE_WORDMARK}
@@ -225,12 +251,69 @@ export function Navbar() {
           open={open}
           onClose={() => setOpen(false)}
           returnFocusRef={menuButtonRef}
-          links={links}
+          links={drawerLinks}
           categories={categoriesQuery.data}
           categoriesLoading={categoriesQuery.isLoading}
         />
       ) : null}
     </>
+  );
+}
+
+function SearchGlyph() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.45" aria-hidden>
+      <circle cx="11" cy="11" r="7" />
+      <path d="M20 20l-4-4" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function UserGlyph({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className={className}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      aria-hidden
+    >
+      <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" strokeLinecap="round" />
+      <circle cx="12" cy="7" r="4" />
+    </svg>
+  );
+}
+
+function CartGlyph({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className={className}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      aria-hidden
+    >
+      <path d="M6 6h15l-1.5 9h-12z" strokeLinejoin="round" />
+      <circle cx="9" cy="20" r="1" />
+      <circle cx="18" cy="20" r="1" />
+    </svg>
+  );
+}
+
+function WishlistHeartGlyph({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className={className}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      aria-hidden
+    >
+      <path d="M12 21s-7-4.35-9.33-8.15A5.65 5.65 0 0112 5a5.65 5.65 0 019.33 7.85C19 16.65 12 21 12 21z" />
+    </svg>
   );
 }
 

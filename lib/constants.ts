@@ -22,6 +22,11 @@ export const STALE_TIME = {
 
 export const CONTACT_EMAIL = "support@sokanystore.com";
 
+/** Hero «شاهد الفيديو» — set `NEXT_PUBLIC_STORE_HERO_VIDEO_URL` to your channel or clip. */
+export const STORE_HERO_VIDEO_URL =
+  process.env.NEXT_PUBLIC_STORE_HERO_VIDEO_URL ??
+  "https://www.youtube.com/results?search_query=Sokany+Egypt";
+
 export const ROUTES = {
   HOME: "/",
   PRODUCTS: "/products",

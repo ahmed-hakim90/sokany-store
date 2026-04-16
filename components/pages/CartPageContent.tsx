@@ -71,7 +71,7 @@ export function CartPageContent() {
                     </Button>
                   </div>
                   <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div className="text-sm font-semibold text-brand-700">
+                    <div className="text-sm font-semibold text-foreground">
                       {formatPrice(item.price)}
                     </div>
                     <QtyControl

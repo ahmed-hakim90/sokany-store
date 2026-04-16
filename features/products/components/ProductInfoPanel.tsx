@@ -4,7 +4,6 @@ import { Button } from "@/components/Button";
 import { PriceText } from "@/components/ui/price-text";
 import { QtyControl } from "@/components/ui/qty-control";
 import type { Product } from "@/features/products/types";
-import { ProductBadge } from "@/features/products/components/ProductBadge";
 
 export type ProductInfoPanelProps = {
   product: Product;
@@ -27,26 +26,24 @@ export function ProductInfoPanel({
 
   return (
     <div className="flex flex-col gap-4 lg:gap-5">
-      <div className="flex flex-wrap items-center gap-2">
-        {product.onSale ? <ProductBadge variant="sale" /> : null}
-        {product.featured ? <ProductBadge variant="featured" /> : null}
-        {!product.inStock ? <ProductBadge variant="outOfStock" /> : null}
-      </div>
       <div>
         <h1 className="text-pretty font-display text-2xl font-semibold break-words text-foreground sm:text-3xl lg:text-4xl">
           {product.name}
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          SKU:{" "}
+          رقم الموديل:{" "}
           <span className="break-all font-mono text-foreground">{product.sku}</span>
         </p>
-        <p className="mt-1 text-sm text-muted-foreground">
+        <p className="mt-2 text-sm text-muted-foreground">
           {product.inStock ? (
-            <span className="text-emerald-800">In stock</span>
+            <span>متوفر للطلب</span>
           ) : (
-            <span>Out of stock</span>
+            <span className="font-medium text-foreground">غير متوفر حالياً</span>
           )}
         </p>
+        {product.onSale ? (
+          <p className="mt-1 text-sm text-muted-foreground">السعر يشمل عرضاً لفترة محدودة.</p>
+        ) : null}
       </div>
       <div>
         <PriceText

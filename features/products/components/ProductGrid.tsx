@@ -46,8 +46,10 @@ export type ProductGridProps = {
   onAddToCart?: (product: Product) => void;
   renderItem?: (product: Product) => ReactNode;
   cardVariant?: ProductCardVariant;
-  /** From `md` breakpoint up, use this variant when set (home bestsellers: compact mobile, catalog desktop). */
+  /** From `md` breakpoint up, use this variant when set (e.g. compact mobile + full catalog on desktop). */
   cardVariantMd?: ProductCardVariant;
+  /** First grid cell (e.g. promo tile) before product cards. */
+  leadingSlot?: ReactNode;
 };
 
 export function ProductGrid({
@@ -61,6 +63,7 @@ export function ProductGrid({
   renderItem,
   cardVariant = "desktopCatalog",
   cardVariantMd,
+  leadingSlot,
 }: ProductGridProps) {
   const status: ProductGridStatus = statusProp ?? "ready";
   const gridClass = gridClassName ?? defaultGridClass;
@@ -71,6 +74,7 @@ export function ProductGrid({
   if (status === "loading") {
     return (
       <div className={cn("min-w-0", gridClass, className)}>
+        {leadingSlot ? <div className="min-w-0">{leadingSlot}</div> : null}
         {loading ?? (
           <>
             {Array.from({ length: 8 }).map((_, i) => (
@@ -88,6 +92,7 @@ export function ProductGrid({
 
   return (
     <div className={cn("min-w-0", gridClass, className)}>
+      {leadingSlot ? <div className="min-w-0">{leadingSlot}</div> : null}
       {products.map((product) =>
         renderItem ? (
           <div key={product.id} className="min-w-0">

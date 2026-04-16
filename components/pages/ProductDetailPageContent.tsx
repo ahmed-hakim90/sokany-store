@@ -95,7 +95,7 @@ export function ProductDetailPageContent({ id }: { id: number }) {
                 منتجات ذات صلة
               </h2>
               <Link
-                className="text-sm font-medium text-brand-700 hover:text-brand-800"
+                className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
                 href={ROUTES.PRODUCTS}
               >
                 عرض الكل

@@ -16,10 +16,10 @@ const items = [
   },
   { href: ROUTES.CART, label: "السلة", key: "cart", icon: CartIcon },
   {
-    href: ROUTES.SERVICE_CENTERS,
-    label: "الفروع",
-    key: "service",
-    icon: MapPinIcon,
+    href: ROUTES.ABOUT,
+    label: "عن سوكاني",
+    key: "about",
+    icon: InfoIcon,
   },
   { href: ROUTES.ACCOUNT, label: "حسابي", key: "account", icon: UserIcon },
 ] as const;
@@ -57,7 +57,7 @@ export function BottomNavInner() {
                 <span className="relative inline-flex text-current">
                   <Icon />
                   {isCart && totalItems > 0 ? (
-                    <span className="absolute -end-0.5 -top-0.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-brand-500 px-0.5 text-[8px] font-bold leading-none text-black">
+                    <span className="absolute -end-0.5 -top-0.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-brand-500 px-0.5 text-[8px] font-bold leading-none text-black ring-2 ring-white">
                       {totalItems > 99 ? "99+" : totalItems}
                     </span>
                   ) : null}
@@ -118,7 +118,7 @@ function CartIcon() {
   );
 }
 
-function MapPinIcon() {
+function InfoIcon() {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -127,8 +127,8 @@ function MapPinIcon() {
       stroke="currentColor"
       aria-hidden
     >
-      <path d="M12 21s7-4.35 7-10a7 7 0 1 0-14 0c0 5.65 7 10 7 10z" />
-      <circle cx="12" cy="11" r="2" />
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 10v8M12 7h.01" strokeLinecap="round" />
     </svg>
   );
 }

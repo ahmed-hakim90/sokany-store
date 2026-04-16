@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useId, useState } from "react";
 import { AppImage } from "@/components/AppImage";
 import { DesktopShell } from "@/components/layout/desktop-shell";
 import { MobileAccordionSection } from "@/components/ui/mobile-accordion-section";
@@ -66,7 +67,7 @@ export function Footer() {
               ))}
             </ul>
           </MobileAccordionSection>
-          <MobileAccordionSection title="خدمة العملاء" noBorder>
+          <MobileAccordionSection title="خدمة العملاء">
             <div className="space-y-2 text-sm text-muted-foreground">
               <p>
                 <a className="hover:text-brand-900" href={`mailto:${CONTACT_EMAIL}`}>
@@ -76,9 +77,12 @@ export function Footer() {
               <p>القاهرة، مصر — دعم العملاء 10:00–18:00.</p>
             </div>
           </MobileAccordionSection>
+          <MobileAccordionSection title="النشرة الإخبارية" noBorder>
+            <FooterNewsletter embedded />
+          </MobileAccordionSection>
         </div>
 
-        <div className="hidden gap-10 md:grid md:grid-cols-3">
+        <div className="hidden gap-8 md:grid md:grid-cols-2 md:gap-10 lg:grid-cols-4">
           <div>
             <h3 className="font-display text-lg font-semibold text-brand-950">روابط</h3>
             <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
@@ -110,6 +114,7 @@ export function Footer() {
               القاهرة، مصر — دعم العملاء 10:00–18:00.
             </p>
           </div>
+          <FooterNewsletter />
         </div>
 
         <div className="mt-8 flex flex-col items-center gap-4 border-t border-border/80 pt-6 md:mt-10 md:pt-8">
@@ -152,6 +157,56 @@ export function Footer() {
         </div>
       </DesktopShell>
     </footer>
+  );
+}
+
+function FooterNewsletter({ embedded }: { embedded?: boolean }) {
+  const [done, setDone] = useState(false);
+  const fieldId = useId();
+  const inputId = `footer-newsletter-${fieldId.replace(/:/g, "")}`;
+
+  return (
+    <div>
+      {embedded ? null : (
+        <h3 className="font-display text-lg font-semibold text-brand-950">النشرة الإخبارية</h3>
+      )}
+      <p className={cn("text-sm text-muted-foreground", embedded ? "mt-0" : "mt-2")}>
+        اشترك لتصلك أحدث العروض والمنتجات الجديدة.
+      </p>
+      {done ? (
+        <p className="mt-3 text-sm font-semibold text-brand-800">شكرًا لاشتراكك.</p>
+      ) : (
+        <form
+          className={cn(
+            "mt-3 flex overflow-hidden rounded-xl border border-border bg-white shadow-sm ring-1 ring-black/[0.04]",
+            !embedded && "lg:mt-4",
+          )}
+          onSubmit={(e) => {
+            e.preventDefault();
+            setDone(true);
+          }}
+        >
+          <label htmlFor={inputId} className="sr-only">
+            البريد الإلكتروني
+          </label>
+          <input
+            id={inputId}
+            name="email"
+            type="email"
+            required
+            autoComplete="email"
+            placeholder="بريدك الإلكتروني"
+            className="min-w-0 flex-1 border-0 bg-zinc-900/[0.06] px-3 py-2.5 text-sm text-brand-950 outline-none placeholder:text-muted-foreground"
+          />
+          <button
+            type="submit"
+            className="shrink-0 bg-brand-500 px-3 py-2.5 text-xs font-bold text-black transition-colors hover:bg-brand-400 sm:px-4 sm:text-sm"
+          >
+            اشتراك
+          </button>
+        </form>
+      )}
+    </div>
   );
 }
 
