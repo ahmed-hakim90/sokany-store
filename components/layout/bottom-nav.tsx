@@ -48,16 +48,21 @@ export function BottomNavInner() {
                 href={href}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "flex w-full max-w-[4.75rem] flex-col items-center gap-1 rounded-2xl px-1 py-1.5 text-[9px] font-semibold leading-tight transition-colors duration-200",
+                  "flex w-full max-w-[5.25rem] flex-col items-center gap-1 rounded-2xl px-1 py-1.5 text-xs font-semibold leading-tight transition-colors duration-200",
                   active
-                    ? "bg-surface-muted/90 text-brand-950"
+                    ? "bg-brand-950 text-[var(--sokany-accent)]"
                     : "text-muted-foreground hover:text-foreground/70",
                 )}
               >
                 <span className="relative inline-flex text-current">
                   <Icon />
                   {isCart && totalItems > 0 ? (
-                    <span className="absolute -end-0.5 -top-0.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-brand-500 px-0.5 text-[8px] font-bold leading-none text-black ring-2 ring-white">
+                    <span
+                      className={cn(
+                        "absolute -end-0.5 -top-0.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-brand-500 px-0.5 text-[8px] font-bold leading-none text-black ring-2",
+                        active ? "ring-brand-950" : "ring-white",
+                      )}
+                    >
                       {totalItems > 99 ? "99+" : totalItems}
                     </span>
                   ) : null}

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useCallback } from "react";
 import { EmptyState } from "@/components/EmptyState";
 import { ProductGrid } from "@/features/products/components/ProductGrid";
 import type { Product } from "@/features/products/types";
@@ -35,7 +36,11 @@ export function SearchPageContent({
   searched,
   products,
 }: SearchPageContentProps) {
-  const { addProduct } = useCart();
+  const { items, setProductLineQuantity } = useCart();
+  const getCartLineQuantity = useCallback(
+    (productId: number) => items.find((i) => i.productId === productId)?.quantity ?? 0,
+    [items],
+  );
 
   if (!searched) {
     return (
@@ -65,7 +70,8 @@ export function SearchPageContent({
     <div className="min-w-0">
       <ProductGrid
         products={products}
-        onAddToCart={addProduct}
+        getCartLineQuantity={getCartLineQuantity}
+        onCartLineQuantityChange={setProductLineQuantity}
         cardVariant="desktopCatalog"
         cardVariantMd="desktopCatalog"
       />

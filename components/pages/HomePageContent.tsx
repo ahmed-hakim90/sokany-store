@@ -1,22 +1,22 @@
 "use client";
 
 import Link from "next/link";
+import { useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/Button";
 import { Container } from "@/components/Container";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorState } from "@/components/ErrorState";
 import { useCart } from "@/hooks/useCart";
-import { HomeCategoryBento } from "@/features/home/components/home-category-bento";
 import { HomeHeroBanner } from "@/features/home/components/home-hero-banner";
+import { HomeParentCategorySections } from "@/features/home/components/home-parent-category-sections";
 import { HomePromoCard } from "@/features/home/components/home-promo-card";
+import { ProductHorizontalRail } from "@/features/home/components/product-horizontal-rail";
 import { HomeTrustStrip } from "@/features/home/components/home-trust-strip";
 import { ROUTES, STORE_HERO_VIDEO_URL } from "@/lib/constants";
 import { useCategories } from "@/features/categories/hooks/useCategories";
-import { CategoryShortcutGrid } from "@/features/categories/components/CategoryShortcutGrid";
+import { CategoryScroller } from "@/features/categories/components/CategoryScroller";
 import { useProducts } from "@/features/products/hooks/useProducts";
-import { ProductGrid } from "@/features/products/components/ProductGrid";
-import { ProductSkeleton } from "@/features/products/components/ProductSkeleton";
 
 function ShieldIcon() {
   return (
@@ -57,8 +57,12 @@ function CheckSealIcon() {
 export function HomePageContent() {
   const router = useRouter();
   const featured = useProducts({ featured: true, per_page: 8 });
-  const categories = useCategories();
-  const { addProduct } = useCart();
+  const categories = useCategories({ per_page: 100 });
+  const { items, setProductLineQuantity } = useCart();
+  const getCartLineQuantity = useCallback(
+    (productId: number) => items.find((i) => i.productId === productId)?.quantity ?? 0,
+    [items],
+  );
 
   return (
     <div className="animate-fade-in bg-page">
@@ -93,15 +97,7 @@ export function HomePageContent() {
         />
 
         {categories.data && categories.data.length > 0 ? (
-          <div className="md:hidden">
-            <CategoryShortcutGrid categories={categories.data} layout="home" limit={6} />
-          </div>
-        ) : null}
-
-        {categories.data && categories.data.length > 0 ? (
-          <div className="hidden md:block">
-            <HomeCategoryBento categories={categories.data} />
-          </div>
+          <CategoryScroller compact categories={categories.data} />
         ) : null}
 
         <HomeTrustStrip
@@ -133,14 +129,17 @@ export function HomePageContent() {
           ]}
         />
 
-        <section className="space-y-4">
-          <div className="flex items-center justify-between gap-3">
-            <h2 className="text-base font-bold tracking-tight text-black sm:text-lg md:text-xl">
+        <section className="space-y-4" aria-labelledby="home-bestsellers-title">
+          <div className="flex flex-col items-center gap-2 text-center">
+            <h2
+              id="home-bestsellers-title"
+              className="text-base font-bold tracking-tight text-black sm:text-lg md:text-xl"
+            >
               الأكثر مبيعاً
             </h2>
             <Link
               href={ROUTES.PRODUCTS}
-              className="shrink-0 text-xs font-semibold text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline sm:text-sm"
+              className="text-xs font-semibold text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline sm:text-sm"
             >
               مشاهدة الكل
             </Link>
@@ -149,18 +148,17 @@ export function HomePageContent() {
           {featured.isError ? (
             <ErrorState message={featured.error.message} onRetry={() => void featured.refetch()} />
           ) : (
-            <ProductGrid
-              status={featured.isLoading ? "loading" : !featured.data?.length ? "empty" : "ready"}
-              cardVariant="mobileCompact"
-              cardVariantMd="desktopCatalogWide"
-              gridClassName="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4 lg:gap-5"
-              loading={
-                <>
-                  {Array.from({ length: 4 }).map((_, i) => (
-                    <ProductSkeleton key={i} />
-                  ))}
-                </>
+            <ProductHorizontalRail
+              status={
+                featured.isPending
+                  ? "loading"
+                  : !featured.data?.length
+                    ? "empty"
+                    : "ready"
               }
+              products={featured.data ?? []}
+              getCartLineQuantity={getCartLineQuantity}
+              onCartLineQuantityChange={setProductLineQuantity}
               empty={
                 <EmptyState
                   title="لا توجد منتجات مميزة حالياً"
@@ -172,11 +170,18 @@ export function HomePageContent() {
                   }
                 />
               }
-              products={featured.data ?? []}
-              onAddToCart={addProduct}
+              aria-label="الأكثر مبيعاً"
             />
           )}
         </section>
+
+        {categories.data && categories.data.length > 0 ? (
+          <HomeParentCategorySections
+            categories={categories.data}
+            getCartLineQuantity={getCartLineQuantity}
+            onCartLineQuantityChange={setProductLineQuantity}
+          />
+        ) : null}
 
         <HomePromoCard
           eyebrow="حصرياً"

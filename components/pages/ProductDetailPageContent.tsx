@@ -1,18 +1,23 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useCallback } from "react";
 import { Button } from "@/components/Button";
 import { Container } from "@/components/Container";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorState } from "@/components/ErrorState";
+import { useCart } from "@/hooks/useCart";
 import { useProductDetailPage } from "@/hooks/useProductDetailPage";
 import { ROUTES } from "@/lib/constants";
+import type { Product } from "@/features/products/types";
 import { ProductDetail } from "@/features/products/components/ProductDetail";
 import { ProductGrid } from "@/features/products/components/ProductGrid";
 import { ProductSkeleton } from "@/features/products/components/ProductSkeleton";
 import { ProductReviewForm } from "@/features/reviews/components/ProductReviewForm";
 
 export function ProductDetailPageContent({ id }: { id: number }) {
+  const router = useRouter();
   const {
     productQuery,
     reviewsQuery,
@@ -23,8 +28,22 @@ export function ProductDetailPageContent({ id }: { id: number }) {
     goToProducts,
   } = useProductDetailPage(id);
 
+  const { items, setProductLineQuantity } = useCart();
+  const getCartLineQuantity = useCallback(
+    (productId: number) => items.find((i) => i.productId === productId)?.quantity ?? 0,
+    [items],
+  );
+
+  const buyNow = useCallback(
+    (product: Product, quantity: number) => {
+      setProductLineQuantity(product, quantity);
+      router.push(ROUTES.CHECKOUT);
+    },
+    [router, setProductLineQuantity],
+  );
+
   return (
-    <Container className="py-10">
+    <Container className="py-4 sm:py-10">
       {productQuery.isLoading ? (
         <ProductSkeleton />
       ) : productQuery.isError ? (
@@ -47,6 +66,7 @@ export function ProductDetailPageContent({ id }: { id: number }) {
           <ProductDetail
             product={productQuery.data}
             onAddToCart={addProductToCart}
+            onBuyNow={buyNow}
             specs={specs}
           />
 
@@ -131,7 +151,8 @@ export function ProductDetailPageContent({ id }: { id: number }) {
                     />
                   }
                   products={relatedProducts}
-                  onAddToCart={addProductToCart}
+                  getCartLineQuantity={getCartLineQuantity}
+                  onCartLineQuantityChange={setProductLineQuantity}
                 />
               )}
             </div>

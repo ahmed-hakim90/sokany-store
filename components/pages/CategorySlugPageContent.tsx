@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/Button";
@@ -36,7 +36,11 @@ export function CategorySlugPageContent({ slug }: { slug: string }) {
   const productsQuery = useProducts(productParams, {
     enabled: Boolean(categoryId),
   });
-  const { addProduct } = useCart();
+  const { items, setProductLineQuantity } = useCart();
+  const getCartLineQuantity = useCallback(
+    (productId: number) => items.find((i) => i.productId === productId)?.quantity ?? 0,
+    [items],
+  );
 
   const navCategories = categoriesNav.data;
   const hasNavCategories = Boolean(navCategories?.length);
@@ -103,7 +107,8 @@ export function CategorySlugPageContent({ slug }: { slug: string }) {
                           : "ready"
                     }
                     products={productsQuery.data ?? []}
-                    onAddToCart={addProduct}
+                    getCartLineQuantity={getCartLineQuantity}
+                    onCartLineQuantityChange={setProductLineQuantity}
                     cardVariant="mobileCompact"
                     cardVariantMd="desktopCatalogWide"
                     leadingSlot={<CatalogPromoTile />}
@@ -176,7 +181,8 @@ export function CategorySlugPageContent({ slug }: { slug: string }) {
                             : "ready"
                       }
                       products={productsQuery.data ?? []}
-                      onAddToCart={addProduct}
+                      getCartLineQuantity={getCartLineQuantity}
+                      onCartLineQuantityChange={setProductLineQuantity}
                       cardVariant="mobileCompact"
                       cardVariantMd="desktopCatalogWide"
                       leadingSlot={<CatalogPromoTile />}

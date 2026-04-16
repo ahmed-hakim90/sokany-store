@@ -42,6 +42,19 @@ export function mapProduct(raw: WCProduct): Product {
     rating: Number.isFinite(rating) ? rating : 0,
     ratingCount: raw.rating_count,
     permalink: raw.permalink,
+    tags: raw.tags.map((t) => ({
+      id: t.id,
+      name: t.name,
+      slug: t.slug,
+    })),
+    attributes: raw.attributes.map((a) => ({
+      id: a.id,
+      name: a.name,
+      position: a.position,
+      visible: a.visible,
+      variation: a.variation,
+      options: [...a.options],
+    })),
   };
 }
 

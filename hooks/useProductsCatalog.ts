@@ -3,7 +3,6 @@
 import { startTransition, useCallback, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ROUTES } from "@/lib/constants";
-import { useCart } from "@/hooks/useCart";
 import { useCategories } from "@/features/categories/hooks/useCategories";
 import { useProducts } from "@/features/products/hooks/useProducts";
 import type { ProductQueryParams } from "@/types";
@@ -23,8 +22,6 @@ function parseNonNegativeInt(value: string | null): number | undefined {
 export function useProductsCatalog() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { addProduct } = useCart();
-
   const params = useMemo<ProductQueryParams>(() => {
     const searchRaw = searchParams.get("search");
     const search =
@@ -136,7 +133,6 @@ export function useProductsCatalog() {
     activeCategoryId,
     allActive,
     pushFilters,
-    addProductToCart: addProduct,
     searchParams,
     catalogParams: params,
   };

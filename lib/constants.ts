@@ -11,6 +11,7 @@ export const DEFAULT_CURRENCY =
 export const CURRENCY_LOCALE =
   process.env.NEXT_PUBLIC_CURRENCY_LOCALE ?? "ar-EG";
 export const CART_STORAGE_KEY = "woo_cart";
+export const WISHLIST_STORAGE_KEY = "woo_wishlist";
 export const AUTH_TOKEN_KEY = "woo_auth_token";
 export const DEFAULT_PAGE = 1;
 export const DEFAULT_PER_PAGE = 12;

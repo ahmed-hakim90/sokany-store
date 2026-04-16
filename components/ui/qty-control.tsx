@@ -10,6 +10,8 @@ export type QtyControlProps = {
   onChange: (next: number) => void;
   disabled?: boolean;
   className?: string;
+  /** `segmented` matches PDP pill row (− | qty | +) in a rounded rectangle. */
+  layout?: "pill" | "segmented";
 };
 
 export function QtyControl({
@@ -19,14 +21,19 @@ export function QtyControl({
   onChange,
   disabled,
   className,
+  layout = "pill",
 }: QtyControlProps) {
   const decDisabled = disabled || value <= min;
   const incDisabled = disabled || value >= max;
+  const segmented = layout === "segmented";
 
   return (
     <div
       className={cn(
-        "inline-flex items-center gap-1 rounded-full border border-border bg-white p-0.5",
+        "inline-flex overflow-hidden border border-border bg-white",
+        segmented
+          ? "items-stretch rounded-xl bg-surface-muted/90 p-0 shadow-[inset_0_1px_0_rgba(255,255,255,0.65)]"
+          : "items-center gap-1 rounded-full p-0.5",
         className,
       )}
     >
@@ -37,12 +44,18 @@ export function QtyControl({
         aria-label="نقص الكمية"
         disabled={decDisabled}
         onClick={() => onChange(Math.max(min, value - 1))}
-        className="rounded-full border-0"
+        className={cn(
+          "border-0",
+          segmented ? "rounded-none px-3 py-2.5 hover:bg-white/70" : "rounded-full",
+        )}
       >
         <MinusIcon />
       </IconButton>
       <span
-        className="min-w-8 text-center text-sm font-semibold tabular-nums text-foreground"
+        className={cn(
+          "flex min-w-10 items-center justify-center text-sm font-semibold tabular-nums text-foreground",
+          segmented ? "border-x border-border/80 bg-white px-2" : "min-w-8 text-center",
+        )}
         aria-live="polite"
       >
         {value}
@@ -54,7 +67,10 @@ export function QtyControl({
         aria-label="زيادة الكمية"
         disabled={incDisabled}
         onClick={() => onChange(Math.min(max, value + 1))}
-        className="rounded-full border-0"
+        className={cn(
+          "border-0",
+          segmented ? "rounded-none px-3 py-2.5 hover:bg-white/70" : "rounded-full",
+        )}
       >
         <PlusIcon />
       </IconButton>

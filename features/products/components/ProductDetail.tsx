@@ -1,46 +1,47 @@
 "use client";
 
 import { useState } from "react";
-import type { Product } from "@/features/products/types";
+import { ProductDetailInfoColumn } from "@/features/products/components/product-detail-info-column";
 import { ProductGallery } from "@/features/products/components/ProductGallery";
-import { ProductInfoPanel } from "@/features/products/components/ProductInfoPanel";
-import {
-  ProductSpecsList,
-  type ProductSpecItem,
-} from "@/features/products/components/ProductSpecsList";
+import type { ProductSpecItem } from "@/features/products/components/ProductSpecsList";
+import { getProductGalleryBadge } from "@/features/products/lib/product-gallery-badge";
+import type { Product } from "@/features/products/types";
 
 export function ProductDetail({
   product,
   onAddToCart,
+  onBuyNow,
   specs,
 }: {
   product: Product;
   onAddToCart: (product: Product, quantity: number) => void;
+  onBuyNow?: (product: Product, quantity: number) => void;
   specs?: ProductSpecItem[];
 }) {
   const [quantity, setQuantity] = useState(1);
+  const badge = getProductGalleryBadge(product);
 
   return (
-    <div className="min-w-0 space-y-10 lg:space-y-14">
-      <div className="grid min-w-0 gap-10 lg:grid-cols-2">
+    <div className="min-w-0 space-y-12 lg:space-y-14">
+      <div className="grid min-w-0 gap-6 lg:grid-cols-2 lg:gap-10">
         <ProductGallery
           images={product.images}
           productName={product.name}
           fallbackSrc={product.thumbnail}
           priority
+          galleryBadge={badge}
         />
-        <div className="min-w-0">
-          <ProductInfoPanel
-            product={product}
-            quantity={quantity}
-            onQuantityChange={setQuantity}
-            onAddToCart={() => onAddToCart(product, quantity)}
-          />
-        </div>
+        <ProductDetailInfoColumn
+          product={product}
+          quantity={quantity}
+          onQuantityChange={setQuantity}
+          onAddToCart={() => onAddToCart(product, quantity)}
+          onBuyNow={
+            onBuyNow && product.inStock ? () => onBuyNow(product, quantity) : undefined
+          }
+          specs={specs ?? []}
+        />
       </div>
-      {specs && specs.length > 0 ? (
-        <ProductSpecsList items={specs} className="border-t-0 pt-0" />
-      ) : null}
     </div>
   );
 }

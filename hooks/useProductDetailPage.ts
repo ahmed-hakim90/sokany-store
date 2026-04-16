@@ -11,6 +11,18 @@ import type { Product } from "@/features/products/types";
 import type { ProductSpecItem } from "@/features/products/components/ProductSpecsList";
 
 function buildProductSpecs(product: Product): ProductSpecItem[] {
+  const fromAttributes = product.attributes
+    .filter((a) => a.visible && !a.variation && a.options.length > 0)
+    .sort((a, b) => a.position - b.position)
+    .map((a) => ({
+      label: a.name,
+      value: a.options.join("، "),
+    }));
+
+  if (fromAttributes.length > 0) {
+    return fromAttributes;
+  }
+
   const rows: ProductSpecItem[] = [
     { label: "رمز المنتج", value: product.sku || "—" },
     { label: "التوفر", value: product.inStock ? "متوفر" : "غير متوفر" },

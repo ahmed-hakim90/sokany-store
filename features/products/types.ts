@@ -90,4 +90,13 @@ export type Product = {
   rating: number;
   ratingCount: number;
   permalink: string;
+  tags: { id: number; name: string; slug: string }[];
+  attributes: {
+    id: number;
+    name: string;
+    position: number;
+    visible: boolean;
+    variation: boolean;
+    options: string[];
+  }[];
 };

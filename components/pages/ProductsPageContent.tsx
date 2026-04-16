@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import Link from "next/link";
 import { Container } from "@/components/Container";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorState } from "@/components/ErrorState";
 import { PillFilter } from "@/components/ui/pill-filter";
+import { useCart } from "@/hooks/useCart";
 import { useProductsCatalog } from "@/hooks/useProductsCatalog";
 import { ROUTES } from "@/lib/constants";
 import { focusProductSearchHeaderInput } from "@/lib/product-search-header";
@@ -35,9 +36,14 @@ export function ProductsPageContent() {
     activeCategoryId,
     allActive,
     pushFilters,
-    addProductToCart,
     catalogParams,
   } = useProductsCatalog();
+
+  const { items, setProductLineQuantity } = useCart();
+  const getCartLineQuantity = useCallback(
+    (productId: number) => items.find((i) => i.productId === productId)?.quantity ?? 0,
+    [items],
+  );
 
   const priceFilterKey = `${catalogParams.min_price ?? 0}-${catalogParams.max_price ?? "x"}`;
 
@@ -87,7 +93,8 @@ export function ProductsPageContent() {
             : "ready"
       }
       products={productsQuery.data ?? []}
-      onAddToCart={addProductToCart}
+      getCartLineQuantity={getCartLineQuantity}
+      onCartLineQuantityChange={setProductLineQuantity}
       cardVariant="mobileCompact"
       cardVariantMd="desktopCatalogWide"
       leadingSlot={<CatalogPromoTile />}

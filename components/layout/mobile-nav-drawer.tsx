@@ -13,6 +13,7 @@ import {
   useSyncExternalStore,
 } from "react";
 import { MobileAccordionSection } from "@/components/ui/mobile-accordion-section";
+import { IconButton } from "@/components/ui/icon-button";
 import { CategoryIcon } from "@/features/categories/category-icon-registry";
 import type { Category } from "@/features/categories/types";
 import { CONTACT_EMAIL, ROUTES } from "@/lib/constants";
@@ -61,6 +62,7 @@ export function MobileNavDrawer({
   const pathname = usePathname();
   const reduceMotion = useReducedMotion();
   const titleId = useId();
+  const closeRef = useRef<HTMLButtonElement>(null);
   const searchRef = useRef<HTMLAnchorElement>(null);
   const mounted = useSyncExternalStore(
     () => () => {},
@@ -115,7 +117,7 @@ export function MobileNavDrawer({
             key="mobile-nav-trap"
             active
             focusTrapOptions={{
-              initialFocus: () => searchRef.current ?? undefined,
+              initialFocus: () => closeRef.current ?? searchRef.current ?? undefined,
               returnFocusOnDeactivate: true,
               setReturnFocus: () => returnFocusRef.current ?? false,
               escapeDeactivates: false,
@@ -143,6 +145,18 @@ export function MobileNavDrawer({
               <h2 id={titleId} className="sr-only">
                 قائمة التنقل
               </h2>
+              <div className="flex shrink-0 items-center justify-end border-b border-border/80 px-2 pb-2 pt-0.5">
+                <IconButton
+                  ref={closeRef}
+                  variant="ghost"
+                  size="md"
+                  aria-label="إغلاق القائمة"
+                  onClick={onClose}
+                  className="text-brand-950"
+                >
+                  <CloseGlyph />
+                </IconButton>
+              </div>
               <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-2 sm:px-5">
                 <div className="border-b border-border/80 pb-3">
                   <Link
@@ -240,6 +254,22 @@ export function MobileNavDrawer({
       ) : null}
     </AnimatePresence>,
     document.body,
+  );
+}
+
+function CloseGlyph({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className={cn("h-5 w-5", className)}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      aria-hidden
+    >
+      <path d="M18 6L6 18M6 6l12 12" />
+    </svg>
   );
 }
 

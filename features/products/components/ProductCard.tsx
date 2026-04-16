@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { AppImage } from "@/components/AppImage";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { IconButton } from "@/components/ui/icon-button";
 import { PriceText } from "@/components/ui/price-text";
+import { QtyControl } from "@/components/ui/qty-control";
 import { cn } from "@/lib/utils";
 import { ROUTES } from "@/lib/constants";
 import { usePrefetchProduct } from "@/features/products/hooks/usePrefetchProduct";
@@ -20,7 +20,8 @@ export type ProductCardVariant =
 export type ProductCardProps = {
   product: Product;
   variant?: ProductCardVariant;
-  onAddToCart?: (product: Product) => void;
+  getCartLineQuantity?: (productId: number) => number;
+  onCartLineQuantityChange?: (product: Product, next: number) => void;
   /** Renders over the image corner (e.g. wishlist IconButton). */
   wishlistSlot?: React.ReactNode;
   className?: string;
@@ -87,7 +88,8 @@ const variantLayout: Record<
 export function ProductCard({
   product,
   variant = "desktopCatalog",
-  onAddToCart,
+  getCartLineQuantity,
+  onCartLineQuantityChange,
   wishlistSlot,
   className,
 }: ProductCardProps) {
@@ -101,11 +103,12 @@ export function ProductCard({
       ? product.regularPrice
       : null;
   const priceCompact = variant === "mobileCompact";
-  const wideCta = variant === "desktopCatalogWide";
   const saleLabel = saleDiscountLabel(product);
   const handlePrefetch = () => {
     void prefetchProduct(product.id);
   };
+  const lineQty = getCartLineQuantity?.(product.id) ?? 0;
+  const showCartQty = Boolean(onCartLineQuantityChange);
 
   return (
     <Card
@@ -156,100 +159,51 @@ export function ProductCard({
         <div
           className={cn(
             "mt-auto",
-            wideCta
-              ? "flex flex-col gap-2 pt-2"
+            showCartQty
+              ? cn(
+                  "flex flex-col items-center gap-2",
+                  variant === "mobileCompact" ? "pt-1.5" : "pt-2",
+                )
               : cn(
                   "flex items-end justify-between gap-2",
                   variant === "mobileCompact" ? "pt-1.5" : "pt-2",
                 ),
           )}
         >
-          <div
-            className={cn(
-              "flex min-w-0 items-end justify-between gap-2",
-              wideCta ? "w-full" : "flex-1",
-            )}
-          >
-            <PriceText
-              amount={product.price}
-              compareAt={compareAt}
-              compact={priceCompact}
-              emphasized={variant === "featured"}
-              amountClassName="font-bold text-foreground"
-              className="min-w-0 flex-1"
-            />
-            {onAddToCart && !wideCta ? (
-              <IconButton
-                type="button"
-                variant="subtle"
-                size="sm"
-                aria-label="أضف للسلة"
+          {showCartQty ? (
+            <>
+              <PriceText
+                presentation="tile"
+                amount={product.price}
+                compareAt={compareAt}
+                compact={priceCompact}
+                emphasized={variant === "featured"}
+                className="min-w-0 max-w-full justify-center"
+              />
+              <QtyControl
+                min={0}
+                max={99}
+                value={lineQty}
                 disabled={!product.inStock}
-                onClick={(e) => {
-                  e.preventDefault();
-                  onAddToCart(product);
-                }}
-                className={cn(
-                  "h-10 w-10 shrink-0 rounded-xl border border-zinc-200 bg-zinc-100 text-zinc-900 shadow-none hover:bg-zinc-200/90 md:h-10 md:w-10 md:border-brand-950 md:bg-brand-950 md:text-white md:hover:bg-brand-900",
-                  "[&_svg]:h-[18px] [&_svg]:w-[18px] md:[&_svg]:h-5 md:[&_svg]:w-5",
-                )}
-              >
-                <span className="md:hidden text-lg font-bold leading-none" aria-hidden>
-                  +
-                </span>
-                <span className="hidden md:inline" aria-hidden>
-                  <CartGlyph />
-                </span>
-              </IconButton>
-            ) : null}
-            {onAddToCart && wideCta ? (
-              <IconButton
-                type="button"
-                variant="subtle"
-                size="sm"
-                aria-label="أضف للسلة"
-                disabled={!product.inStock}
-                onClick={(e) => {
-                  e.preventDefault();
-                  onAddToCart(product);
-                }}
-                className="h-10 w-10 shrink-0 rounded-xl border border-zinc-200 bg-zinc-100 text-zinc-900 shadow-none hover:bg-zinc-200/90 md:hidden"
-              >
-                <span className="text-lg font-bold leading-none" aria-hidden>
-                  +
-                </span>
-              </IconButton>
-            ) : null}
-          </div>
-          {onAddToCart && wideCta ? (
-            <Button
-              type="button"
-              variant="primary"
-              size="md"
-              disabled={!product.inStock}
-              className="hidden w-full rounded-xl font-bold md:inline-flex"
-              onClick={(e) => {
-                e.preventDefault();
-                onAddToCart(product);
-              }}
-            >
-              <CartGlyph />
-              أضف للسلة
-            </Button>
-          ) : null}
+                className="shrink-0"
+                onChange={(next) => onCartLineQuantityChange?.(product, next)}
+              />
+            </>
+          ) : (
+            <div className="min-w-0 flex-1">
+              <PriceText
+                presentation="tile"
+                amount={product.price}
+                compareAt={compareAt}
+                compact={priceCompact}
+                emphasized={variant === "featured"}
+                className="min-w-0 max-w-full"
+              />
+            </div>
+          )}
         </div>
       </div>
     </Card>
-  );
-}
-
-function CartGlyph() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
-      <path d="M6 6h15l-1.5 9h-12z" strokeLinejoin="round" />
-      <circle cx="9" cy="20" r="1.25" />
-      <circle cx="18" cy="20" r="1.25" />
-    </svg>
   );
 }
 

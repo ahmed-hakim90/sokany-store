@@ -1,8 +1,9 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useSyncExternalStore } from "react";
 import type { Product } from "@/features/products/types";
+import { ProductWishlistHeart } from "@/features/wishlist/components/ProductWishlistHeart";
+import { useMinMd } from "@/hooks/useMinMd";
 import {
   ProductCard,
   type ProductCardVariant,
@@ -15,25 +16,6 @@ export type ProductGridStatus = "loading" | "empty" | "ready";
 const defaultGridClass =
   "grid grid-cols-2 gap-6 lg:grid-cols-3 xl:grid-cols-4";
 
-function subscribeMinMd(onChange: () => void) {
-  if (typeof window === "undefined") return () => {};
-  const mq = window.matchMedia("(min-width: 768px)");
-  mq.addEventListener("change", onChange);
-  return () => mq.removeEventListener("change", onChange);
-}
-
-function getMinMdSnapshot() {
-  return typeof window !== "undefined" && window.matchMedia("(min-width: 768px)").matches;
-}
-
-function getMinMdServerSnapshot() {
-  return false;
-}
-
-function useMinMd() {
-  return useSyncExternalStore(subscribeMinMd, getMinMdSnapshot, getMinMdServerSnapshot);
-}
-
 export type ProductGridProps = {
   className?: string;
   /** Replaces default grid column / gap utilities. */
@@ -43,7 +25,8 @@ export type ProductGridProps = {
   loading?: ReactNode;
   empty?: ReactNode;
   products?: Product[];
-  onAddToCart?: (product: Product) => void;
+  getCartLineQuantity?: (productId: number) => number;
+  onCartLineQuantityChange?: (product: Product, next: number) => void;
   renderItem?: (product: Product) => ReactNode;
   cardVariant?: ProductCardVariant;
   /** From `md` breakpoint up, use this variant when set (e.g. compact mobile + full catalog on desktop). */
@@ -54,7 +37,8 @@ export type ProductGridProps = {
 
 export function ProductGrid({
   products = [],
-  onAddToCart,
+  getCartLineQuantity,
+  onCartLineQuantityChange,
   className,
   gridClassName,
   status: statusProp,
@@ -102,8 +86,10 @@ export function ProductGrid({
           <ProductCard
             key={product.id}
             product={product}
-            onAddToCart={onAddToCart}
+            getCartLineQuantity={getCartLineQuantity}
+            onCartLineQuantityChange={onCartLineQuantityChange}
             variant={resolvedVariant}
+            wishlistSlot={<ProductWishlistHeart product={product} />}
           />
         ),
       )}

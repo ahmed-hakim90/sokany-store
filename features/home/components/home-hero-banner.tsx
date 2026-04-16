@@ -75,7 +75,11 @@ export function HomeHeroBanner({
         loop={slides.length > 1}
         autoplay={
           slides.length > 1
-            ? { delay: 5000, disableOnInteraction: false }
+            ? {
+                delay: 9000,
+                disableOnInteraction: true,
+                pauseOnMouseEnter: true,
+              }
             : false
         }
         pagination={{ clickable: true }}
