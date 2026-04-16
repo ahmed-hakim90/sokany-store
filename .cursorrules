@@ -1,0 +1,50 @@
+# Sokany Store — architecture (Next.js App Router)
+
+**Stack:** Next.js (App Router), TanStack Query, Zustand, Zod, WordPress (WooCommerce) REST.
+
+## Repository layout (actual paths)
+
+Prefer **feature folders** over a single global `services/` root:
+
+- UI primitives: `components/ui`
+- Shell / chrome: `components/layout`
+- Shared pages: `components/pages`
+- Domain code: `features/<domain>/{components,hooks,services,store,...}`
+- Shared hooks: `hooks/`
+- Cross-cutting Zod: `schemas/` (e.g. `schemas/wordpress.ts`)
+
+Do not assume `components/products` or top-level `services/` unless introduced deliberately.
+
+---
+
+## 1. Architecture & clean code
+
+- **Single responsibility:** Components focus on UI; non-trivial logic lives in custom hooks (`hooks/`, `features/*/hooks/`) or small service modules (`features/*/services/`).
+- **Custom hooks:** Use for calculations, derived state, URL/catalog sync, and data-access composition (e.g. `useCart`, `useProducts`, `useProductsCatalog`).
+
+## 2. Data integrity (Zod)
+
+- **Schema-first:** Define or extend Zod schemas for API shapes (products, categories, orders, reviews, checkout payloads) in `schemas/` or co-located feature modules.
+- **Parse at the boundary:** Prefer `.parse()` / `.safeParse()` in service functions right after the HTTP response (before mappers return domain types to hooks/UI).
+
+## 3. Performance & TanStack Query
+
+- **Reads:** Use `useQuery` for GET-style server data in client trees.
+- **Prefetch:** Use `queryClient.prefetchQuery` on intentional triggers (e.g. hover/focus on product links — see `usePrefetchProduct`).
+- **Writes:** Use `useMutation` for server mutations (checkout, reviews, any future cart/WP sync).
+- **Optimistic updates:** Prefer for small, reversible UX wins (reviews already use `onMutate` as the pattern to follow).
+
+## 4. Zustand
+
+- **Cart (and similar):** Use `persist` where state must survive reloads.
+- **Hydration:** Use `useHasHydrated` from `hooks/useHasHydrated.ts` when reading persisted stores on the client to avoid SSR/client mismatches.
+
+## 5. Server vs client components
+
+- **Server first:** Static SEO metadata, stable layout, and data that can be fetched on the server should stay in Server Components / `generateMetadata` where practical.
+- **Client second:** Mark interactive surfaces with `"use client"`; keep them under layouts that remain server-driven when possible.
+
+## 6. Images & loading UI
+
+- **Images:** Use `next/image` via the shared `AppImage` wrapper (or `Image` with the same constraints) for raster content; avoid raw `<img>` in TSX.
+- **Loading:** Provide skeletons or explicit loading UI for user-visible `useQuery` pending states (product grids, category lists, product detail, etc.).

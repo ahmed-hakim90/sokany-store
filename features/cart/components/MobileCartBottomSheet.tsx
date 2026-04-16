@@ -90,7 +90,7 @@ export function MobileCartBottomSheet({
                 amount={totalPrice}
                 emphasized
                 compact
-                className="block min-w-0 whitespace-nowrap text-brand-950"
+                className="block min-w-0 whitespace-nowrap text-brand-950 text-end"
               />
               <span className="sr-only">
                 الإجمالي {formatPrice(totalPrice)} — اضغط لعرض تفاصيل السلة

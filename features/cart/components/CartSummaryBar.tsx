@@ -58,14 +58,13 @@ export function CartSummaryBar({
     </button>
   ) : (
     <div className="min-w-0 flex-1 basis-[min(100%,11rem)] sm:basis-auto">
-      <p className="truncate text-xs text-muted-foreground">{qtyLabel}</p>
+      <p className="truncate text-xs text-muted-foreground ">{qtyLabel}</p>
       <PriceText
         amount={totalPrice}
         emphasized
         compact
-        className="block min-w-0 whitespace-nowrap text-brand-950"
+        className="block min-w-0 whitespace-nowrap text-brand-950 "
       />
-      <p className="sr-only">Cart total {formatPrice(totalPrice)}</p>
     </div>
   );
 
