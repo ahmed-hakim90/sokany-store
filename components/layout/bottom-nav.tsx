@@ -33,8 +33,8 @@ export function BottomNavInner() {
   const { totalItems } = useCart();
 
   return (
-    <nav aria-label="التنقل السفلي" className="bg-white">
-      <ul className="mx-auto flex max-w-lg items-center justify-between gap-0 px-1.5 pb-1 pt-1">
+    <nav aria-label="التنقل السفلي" className="border-t border-border/70 bg-white">
+      <ul className="mx-auto flex max-w-lg items-center justify-between gap-0 px-1 py-1.5">
         {items.map(({ href, label, key, icon: Icon }) => {
           const active =
             key === "home"
@@ -48,13 +48,13 @@ export function BottomNavInner() {
                 href={href}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "flex w-full max-w-[4.5rem] flex-col items-center gap-0.5 rounded-full px-1 py-1 text-[9px] font-semibold leading-tight transition-[color,background-color,box-shadow] duration-200",
+                  "flex w-full max-w-[4.75rem] flex-col items-center gap-1 rounded-2xl px-1 py-1.5 text-[9px] font-semibold leading-tight transition-colors duration-200",
                   active
-                    ? "bg-brand-950 text-brand-200 shadow-inner ring-1 ring-brand-500/35"
-                    : "text-muted-foreground hover:text-foreground/55",
+                    ? "bg-surface-muted/90 text-brand-950"
+                    : "text-muted-foreground hover:text-foreground/70",
                 )}
               >
-                <span className="relative inline-flex">
+                <span className="relative inline-flex text-current">
                   <Icon />
                   {isCart && totalItems > 0 ? (
                     <span className="absolute -end-0.5 -top-0.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-brand-500 px-0.5 text-[8px] font-bold leading-none text-black">
@@ -72,8 +72,7 @@ export function BottomNavInner() {
   );
 }
 
-const iconClass =
-  "h-3.5 w-3.5 shrink-0 stroke-[1.45] text-current";
+const iconClass = "h-4 w-4 shrink-0 stroke-[1.5] text-current";
 
 function HomeIcon() {
   return (
@@ -119,7 +118,6 @@ function CartIcon() {
   );
 }
 
-/** Store / branch pin — lighter visual than a chunky headset glyph */
 function MapPinIcon() {
   return (
     <svg

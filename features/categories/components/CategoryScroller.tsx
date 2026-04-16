@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { AppImage } from "@/components/AppImage";
 import { Card } from "@/components/ui/card";
+import { CategoryIcon } from "@/features/categories/category-icon-registry";
 import { ROUTES } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import type { Category } from "@/features/categories/types";
@@ -45,7 +45,6 @@ export function CategoryScroller({
 }
 
 function CompactCategoryTile({ category }: { category: Category }) {
-  const src = category.image ?? "/images/placeholder.png";
   return (
     <Link
       href={ROUTES.CATEGORY(category.slug)}
@@ -53,12 +52,12 @@ function CompactCategoryTile({ category }: { category: Category }) {
     >
       <Card
         variant="surface"
-        className="flex w-[100px] flex-col items-center gap-2 p-2 text-center transition hover:border-brand-300 sm:w-[120px]"
+        className="flex w-[100px] flex-col items-center gap-2 bg-[#e8ecf2] p-2 text-center transition hover:border-brand-300 sm:w-[120px]"
       >
-        <div className="relative h-12 w-12 overflow-hidden rounded-lg border border-border bg-image-well sm:h-14 sm:w-14">
-          <AppImage src={src} alt="" fill sizes="56px" className="object-cover" />
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border border-black/[0.06] bg-white text-brand-800 shadow-sm sm:h-14 sm:w-14">
+          <CategoryIcon slug={category.slug} className="h-7 w-7 sm:h-8 sm:w-8" />
         </div>
-        <span className="line-clamp-2 text-[10px] font-semibold leading-tight text-foreground sm:text-xs">
+        <span className="line-clamp-2 text-[10px] font-semibold leading-tight text-brand-950 sm:text-xs">
           {category.name}
         </span>
       </Card>

@@ -19,7 +19,7 @@ export function CartPageContent() {
 
   return (
     <Container className="py-10">
-      <h1 className="font-display text-2xl font-bold tracking-tight text-brand-950 sm:text-3xl">
+      <h1 className="font-display text-xl font-bold tracking-tight text-brand-950 sm:text-2xl md:text-3xl">
         سلة التسوق
       </h1>
 

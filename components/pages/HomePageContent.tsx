@@ -50,10 +50,27 @@ export function HomePageContent() {
 
         <HomeHeroBanner
           compact
-          title="مطبخك يستحق الأفضل"
-          subtitle="أدوات مطبخ أصلية بضمان الوكيل، وتوصيل موثوق لكل مصر."
-          primaryHref={ROUTES.PRODUCTS}
-          primaryLabel="تسوق الآن"
+          slides={[
+            {
+              title: "مطبخك يستحق الأفضل",
+              subtitle:
+                "أدوات مطبخ أصلية بضمان الوكيل، وتوصيل موثوق لكل مصر.",
+              imageSrc: "/images/hero-banner.jpg",
+              imageAlt: "",
+              primaryHref: ROUTES.PRODUCTS,
+              primaryLabel: "تسوق الآن",
+              secondaryHref: ROUTES.CATEGORIES,
+              secondaryLabel: "التصنيفات",
+            },
+            {
+              title: "وكيل معتمد · شحن لكل مصر",
+              subtitle: "تسوق بثقة مع ضمان أصلي ودعم ما بعد البيع.",
+              imageSrc: "/images/hero-banner.jpg",
+              imageAlt: "",
+              primaryHref: ROUTES.PRODUCTS,
+              primaryLabel: "اكتشف المنتجات",
+            },
+          ]}
         />
 
         <HomeTrustStrip
@@ -65,7 +82,9 @@ export function HomePageContent() {
 
         <section className="space-y-4">
           <div className="flex items-center justify-between gap-3">
-            <h2 className="text-lg font-bold tracking-tight text-black sm:text-xl">الأكثر مبيعاً</h2>
+            <h2 className="text-base font-bold tracking-tight text-black sm:text-lg md:text-xl">
+              الأكثر مبيعاً
+            </h2>
             <Link
               href={ROUTES.PRODUCTS}
               className="shrink-0 text-xs font-semibold text-muted-foreground underline-offset-4 hover:text-black hover:underline sm:text-sm"

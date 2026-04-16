@@ -51,8 +51,9 @@ const variantLayout: Record<
   },
   homeBestseller: {
     card: "overflow-hidden rounded-2xl border border-black/[0.05] p-0 shadow-[0_6px_22px_-10px_rgba(15,23,42,0.12)]",
-    body: "gap-1 p-3 pt-2",
-    title: "line-clamp-2 text-[13px] font-semibold leading-snug text-black",
+    body: "gap-1.5 p-3 pt-2.5",
+    title:
+      "line-clamp-2 min-h-[2.75rem] text-[13px] font-semibold leading-snug text-black",
     image: "aspect-[4/5]",
   },
 };
@@ -103,12 +104,24 @@ export function ProductCard({
           className="object-cover"
         />
         {wishlistSlot ? (
-          <div className="absolute end-2 top-2 z-[1]">{wishlistSlot}</div>
+          <div className="absolute start-2 top-2 z-[2]">{wishlistSlot}</div>
         ) : null}
-        <div className="absolute start-2 top-2 flex max-w-[calc(100%-1rem)] flex-wrap gap-0.5">
-          {product.onSale ? <ProductBadge variant="sale" /> : null}
-          {product.featured ? <ProductBadge variant="featured" /> : null}
-          {!product.inStock ? <ProductBadge variant="outOfStock" /> : null}
+        <div className="absolute end-2 top-2 z-[1] flex max-w-[48%] flex-col items-end gap-1">
+          {product.onSale ? (
+            <span className="rounded-md bg-black/25 px-0.5 py-0.5 backdrop-blur-sm">
+              <ProductBadge variant="sale" />
+            </span>
+          ) : null}
+          {product.featured ? (
+            <span className="rounded-md bg-black/25 px-0.5 py-0.5 backdrop-blur-sm">
+              <ProductBadge variant="featured" />
+            </span>
+          ) : null}
+          {!product.inStock ? (
+            <span className="rounded-md bg-black/25 px-0.5 py-0.5 backdrop-blur-sm">
+              <ProductBadge variant="outOfStock" />
+            </span>
+          ) : null}
         </div>
       </Link>
       <div className={cn("flex flex-1 flex-col", layout.body)}>
@@ -146,7 +159,7 @@ export function ProductCard({
           className={cn(
             "mt-auto",
             isHomeBestseller
-              ? "flex flex-col gap-2 pt-2"
+              ? "flex flex-row flex-wrap items-end justify-between gap-2 pt-2"
               : cn(
                   "flex items-end justify-between gap-2",
                   variant === "mobileCompact" ? "pt-1" : "pt-1.5 sm:pt-2",
@@ -164,11 +177,12 @@ export function ProductCard({
           {onAddToCart ? (
             <Button
               size="sm"
-              variant="primary"
+              variant={isHomeBestseller ? "secondary" : "primary"}
               disabled={!product.inStock}
               className={cn(
                 variant === "mobileCompact" && "shrink-0 px-2 text-xs",
-                isHomeBestseller && "h-9 w-full rounded-lg text-xs font-semibold sm:text-sm",
+                isHomeBestseller &&
+                  "h-9 min-w-[6.5rem] shrink-0 rounded-lg text-xs font-semibold sm:text-sm",
               )}
               onClick={(e) => {
                 e.preventDefault();

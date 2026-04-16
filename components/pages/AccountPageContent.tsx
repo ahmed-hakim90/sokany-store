@@ -9,7 +9,7 @@ export function AccountPageContent() {
   if (!hasHydrated) {
     return (
       <Container className="py-10">
-        <h1 className="font-display text-2xl font-semibold text-brand-950 sm:text-3xl">
+        <h1 className="font-display text-xl font-semibold text-brand-950 sm:text-2xl md:text-3xl">
           Account
         </h1>
         <p className="mt-4 rounded-xl border border-border bg-surface-muted/30 px-4 py-3 text-sm text-brand-900">
@@ -22,7 +22,7 @@ export function AccountPageContent() {
   if (!isAuthenticated) {
     return (
       <Container className="py-10">
-        <h1 className="font-display text-2xl font-semibold text-brand-950 sm:text-3xl">
+        <h1 className="font-display text-xl font-semibold text-brand-950 sm:text-2xl md:text-3xl">
           Account
         </h1>
         <p className="mt-4 rounded-xl border border-border bg-surface-muted/30 px-4 py-3 text-sm text-brand-900">
@@ -34,7 +34,7 @@ export function AccountPageContent() {
 
   return (
     <Container className="py-10">
-      <h1 className="font-display text-2xl font-semibold text-brand-950 sm:text-3xl">
+      <h1 className="font-display text-xl font-semibold text-brand-950 sm:text-2xl md:text-3xl">
         Account
       </h1>
       <p className="mt-2 text-sm text-zinc-600">

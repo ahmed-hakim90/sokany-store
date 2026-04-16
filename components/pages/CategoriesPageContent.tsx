@@ -14,7 +14,7 @@ export function CategoriesPageContent() {
   return (
     <Container className="py-10">
       <div>
-        <h1 className="font-display text-2xl font-bold tracking-tight text-brand-950 sm:text-3xl">
+        <h1 className="font-display text-xl font-bold tracking-tight text-brand-950 sm:text-2xl md:text-3xl">
           التصنيفات
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">

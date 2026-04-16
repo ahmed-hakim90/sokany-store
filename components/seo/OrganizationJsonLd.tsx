@@ -1,4 +1,5 @@
 import { getSiteUrl } from "@/lib/site";
+import { SOCIAL_LINKS } from "@/lib/social-links";
 
 export function OrganizationJsonLd() {
   const site = getSiteUrl();
@@ -17,11 +18,7 @@ export function OrganizationJsonLd() {
       contactType: "customer service",
       availableLanguage: "Arabic",
     },
-    sameAs: [
-      "https://www.facebook.com/SokanyElmaghraby",
-      "https://www.instagram.com/SokanyElmaghraby",
-      "https://www.youtube.com/@SokanyElmaghraby",
-    ],
+    sameAs: SOCIAL_LINKS.map((s) => s.href),
   };
 
   return (

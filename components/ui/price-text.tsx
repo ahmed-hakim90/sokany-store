@@ -25,7 +25,7 @@ export function PriceText({
     <span
       dir="ltr"
       className={cn(
-        "inline-flex flex-wrap items-baseline gap-x-2 gap-y-0",
+        "inline-flex flex-wrap items-baseline gap-x-2 gap-y-0 tabular-nums tracking-wide",
         className,
       )}
     >

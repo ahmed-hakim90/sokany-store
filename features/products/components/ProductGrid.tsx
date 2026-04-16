@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils";
 export type ProductGridStatus = "loading" | "empty" | "ready";
 
 const defaultGridClass =
-  "grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4";
+  "grid grid-cols-2 gap-6 lg:grid-cols-3 xl:grid-cols-4";
 
 function subscribeMinMd(onChange: () => void) {
   if (typeof window === "undefined") return () => {};

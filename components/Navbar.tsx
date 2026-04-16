@@ -2,17 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useRef, useState } from "react";
 import { AppImage } from "@/components/AppImage";
+import { MobileNavDrawer } from "@/components/layout/mobile-nav-drawer";
 import { NavbarSearch } from "@/components/layout/navbar-search";
 import { TopHeader } from "@/components/layout/top-header";
 import { IconButton } from "@/components/ui/icon-button";
+import { useCategories } from "@/features/categories/hooks/useCategories";
 import { useCart } from "@/hooks/useCart";
-import {
-  ROUTES,
-  SITE_NAME,
-  SITE_WORDMARK,
-} from "@/lib/constants";
+import { ROUTES, SITE_NAME, SITE_WORDMARK } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 const links = [
@@ -21,10 +19,10 @@ const links = [
   { href: ROUTES.CATEGORIES, label: "التصنيفات" },
   { href: ROUTES.ABOUT, label: "من نحن" },
   { href: ROUTES.SERVICE_CENTERS, label: "الفروع" },
-];
+] as const;
 
 const mobileIconTapClass =
-  "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-brand-900/50 transition-colors hover:bg-surface-muted/45 hover:text-brand-950 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500";
+  "inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-brand-900/50 transition-colors hover:bg-surface-muted/45 hover:text-brand-950 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500";
 
 function MobileCartLink({
   totalItems,
@@ -37,7 +35,7 @@ function MobileCartLink({
     <Link
       href={ROUTES.CART}
       className={cn(
-        "relative inline-flex h-8 w-8 items-center justify-center rounded-full border border-border/80 bg-white text-brand-950 shadow-sm transition-colors hover:bg-surface-muted/50",
+        "relative inline-flex h-11 w-11 items-center justify-center rounded-full border border-border/80 bg-white text-brand-950 shadow-sm transition-colors hover:bg-surface-muted/50",
         className,
       )}
       aria-label="السلة"
@@ -66,21 +64,15 @@ function MobileCartLink({
 export function Navbar() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
   const { totalItems } = useCart();
-
-  useEffect(() => {
-    if (!open) return;
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [open]);
+  const categoriesQuery = useCategories();
 
   const isCheckout = pathname === ROUTES.CHECKOUT;
   const isAbout = pathname === ROUTES.ABOUT;
   const isServiceCenters =
-    pathname === ROUTES.SERVICE_CENTERS || pathname.startsWith(`${ROUTES.SERVICE_CENTERS}/`);
+    pathname === ROUTES.SERVICE_CENTERS ||
+    pathname.startsWith(`${ROUTES.SERVICE_CENTERS}/`);
 
   const logo = (
     <Link href={ROUTES.HOME} className="flex items-center gap-2.5">
@@ -134,14 +126,17 @@ export function Navbar() {
   );
 
   const menuIconButtonClass =
-    "h-8 w-8 text-brand-900/50 hover:bg-surface-muted/45 hover:text-brand-950 [&_svg]:h-[17px] [&_svg]:w-[17px] [&_svg]:stroke-[1.45]";
+    "h-11 w-11 min-h-11 min-w-11 text-brand-900/50 hover:bg-surface-muted/45 hover:text-brand-950 [&_svg]:h-[17px] [&_svg]:w-[17px] [&_svg]:stroke-[1.45]";
 
   const mobileMenuButton = (
     <IconButton
+      ref={menuButtonRef}
       type="button"
       variant="ghost"
       size="sm"
       aria-label={open ? "إغلاق القائمة" : "فتح القائمة"}
+      aria-expanded={open}
+      aria-haspopup="dialog"
       className={menuIconButtonClass}
       onClick={() => setOpen((v) => !v)}
     >
@@ -150,7 +145,7 @@ export function Navbar() {
   );
 
   const mobileLeadingSpacer = (
-    <span className="inline-flex h-8 w-8 shrink-0" aria-hidden />
+    <span className="inline-flex h-11 w-11 shrink-0" aria-hidden />
   );
 
   const mobileLeading = isCheckout ? (
@@ -212,36 +207,30 @@ export function Navbar() {
       <span className="whitespace-normal">جودة أصلية · تجربة واضحة</span>
     ) : undefined;
 
-  const mobilePanel = (
-    <nav className="flex flex-col gap-1">
-      {links.map((l) => (
-        <Link
-          key={l.href}
-          href={l.href}
-          className="rounded-md px-2 py-2 text-sm font-medium text-brand-950 hover:bg-surface-muted/80"
-          onClick={() => setOpen(false)}
-        >
-          {l.label}
-        </Link>
-      ))}
-    </nav>
-  );
-
   return (
-    <TopHeader
-      logo={logo}
-      center={<NavbarSearch />}
-      desktopNav={desktopNav}
-      trailing={trailing}
-      mobileWordmark={mobileWordmark}
-      mobileLeading={mobileLeading}
-      mobileTrailing={mobileTrailing}
-      mobileToolbarBelow={isCheckout ? undefined : <NavbarSearch />}
-      mobileSecondary={mobileSecondary}
-      mobilePanel={mobilePanel}
-      mobilePanelOpen={open}
-      onMobilePanelClose={() => setOpen(false)}
-    />
+    <>
+      <TopHeader
+        logo={logo}
+        center={<NavbarSearch />}
+        desktopNav={desktopNav}
+        trailing={trailing}
+        mobileWordmark={mobileWordmark}
+        mobileLeading={mobileLeading}
+        mobileTrailing={mobileTrailing}
+        mobileToolbarBelow={isCheckout ? undefined : <NavbarSearch />}
+        mobileSecondary={mobileSecondary}
+      />
+      {!isCheckout ? (
+        <MobileNavDrawer
+          open={open}
+          onClose={() => setOpen(false)}
+          returnFocusRef={menuButtonRef}
+          links={links}
+          categories={categoriesQuery.data}
+          categoriesLoading={categoriesQuery.isLoading}
+        />
+      ) : null}
+    </>
   );
 }
 

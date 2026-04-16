@@ -1,10 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import { CONTACT_EMAIL, ROUTES, SITE_NAME } from "@/lib/constants";
-import { mockCategories } from "@/features/categories/mock";
+import { AppImage } from "@/components/AppImage";
 import { DesktopShell } from "@/components/layout/desktop-shell";
+import { MobileAccordionSection } from "@/components/ui/mobile-accordion-section";
+import { useCategories } from "@/features/categories/hooks/useCategories";
+import { mockCategories } from "@/features/categories/mock";
+import { CONTACT_EMAIL, ROUTES, SITE_NAME } from "@/lib/constants";
+import { SOCIAL_LINKS } from "@/lib/social-links";
 import { cn } from "@/lib/utils";
 
 const footerLinks = [
@@ -18,89 +21,66 @@ const footerLinks = [
 
 export function Footer() {
   const year = new Date().getFullYear();
-  const [openSection, setOpenSection] = useState<string | null>("links");
-
-  const toggle = (id: string) => {
-    setOpenSection((prev) => (prev === id ? null : id));
-  };
+  const categoriesQuery = useCategories();
+  const categoryList =
+    categoriesQuery.data && categoriesQuery.data.length > 0
+      ? categoriesQuery.data
+      : mockCategories.map((c) => ({
+          id: c.id,
+          name: c.name,
+          slug: c.slug,
+          description: c.description,
+          image: c.image?.src ?? null,
+          count: c.count,
+          parentId: c.parent,
+        }));
 
   return (
-    <footer className="mt-auto border-t border-border bg-white/70 backdrop-blur-sm">
-      <DesktopShell className="py-8 md:py-12">
-        {/* Mobile: compact accordion */}
-        <div className="space-y-1 md:hidden">
-          <div className="border-b border-border/80">
-            <button
-              type="button"
-              className="flex w-full items-center justify-between py-3 text-start font-display text-sm font-semibold text-brand-950"
-              aria-expanded={openSection === "links"}
-              onClick={() => toggle("links")}
-            >
-              روابط سريعة
-              <Chevron aria-expanded={openSection === "links"} />
-            </button>
-            {openSection === "links" ? (
-              <ul className="space-y-2 pb-3 text-sm text-muted-foreground">
-                {footerLinks.map((l) => (
-                  <li key={l.href}>
-                    <Link className="hover:text-brand-900" href={l.href}>
-                      {l.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            ) : null}
-          </div>
-          <div className="border-b border-border/80">
-            <button
-              type="button"
-              className="flex w-full items-center justify-between py-3 text-start font-display text-sm font-semibold text-brand-950"
-              aria-expanded={openSection === "categories"}
-              onClick={() => toggle("categories")}
-            >
-              التصنيفات
-              <Chevron aria-expanded={openSection === "categories"} />
-            </button>
-            {openSection === "categories" ? (
-              <ul className="max-h-48 space-y-2 overflow-y-auto pb-3 text-sm text-muted-foreground">
-                {mockCategories.map((c) => (
-                  <li key={c.id}>
-                    <Link
-                      className="hover:text-brand-900"
-                      href={ROUTES.CATEGORY(c.slug)}
-                    >
-                      {c.name}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            ) : null}
-          </div>
-          <div className="border-b border-border/80">
-            <button
-              type="button"
-              className="flex w-full items-center justify-between py-3 text-start font-display text-sm font-semibold text-brand-950"
-              aria-expanded={openSection === "service"}
-              onClick={() => toggle("service")}
-            >
-              خدمة العملاء
-              <Chevron aria-expanded={openSection === "service"} />
-            </button>
-            {openSection === "service" ? (
-              <div className="space-y-2 pb-3 text-sm text-muted-foreground">
-                <p>{CONTACT_EMAIL}</p>
-                <p>القاهرة، مصر — دعم العملاء 10:00–18:00.</p>
-              </div>
-            ) : null}
-          </div>
+    <footer className="mt-auto border-t border-border/80 bg-zinc-50/95 backdrop-blur-sm">
+      <DesktopShell
+        className={cn(
+          "py-8 md:py-12",
+          "max-md:pb-[calc(120px+env(safe-area-inset-bottom))]",
+        )}
+      >
+        <div className="space-y-0 md:hidden">
+          <MobileAccordionSection title="التصنيفات">
+            <ul className="space-y-2 text-sm text-muted-foreground">
+              {categoryList.map((c) => (
+                <li key={c.id}>
+                  <Link className="hover:text-brand-900" href={ROUTES.CATEGORY(c.slug)}>
+                    {c.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </MobileAccordionSection>
+          <MobileAccordionSection title="روابط سريعة">
+            <ul className="space-y-2 text-sm text-muted-foreground">
+              {footerLinks.map((l) => (
+                <li key={l.href}>
+                  <Link className="hover:text-brand-900" href={l.href}>
+                    {l.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </MobileAccordionSection>
+          <MobileAccordionSection title="خدمة العملاء" noBorder>
+            <div className="space-y-2 text-sm text-muted-foreground">
+              <p>
+                <a className="hover:text-brand-900" href={`mailto:${CONTACT_EMAIL}`}>
+                  {CONTACT_EMAIL}
+                </a>
+              </p>
+              <p>القاهرة، مصر — دعم العملاء 10:00–18:00.</p>
+            </div>
+          </MobileAccordionSection>
         </div>
 
-        {/* Desktop */}
         <div className="hidden gap-10 md:grid md:grid-cols-3">
           <div>
-            <h3 className="font-display text-lg font-semibold text-brand-950">
-              روابط
-            </h3>
+            <h3 className="font-display text-lg font-semibold text-brand-950">روابط</h3>
             <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
               {footerLinks.map((l) => (
                 <li key={l.href}>
@@ -112,16 +92,11 @@ export function Footer() {
             </ul>
           </div>
           <div>
-            <h3 className="font-display text-lg font-semibold text-brand-950">
-              التصنيفات
-            </h3>
+            <h3 className="font-display text-lg font-semibold text-brand-950">التصنيفات</h3>
             <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
-              {mockCategories.map((c) => (
+              {categoryList.map((c) => (
                 <li key={c.id}>
-                  <Link
-                    className="hover:text-brand-900"
-                    href={ROUTES.CATEGORY(c.slug)}
-                  >
+                  <Link className="hover:text-brand-900" href={ROUTES.CATEGORY(c.slug)}>
                     {c.name}
                   </Link>
                 </li>
@@ -129,9 +104,7 @@ export function Footer() {
             </ul>
           </div>
           <div id="service">
-            <h3 className="font-display text-lg font-semibold text-brand-950">
-              خدمة العملاء
-            </h3>
+            <h3 className="font-display text-lg font-semibold text-brand-950">خدمة العملاء</h3>
             <p className="mt-3 text-sm text-muted-foreground">{CONTACT_EMAIL}</p>
             <p className="mt-2 text-sm text-muted-foreground">
               القاهرة، مصر — دعم العملاء 10:00–18:00.
@@ -139,30 +112,80 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-8 border-t border-border pt-5 text-center text-xs text-muted-foreground md:mt-10 md:pt-6">
-          © {year} {SITE_NAME}. جميع الحقوق محفوظة.
+        <div className="mt-8 flex flex-col items-center gap-4 border-t border-border/80 pt-6 md:mt-10 md:pt-8">
+          <div className="flex flex-wrap items-center justify-center gap-4">
+            {SOCIAL_LINKS.map((s) => (
+              <a
+                key={s.key}
+                href={s.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border/80 bg-white text-brand-800 shadow-sm transition-colors hover:bg-surface-muted/80 hover:text-brand-950"
+                aria-label={s.label}
+              >
+                {s.key === "facebook" ? (
+                  <FacebookGlyph className="h-4 w-4" />
+                ) : s.key === "instagram" ? (
+                  <InstagramGlyph className="h-4 w-4" />
+                ) : (
+                  <YoutubeGlyph className="h-4 w-4" />
+                )}
+              </a>
+            ))}
+            <a
+              href={`mailto:${CONTACT_EMAIL}`}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border/80 bg-white text-brand-800 shadow-sm transition-colors hover:bg-surface-muted/80 hover:text-brand-950"
+              aria-label="البريد الإلكتروني"
+            >
+              <MailGlyph className="h-4 w-4" />
+            </a>
+          </div>
+          <div className="flex flex-col items-center gap-2 text-center">
+            <div className="relative h-9 w-9 overflow-hidden rounded-md border border-border opacity-70 grayscale">
+              <AppImage src="/images/logo.png" alt="" fill sizes="36px" />
+            </div>
+            <p className="font-display text-xs font-semibold text-brand-950">{SITE_NAME}</p>
+            <p className="text-xs text-muted-foreground">
+              © {year} {SITE_NAME}. جميع الحقوق محفوظة.
+            </p>
+          </div>
         </div>
       </DesktopShell>
     </footer>
   );
 }
 
-function Chevron({ "aria-expanded": expanded }: { "aria-expanded": boolean }) {
+function FacebookGlyph({ className }: { className?: string }) {
   return (
-    <svg
-      viewBox="0 0 24 24"
-      width="18"
-      height="18"
-      className={cn(
-        "shrink-0 text-muted-foreground transition-transform duration-200",
-        expanded && "-rotate-180",
-      )}
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.6"
-      aria-hidden
-    >
-      <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+    <svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-hidden>
+      <path d="M13.5 22v-8h2.7l.4-3h-3.1V9.1c0-.9.3-1.5 1.6-1.5H17V4.6c-.3 0-1.5-.1-2.8-.1-2.8 0-4.7 1.7-4.7 4.8V11H7v3h2.5v8h4z" />
+    </svg>
+  );
+}
+
+function InstagramGlyph({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden>
+      <rect x="3" y="3" width="18" height="18" rx="4" />
+      <circle cx="12" cy="12" r="3.5" />
+      <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+function YoutubeGlyph({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-hidden>
+      <path d="M21.6 7.2s-.2-1.4-.8-2c-.8-.8-1.7-.8-2.1-.9C16 4 12 4 12 4s-4 0-6.7.3c-.4 0-1.3.1-2.1.9-.6.6-.8 2-.8 2S2 8.9 2 10.6v1.7c0 1.7.2 3.4.2 3.4s.2 1.4.8 2c.8.8 1.9.8 2.4.9 1.9.2 6.6.3 6.6.3s4 0 6.7-.3c.4 0 1.3-.1 2.1-.9.6-.6.8-2 .8-2s.2-1.7.2-3.4v-1.7c0-1.7-.2-3.4-.2-3.4zM10 14.5V8.5L15.2 11.5 10 14.5z" />
+    </svg>
+  );
+}
+
+function MailGlyph({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden>
+      <path d="M4 6h16v12H4z" strokeLinejoin="round" />
+      <path d="m4 7 8 6 8-6" strokeLinecap="round" />
     </svg>
   );
 }

@@ -91,3 +91,17 @@ body {
     background-position: -200% 0;
   }
 }
+
+/* Home hero Swiper — pagination over gradient */
+.hero-swiper .swiper-pagination {
+  bottom: 0.5rem;
+}
+.hero-swiper .swiper-pagination-bullet {
+  width: 0.45rem;
+  height: 0.45rem;
+  background: rgb(255 255 255 / 0.45);
+  opacity: 1;
+}
+.hero-swiper .swiper-pagination-bullet-active {
+  background: var(--sokany-accent);
+}

@@ -79,7 +79,7 @@ export function CategorySlugPageContent({ slug }: { slug: string }) {
               </div>
             ) : null}
             <div>
-              <h1 className="font-display text-2xl font-bold tracking-tight text-brand-950 sm:text-3xl">
+              <h1 className="font-display text-xl font-bold tracking-tight text-brand-950 sm:text-2xl md:text-3xl">
                 {categoryQuery.data.name}
               </h1>
               <p className="mt-2 max-w-2xl break-words text-sm text-zinc-700">

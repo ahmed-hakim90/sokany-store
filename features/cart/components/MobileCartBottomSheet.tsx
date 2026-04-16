@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useCallback, useEffect, useState } from "react";
+import { memo, useCallback, useEffect, useState, startTransition } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Drawer } from "vaul";
@@ -34,11 +34,13 @@ export function MobileCartBottomSheet({
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    if (!showCartSummary || totalItems === 0) setOpen(false);
+    if (!showCartSummary || totalItems === 0) {
+      startTransition(() => setOpen(false));
+    }
   }, [showCartSummary, totalItems]);
 
   useEffect(() => {
-    setOpen(false);
+    startTransition(() => setOpen(false));
   }, [pathname]);
 
   const onOpenChange = useCallback(
@@ -70,7 +72,7 @@ export function MobileCartBottomSheet({
       shouldScaleBackground
       dismissible
     >
-      <div className="min-h-[3.25rem] border-b border-border/80 bg-white">
+      <div className="min-h-[3.25rem] border-b border-border/80 bg-white shadow-[0_-6px_18px_-10px_rgba(15,23,42,0.14)]">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2 px-3 py-2.5 sm:flex-nowrap">
           <Drawer.Trigger asChild disabled={!hasHydrated}>
             <button

@@ -37,7 +37,7 @@ export function ProductsPageContent() {
     <Container className="py-10">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="font-display text-2xl font-bold tracking-tight text-brand-950 sm:text-3xl">
+          <h1 className="font-display text-xl font-bold tracking-tight text-brand-950 sm:text-2xl md:text-3xl">
             المنتجات
           </h1>
           <p className="text-sm text-muted-foreground">

@@ -22,7 +22,7 @@ export function ServiceCentersPageContent() {
     <div className="flex min-w-0 flex-col gap-8 pb-6 pt-2 md:gap-10 md:pt-6">
       <Container>
         <header className="space-y-3 text-center md:text-start">
-          <h1 className="font-display text-3xl font-bold leading-tight text-brand-950 md:text-4xl">
+          <h1 className="font-display text-2xl font-bold leading-tight text-brand-950 sm:text-3xl md:text-4xl">
             مراكز الخدمة والفروع
           </h1>
           <p className="mx-auto max-w-prose text-sm leading-relaxed text-muted-foreground md:mx-0">

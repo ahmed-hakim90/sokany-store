@@ -19,7 +19,7 @@ import { AppImage } from "@/components/AppImage";
 import { SearchField } from "@/components/ui/search-field";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useSearchSuggestions } from "@/hooks/useSearchSuggestions";
-import { formatPriceEgp } from "@/lib/format";
+import { formatPrice } from "@/lib/utils";
 import { GLOBAL_PRODUCT_SEARCH_INPUT_ID, ROUTES } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
@@ -221,8 +221,11 @@ export function NavbarSearch() {
                       <p className="line-clamp-2 text-sm font-medium text-brand-950">
                         {product.name}
                       </p>
-                      <p className="mt-0.5 text-xs font-semibold text-brand-900">
-                        {formatPriceEgp(product.price)}
+                      <p
+                        className="mt-0.5 text-xs font-semibold text-brand-900 tabular-nums tracking-wide"
+                        dir="ltr"
+                      >
+                        {formatPrice(product.price)}
                       </p>
                     </div>
                   </Link>
