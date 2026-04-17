@@ -46,7 +46,7 @@ export function HomeParentCategorySections({
 
             <section
               className={cn(
-                "space-y-3 rounded-2xl   p-4 sm:p-5",
+                "space-y-3 rounded-2xl ",
               )}
               aria-labelledby={`home-cat-${cat.id}-title`}
             >

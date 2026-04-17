@@ -1,11 +1,11 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { AppImage } from "@/components/AppImage";
 import { Card } from "@/components/ui/card";
 import { IconButton } from "@/components/ui/icon-button";
 import { PriceText } from "@/components/ui/price-text";
-import { QtyControl } from "@/components/ui/qty-control";
 import { cn } from "@/lib/utils";
 import { ROUTES } from "@/lib/constants";
 import { usePrefetchProduct } from "@/features/products/hooks/usePrefetchProduct";
@@ -28,7 +28,7 @@ export type ProductCardProps = {
 };
 
 /** Prefer list vs current price; fall back to regular vs sale_price from WooCommerce. */
-function saleDiscountLabel(product: Product): string | null {
+function saleDiscountPercent(product: Product): number | null {
   if (!product.onSale) return null;
   const current = product.price;
 
@@ -40,7 +40,7 @@ function saleDiscountLabel(product: Product): string | null {
   };
 
   const a = pctFromList(product.regularPrice);
-  if (a !== null) return `خصم ${a}%`;
+  if (a !== null) return a;
 
   if (
     product.salePrice !== null &&
@@ -49,7 +49,7 @@ function saleDiscountLabel(product: Product): string | null {
     const pct = Math.round(
       (1 - product.salePrice / product.regularPrice) * 100,
     );
-    if (Number.isFinite(pct) && pct > 0 && pct < 100) return `خصم ${pct}%`;
+    if (Number.isFinite(pct) && pct > 0 && pct < 100) return pct;
   }
 
   return null;
@@ -94,6 +94,7 @@ export function ProductCard({
   className,
 }: ProductCardProps) {
   const prefetchProduct = usePrefetchProduct();
+  const addFeedbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const layout = variantLayout[variant];
   const tag =
     product.categories[0]?.name ??
@@ -103,12 +104,33 @@ export function ProductCard({
       ? product.regularPrice
       : null;
   const priceCompact = variant === "mobileCompact";
-  const saleLabel = saleDiscountLabel(product);
+  const saleDiscount = saleDiscountPercent(product);
   const handlePrefetch = () => {
     void prefetchProduct(product.id);
   };
   const lineQty = getCartLineQuantity?.(product.id) ?? 0;
   const showCartQty = Boolean(onCartLineQuantityChange);
+  const [justAdded, setJustAdded] = useState(false);
+
+  useEffect(() => {
+    return () => {
+      if (addFeedbackTimerRef.current) {
+        clearTimeout(addFeedbackTimerRef.current);
+      }
+    };
+  }, []);
+
+  const handleAddToCart = () => {
+    if (!onCartLineQuantityChange || !product.inStock) return;
+    onCartLineQuantityChange(product, Math.min(99, lineQty + 1));
+    setJustAdded(true);
+    if (addFeedbackTimerRef.current) {
+      clearTimeout(addFeedbackTimerRef.current);
+    }
+    addFeedbackTimerRef.current = setTimeout(() => {
+      setJustAdded(false);
+    }, 1200);
+  };
 
   return (
     <Card
@@ -132,17 +154,17 @@ export function ProductCard({
           sizes="(max-width: 768px) 50vw, 25vw"
           className="object-cover object-center"
         />
+        {saleDiscount !== null ? (
+          <span className="absolute start-2 top-2 z-[2] rounded-[4] bg-[#101923] px-2.2 py-1.2 text-sm font-extrabold leading-none tracking-wide text-[#d8ff35] shadow-sm sm:px-3.5 sm:py-2 text-sm">
+            %{saleDiscount} خصم
+          </span>
+        ) : null}
         {wishlistSlot ? (
-          <div className="absolute start-2 top-2 z-[2]">{wishlistSlot}</div>
+          <div className="absolute end-2 top-2 z-[2]">{wishlistSlot}</div>
         ) : null}
       </Link>
       <div className={cn("flex flex-1 flex-col", layout.body)}>
         {tag ? <span className={layout.tag}>{tag}</span> : null}
-        {product.onSale && saleLabel ? (
-          <span className="text-[10px] font-medium text-muted-foreground sm:text-[11px]">
-            {saleLabel}
-          </span>
-        ) : null}
         {!product.inStock ? (
           <span className="text-[10px] font-semibold text-muted-foreground sm:text-[11px]">
             غير متوفر حالياً
@@ -161,7 +183,7 @@ export function ProductCard({
             "mt-auto",
             showCartQty
               ? cn(
-                  "flex flex-col items-center gap-2",
+                  "flex flex-col gap-2",
                   variant === "mobileCompact" ? "pt-1.5" : "pt-2",
                 )
               : cn(
@@ -180,14 +202,20 @@ export function ProductCard({
                 emphasized={variant === "featured"}
                 className="min-w-0 max-w-none"
               />
-              <QtyControl
-                min={0}
-                max={99}
-                value={lineQty}
+              <button
+                type="button"
                 disabled={!product.inStock}
-                className="shrink-0"
-                onChange={(next) => onCartLineQuantityChange?.(product, next)}
-              />
+                onClick={handleAddToCart}
+                className={cn(
+                  "inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-xs/tight font-extrabold transition-colors",
+                  product.inStock
+                    ? "bg-[#d8ff35] text-[#101923] hover:bg-[#cbf22f]"
+                    : "cursor-not-allowed bg-muted text-muted-foreground",
+                )}
+              >
+                <CartIcon />
+                <span>{justAdded ? "تمت الإضافة" : "أضف للسلة"}</span>
+              </button>
             </>
           ) : (
             <div className="min-w-0 flex-1">
@@ -204,6 +232,22 @@ export function ProductCard({
         </div>
       </div>
     </Card>
+  );
+}
+
+function CartIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4" aria-hidden>
+      <path
+        d="M3 4h2.2c.5 0 .93.33 1.06.81l.54 2.02m0 0L8 12h9.5a1 1 0 00.97-.76l1.2-4.8a.75.75 0 00-.73-.94H6.8z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="10" cy="18.2" r="1.3" fill="currentColor" />
+      <circle cx="17" cy="18.2" r="1.3" fill="currentColor" />
+    </svg>
   );
 }
 

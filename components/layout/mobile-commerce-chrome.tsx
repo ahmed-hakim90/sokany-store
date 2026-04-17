@@ -48,9 +48,9 @@ export function MobileCommerceChrome() {
   return (
     <div
       ref={rootRef}
-      className="pointer-events-none fixed inset-x-0 bottom-0 z-50 px-3 md:hidden"
+      className="pointer-events-none fixed inset-x-0 bottom-0 z-50  md:hidden"
       style={{
-        paddingBottom: "max(0.65rem, env(safe-area-inset-bottom))",
+        paddingBottom: "",
       }}
     >
       <div className="pointer-events-auto mx-auto max-w-lg overflow-hidden rounded-t-2xl bg-white shadow-[0_-8px_28px_-10px_rgba(15,23,42,0.18),0_-1px_0_rgba(15,23,42,0.08)] ring-1 ring-slate-900/[0.06]">

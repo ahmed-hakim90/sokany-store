@@ -48,10 +48,10 @@ export function BottomNavInner() {
                 href={href}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "flex max-w-none flex-col items-center gap-1 rounded-2xl px-1 py-1.5 text-xs font-semibold leading-tight transition-colors duration-200",
+                  "flex h-14 w-full max-w-[5.5rem] flex-col items-center justify-center gap-1 rounded-2xl border border-transparent px-1 py-1.5 text-xs font-semibold leading-tight transition-colors duration-200",
                   active
-                    ? "bg-brand-950 text-[var(--sokany-accent)]"
-                    : "text-muted-foreground hover:text-foreground/70",
+                    ? "border-brand-950 bg-brand-950 text-[var(--sokany-accent)]"
+                    : "text-muted-foreground hover:bg-black/[0.03] hover:text-foreground/70",
                 )}
               >
                 <span className="relative inline-flex text-current">

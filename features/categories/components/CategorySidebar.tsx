@@ -13,7 +13,7 @@ function RowMarker({ active }: { active: boolean }) {
       className={cn(
         "mt-[0.35rem] h-1.5 w-1.5 shrink-0 rounded-full border transition-colors",
         active
-          ? "border-brand-500 bg-brand-500"
+          ? "border-[var(--sokany-accent)] bg-[var(--sokany-accent)]"
           : "border-muted-foreground/25 bg-transparent group-hover:border-muted-foreground/45",
       )}
       aria-hidden
@@ -78,7 +78,9 @@ export function CategorySidebar({
               href={ROUTES.PRODUCTS}
               className={cn(
                 "group flex items-start gap-2.5 rounded-xl px-2 py-2 transition-colors",
-                allActive ? "bg-brand-500 text-black" : "hover:bg-black/[0.03]",
+                allActive
+                  ? "bg-brand-950 text-[var(--sokany-accent)]"
+                  : "hover:bg-black/[0.03]",
               )}
               onMouseEnter={prefetchAllProducts}
               onFocus={prefetchAllProducts}
@@ -87,7 +89,9 @@ export function CategorySidebar({
               <span
                 className={cn(
                   "min-w-0 flex-1 text-sm leading-snug",
-                  allActive ? "font-bold" : "font-medium text-muted-foreground group-hover:text-foreground",
+                  allActive
+                    ? "font-bold text-current"
+                    : "font-medium text-muted-foreground group-hover:text-foreground",
                 )}
               >
                 الكل
@@ -98,7 +102,9 @@ export function CategorySidebar({
               href={ROUTES.CATEGORIES}
               className={cn(
                 "group flex items-start gap-2.5 rounded-xl px-2 py-2 transition-colors",
-                allActive ? "bg-brand-500/[0.12]" : "hover:bg-black/[0.03]",
+                allActive
+                  ? "bg-brand-950 text-[var(--sokany-accent)]"
+                  : "hover:bg-black/[0.03]",
               )}
             >
               <RowMarker active={allActive} />
@@ -106,7 +112,7 @@ export function CategorySidebar({
                 className={cn(
                   "min-w-0 flex-1 text-sm leading-snug",
                   allActive
-                    ? "font-bold text-foreground"
+                    ? "font-bold text-current"
                     : "font-medium text-muted-foreground group-hover:text-foreground",
                 )}
               >
@@ -129,11 +135,9 @@ export function CategorySidebar({
                 href={href}
                 className={cn(
                   "group flex items-start gap-2.5 rounded-xl px-2 py-2 transition-colors",
-                  active && isProductsMode
-                    ? "bg-brand-500 text-black"
-                    : active
-                      ? "bg-brand-500/[0.12]"
-                      : "hover:bg-black/[0.03]",
+                  active
+                    ? "bg-brand-950 text-[var(--sokany-accent)]"
+                    : "hover:bg-black/[0.03]",
                 )}
                 onMouseEnter={
                   isProductsMode
@@ -151,16 +155,21 @@ export function CategorySidebar({
                   <span
                     className={cn(
                       "line-clamp-2 text-sm leading-snug",
-                      active && isProductsMode
-                        ? "font-bold"
-                        : active
-                          ? "font-bold text-foreground"
-                          : "font-medium text-muted-foreground group-hover:text-foreground",
+                      active
+                        ? "font-bold text-current"
+                        : "font-medium text-muted-foreground group-hover:text-foreground",
                     )}
                   >
                     {category.name}
                   </span>
-                  <span className="mt-0.5 block text-[11px] font-normal leading-tight text-muted-foreground/85">
+                  <span
+                    className={cn(
+                      "mt-0.5 block text-[11px] font-normal leading-tight",
+                      active
+                        ? "text-[var(--sokany-accent)]/80"
+                        : "text-muted-foreground/85",
+                    )}
+                  >
                     {category.count} منتج
                   </span>
                 </span>

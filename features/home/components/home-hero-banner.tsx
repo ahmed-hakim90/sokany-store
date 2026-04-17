@@ -86,7 +86,7 @@ export function HomeHeroBanner({
         className={cn(
           "hero-swiper ",
           compact
-            ? "min-h-[132px] sm:min-h-[168px] md:min-h-[220px] lg:min-h-[260px]"
+            ? "min-h-[330px] sm:min-h-[330px] md:min-h-[330px] lg:min-h-[330px]"
             : "min-h-[160px] sm:min-h-[190px] md:min-h-[240px] lg:min-h-[280px]",
         )}
       >
