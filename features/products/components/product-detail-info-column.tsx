@@ -26,6 +26,7 @@ export function ProductDetailInfoColumn({
   onAddToCart,
   onBuyNow,
   specs,
+  canInteractCart = true,
   className,
 }: {
   product: Product;
@@ -34,6 +35,7 @@ export function ProductDetailInfoColumn({
   onAddToCart: () => void;
   onBuyNow?: () => void;
   specs: ProductSpecItem[];
+  canInteractCart?: boolean;
   className?: string;
 }) {
   const compareAt =
@@ -93,7 +95,7 @@ export function ProductDetailInfoColumn({
             min={1}
             max={99}
             onChange={onQuantityChange}
-            disabled={!product.inStock}
+            disabled={!product.inStock || !canInteractCart}
             layout="segmented"
             className=" max-w-[11rem] self-start"
           />
@@ -105,7 +107,7 @@ export function ProductDetailInfoColumn({
             className={cn(
               "h-12  border-0 bg-gradient-to-b from-brand-400 to-brand-500 text-base font-bold text-black shadow-md hover:from-brand-300 hover:to-brand-400 sm:flex-1",
             )}
-            disabled={!product.inStock}
+            disabled={!product.inStock || !canInteractCart}
             onClick={onAddToCart}
           >
             <CartIcon className="h-5 w-5" />
@@ -117,7 +119,7 @@ export function ProductDetailInfoColumn({
               variant="secondary"
               size="lg"
               className="h-12  border-border bg-white text-base font-semibold text-foreground hover:bg-surface-muted sm:w-auto sm:min-w-[9.5rem]"
-              disabled={!product.inStock}
+              disabled={!product.inStock || !canInteractCart}
               onClick={onBuyNow}
             >
               شراء الآن

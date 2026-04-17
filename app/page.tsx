@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { HomePageContent } from "@/components/pages/HomePageContent";
+import { getHeroSlides } from "@/features/home/services/getHeroSlides";
 import { getSiteUrl } from "@/lib/site";
 
 const defaultOgImage =
@@ -39,6 +40,7 @@ export const metadata: Metadata = {
   },
 };
 
-export default function Home() {
-  return <HomePageContent />;
+export default async function Home() {
+  const heroSlides = await getHeroSlides();
+  return <HomePageContent heroSlides={heroSlides} />;
 }

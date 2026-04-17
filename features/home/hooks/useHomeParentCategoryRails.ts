@@ -19,11 +19,18 @@ export function useHomeParentCategoryRails(categories: Category[]) {
     queries: parents.map((cat) => ({
       queryKey: [
         "products",
-        { category: cat.id, per_page: 8, orderby: "popularity", order: "desc" },
+        {
+          category: cat.id,
+          include_children: true,
+          per_page: 8,
+          orderby: "popularity",
+          order: "desc",
+        },
       ] as const,
       queryFn: () =>
         getProducts({
           category: cat.id,
+          include_children: true,
           per_page: 8,
           orderby: "popularity",
           order: "desc",

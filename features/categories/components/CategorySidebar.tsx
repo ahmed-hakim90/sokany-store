@@ -100,6 +100,7 @@ export function CategorySidebar({
           ) : (
             <Link
               href={ROUTES.CATEGORIES}
+              scroll={false}
               className={cn(
                 "group flex items-start gap-2.5 rounded-xl px-2 py-2 transition-colors",
                 allActive
@@ -133,6 +134,7 @@ export function CategorySidebar({
             <li key={category.id} className="py-0.5">
               <Link
                 href={href}
+                scroll={false}
                 className={cn(
                   "group flex items-start gap-2.5 rounded-xl px-2 py-2 transition-colors",
                   active

@@ -3,6 +3,7 @@ export type ProductQueryParams = {
   per_page?: number;
   featured?: boolean;
   category?: number;
+  include_children?: boolean;
   search?: string;
   slug?: string;
   /** WooCommerce list: date | popularity | price | rating | title */

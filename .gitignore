@@ -40,3 +40,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+# sokany scraper temporary files
+data/sokany-eg/_errors.json
+data/sokany-eg/.cache/
+

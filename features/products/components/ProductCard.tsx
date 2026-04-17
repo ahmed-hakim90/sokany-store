@@ -155,7 +155,7 @@ export function ProductCard({
           className="object-cover object-center"
         />
         {saleDiscount !== null ? (
-          <span className="absolute start-2 top-2 z-[2] rounded-[4] bg-[#101923] px-2.2 py-1.2 text-sm font-extrabold leading-none tracking-wide text-[#d8ff35] shadow-sm sm:px-3.5 sm:py-2 text-sm">
+          <span className="absolute start-2 top-2 z-[2] rounded-[4] bg-[#101923] px-3 py-1.5 text-sm font-extrabold leading-none tracking-wide text-[#d8ff35] shadow-sm sm:px-3.5 sm:py-2 text-sm">
             %{saleDiscount} خصم
           </span>
         ) : null}

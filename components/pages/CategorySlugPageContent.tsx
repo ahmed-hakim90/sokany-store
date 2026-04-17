@@ -10,7 +10,6 @@ import { ErrorState } from "@/components/ErrorState";
 import { useCart } from "@/hooks/useCart";
 import { ROUTES } from "@/lib/constants";
 import { useCategories } from "@/features/categories/hooks/useCategories";
-import { useCategory } from "@/features/categories/hooks/useCategory";
 import { CategoryBrowseSplitLayout } from "@/features/categories/components/category-browse-split-layout";
 import { useProducts } from "@/features/products/hooks/useProducts";
 import { CatalogPromoTile } from "@/features/catalog/components/catalog-promo-tile";
@@ -56,39 +55,47 @@ function CategorySlugProductsSection({
   onCartLineQuantityChange: (product: Product, next: number) => void;
   router: ReturnType<typeof useRouter>;
 }) {
+  const showRefreshSkeleton =
+    productsQuery.isFetching &&
+    !productsQuery.isPending &&
+    !productsQuery.isError &&
+    Boolean(productsQuery.data?.length);
+
   return productsQuery.isError ? (
     <ErrorState
       message={productsQuery.error.message}
       onRetry={() => void productsQuery.refetch()}
     />
   ) : (
-    <ProductGrid
-      status={
-        productsQuery.isPending
-          ? "loading"
-          : !productsQuery.data?.length
-            ? "empty"
-            : "ready"
-      }
-      products={productsQuery.data ?? []}
-      getCartLineQuantity={getCartLineQuantity}
-      onCartLineQuantityChange={onCartLineQuantityChange}
-      cardVariant="mobileCompact"
-      cardVariantMd="desktopCatalogWide"
-      leadingSlot={<CatalogPromoTile />}
-      gridClassName="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4 xl:grid-cols-5"
-      empty={
-        <EmptyState
-          title="لا توجد منتجات في هذا التصنيف"
-          description="جرّب تصنيفاً آخر أو تصفح كل المنتجات."
-          action={
-            <Button type="button" onClick={() => router.push(ROUTES.PRODUCTS)}>
-              تصفح المنتجات
-            </Button>
-          }
-        />
-      }
-    />
+    <div className="relative">
+      <ProductGrid
+        status={
+          productsQuery.isPending || showRefreshSkeleton
+            ? "loading"
+            : !productsQuery.data?.length
+              ? "empty"
+              : "ready"
+        }
+        products={productsQuery.data ?? []}
+        getCartLineQuantity={getCartLineQuantity}
+        onCartLineQuantityChange={onCartLineQuantityChange}
+        cardVariant="mobileCompact"
+        cardVariantMd="desktopCatalogWide"
+        leadingSlot={<CatalogPromoTile />}
+        gridClassName="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4 xl:grid-cols-5"
+        empty={
+          <EmptyState
+            title="لا توجد منتجات في هذا التصنيف"
+            description="جرّب تصنيفاً آخر أو تصفح كل المنتجات."
+            action={
+              <Button type="button" onClick={() => router.push(ROUTES.PRODUCTS)}>
+                تصفح المنتجات
+              </Button>
+            }
+          />
+        }
+      />
+    </div>
   );
 }
 
@@ -99,10 +106,14 @@ function CategorySlugProductsSection({
  */
 export function CategorySlugPageContent({ slug }: { slug: string }) {
   const router = useRouter();
-  const categoryQuery = useCategory(slug);
   const categoriesNav = useCategories();
+  const navCategories = categoriesNav.data;
+  const activeCategory = useMemo(
+    () => navCategories?.find((category) => category.slug === slug) ?? null,
+    [navCategories, slug],
+  );
 
-  const categoryId = categoryQuery.data?.id;
+  const categoryId = activeCategory?.id;
   const productParams = useMemo(
     () =>
       categoryId
@@ -113,17 +124,17 @@ export function CategorySlugPageContent({ slug }: { slug: string }) {
 
   const productsQuery = useProducts(productParams, {
     enabled: Boolean(categoryId),
+    keepPreviousData: true,
   });
   const { getCartLineQuantity, setProductLineQuantity } = useCart();
 
-  const navCategories = categoriesNav.data;
   const hasNavCategories = Boolean(navCategories?.length);
 
   return (
     <div className="flex min-h-0 min-w-0 flex-1 flex-col">
       <Container className="flex min-h-0 flex-1 flex-col px-4 py-4 sm:px-6 lg:px-8 lg:py-10">
         {/* تحميل / خطأ / غير موجود: حالات بعرض الحاوية */}
-        {categoryQuery.isPending ? (
+        {categoriesNav.isPending ? (
           <div className="space-y-8">
             <div className="h-10 w-1/3 animate-shimmer rounded bg-brand-100" />
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -132,12 +143,12 @@ export function CategorySlugPageContent({ slug }: { slug: string }) {
               ))}
             </div>
           </div>
-        ) : categoryQuery.isError ? (
+        ) : categoriesNav.isError ? (
           <ErrorState
-            message={categoryQuery.error.message}
-            onRetry={() => void categoryQuery.refetch()}
+            message={categoriesNav.error.message}
+            onRetry={() => void categoriesNav.refetch()}
           />
-        ) : !categoryQuery.data ? (
+        ) : !activeCategory ? (
           <EmptyState
             title="التصنيف غير موجود"
             description="تصفح جميع التصنيفات من القائمة."
@@ -148,7 +159,7 @@ export function CategorySlugPageContent({ slug }: { slug: string }) {
             }
           />
         ) : (() => {
-          const category = categoryQuery.data;
+          const category = activeCategory;
           return (
             <CategoryBrowseSplitLayout
               categories={navCategories ?? []}

@@ -1,0 +1,494 @@
+[
+  {
+    "id": 304,
+    "name": "MICROWAVES – OVENS",
+    "slug": "microwaves-ovens",
+    "description": "",
+    "display": "default",
+    "image": {
+      "id": 98708,
+      "src": "/images/sokany-eg/categories/cat-304-1f3ef4583e.png",
+      "alt": ""
+    },
+    "parent": 486,
+    "count": 6,
+    "_links": {}
+  },
+  {
+    "id": 484,
+    "name": "SOKANY CARE",
+    "slug": "sokany-care",
+    "description": "",
+    "display": "default",
+    "image": {
+      "id": 98707,
+      "src": "/images/sokany-eg/categories/cat-484-59860f8ae7.png",
+      "alt": ""
+    },
+    "parent": 488,
+    "count": 1,
+    "_links": {}
+  },
+  {
+    "id": 305,
+    "name": "STOVE( ELECTRIC & GAS)",
+    "slug": "stove-electric-gas",
+    "description": "",
+    "display": "default",
+    "image": {
+      "id": 98710,
+      "src": "/images/sokany-eg/categories/cat-305-93d53e4994.png",
+      "alt": ""
+    },
+    "parent": 486,
+    "count": 4,
+    "_links": {}
+  },
+  {
+    "id": 487,
+    "name": "أجهزة منزلية",
+    "slug": "home-appliances",
+    "description": "",
+    "display": "default",
+    "image": null,
+    "parent": 0,
+    "count": 19,
+    "_links": {}
+  },
+  {
+    "id": 287,
+    "name": "إزالة + بخار+ عنايه",
+    "slug": "hair-removal",
+    "description": "",
+    "display": "default",
+    "image": {
+      "id": 98707,
+      "src": "/images/sokany-eg/categories/cat-484-59860f8ae7.png",
+      "alt": ""
+    },
+    "parent": 0,
+    "count": 69,
+    "_links": {}
+  },
+  {
+    "id": 583,
+    "name": "اجهزه العنايه الشخصيه",
+    "slug": "personal-care",
+    "description": "",
+    "display": "default",
+    "image": null,
+    "parent": 0,
+    "count": 196,
+    "_links": {}
+  },
+  {
+    "id": 286,
+    "name": "اجهزه منزليه",
+    "slug": "appliance",
+    "description": "",
+    "display": "default",
+    "image": {
+      "id": 43319,
+      "src": "/images/sokany-eg/categories/cat-286-913000c469.jpg",
+      "alt": ""
+    },
+    "parent": 0,
+    "count": 16,
+    "_links": {}
+  },
+  {
+    "id": 590,
+    "name": "تنظيف بالبخار",
+    "slug": "steam-cleaning",
+    "description": "",
+    "display": "default",
+    "image": null,
+    "parent": 286,
+    "count": 9,
+    "_links": {}
+  },
+  {
+    "id": 297,
+    "name": "جرل+ساندوتش+وافل",
+    "slug": "grill",
+    "description": "",
+    "display": "default",
+    "image": {
+      "id": 98714,
+      "src": "/images/sokany-eg/categories/cat-297-416e190972.png",
+      "alt": ""
+    },
+    "parent": 486,
+    "count": 41,
+    "_links": {}
+  },
+  {
+    "id": 577,
+    "name": "حلل ضغط",
+    "slug": "%d8%ad%d9%84%d9%84-%d8%b6%d8%ba%d8%b7",
+    "description": "",
+    "display": "default",
+    "image": {
+      "id": 98715,
+      "src": "/images/sokany-eg/categories/cat-577-a2f89e46a8.png",
+      "alt": ""
+    },
+    "parent": 486,
+    "count": 6,
+    "_links": {}
+  },
+  {
+    "id": 288,
+    "name": "خلاط",
+    "slug": "blender",
+    "description": "",
+    "display": "default",
+    "image": {
+      "id": 98824,
+      "src": "/images/sokany-eg/categories/cat-288-37227291f9.png",
+      "alt": ""
+    },
+    "parent": 486,
+    "count": 12,
+    "_links": {}
+  },
+  {
+    "id": 295,
+    "name": "عجانه",
+    "slug": "stand-mixer",
+    "description": "",
+    "display": "default",
+    "image": {
+      "id": 98829,
+      "src": "/images/sokany-eg/categories/cat-295-7f943cd270.png",
+      "alt": ""
+    },
+    "parent": 486,
+    "count": 11,
+    "_links": {}
+  },
+  {
+    "id": 302,
+    "name": "عصارة",
+    "slug": "electric-juicer",
+    "description": "",
+    "display": "default",
+    "image": {
+      "id": 98825,
+      "src": "/images/sokany-eg/categories/cat-302-4400eabd52.png",
+      "alt": ""
+    },
+    "parent": 486,
+    "count": 15,
+    "_links": {}
+  },
+  {
+    "id": 588,
+    "name": "عنايه بالبشره",
+    "slug": "%d8%b9%d9%86%d8%a7%d9%8a%d9%87-%d8%a8%d8%a7%d9%84%d8%a8%d8%b4%d8%b1%d9%87",
+    "description": "",
+    "display": "default",
+    "image": null,
+    "parent": 583,
+    "count": 11,
+    "_links": {}
+  },
+  {
+    "id": 296,
+    "name": "غلايه كهربائيه",
+    "slug": "electric-kettle",
+    "description": "",
+    "display": "default",
+    "image": {
+      "id": 98826,
+      "src": "/images/sokany-eg/categories/cat-296-5480a81078.png",
+      "alt": ""
+    },
+    "parent": 486,
+    "count": 33,
+    "_links": {}
+  },
+  {
+    "id": 586,
+    "name": "فرش شعر",
+    "slug": "bruch",
+    "description": "",
+    "display": "default",
+    "image": null,
+    "parent": 583,
+    "count": 21,
+    "_links": {}
+  },
+  {
+    "id": 303,
+    "name": "قطع غيار",
+    "slug": "spare-parts",
+    "description": "",
+    "display": "default",
+    "image": null,
+    "parent": 0,
+    "count": 13,
+    "_links": {}
+  },
+  {
+    "id": 289,
+    "name": "قلايه هوائيه",
+    "slug": "airfrayer",
+    "description": "",
+    "display": "default",
+    "image": {
+      "id": 98830,
+      "src": "/images/sokany-eg/categories/cat-289-92bb01e823.png",
+      "alt": ""
+    },
+    "parent": 486,
+    "count": 20,
+    "_links": {}
+  },
+  {
+    "id": 290,
+    "name": "كبات",
+    "slug": "food-processor",
+    "description": "",
+    "display": "default",
+    "image": {
+      "id": 98832,
+      "src": "/images/sokany-eg/categories/cat-290-2090e04205.png",
+      "alt": ""
+    },
+    "parent": 486,
+    "count": 18,
+    "_links": {}
+  },
+  {
+    "id": 575,
+    "name": "مبردات",
+    "slug": "water-cooler",
+    "description": "",
+    "display": "default",
+    "image": {
+      "id": 98703,
+      "src": "/images/sokany-eg/categories/cat-575-3ba3b1a301.png",
+      "alt": ""
+    },
+    "parent": 487,
+    "count": 2,
+    "_links": {}
+  },
+  {
+    "id": 307,
+    "name": "متنوعات",
+    "slug": "collection",
+    "description": "",
+    "display": "default",
+    "image": {
+      "id": 69418,
+      "src": "/images/sokany-eg/categories/cat-307-0bc7510803.jpg",
+      "alt": ""
+    },
+    "parent": 286,
+    "count": 5,
+    "_links": {}
+  },
+  {
+    "id": 587,
+    "name": "مجفف شعر",
+    "slug": "hair-dryer",
+    "description": "",
+    "display": "default",
+    "image": null,
+    "parent": 583,
+    "count": 28,
+    "_links": {}
+  },
+  {
+    "id": 294,
+    "name": "مجفف شعر قديم",
+    "slug": "sokany-hair-dryer",
+    "description": "",
+    "display": "default",
+    "image": {
+      "id": 98838,
+      "src": "/images/sokany-eg/categories/cat-294-f0df56d79e.png",
+      "alt": ""
+    },
+    "parent": 488,
+    "count": 10,
+    "_links": {}
+  },
+  {
+    "id": 589,
+    "name": "مزيل وبر",
+    "slug": "%d9%85%d8%b2%d9%8a%d9%84-%d9%88%d8%a8%d8%b1",
+    "description": "",
+    "display": "default",
+    "image": null,
+    "parent": 583,
+    "count": 5,
+    "_links": {}
+  },
+  {
+    "id": 485,
+    "name": "مزيل وبره",
+    "slug": "lint-remover-2",
+    "description": "",
+    "display": "default",
+    "image": {
+      "id": 98700,
+      "src": "/images/sokany-eg/categories/cat-485-722f2cb79e.png",
+      "alt": ""
+    },
+    "parent": 487,
+    "count": 1,
+    "_links": {}
+  },
+  {
+    "id": 486,
+    "name": "مستلزمات مطبخ",
+    "slug": "kitchen-supplies",
+    "description": "",
+    "display": "default",
+    "image": null,
+    "parent": 0,
+    "count": 222,
+    "_links": {}
+  },
+  {
+    "id": 301,
+    "name": "مضرب بيض",
+    "slug": "egg-mixer",
+    "description": "",
+    "display": "default",
+    "image": {
+      "id": 98833,
+      "src": "/images/sokany-eg/categories/cat-301-23dde1e127.png",
+      "alt": ""
+    },
+    "parent": 486,
+    "count": 9,
+    "_links": {}
+  },
+  {
+    "id": 300,
+    "name": "مطحنه+ماكينه قهوه",
+    "slug": "coffee-maker",
+    "description": "",
+    "display": "default",
+    "image": {
+      "id": 98834,
+      "src": "/images/sokany-eg/categories/cat-300-c5b9b7dd19.png",
+      "alt": ""
+    },
+    "parent": 486,
+    "count": 27,
+    "_links": {}
+  },
+  {
+    "id": 299,
+    "name": "مفرمه",
+    "slug": "electric-chopper",
+    "description": "",
+    "display": "default",
+    "image": {
+      "id": 98835,
+      "src": "/images/sokany-eg/categories/cat-299-94180dc11c.png",
+      "alt": ""
+    },
+    "parent": 486,
+    "count": 2,
+    "_links": {}
+  },
+  {
+    "id": 293,
+    "name": "مكاوى شعر",
+    "slug": "sokany-iron",
+    "description": "",
+    "display": "default",
+    "image": {
+      "id": 98839,
+      "src": "/images/sokany-eg/categories/cat-293-022e495480.png",
+      "alt": ""
+    },
+    "parent": 488,
+    "count": 6,
+    "_links": {}
+  },
+  {
+    "id": 584,
+    "name": "مكاوى شعر",
+    "slug": "hair-straighteners",
+    "description": "",
+    "display": "default",
+    "image": null,
+    "parent": 583,
+    "count": 46,
+    "_links": {}
+  },
+  {
+    "id": 489,
+    "name": "مكاوي بخار",
+    "slug": "cloth-iron",
+    "description": "",
+    "display": "default",
+    "image": {
+      "id": 98837,
+      "src": "/images/sokany-eg/categories/cat-489-3bc487980a.png",
+      "alt": ""
+    },
+    "parent": 0,
+    "count": 50,
+    "_links": {}
+  },
+  {
+    "id": 585,
+    "name": "مكن حلاقه",
+    "slug": "machen",
+    "description": "",
+    "display": "default",
+    "image": null,
+    "parent": 583,
+    "count": 85,
+    "_links": {}
+  },
+  {
+    "id": 298,
+    "name": "مكنسه",
+    "slug": "electric-cleaner",
+    "description": "",
+    "display": "default",
+    "image": {
+      "id": 98706,
+      "src": "/images/sokany-eg/categories/cat-298-359c90cc4c.png",
+      "alt": ""
+    },
+    "parent": 487,
+    "count": 19,
+    "_links": {}
+  },
+  {
+    "id": 488,
+    "name": "مكواه + استشوار +فرشه استشوار",
+    "slug": "sokany-machines",
+    "description": "",
+    "display": "default",
+    "image": null,
+    "parent": 0,
+    "count": 0,
+    "_links": {}
+  },
+  {
+    "id": 291,
+    "name": "هاند بلندر",
+    "slug": "hand-blender",
+    "description": "",
+    "display": "default",
+    "image": {
+      "id": 98836,
+      "src": "/images/sokany-eg/categories/cat-291-cd3efd77b7.png",
+      "alt": ""
+    },
+    "parent": 486,
+    "count": 18,
+    "_links": {}
+  }
+]

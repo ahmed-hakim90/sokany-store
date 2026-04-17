@@ -828,6 +828,7 @@ export const mockProducts: WCProduct[] = [
   },
 ];
 
+
 export type MockProductFilter = {
   category?: string | number;
   featured?: boolean;
@@ -837,8 +838,9 @@ export type MockProductFilter = {
 
 function applyMockProductFilters(
   params?: MockProductFilter,
+  source: WCProduct[] = mockProducts,
 ): WCProduct[] {
-  let results = [...mockProducts];
+  let results = [...source];
 
   if (params?.category) {
     results = results.filter((p) =>
@@ -871,8 +873,9 @@ function applyMockProductFilters(
 /** محاكاة filtering + pagination */
 export function filterMockProducts(
   params?: MockProductFilter & { per_page?: number; page?: number },
+  source: WCProduct[] = mockProducts,
 ): WCProduct[] {
-  const results = applyMockProductFilters(params);
+  const results = applyMockProductFilters(params, source);
   const page = params?.page ?? 1;
   const per_page = params?.per_page ?? 12;
   const start = (page - 1) * per_page;
@@ -881,6 +884,7 @@ export function filterMockProducts(
 
 export function listMockProductsMatching(
   params?: MockProductFilter,
+  source: WCProduct[] = mockProducts,
 ): WCProduct[] {
-  return applyMockProductFilters(params);
+  return applyMockProductFilters(params, source);
 }

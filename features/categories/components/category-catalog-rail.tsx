@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { CategoryIcon } from "@/features/categories/category-icon-registry";
@@ -41,6 +41,8 @@ function RailTile({ href, active, label, children, onPrefetch }: RailTileProps) 
   return (
     <Link
       href={href}
+      scroll={false}
+      data-active={active ? "true" : "false"}
       className="block  shrink-0"
       onMouseEnter={onPrefetch}
       onFocus={onPrefetch}
@@ -88,6 +90,7 @@ export type CategoryCatalogRailProps = {
 
 export function CategoryCatalogRail(props: CategoryCatalogRailProps) {
   const prefetchProducts = usePrefetchProducts();
+  const navRef = useRef<HTMLElement | null>(null);
   const { categories, className } = props;
   if (categories.length === 0) return null;
 
@@ -96,9 +99,22 @@ export function CategoryCatalogRail(props: CategoryCatalogRailProps) {
   const allActive = isProducts
     ? props.allProductsActive
     : false;
+  const activeKey = isProducts
+    ? String(props.activeCategoryId ?? "all")
+    : props.activeSlug;
+
+  useEffect(() => {
+    const nav = navRef.current;
+    if (!nav) return;
+    const activeTile = nav.querySelector<HTMLElement>('[data-active="true"]');
+    if (!activeTile) return;
+    // Keep the selected category visible after route transitions on mobile rail.
+    activeTile.scrollIntoView({ block: "nearest", inline: "nearest" });
+  }, [activeKey]);
 
   return (
     <nav
+      ref={navRef}
       className={cn(
         "flex w-[4.75rem] shrink-0 flex-col gap-2 overflow-y-auto overscroll-y-contain py-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
         className,

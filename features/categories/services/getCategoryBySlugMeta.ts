@@ -3,14 +3,16 @@ import { USE_MOCK } from "@/lib/constants";
 import { createWooClient } from "@/lib/create-woo-client";
 import { mapCategory } from "@/features/categories/adapters";
 import { mockCategories } from "@/features/categories/mock";
+import { getSnapshotCategories } from "@/features/data-snapshot/server";
 import { wpCategoriesSchema, wpCategorySchema } from "@/schemas/wordpress";
 import type { Category } from "@/features/categories/types";
 
 export async function getCategoryBySlugMeta(
   slug: string,
 ): Promise<Category | null> {
+  const fallbackCategories = getSnapshotCategories() ?? mockCategories;
   if (USE_MOCK) {
-    const raw = mockCategories.find((c) => c.slug === slug);
+    const raw = fallbackCategories.find((c) => c.slug === slug);
     return raw ? mapCategory(wpCategorySchema.parse(raw)) : null;
   }
   try {
@@ -21,7 +23,7 @@ export async function getCategoryBySlugMeta(
     const first = wpCategoriesSchema.parse(res.data)[0];
     return first ? mapCategory(first) : null;
   } catch {
-    const raw = mockCategories.find((c) => c.slug === slug);
+    const raw = fallbackCategories.find((c) => c.slug === slug);
     return raw ? mapCategory(wpCategorySchema.parse(raw)) : null;
   }
 }

@@ -3,9 +3,18 @@ import { z } from "zod";
 const emptyString = z.string().default("");
 const numericString = z.string().default("0");
 
+// Accepts either an absolute URL (live WooCommerce response) or an absolute
+// path beginning with "/" (snapshot loader after rewriting to local assets
+// under public/images/sokany-eg/**). Both are valid inputs for next/image
+// via the AppImage wrapper.
+const imageSourceSchema = z.string().refine(
+  (value) => /^https?:\/\//i.test(value) || value.startsWith("/"),
+  { message: "Image src must be an absolute URL or a path starting with '/'." },
+);
+
 export const wpImageSchema = z.object({
   id: z.number(),
-  src: z.string().url(),
+  src: imageSourceSchema,
   name: emptyString,
   alt: emptyString,
 });

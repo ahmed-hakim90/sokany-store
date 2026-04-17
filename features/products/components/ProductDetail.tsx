@@ -12,11 +12,13 @@ export function ProductDetail({
   onAddToCart,
   onBuyNow,
   specs,
+  canInteractCart = true,
 }: {
   product: Product;
   onAddToCart: (product: Product, quantity: number) => void;
   onBuyNow?: (product: Product, quantity: number) => void;
   specs?: ProductSpecItem[];
+  canInteractCart?: boolean;
 }) {
   const [quantity, setQuantity] = useState(1);
   const badge = getProductGalleryBadge(product);
@@ -40,6 +42,7 @@ export function ProductDetail({
             onBuyNow && product.inStock ? () => onBuyNow(product, quantity) : undefined
           }
           specs={specs ?? []}
+          canInteractCart={canInteractCart}
         />
       </div>
     </div>

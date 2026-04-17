@@ -7,15 +7,17 @@ import { Container } from "@/components/Container";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorState } from "@/components/ErrorState";
 import { useCart } from "@/hooks/useCart";
-import { HomeHeroBanner } from "@/features/home/components/home-hero-banner";
+import {
+  HomeHeroBanner,
+  type HomeHeroSlide,
+} from "@/features/home/components/home-hero-banner";
 import { HomeParentCategorySections } from "@/features/home/components/home-parent-category-sections";
 import { HomePromoCard } from "@/features/home/components/home-promo-card";
 import { ProductHorizontalRail } from "@/features/home/components/product-horizontal-rail";
 import { HomeTrustStrip } from "@/features/home/components/home-trust-strip";
-import { ROUTES, STORE_HERO_VIDEO_URL } from "@/lib/constants";
+import { ROUTES } from "@/lib/constants";
 import { useCategories } from "@/features/categories/hooks/useCategories";
-import { CategoryScroller } from "@/features/categories/components/CategoryScroller";
-import { CategoryScrollerSkeleton } from "@/features/categories/components/CategoryScrollerSkeleton";
+import { HomeCategoryImageScroller } from "@/features/home/components/home-category-image-scroller";
 import { useProducts } from "@/features/products/hooks/useProducts";
 
 function ShieldIcon() {
@@ -56,53 +58,41 @@ function CheckSealIcon() {
 
 /*
  * الصفحة الرئيسية (/): عمود واحد داخل Container بمسافات رأسية تتسع تدريجياً (sm → md).
- * التسلسل: هيرو → شريط تصنيفات (عند توفر البيانات) → شريط ثقة (نسختان حسب md) → الأكثر مبيعاً
- * (سكة أفقية) → أقسام الأب للتصنيفات → بطاقة عرض ترويجي في الأسفل.
+ * التسلسل: هيرو (330×540 سكروول أفقي + auto-rotate) → شريط صور التصنيفات
+ * (240×120 سكروول أفقي + auto-rotate، بيانات ديناميكية من /api/categories)
+ * → شريط ثقة (نسختان حسب md) → الأكثر مبيعاً (سكة أفقية) → أقسام الأب للتصنيفات
+ * → بطاقة عرض ترويجي في الأسفل.
  */
-export function HomePageContent() {
+export type HomePageContentProps = {
+  /** Hero slides resolved on the server from `public/images/hero/`. */
+  heroSlides?: HomeHeroSlide[];
+};
+
+export function HomePageContent({ heroSlides = [] }: HomePageContentProps) {
   const router = useRouter();
   const featured = useProducts({ featured: true, per_page: 8 });
   const categories = useCategories({ per_page: 100 });
   const { getCartLineQuantity, setProductLineQuantity } = useCart();
+  const categoryTiles = (categories.data ?? []).flatMap((category) =>
+    category.image
+      ? [
+          {
+            imageSrc: category.image,
+            imageAlt: category.name,
+            href: ROUTES.CATEGORY(category.slug),
+          },
+        ]
+      : [],
+  );
 
   return (
     <div className="animate-fade-in bg-page">
       <Container className="space-y-5 pb-8 pt-3 sm:space-y-6 sm:pb-10">
-        {/* أعلى الصفحة: شرائح هيرو داخل المكوّن؛ العرض كامل عرض الحاوية */}
-        <HomeHeroBanner
-          compact
-          slides={[
-            {
-              title: "جيل جديد من الأداء التقني",
-              titleHighlight: "الأداء التقني",
-              subtitle: "اكتشف مجموعة سوكاني الحصرية بأفضل الأسعار وضمان الوكيل.",
-              imageSrc: "/images/hero-banner.jpg",
-              imageAlt: "",
-              primaryHref: ROUTES.PRODUCTS,
-              primaryLabel: "تسوق الآن",
-              secondaryHref: ROUTES.CATEGORIES,
-              secondaryLabel: "شاهد التصنيفات",
-            },
-            {
-              title: "فن الهندسة المنزلية",
-              titleHighlight: "الهندسة",
-              subtitle: "أدوات مطبخ وعناية شخصية أصلية، بتصميم عملي وتجربة تسوق واضحة.",
-              imageSrc: "/images/hero-banner.jpg",
-              imageAlt: "",
-              primaryHref: ROUTES.PRODUCTS,
-              primaryLabel: "استكشف المجموعة",
-              secondaryHref: STORE_HERO_VIDEO_URL,
-              secondaryLabel: "شاهد الفيديو",
-              secondaryOpenInNewTab: true,
-            },
-          ]}
-        />
+        {/* أعلى الصفحة: شرائح هيرو ديناميكية تُقرأ من /public/images/hero */}
+        {heroSlides.length > 0 ? <HomeHeroBanner slides={heroSlides} /> : null}
 
-        {categories.isPending ? (
-          <CategoryScrollerSkeleton />
-        ) : categories.data && categories.data.length > 0 ? (
-          <CategoryScroller compact categories={categories.data} />
-        ) : null}
+        {/* تحت البانر مباشرة: شريط صور ديناميكي من التصنيفات المتاحة في API */}
+        <HomeCategoryImageScroller tiles={categoryTiles} />
 
         {/* من md فما فوق: ثلاثية ثقة بعرض الشبكة؛ مخفية على الجوال */}
         <HomeTrustStrip
@@ -144,12 +134,12 @@ export function HomePageContent() {
             >
               الأكثر مبيعاً
             </h2>
-            <Link
+            {/* <Link
               href={ROUTES.PRODUCTS}
               className="text-xs font-semibold text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline sm:text-sm"
             >
               مشاهدة الكل
-            </Link>
+            </Link> */}
           </div>
 
           {featured.isError ? (
@@ -178,6 +168,7 @@ export function HomePageContent() {
                 />
               }
               aria-label="الأكثر مبيعاً"
+              className="-mx-4 sm:mx-0"
             />
           )}
         </section>

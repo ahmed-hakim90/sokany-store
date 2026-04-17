@@ -92,3 +92,4 @@ export const mockCategories: WCCategory[] = [
     _links: {},
   },
 ];
+

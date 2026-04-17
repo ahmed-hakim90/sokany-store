@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { mockCategories } from "@/features/categories/mock";
 import { createWooClient } from "@/lib/create-woo-client";
+import { getSnapshotCategories } from "@/features/data-snapshot/server";
 
 export async function GET(request: NextRequest) {
   try {
@@ -17,9 +18,10 @@ export async function GET(request: NextRequest) {
   } catch {
     const { searchParams } = new URL(request.url);
     const slug = searchParams.get("slug");
+    const sourceCategories = getSnapshotCategories() ?? mockCategories;
     const data = slug
-      ? mockCategories.filter((c) => c.slug === slug)
-      : mockCategories;
+      ? sourceCategories.filter((c) => c.slug === slug)
+      : sourceCategories;
     return NextResponse.json(data, {
       headers: {
         "X-WP-Total": String(data.length),

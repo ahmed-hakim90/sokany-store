@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "scrape:sokany": "tsx scripts/scrape-sokany-eg.ts",
+    "scrape:sokany:dry": "tsx scripts/scrape-sokany-eg.ts --dry-run"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.99.0",
@@ -35,6 +37,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.3",
     "tailwindcss": "^4",
+    "tsx": "^4.21.0",
     "typescript": "^5"
   }
 }

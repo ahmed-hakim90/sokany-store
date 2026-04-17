@@ -7,12 +7,13 @@ import type { ProductQueryParams } from "@/types";
 
 export function useProducts(
   params?: ProductQueryParams,
-  options?: { enabled?: boolean },
+  options?: { enabled?: boolean; keepPreviousData?: boolean },
 ) {
   return useQuery({
     queryKey: ["products", params],
     queryFn: () => getProducts(params),
     staleTime: STALE_TIME.MEDIUM,
     enabled: options?.enabled !== false,
+    placeholderData: options?.keepPreviousData ? (previousData) => previousData : undefined,
   });
 }

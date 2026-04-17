@@ -9,7 +9,11 @@ const PLACEHOLDER_PATH = "/images/placeholder.png";
 
 function normalizeSrc(value: ImageProps["src"]): ImageProps["src"] {
   if (typeof value !== "string") return value;
-  return toAbsoluteSiteUrl(value);
+  const trimmed = value.trim();
+  if (!trimmed) return toAbsoluteSiteUrl(PLACEHOLDER_PATH);
+  if (trimmed.startsWith("/")) return trimmed;
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  return toAbsoluteSiteUrl(trimmed);
 }
 
 export function AppImage({
@@ -38,7 +42,7 @@ export function AppImage({
       priority={priority}
       width={width}
       height={height}
-      onError={() => setCurrentSrc(toAbsoluteSiteUrl(PLACEHOLDER_PATH))}
+      onError={() => setCurrentSrc(PLACEHOLDER_PATH)}
     />
   );
 }

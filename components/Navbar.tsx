@@ -239,8 +239,8 @@ export function Navbar() {
   const mobileSecondary =
     pathname === ROUTES.HOME ? (
       <span className="flex flex-wrap items-center justify-center gap-x-4 gap-y-0.5">
-        <span className="whitespace-nowrap">وكيل معتمد</span>
-        <span className="whitespace-nowrap">شحن لكل مصر</span>
+        {/* <span className="whitespace-nowrap">ضمان عام</span> */}
+        {/* <span className="whitespace-nowrap">شحن لكل مصر</span> */}
       </span>
     ) : isServiceCenters ? (
       <span className="whitespace-normal">اعثر على أقرب مركز خدمة</span>

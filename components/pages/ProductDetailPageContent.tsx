@@ -28,11 +28,18 @@ export function ProductDetailPageContent({ id }: { id: number }) {
     relatedQuery,
     relatedProducts,
     specs,
-    addProductToCart,
     goToProducts,
   } = useProductDetailPage(id);
 
-  const { getCartLineQuantity, setProductLineQuantity } = useCart();
+  const { hasHydrated, getCartLineQuantity, setProductLineQuantity } = useCart();
+
+  const addProductToCart = useCallback(
+    (product: Product, quantity: number) => {
+      const current = getCartLineQuantity(product.id);
+      setProductLineQuantity(product, current + Math.max(1, quantity));
+    },
+    [getCartLineQuantity, setProductLineQuantity],
+  );
 
   const buyNow = useCallback(
     (product: Product, quantity: number) => {
@@ -70,6 +77,7 @@ export function ProductDetailPageContent({ id }: { id: number }) {
             onAddToCart={addProductToCart}
             onBuyNow={buyNow}
             specs={specs}
+            canInteractCart={hasHydrated}
           />
 
           {/* أسفل المنتج: حد فاصل ثم قسم التقييمات (نموذج + قائمة) بعرض كامل */}

@@ -79,6 +79,7 @@ export function HomeParentCategorySections({
                 }
                 onRetry={() => void q.refetch()}
                 aria-label={`منتجات قسم ${cat.name}`}
+                className="-mx-4 sm:mx-0"
               />
             </section>
           </div>

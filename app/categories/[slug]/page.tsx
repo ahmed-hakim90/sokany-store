@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { CategorySlugPageContent } from "@/components/pages/CategorySlugPageContent";
 import { BreadcrumbJsonLd } from "@/components/seo/BreadcrumbJsonLd";
 import { mockCategories } from "@/features/categories/mock";
+import { getSnapshotCategories } from "@/features/data-snapshot/server";
 import { getCategoryBySlugMeta } from "@/features/categories/services/getCategoryBySlugMeta";
 import { trimMetaDescription } from "@/lib/html";
 import { getSiteUrl } from "@/lib/site";
@@ -10,7 +11,11 @@ import { getSiteUrl } from "@/lib/site";
 type PageProps = { params: Promise<{ slug: string }> };
 
 export async function generateStaticParams() {
-  return mockCategories.map((c) => ({ slug: c.slug }));
+  const fallbackCategories = getSnapshotCategories() ?? mockCategories;
+  const uniqueSlugs = Array.from(
+    new Set(fallbackCategories.map((category) => category.slug)),
+  );
+  return uniqueSlugs.map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({
