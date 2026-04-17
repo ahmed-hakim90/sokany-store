@@ -7,7 +7,7 @@ import { DesktopShell } from "@/components/layout/desktop-shell";
 import { MobileAccordionSection } from "@/components/ui/mobile-accordion-section";
 import { useCategories } from "@/features/categories/hooks/useCategories";
 import { mockCategories } from "@/features/categories/mock";
-import { CONTACT_EMAIL, ROUTES, SITE_NAME } from "@/lib/constants";
+import { CONTACT_EMAIL, ROUTES, SITE_LOGO_PATH, SITE_NAME } from "@/lib/constants";
 import { SOCIAL_LINKS } from "@/lib/social-links";
 import { cn } from "@/lib/utils";
 
@@ -147,7 +147,7 @@ export function Footer() {
           </div>
           <div className="flex flex-col items-center gap-2 text-center">
             <div className="relative h-9 w-9 overflow-hidden rounded-md border border-border opacity-70 grayscale">
-              <AppImage src="/images/logo.png" alt="" fill sizes="36px" />
+              <AppImage src={SITE_LOGO_PATH} alt="" fill sizes="36px" />
             </div>
             <p className="font-display text-xs font-semibold text-brand-950">{SITE_NAME}</p>
             <p className="text-xs text-muted-foreground">

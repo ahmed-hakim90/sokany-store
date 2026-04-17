@@ -11,12 +11,15 @@ import { cn } from "@/lib/utils";
 
 export type HomeParentCategorySectionsProps = {
   categories: Category[];
+  /** Ordered `/images/banner-section/01.*`, `02.*`, … — index matches parent section order. */
+  sectionBannerImages?: string[];
   getCartLineQuantity: (productId: number) => number;
   onCartLineQuantityChange: (product: Product, next: number) => void;
 };
 
 export function HomeParentCategorySections({
   categories,
+  sectionBannerImages = [],
   getCartLineQuantity,
   onCartLineQuantityChange,
 }: HomeParentCategorySectionsProps) {
@@ -39,10 +42,18 @@ export function HomeParentCategorySections({
           : q.isPending
             ? ("loading" as const)
             : ("ready" as const);
+        const bannerCategory = {
+          ...cat,
+          image: cat.image ?? q.data?.[0]?.thumbnail ?? "/images/placeholder.png",
+        };
+        const sectionBannerSrc = sectionBannerImages[i] ?? null;
 
         return (
           <div key={cat.id} className="space-y-4">
-            <HomeCategoryExclusiveBanner category={cat} />
+            <HomeCategoryExclusiveBanner
+              category={bannerCategory}
+              sectionBannerSrc={sectionBannerSrc}
+            />
 
             <section
               className={cn(

@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/Button";
 import { Container } from "@/components/Container";
@@ -61,29 +60,29 @@ function CheckSealIcon() {
  * التسلسل: هيرو (330×540 سكروول أفقي + auto-rotate) → شريط صور التصنيفات
  * (240×120 سكروول أفقي + auto-rotate، بيانات ديناميكية من /api/categories)
  * → شريط ثقة (نسختان حسب md) → الأكثر مبيعاً (سكة أفقية) → أقسام الأب للتصنيفات
+ * (لكل أب بالترتيب: بانر «حصرياً» من `/images/banner-section/01.*`, `02.*`, … وإلا صورة القسم/المنتج)
  * → بطاقة عرض ترويجي في الأسفل.
  */
 export type HomePageContentProps = {
   /** Hero slides resolved on the server from `public/images/hero/`. */
   heroSlides?: HomeHeroSlide[];
+  /** Ordered banner URLs from `public/images/banner-section/` (`01.*`, `02.*`, …) for «حصرياً». */
+  sectionBannerImages?: string[];
 };
 
-export function HomePageContent({ heroSlides = [] }: HomePageContentProps) {
+export function HomePageContent({
+  heroSlides = [],
+  sectionBannerImages = [],
+}: HomePageContentProps) {
   const router = useRouter();
   const featured = useProducts({ featured: true, per_page: 8 });
   const categories = useCategories({ per_page: 100 });
   const { getCartLineQuantity, setProductLineQuantity } = useCart();
-  const categoryTiles = (categories.data ?? []).flatMap((category) =>
-    category.image
-      ? [
-          {
-            imageSrc: category.image,
-            imageAlt: category.name,
-            href: ROUTES.CATEGORY(category.slug),
-          },
-        ]
-      : [],
-  );
+  const categoryTiles = (categories.data ?? []).map((category) => ({
+    imageSrc: category.image ?? "/images/placeholder.png",
+    imageAlt: category.name,
+    href: ROUTES.CATEGORY(category.slug),
+  }));
 
   return (
     <div className="animate-fade-in bg-page">
@@ -177,6 +176,7 @@ export function HomePageContent({ heroSlides = [] }: HomePageContentProps) {
         {categories.data && categories.data.length > 0 ? (
           <HomeParentCategorySections
             categories={categories.data}
+            sectionBannerImages={sectionBannerImages}
             getCartLineQuantity={getCartLineQuantity}
             onCartLineQuantityChange={setProductLineQuantity}
           />

@@ -6,6 +6,9 @@ export const SITE_NAME =
 /** Compact mobile header wordmark (Latin mark; override via env). */
 export const SITE_WORDMARK =
   process.env.NEXT_PUBLIC_SITE_WORDMARK ?? "SOKANY-Eg";
+/** Public path to storefront logo (`public/` root). Override via `NEXT_PUBLIC_SITE_LOGO_PATH`. */
+export const SITE_LOGO_PATH =
+  process.env.NEXT_PUBLIC_SITE_LOGO_PATH?.trim() || "/images/logo.png";
 export const DEFAULT_CURRENCY =
   process.env.NEXT_PUBLIC_DEFAULT_CURRENCY ?? "EGP";
 export const CURRENCY_LOCALE =

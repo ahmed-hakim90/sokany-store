@@ -7,6 +7,8 @@ This folder contains a manually refreshed snapshot scraped from `https://sokany-
 - `products.json`: products transformed to the shape required by `wpProductsSchema`
 - `categories.json`: categories transformed to the shape required by `wpCategoriesSchema`
 - `manifest.json`: metadata about source, totals, and scrape options
+- `product-image-map.json`: direct lookup for product image paths (`byId`, `bySlug`, `allById`)
+- `category-image-map.json`: direct lookup for category image paths (`byId`, `bySlug`)
 - `_errors.json`: validation/download failures (intentionally gitignored)
 
 ## Commands

@@ -9,6 +9,8 @@ const FALLBACK_DESCRIPTION =
 
 export type HomeCategoryExclusiveBannerProps = {
   category: Category;
+  /** Optional override from `public/images/banner-section/{slug}.*` (server map). */
+  sectionBannerSrc?: string | null;
   /** Badge label (e.g. «حصرياً»). */
   badgeText?: string;
   className?: string;
@@ -16,6 +18,7 @@ export type HomeCategoryExclusiveBannerProps = {
 
 export function HomeCategoryExclusiveBanner({
   category,
+  sectionBannerSrc = null,
   badgeText = "حصرياً",
   className,
 }: HomeCategoryExclusiveBannerProps) {
@@ -24,13 +27,14 @@ export function HomeCategoryExclusiveBanner({
       ? category.description.trim()
       : FALLBACK_DESCRIPTION;
   const href = ROUTES.CATEGORY(category.slug);
-  const imageSrc = category.image ?? "/images/placeholder.png";
-  const hasCategoryImage = Boolean(category.image);
+  const imageSrc =
+    sectionBannerSrc ?? category.image ?? "/images/placeholder.png";
+  const hasRealBannerImage = Boolean(sectionBannerSrc || category.image);
 
   return (
     <section
       className={cn(
-        "relative isolate overflow-hidden rounded-2xl border border-zinc-800 bg-black shadow-lg",
+        "relative isolate overflow-hidden rounded-2xl  bg-black shadow-lg",
         className,
       )}
       aria-labelledby={`home-cat-banner-${category.id}-title`}
@@ -41,13 +45,13 @@ export function HomeCategoryExclusiveBanner({
           alt=""
           fill
           sizes="100vw"
-          className={cn("object-cover", hasCategoryImage ? "opacity-35" : "opacity-20")}
+          className={cn("object-cover", hasRealBannerImage ? "opacity-35" : "opacity-20")}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-black via-black/92 to-black" />
+        <div className="absolute inset-0 b" />
       </div>
 
       <div className="flex flex-col md:min-h-[14rem] md:flex-row md:items-stretch">
-        <div className="relative z-10 flex flex-1 flex-col justify-center gap-2.5 px-5 py-6 text-right sm:px-8 md:max-w-[52%] md:py-8 lg:px-10">
+        {/* <div className="relative z-10 flex flex-1 flex-col justify-center gap-2.5 px-5 py-6 text-right sm:px-8 md:max-w-[52%] md:py-8 lg:px-10">
           <span className="inline-flex w-fit rounded-md bg-sky-400/95 px-2.5 py-1 font-display text-[11px] font-bold text-yellow-300 sm:text-xs">
             {badgeText}
           </span>
@@ -66,20 +70,20 @@ export function HomeCategoryExclusiveBanner({
           >
             اكتشف الآن
           </Link>
-        </div>
+        </div> */}
 
-        <div className="relative hidden min-h-0 min-w-0 flex-1 md:block">
+        <div className="relative   flex-1 md:block">
           <AppImage
             src={imageSrc}
-            alt={hasCategoryImage ? category.name : ""}
+            alt={hasRealBannerImage ? category.name : ""}
             fill
             sizes="(max-width: 1280px) 45vw, 520px"
             className={cn(
               "object-cover object-center",
-              !hasCategoryImage && "opacity-40",
+              !hasRealBannerImage && "opacity-40",
             )}
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-black via-black/35 to-transparent" />
+          <div className="absolute inset-0  from-black via-black/35 to-transparent" />
         </div>
       </div>
     </section>

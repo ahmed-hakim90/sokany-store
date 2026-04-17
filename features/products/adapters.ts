@@ -11,12 +11,21 @@ export function mapProduct(raw: WCProduct): Product {
   const salePrice =
     salePriceRaw.length > 0 ? parsePrice(salePriceRaw) : null;
   const rating = Number.parseFloat(raw.average_rating);
+  const normalizeImageSrc = (value: string): string => {
+    const trimmed = value.trim();
+    if (!trimmed) return PLACEHOLDER_PATH;
+    // Keep local snapshot paths (`/images/...`) as-is so they always resolve on
+    // the current host/environment.
+    if (trimmed.startsWith("/")) return trimmed;
+    return toAbsoluteSiteUrl(trimmed);
+  };
+
   const images = raw.images.map((img) => ({
     id: img.id,
-    src: toAbsoluteSiteUrl(img.src),
+    src: normalizeImageSrc(img.src),
     alt: img.alt || raw.name,
   }));
-  const thumbnail = images[0]?.src ?? toAbsoluteSiteUrl(PLACEHOLDER_PATH);
+  const thumbnail = images[0]?.src ?? PLACEHOLDER_PATH;
   return {
     id: raw.id,
     name: raw.name,

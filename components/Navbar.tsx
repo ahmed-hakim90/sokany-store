@@ -14,7 +14,7 @@ import { useCartDrawerOpenStore } from "@/features/cart/store/useCartDrawerOpenS
 import { useWishlistDrawerOpenStore } from "@/features/wishlist/store/useWishlistDrawerOpenStore";
 import { useCart } from "@/hooks/useCart";
 import { useWishlist } from "@/hooks/useWishlist";
-import { ROUTES, SITE_NAME, SITE_WORDMARK } from "@/lib/constants";
+import { ROUTES, SITE_LOGO_PATH, SITE_NAME, SITE_WORDMARK } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 /** Primary strip (desktop) + top of drawer — matches storefront reference. */
@@ -97,7 +97,7 @@ export function Navbar() {
   const logo = (
     <Link href={ROUTES.HOME} className="flex items-center gap-2.5">
       <div className="relative h-8 w-8 overflow-hidden rounded-md border border-border bg-image-well sm:h-9 sm:w-9">
-        <AppImage src="/images/logo.png" alt={SITE_NAME} fill sizes="36px" />
+        <AppImage src={SITE_LOGO_PATH} alt={SITE_NAME} fill sizes="36px" />
       </div>
       <span className="font-display text-base font-semibold text-brand-950 sm:text-lg">
         {SITE_NAME}
@@ -214,7 +214,7 @@ export function Navbar() {
       onClick={() => setOpen(false)}
     >
       <div className="relative h-8 w-8 overflow-hidden rounded-md border border-border bg-image-well">
-        <AppImage src="/images/logo.png" alt={SITE_NAME} fill sizes="32px" />
+        <AppImage src={SITE_LOGO_PATH} alt={SITE_NAME} fill sizes="32px" />
       </div>
       <span className="truncate font-display text-[0.8125rem] font-semibold leading-tight text-brand-950 sm:text-[0.875rem]">
         {SITE_NAME}

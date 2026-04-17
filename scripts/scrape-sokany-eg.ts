@@ -502,6 +502,49 @@ interface FailureLog {
   error: string;
 }
 
+type SnapshotCategory = z.infer<typeof wpCategorySchema>;
+type SnapshotProduct = z.infer<typeof wpProductSchema>;
+
+function buildProductImageMap(products: SnapshotProduct[]) {
+  const byId: Record<string, string> = {};
+  const allById: Record<string, string[]> = {};
+  const bySlug: Record<string, string> = {};
+
+  for (const product of products) {
+    const images = product.images.map((image) => image.src).filter(Boolean);
+    if (images.length === 0) continue;
+    const primary = images[0];
+    byId[String(product.id)] = primary;
+    bySlug[product.slug] = primary;
+    allById[String(product.id)] = images;
+  }
+
+  return {
+    generatedAt: new Date().toISOString(),
+    byId,
+    bySlug,
+    allById,
+  };
+}
+
+function buildCategoryImageMap(categories: SnapshotCategory[]) {
+  const byId: Record<string, string> = {};
+  const bySlug: Record<string, string> = {};
+
+  for (const category of categories) {
+    const src = category.image?.src;
+    if (!src) continue;
+    byId[String(category.id)] = src;
+    bySlug[category.slug] = src;
+  }
+
+  return {
+    generatedAt: new Date().toISOString(),
+    byId,
+    bySlug,
+  };
+}
+
 async function main(): Promise<void> {
   const started = Date.now();
   console.log(`Source: ${BASE_URL}`);
@@ -575,6 +618,8 @@ async function main(): Promise<void> {
     },
     elapsedMs: Date.now() - started,
   };
+  const productImageMap = buildProductImageMap(products);
+  const categoryImageMap = buildCategoryImageMap(categories);
 
   if (DRY_RUN) {
     console.log("\nDRY RUN — sample category:");
@@ -583,6 +628,10 @@ async function main(): Promise<void> {
     console.log(JSON.stringify(products[0], null, 2));
     console.log("\nManifest:");
     console.log(JSON.stringify(manifest, null, 2));
+    console.log("\nProduct image map sample:");
+    console.log(JSON.stringify(Object.entries(productImageMap.byId).slice(0, 3), null, 2));
+    console.log("\nCategory image map sample:");
+    console.log(JSON.stringify(Object.entries(categoryImageMap.bySlug).slice(0, 3), null, 2));
     if (errors.length) {
       console.log(`\nErrors (${errors.length}):`);
       console.log(JSON.stringify(errors.slice(0, 10), null, 2));
@@ -606,13 +655,23 @@ async function main(): Promise<void> {
     "utf8",
   );
   await fs.writeFile(
+    path.join(DATA_DIR, "product-image-map.json"),
+    JSON.stringify(productImageMap, null, 2) + "\n",
+    "utf8",
+  );
+  await fs.writeFile(
+    path.join(DATA_DIR, "category-image-map.json"),
+    JSON.stringify(categoryImageMap, null, 2) + "\n",
+    "utf8",
+  );
+  await fs.writeFile(
     path.join(DATA_DIR, "_errors.json"),
     JSON.stringify(errors, null, 2) + "\n",
     "utf8",
   );
 
   console.log(
-    `\nWrote ${categories.length} categories, ${products.length} products to ${path.relative(REPO_ROOT, DATA_DIR)}`,
+    `\nWrote ${categories.length} categories, ${products.length} products + image maps to ${path.relative(REPO_ROOT, DATA_DIR)}`,
   );
   console.log(`Elapsed: ${(manifest.elapsedMs / 1000).toFixed(1)}s`);
   if (errors.length) {

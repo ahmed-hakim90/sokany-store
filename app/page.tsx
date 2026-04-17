@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { HomePageContent } from "@/components/pages/HomePageContent";
+import { getBannerSectionOrderedImages } from "@/features/home/services/getBannerSectionOrderedImages";
 import { getHeroSlides } from "@/features/home/services/getHeroSlides";
 import { getSiteUrl } from "@/lib/site";
 
@@ -41,6 +42,11 @@ export const metadata: Metadata = {
 };
 
 export default async function Home() {
-  const heroSlides = await getHeroSlides();
-  return <HomePageContent heroSlides={heroSlides} />;
+  const [heroSlides, sectionBannerImages] = await Promise.all([
+    getHeroSlides(),
+    getBannerSectionOrderedImages(),
+  ]);
+  return (
+    <HomePageContent heroSlides={heroSlides} sectionBannerImages={sectionBannerImages} />
+  );
 }
