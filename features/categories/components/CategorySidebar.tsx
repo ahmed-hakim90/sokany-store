@@ -7,11 +7,12 @@ import { cn } from "@/lib/utils";
 import type { Category } from "@/features/categories/types";
 import { usePrefetchProducts } from "@/features/products/hooks/usePrefetchProducts";
 
-function RowMarker({ active }: { active: boolean }) {
+function RowMarker({ active, compact }: { active: boolean; compact?: boolean }) {
   return (
     <span
       className={cn(
-        "mt-[0.35rem] h-1.5 w-1.5 shrink-0 rounded-full border transition-colors",
+        "shrink-0 rounded-full border transition-colors",
+        compact ? "mt-0.5 h-1 w-1" : "mt-[0.35rem] h-1.5 w-1.5",
         active
           ? "border-accent bg-accent"
           : "border-muted-foreground/25 bg-transparent group-hover:border-muted-foreground/45",
@@ -37,6 +38,8 @@ export type CategorySidebarProps = {
   activeCategoryId?: number | null;
   /** When `linkMode` is `productsQuery`, true when no category filter is applied. */
   allProductsActive?: boolean;
+  /** Smaller type and padding for narrow mobile columns (e.g. 1/3 catalog rail). */
+  compact?: boolean;
 };
 
 export function CategorySidebar({
@@ -47,6 +50,7 @@ export function CategorySidebar({
   linkMode = "slug",
   activeCategoryId,
   allProductsActive = false,
+  compact = false,
 }: CategorySidebarProps) {
   const isProductsMode = linkMode === "productsQuery";
   const prefetchProducts = usePrefetchProducts();
@@ -62,14 +66,32 @@ export function CategorySidebar({
   return (
     <nav
       className={cn(
-        "rounded-editorial border border-border/70 bg-white/90 p-4 shadow-sm backdrop-blur-sm",
+        "rounded-editorial border border-border/70 bg-white/90 shadow-sm backdrop-blur-sm",
+        compact ? "p-2" : "p-4",
         className,
       )}
       aria-label="تصفية التصنيفات"
     >
-      <header className="mb-3 border-b border-border/50 pb-2">
-        <p className="text-sm font-bold text-foreground">تصفية النتائج</p>
-        <p className="mt-0.5 text-[11px] text-muted-foreground">اختر التصنيف أو ضيّق السعر</p>
+      <header
+        className={cn(
+          "border-b border-border/50",
+          compact ? "mb-2 pb-1.5" : "mb-3 pb-2",
+        )}
+      >
+        <p
+          className={cn(
+            "font-bold text-foreground",
+            compact ? "text-[11px] leading-tight" : "text-sm",
+          )}
+        >
+        </p>
+        <p
+          className={cn(
+            "mt-0.5 text-muted-foreground",
+            compact ? "text-[9px] leading-snug" : "text-[11px]",
+          )}
+        >
+        </p>
       </header>
       <ul className="divide-y divide-border/40">
         <li className="py-0.5 first:pt-0">
@@ -77,7 +99,10 @@ export function CategorySidebar({
             <Link
               href={ROUTES.PRODUCTS}
               className={cn(
-                "group flex items-start gap-2.5 rounded-xl px-2 py-2 transition-colors",
+                "group flex items-start transition-colors",
+                compact
+                  ? "gap-1.5 rounded-lg px-1.5 py-1.5"
+                  : "gap-2.5 rounded-xl px-2 py-2",
                 allActive
                   ? "bg-brand-950 text-accent"
                   : "hover:bg-black/[0.03]",
@@ -85,10 +110,11 @@ export function CategorySidebar({
               onMouseEnter={prefetchAllProducts}
               onFocus={prefetchAllProducts}
             >
-              <RowMarker active={allActive} />
+              <RowMarker active={allActive} compact={compact} />
               <span
                 className={cn(
-                  "min-w-0 flex-1 text-sm leading-snug",
+                  "min-w-0 flex-1 leading-snug",
+                  compact ? "text-[11px]" : "text-sm",
                   allActive
                     ? "font-bold text-current"
                     : "font-medium text-muted-foreground group-hover:text-foreground",
@@ -102,16 +128,20 @@ export function CategorySidebar({
               href={ROUTES.CATEGORIES}
               scroll={false}
               className={cn(
-                "group flex items-start gap-2.5 rounded-xl px-2 py-2 transition-colors",
+                "group flex items-start transition-colors",
+                compact
+                  ? "gap-1.5 rounded-lg px-1.5 py-1.5"
+                  : "gap-2.5 rounded-xl px-2 py-2",
                 allActive
                   ? "bg-brand-950 text-accent"
                   : "hover:bg-black/[0.03]",
               )}
             >
-              <RowMarker active={allActive} />
+              <RowMarker active={allActive} compact={compact} />
               <span
                 className={cn(
-                  "min-w-0 flex-1 text-sm leading-snug",
+                  "min-w-0 flex-1 leading-snug",
+                  compact ? "text-[11px]" : "text-sm",
                   allActive
                     ? "font-bold text-current"
                     : "font-medium text-muted-foreground group-hover:text-foreground",
@@ -136,7 +166,10 @@ export function CategorySidebar({
                 href={href}
                 scroll={false}
                 className={cn(
-                  "group flex items-start gap-2.5 rounded-xl px-2 py-2 transition-colors",
+                  "group flex items-start transition-colors",
+                  compact
+                    ? "gap-1.5 rounded-lg px-1.5 py-1.5"
+                    : "gap-2.5 rounded-xl px-2 py-2",
                   active
                     ? "bg-brand-950 text-accent"
                     : "hover:bg-black/[0.03]",
@@ -152,11 +185,12 @@ export function CategorySidebar({
                     : undefined
                 }
               >
-                <RowMarker active={active} />
+                <RowMarker active={active} compact={compact} />
                 <span className="min-w-0 flex-1">
                   <span
                     className={cn(
-                      "line-clamp-2 text-sm leading-snug",
+                      "line-clamp-2 leading-snug",
+                      compact ? "text-[11px]" : "text-sm",
                       active
                         ? "font-bold text-current"
                         : "font-medium text-muted-foreground group-hover:text-foreground",
@@ -166,7 +200,8 @@ export function CategorySidebar({
                   </span>
                   <span
                     className={cn(
-                      "mt-0.5 block text-[11px] font-normal leading-tight",
+                      "mt-0.5 block font-normal leading-tight",
+                      compact ? "text-[9px]" : "text-[11px]",
                       active
                         ? "text-accent/80"
                         : "text-muted-foreground/85",
@@ -181,7 +216,14 @@ export function CategorySidebar({
         })}
       </ul>
       {footerSlot ? (
-        <div className="mt-4 border-t border-border/50 pt-4 text-sm">{footerSlot}</div>
+        <div
+          className={cn(
+            "border-t border-border/50",
+            compact ? "mt-2 pt-2 text-[11px]" : "mt-4 pt-4 text-sm",
+          )}
+        >
+          {footerSlot}
+        </div>
       ) : null}
     </nav>
   );

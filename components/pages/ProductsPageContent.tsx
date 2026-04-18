@@ -9,18 +9,17 @@ import { PillFilter } from "@/components/ui/pill-filter";
 import { useCart } from "@/hooks/useCart";
 import { useProductsCatalog } from "@/hooks/useProductsCatalog";
 import { ROUTES } from "@/lib/constants";
+import { cn } from "@/lib/utils";
 import { focusProductSearchHeaderInput } from "@/lib/product-search-header";
 import { ProductGrid } from "@/features/products/components/ProductGrid";
 import { CategorySidebar } from "@/features/categories/components/CategorySidebar";
-import { CategoryCatalogRail } from "@/features/categories/components/category-catalog-rail";
 import { CatalogPromoTile } from "@/features/catalog/components/catalog-promo-tile";
 import { CatalogSortSelect } from "@/features/catalog/components/catalog-sort-select";
 import { PriceRangeFilter } from "@/features/catalog/components/price-range-filter";
 
 /*
  * صفحة الكتالوج (/products): رأس ثابت (عنوان + ترتيب) ثم مساران للعرض.
- * تحت lg: صف أفقي — العمود الأيسر (في اتجاه RTL يظهر كمحتوى رئيسي) قابل للتمرير يضم
- * فلاتر حبة السعر وشبكة المنتجات؛ العمود الضيق: CategoryCatalogRail للتنقل بين التصنيفات.
+ * تحت lg: شبكة 3 أعمدة — في RTL التصنيفات ~⅓ يميناً، المنتجات ~⅔ يساراً؛ خط أصغر (compact).
  * من lg: شبكة عمودين — CategorySidebar (أو كتلة سعر فقط) + عمود الشبكة بعرض متبقي.
  */
 export function ProductsPageContent() {
@@ -121,6 +120,7 @@ export function ProductsPageContent() {
   const categoriesData = categoriesQuery.data;
   const hasCategories = (categoriesData?.length ?? 0) > 0;
   const categoriesLoading = categoriesQuery.isPending;
+  const showMobileCategoryNav = categoriesLoading || hasCategories;
 
   return (
     <div className="flex min-h-0 min-w-0 flex-1 flex-col">
@@ -146,11 +146,45 @@ export function ProductsPageContent() {
           </div>
         </div>
 
-        {/* مسار الجوال والتابلت (حتى أقل من lg): تمرير عمودي للمحتوى + شريط تصنيفات رأسي على الحافة */}
+        {/*
+         * الجوال: شبكة 3 أعمدة — في RTL العمود الأول يميناً: الشريط ⅓، المنتجات ⅔ (span 2).
+         */}
         <div
-          className="mt-4 flex min-h-0 max-h-mobile-catalog-split flex-1 flex-row gap-2 lg:hidden"
+          className={cn(
+            "mt-4 grid min-h-0 max-h-mobile-catalog-split flex-1 items-start gap-2 lg:hidden",
+            showMobileCategoryNav ? "grid-cols-3" : "grid-cols-1",
+          )}
         >
-          <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-y-contain pb-2">
+          {showMobileCategoryNav ? (
+            categoriesLoading ? (
+              <aside className="col-span-1 min-h-0 min-w-0 self-start overflow-y-auto overscroll-y-contain py-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                <div className="rounded-editorial border border-border/70 bg-white/90 p-2 shadow-sm backdrop-blur-sm">
+                  <div className="h-3 w-16 animate-shimmer rounded bg-border/70" />
+                  <div className="mt-2 space-y-1.5">
+                    {Array.from({ length: 6 }).map((_, idx) => (
+                      <div key={idx} className="h-7 animate-shimmer rounded-lg bg-surface-muted" />
+                    ))}
+                  </div>
+                </div>
+              </aside>
+            ) : (
+              <aside className="col-span-1 min-h-0 min-w-0 self-start overflow-y-auto overscroll-y-contain py-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                <CategorySidebar
+                  categories={categoriesData ?? []}
+                  linkMode="productsQuery"
+                  activeCategoryId={activeCategoryId}
+                  allProductsActive={allActive}
+                  compact
+                />
+              </aside>
+            )
+          ) : null}
+          <div
+            className={cn(
+              "flex min-h-0 min-w-0 flex-col gap-4 overflow-y-auto overscroll-y-contain pb-2",
+              showMobileCategoryNav ? "col-span-2" : "col-span-1",
+            )}
+          >
             <div className="flex flex-wrap gap-2">
               <PillFilter
                 active={isFeatured}
@@ -162,23 +196,6 @@ export function ProductsPageContent() {
             {mobilePriceFilter}
             {catalogGrid}
           </div>
-          {categoriesLoading ? (
-            <div className="flex w-[4.75rem] shrink-0 flex-col gap-2 py-1">
-              {Array.from({ length: 5 }).map((_, idx) => (
-                <div
-                  key={idx}
-                  className="h-16 animate-shimmer rounded-2xl border border-border/50 bg-surface-muted"
-                />
-              ))}
-            </div>
-          ) : hasCategories ? (
-            <CategoryCatalogRail
-              categories={categoriesData ?? []}
-              linkMode="productsQuery"
-              allProductsActive={allActive}
-              activeCategoryId={activeCategoryId}
-            />
-          ) : null}
         </div>
 
         {/* مسار سطح المكتب (lg+): عمود جانبي للتصفية/التصنيفات ثم شبكة المنتجات بعرض الشاشة المتبقي */}

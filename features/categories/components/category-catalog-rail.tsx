@@ -92,7 +92,6 @@ export function CategoryCatalogRail(props: CategoryCatalogRailProps) {
   const prefetchProducts = usePrefetchProducts();
   const navRef = useRef<HTMLElement | null>(null);
   const { categories, className } = props;
-  if (categories.length === 0) return null;
 
   const isProducts = props.linkMode === "productsQuery";
 
@@ -104,13 +103,16 @@ export function CategoryCatalogRail(props: CategoryCatalogRailProps) {
     : props.activeSlug;
 
   useEffect(() => {
+    if (categories.length === 0) return;
     const nav = navRef.current;
     if (!nav) return;
     const activeTile = nav.querySelector<HTMLElement>('[data-active="true"]');
     if (!activeTile) return;
     // Keep the selected category visible after route transitions on mobile rail.
     activeTile.scrollIntoView({ block: "nearest", inline: "nearest" });
-  }, [activeKey]);
+  }, [activeKey, categories.length]);
+
+  if (categories.length === 0) return null;
 
   return (
     <nav

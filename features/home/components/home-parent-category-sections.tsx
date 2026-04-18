@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import { ErrorState } from "@/components/ErrorState";
 import { ROUTES } from "@/lib/constants";
 import type { Category } from "@/features/categories/types";
 import type { Product } from "@/features/products/types";
 import { HomeCategoryExclusiveBanner } from "@/features/home/components/home-category-exclusive-banner";
-import { ProductHorizontalRail } from "@/features/home/components/product-horizontal-rail";
 import { useHomeParentCategoryRails } from "@/features/home/hooks/useHomeParentCategoryRails";
+import { ProductGrid } from "@/features/products/components/ProductGrid";
 import { cn } from "@/lib/utils";
 
 export type HomeParentCategorySectionsProps = {
@@ -76,22 +77,24 @@ export function HomeParentCategorySections({
                 </Link>
               </div>
 
-              <ProductHorizontalRail
-                status={status}
-                products={q.data}
-                getCartLineQuantity={getCartLineQuantity}
-                onCartLineQuantityChange={onCartLineQuantityChange}
-                errorMessage={
-                  q.isError
-                    ? q.error instanceof Error
-                      ? q.error.message
-                      : "تعذر تحميل المنتجات"
-                    : undefined
-                }
-                onRetry={() => void q.refetch()}
-                aria-label={`منتجات قسم ${cat.name}`}
-                className="-mx-4 sm:mx-0"
-              />
+              {status === "error" ? (
+                <ErrorState
+                  message={
+                    q.error instanceof Error ? q.error.message : "تعذر تحميل المنتجات"
+                  }
+                  onRetry={() => void q.refetch()}
+                />
+              ) : (
+                <ProductGrid
+                  status={status === "loading" ? "loading" : "ready"}
+                  products={q.data ?? []}
+                  getCartLineQuantity={getCartLineQuantity}
+                  onCartLineQuantityChange={onCartLineQuantityChange}
+                  cardVariant="mobileCompact"
+                  cardVariantMd="desktopCatalogWide"
+                  gridClassName="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4"
+                />
+              )}
             </section>
           </div>
         );

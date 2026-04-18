@@ -12,8 +12,8 @@ import {
 } from "@/features/home/components/home-hero-banner";
 import { HomeParentCategorySections } from "@/features/home/components/home-parent-category-sections";
 import { HomePromoCard } from "@/features/home/components/home-promo-card";
-import { ProductHorizontalRail } from "@/features/home/components/product-horizontal-rail";
 import { HomeTrustStrip } from "@/features/home/components/home-trust-strip";
+import { ProductGrid } from "@/features/products/components/ProductGrid";
 import { ROUTES } from "@/lib/constants";
 import { useCategories } from "@/features/categories/hooks/useCategories";
 import { HomeCategoryImageScroller } from "@/features/home/components/home-category-image-scroller";
@@ -59,8 +59,8 @@ function CheckSealIcon() {
  * الصفحة الرئيسية (/): عمود واحد داخل Container بمسافات رأسية تتسع تدريجياً (sm → md).
  * التسلسل: هيرو (330×540 سكروول أفقي + auto-rotate) → شريط صور التصنيفات
  * (240×120 سكروول أفقي + auto-rotate، بيانات ديناميكية من /api/categories)
- * → شريط ثقة (نسختان حسب md) → الأكثر مبيعاً (سكة أفقية) → أقسام الأب للتصنيفات
- * (لكل أب بالترتيب: بانر «حصرياً» من `/images/banner-section/01.*`, `02.*`, … وإلا صورة القسم/المنتج)
+ * → شريط ثقة (نسختان حسب md) → الأكثر مبيعاً (شبكة: ٢ عمود جوال، ٣ من md، ٤ من lg)
+ * → أقسام الأب للتصنيفات (نفس شبكة المنتجات تحت كل بانر «حصرياً»)
  * → بطاقة عرض ترويجي في الأسفل.
  */
 export type HomePageContentProps = {
@@ -124,7 +124,7 @@ export function HomePageContent({
           ]}
         />
 
-        {/* قسم الأكثر مبيعاً: عنوان وسطي + سكة منتجات أفقية داخل نفس العمود */}
+        {/* قسم الأكثر مبيعاً: عنوان وسطي + شبكة منتجات (٢ / ٣ / ٤ أعمدة حسب الشاشة) */}
         <section className="space-y-4" aria-labelledby="home-bestsellers-title">
           <div className="flex flex-col items-center gap-2 text-center">
             <h2
@@ -144,7 +144,7 @@ export function HomePageContent({
           {featured.isError ? (
             <ErrorState message={featured.error.message} onRetry={() => void featured.refetch()} />
           ) : (
-            <ProductHorizontalRail
+            <ProductGrid
               status={
                 featured.isPending
                   ? "loading"
@@ -155,6 +155,9 @@ export function HomePageContent({
               products={featured.data ?? []}
               getCartLineQuantity={getCartLineQuantity}
               onCartLineQuantityChange={setProductLineQuantity}
+              cardVariant="mobileCompact"
+              cardVariantMd="desktopCatalogWide"
+              gridClassName="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4"
               empty={
                 <EmptyState
                   title="لا توجد منتجات مميزة حالياً"
@@ -166,8 +169,6 @@ export function HomePageContent({
                   }
                 />
               }
-              aria-label="الأكثر مبيعاً"
-              className="-mx-4 sm:mx-0"
             />
           )}
         </section>

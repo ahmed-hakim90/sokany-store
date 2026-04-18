@@ -101,7 +101,7 @@ function CategorySlugProductsSection({
 
 /*
  * صفحة تصنيف بالمسار (/categories/[slug]): نفس منطق التقسيم مثل صفحة التصنيفات الجذرية —
- * تحت lg عمود تمرير + CategoryCatalogRail؛ من lg شبكة مع CategorySidebar فقط عند توفر التنقل.
+ * تحت lg عمود تمرير + CategorySidebar بنفس نمط سطح المكتب؛ من lg شبكة مع CategorySidebar عند توفر التنقل.
  * أعلى المحتوى: اسم التصنيف ووصف ورابط لكل منتجات التصنيف في الكتالوج.
  */
 export function CategorySlugPageContent({ slug }: { slug: string }) {
