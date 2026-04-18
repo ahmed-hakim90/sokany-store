@@ -44,6 +44,8 @@ export const ROUTES = {
   ABOUT: "/about",
   SERVICE_CENTERS: "/service-centers",
   ACCOUNT: "/account",
+  /** قائمة المفضلة المحفوظة محلياً (صفحة مستقلة + نفس المحتوى داخل الدرج). */
+  WISHLIST: "/wishlist",
   LOGIN: "/login",
   REGISTER: "/register",
 } as const;

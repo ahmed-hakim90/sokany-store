@@ -7,7 +7,7 @@ export function CatalogPromoTile({ className }: { className?: string }) {
     <Link
       href={ROUTES.PRODUCTS}
       className={cn(
-        "group flex min-h-[280px] min-w-0 flex-col justify-between rounded-[var(--radius-editorial,1.5rem)] bg-brand-950 p-6 text-white shadow-sm ring-1 ring-black/5 transition-transform duration-200 hover:scale-[1.02] sm:min-h-[320px] sm:p-8",
+        "group flex min-h-[280px] min-w-0 flex-col justify-between rounded-editorial bg-brand-950 p-6 text-white shadow-sm ring-1 ring-black/5 transition-transform duration-200 hover:scale-[1.02] sm:min-h-[320px] sm:p-8",
         className,
       )}
     >

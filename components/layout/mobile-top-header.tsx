@@ -1,3 +1,5 @@
+"use client";
+
 import { cn } from "@/lib/utils";
 
 export type MobileTopHeaderProps = {
@@ -26,7 +28,6 @@ export function MobileTopHeader({
   secondary,
   className,
 }: MobileTopHeaderProps) {
-
   return (
     <div
       className={cn(
@@ -36,7 +37,7 @@ export function MobileTopHeader({
     >
       <div
         className={cn(
-          "mx-auto grid max-w-lg grid-cols-[minmax(4.5rem,auto)_minmax(0,1fr)_minmax(2.5rem,auto)] items-center gap-x-2 px-5 pt-[max(0.75rem,env(safe-area-inset-top))] pb-2 sm:px-7",
+          "mx-auto grid max-w-lg grid-cols-[minmax(4.5rem,auto)_minmax(0,1fr)_minmax(2.5rem,auto)] items-center gap-x-2 px-5 pt-[max(0.75rem,env(safe-area-inset-top))] pb-1 sm:px-7",
         )}
       >
         <div className="flex justify-start [&_button]:-ms-1 [&_a]:-ms-1">
@@ -51,7 +52,7 @@ export function MobileTopHeader({
         <div className="min-w-0 px-5 pb-2 pt-0.5 sm:px-7">{toolbarBelow}</div>
       ) : null}
       {secondary ? (
-        <div className="px-5 pb-2.5 text-center sm:px-7">
+        <div className="text-center">
           <div className="text-[11px] font-medium leading-snug text-muted-foreground sm:text-xs">
             {secondary}
           </div>

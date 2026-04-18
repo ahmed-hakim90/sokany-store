@@ -111,3 +111,19 @@ body {
 .hero-swiper .swiper-pagination-bullet-active {
   background: var(--sokany-accent);
 }
+
+/*
+ * Utilities that reference CSS variables — keep them here instead of Tailwind arbitrary
+ * values like `[var(--x)]`, which Tailwind v4 can mis-parse as `var(-x)` and break the build.
+ */
+@layer utilities {
+  .pb-mobile-commerce {
+    padding-bottom: var(--mobile-commerce-chrome-height, 12rem);
+  }
+  .rounded-editorial {
+    border-radius: var(--radius-editorial, 1.5rem);
+  }
+  .max-h-mobile-catalog-split {
+    max-height: calc(100dvh - 7rem - var(--mobile-commerce-chrome-height));
+  }
+}

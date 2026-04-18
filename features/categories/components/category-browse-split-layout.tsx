@@ -25,7 +25,7 @@ export function CategoryBrowseSplitLayout({
 }: CategoryBrowseSplitLayoutProps) {
   return (
     <>
-      <div className="flex min-h-0 max-h-[calc(100dvh-7rem-var(--mobile-commerce-chrome-height))] flex-1 flex-row gap-2 lg:hidden">
+      <div className="flex min-h-0 max-h-mobile-catalog-split flex-1 flex-row gap-2 lg:hidden">
         <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-y-contain pb-2">
           {renderMainContent("mobile")}
         </div>

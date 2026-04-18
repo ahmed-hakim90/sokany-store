@@ -86,7 +86,7 @@ export function HomePageContent({
 
   return (
     <div className="animate-fade-in bg-page">
-      <Container className="space-y-5 pb-8 pt-3 sm:space-y-6 sm:pb-10">
+      <Container className="space-y-5 pb-8  sm:space-y-6 sm:pb-10">
         {/* أعلى الصفحة: شرائح هيرو ديناميكية تُقرأ من /public/images/hero */}
         {heroSlides.length > 0 ? <HomeHeroBanner slides={heroSlides} /> : null}
 

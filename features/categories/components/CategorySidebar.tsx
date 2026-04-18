@@ -13,7 +13,7 @@ function RowMarker({ active }: { active: boolean }) {
       className={cn(
         "mt-[0.35rem] h-1.5 w-1.5 shrink-0 rounded-full border transition-colors",
         active
-          ? "border-[var(--sokany-accent)] bg-[var(--sokany-accent)]"
+          ? "border-accent bg-accent"
           : "border-muted-foreground/25 bg-transparent group-hover:border-muted-foreground/45",
       )}
       aria-hidden
@@ -62,7 +62,7 @@ export function CategorySidebar({
   return (
     <nav
       className={cn(
-        "rounded-[var(--radius-editorial,1.5rem)] border border-border/70 bg-white/90 p-4 shadow-sm backdrop-blur-sm",
+        "rounded-editorial border border-border/70 bg-white/90 p-4 shadow-sm backdrop-blur-sm",
         className,
       )}
       aria-label="تصفية التصنيفات"
@@ -79,7 +79,7 @@ export function CategorySidebar({
               className={cn(
                 "group flex items-start gap-2.5 rounded-xl px-2 py-2 transition-colors",
                 allActive
-                  ? "bg-brand-950 text-[var(--sokany-accent)]"
+                  ? "bg-brand-950 text-accent"
                   : "hover:bg-black/[0.03]",
               )}
               onMouseEnter={prefetchAllProducts}
@@ -104,7 +104,7 @@ export function CategorySidebar({
               className={cn(
                 "group flex items-start gap-2.5 rounded-xl px-2 py-2 transition-colors",
                 allActive
-                  ? "bg-brand-950 text-[var(--sokany-accent)]"
+                  ? "bg-brand-950 text-accent"
                   : "hover:bg-black/[0.03]",
               )}
             >
@@ -138,7 +138,7 @@ export function CategorySidebar({
                 className={cn(
                   "group flex items-start gap-2.5 rounded-xl px-2 py-2 transition-colors",
                   active
-                    ? "bg-brand-950 text-[var(--sokany-accent)]"
+                    ? "bg-brand-950 text-accent"
                     : "hover:bg-black/[0.03]",
                 )}
                 onMouseEnter={
@@ -168,7 +168,7 @@ export function CategorySidebar({
                     className={cn(
                       "mt-0.5 block text-[11px] font-normal leading-tight",
                       active
-                        ? "text-[var(--sokany-accent)]/80"
+                        ? "text-accent/80"
                         : "text-muted-foreground/85",
                     )}
                   >

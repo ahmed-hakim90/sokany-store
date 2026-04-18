@@ -82,7 +82,7 @@ function CategorySlugProductsSection({
         cardVariant="mobileCompact"
         cardVariantMd="desktopCatalogWide"
         leadingSlot={<CatalogPromoTile />}
-        gridClassName="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4 xl:grid-cols-5"
+        gridClassName="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4"
         empty={
           <EmptyState
             title="لا توجد منتجات في هذا التصنيف"
@@ -137,7 +137,7 @@ export function CategorySlugPageContent({ slug }: { slug: string }) {
         {categoriesNav.isPending ? (
           <div className="space-y-8">
             <div className="h-10 w-1/3 animate-shimmer rounded bg-brand-100" />
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div className="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4">
               {Array.from({ length: 8 }).map((_, i) => (
                 <ProductSkeleton key={i} />
               ))}

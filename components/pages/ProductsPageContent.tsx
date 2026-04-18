@@ -64,7 +64,7 @@ export function ProductsPageContent() {
   );
 
   const mobilePriceFilter = (
-    <div className="rounded-[var(--radius-editorial,1.5rem)] border border-border/70 bg-white/90 p-3 shadow-sm backdrop-blur-sm">
+    <div className="rounded-editorial border border-border/70 bg-white/90 p-3 shadow-sm backdrop-blur-sm">
       <p className="mb-2 text-xs font-bold text-foreground">نطاق السعر</p>
       <PriceRangeFilter
         key={priceFilterKey}
@@ -100,7 +100,7 @@ export function ProductsPageContent() {
       cardVariant="mobileCompact"
       cardVariantMd="desktopCatalogWide"
       leadingSlot={<CatalogPromoTile />}
-      gridClassName="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4"
+      gridClassName="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4"
       empty={
         <EmptyState
           title="لا توجد منتجات"
@@ -148,7 +148,7 @@ export function ProductsPageContent() {
 
         {/* مسار الجوال والتابلت (حتى أقل من lg): تمرير عمودي للمحتوى + شريط تصنيفات رأسي على الحافة */}
         <div
-          className="mt-4 flex min-h-0 max-h-[calc(100dvh-7rem-var(--mobile-commerce-chrome-height))] flex-1 flex-row gap-2 lg:hidden"
+          className="mt-4 flex min-h-0 max-h-mobile-catalog-split flex-1 flex-row gap-2 lg:hidden"
         >
           <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-y-contain pb-2">
             <div className="flex flex-wrap gap-2">
@@ -185,7 +185,7 @@ export function ProductsPageContent() {
         <div className="mt-8 hidden min-w-0 lg:grid lg:grid-cols-[minmax(200px,240px)_minmax(0,1fr)] lg:items-start lg:gap-8">
           <aside className="mb-8">
             {categoriesLoading ? (
-              <div className="rounded-[var(--radius-editorial,1.5rem)] border border-border/70 bg-white/90 p-4 shadow-sm backdrop-blur-sm">
+              <div className="rounded-editorial border border-border/70 bg-white/90 p-4 shadow-sm backdrop-blur-sm">
                 <div className="h-5 w-28 animate-shimmer rounded bg-border/70" />
                 <div className="mt-4 space-y-2">
                   {Array.from({ length: 6 }).map((_, idx) => (
@@ -206,7 +206,7 @@ export function ProductsPageContent() {
                 footerSlot={sidebarFooter}
               />
             ) : (
-              <div className="rounded-[var(--radius-editorial,1.5rem)] border border-border/70 bg-white/90 p-4 shadow-sm backdrop-blur-sm">
+              <div className="rounded-editorial border border-border/70 bg-white/90 p-4 shadow-sm backdrop-blur-sm">
                 <p className="mb-3 text-sm font-bold text-foreground">نطاق السعر</p>
                 <PriceRangeFilter
                   key={priceFilterKey}

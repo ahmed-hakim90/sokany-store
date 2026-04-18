@@ -109,7 +109,7 @@ function HeroImageCard({
   priority?: boolean;
 }) {
   const content = (
-    <div className="relative h-[540px] w-[330px] shrink-0 snap-center overflow-hidden rounded-2xl bg-image-well">
+    <div className="relative h-[440px] w-[300px] shrink-0 snap-center overflow-hidden rounded-2xl bg-image-well">
       <AppImage
         src={slide.imageSrc}
         alt={slide.imageAlt ?? ""}

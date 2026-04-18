@@ -145,7 +145,20 @@ export function MobileNavDrawer({
               <h2 id={titleId} className="sr-only">
                 قائمة التنقل
               </h2>
-              <div className="flex shrink-0 items-center justify-end border-b border-border/80 px-2 pb-2 pt-0.5">
+              <div className="flex shrink-0 items-center justify-between gap-2 border-b border-border/80 px-2 pb-2 pt-0.5">
+                <Link
+                  href={ROUTES.ACCOUNT}
+                  className={cn(
+                    "inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-brand-950 transition-colors hover:bg-surface-muted/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500",
+                    (pathname === ROUTES.ACCOUNT ||
+                      pathname.startsWith(`${ROUTES.ACCOUNT}/`)) &&
+                      "bg-brand-500/15 ring-1 ring-brand-500/40",
+                  )}
+                  aria-label="حسابي"
+                  onClick={onClose}
+                >
+                  <UserGlyph />
+                </Link>
                 <IconButton
                   ref={closeRef}
                   variant="ghost"
@@ -236,7 +249,7 @@ export function MobileNavDrawer({
                   </p>
                 </nav>
 
-                <div className="mt-3 rounded-xl border border-brand-500/35 bg-brand-500/10 px-3 py-3">
+                <div className="mt-3 rounded-xl border border-brand-500/35 bg-brand-500 px-3 py-3 sticky bottom-0">
                   <p className="text-sm font-bold text-brand-950">
                     خصم 10% على أول طلب
                   </p>
@@ -254,6 +267,23 @@ export function MobileNavDrawer({
       ) : null}
     </AnimatePresence>,
     document.body,
+  );
+}
+
+function UserGlyph({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className={cn("h-5 w-5", className)}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinecap="round"
+      aria-hidden
+    >
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+      <circle cx="12" cy="7" r="4" />
+    </svg>
   );
 }
 

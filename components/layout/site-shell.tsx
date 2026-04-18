@@ -17,7 +17,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
       <Suspense fallback={null}>
         <DesktopWishlistDrawer />
       </Suspense>
-      <main className="flex min-w-0 max-w-none flex-1 flex-col bg-page pb-[var(--mobile-commerce-chrome-height,12rem)] md:pb-0">
+      <main className="flex min-w-0 max-w-none flex-1 flex-col bg-page pb-mobile-commerce md:pb-0">
         {children}
       </main>
       <Footer />

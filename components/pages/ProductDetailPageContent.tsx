@@ -157,7 +157,6 @@ export function ProductDetailPageContent({ id }: { id: number }) {
                 />
               ) : (
                 <ProductGrid
-                  className="lg:grid-cols-4"
                   status={
                     relatedQuery.isPending
                       ? "loading"

@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useId, useState } from "react";
+import { useId, useMemo, useState } from "react";
 import { AppImage } from "@/components/AppImage";
-import { DesktopShell } from "@/components/layout/desktop-shell";
+import { Container } from "@/components/Container";
 import { MobileAccordionSection } from "@/components/ui/mobile-accordion-section";
 import { useCategories } from "@/features/categories/hooks/useCategories";
 import { mockCategories } from "@/features/categories/mock";
@@ -19,6 +19,9 @@ const footerLinks = [
   { href: ROUTES.ABOUT, label: "من نحن" },
   { href: ROUTES.SERVICE_CENTERS, label: "مراكز الخدمة" },
 ] as const;
+
+/** أقصى عدد تصنيفات يُعرَض في الفوتر؛ الباقي عبر رابط «كل التصنيفات». */
+const FOOTER_CATEGORY_LIMIT = 8;
 
 export function Footer() {
   const year = new Date().getFullYear();
@@ -36,24 +39,43 @@ export function Footer() {
           parentId: c.parent,
         }));
 
+  const footerCategories = useMemo(
+    () =>
+      [...categoryList]
+        .sort((a, b) => b.count - a.count)
+        .slice(0, FOOTER_CATEGORY_LIMIT),
+    [categoryList],
+  );
   return (
-    <footer className="mt-auto border-t border-border/80 bg-zinc-50/95 backdrop-blur-sm">
-      <DesktopShell
+    <footer className="mt-auto w-full border-t border-border/80 bg-zinc-50/95 backdrop-blur-sm">
+      <Container
         className={cn(
-          "py-8 md:py-12",
+          "mx-auto max-w-7xl py-8 md:py-12",
           "max-md:pb-[calc(120px+env(safe-area-inset-bottom))]",
         )}
       >
-        <div className="space-y-0 md:hidden">
+        {/* هذا القسم يعمل على الموبايل */}
+        {/* hidden هذا القسم يعمل على الموبايل */}
+        {/* //اخفاء القسم على الموبايل
+        // #hidden-mobile */}
+        <div className="space-y-0 hidden  md:hidden">
           <MobileAccordionSection title="التصنيفات">
             <ul className="space-y-2 text-sm text-muted-foreground">
-              {categoryList.map((c) => (
+              {footerCategories.map((c) => (
                 <li key={c.id}>
                   <Link className="hover:text-brand-900" href={ROUTES.CATEGORY(c.slug)}>
                     {c.name}
                   </Link>
                 </li>
               ))}
+              <li>
+                <Link
+                  className="font-semibold text-brand-900 hover:underline"
+                  href={ROUTES.CATEGORIES}
+                >
+                  كل التصنيفات
+                </Link>
+              </li>
             </ul>
           </MobileAccordionSection>
           <MobileAccordionSection title="روابط سريعة">
@@ -98,13 +120,21 @@ export function Footer() {
           <div>
             <h3 className="font-display text-lg font-semibold text-brand-950">التصنيفات</h3>
             <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
-              {categoryList.map((c) => (
+              {footerCategories.map((c) => (
                 <li key={c.id}>
                   <Link className="hover:text-brand-900" href={ROUTES.CATEGORY(c.slug)}>
                     {c.name}
                   </Link>
                 </li>
               ))}
+              <li className="pt-1">
+                <Link
+                  className="text-sm font-semibold text-brand-900 hover:underline"
+                  href={ROUTES.CATEGORIES}
+                >
+                  كل التصنيفات
+                </Link>
+              </li>
             </ul>
           </div>
           <div id="service">
@@ -117,7 +147,7 @@ export function Footer() {
           <FooterNewsletter />
         </div>
 
-        <div className="mt-8 flex flex-col items-center gap-4 border-t border-border/80 pt-6 md:mt-10 md:pt-8">
+        <div className="flex flex-col items-center gap-4 border-t border-border/80  mt-4 pt-4 sm:mt-8 sm:pt-6 ">
           <div className="flex flex-wrap items-center justify-center gap-4">
             {SOCIAL_LINKS.map((s) => (
               <a
@@ -146,16 +176,16 @@ export function Footer() {
             </a>
           </div>
           <div className="flex flex-col items-center gap-2 text-center">
-            <div className="relative h-9 w-9 overflow-hidden rounded-md border border-border opacity-70 grayscale">
-              <AppImage src={SITE_LOGO_PATH} alt="" fill sizes="36px" />
+            <div className="relative h-12 w-28 overflow-hidden sm:h-25 sm:w-50">
+              <AppImage src={SITE_LOGO_PATH} alt="" fill sizes="100%" />
             </div>
-            <p className="font-display text-xs font-semibold text-brand-950">{SITE_NAME}</p>
+            {/* <p className="font-display text-xs font-semibold text-brand-950">{SITE_NAME}</p> */}
             <p className="text-xs text-muted-foreground">
               © {year} {SITE_NAME}. جميع الحقوق محفوظة.
             </p>
           </div>
         </div>
-      </DesktopShell>
+      </Container>
     </footer>
   );
 }

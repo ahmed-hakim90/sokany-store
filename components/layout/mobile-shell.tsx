@@ -25,7 +25,7 @@ export function MobileShell({
         className={cn(
           "min-h-0 flex-1",
           bottomNavPadding &&
-            "pb-[var(--mobile-commerce-chrome-height,12rem)] md:pb-0",
+            "pb-mobile-commerce md:pb-0",
         )}
       >
         {children}

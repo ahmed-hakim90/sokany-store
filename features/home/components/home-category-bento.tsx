@@ -43,7 +43,7 @@ function CategoryBentoTile({
         </div>
       )}
       <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent transition-all duration-300 group-hover:from-black group-hover:via-black/70 group-hover:to-black/20" />
-      <p className="absolute inset-x-0 bottom-0 p-4 text-end text-base font-bold leading-snug text-white transition-colors duration-300 group-hover:text-[var(--sokany-accent)] sm:p-5 sm:text-lg">
+      <p className="absolute inset-x-0 bottom-0 p-4 text-end text-base font-bold leading-snug text-white transition-colors duration-300 group-hover:text-accent sm:p-5 sm:text-lg">
         {category.name}
       </p>
     </Link>

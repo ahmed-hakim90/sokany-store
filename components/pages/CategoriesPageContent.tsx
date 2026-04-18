@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/Button";
 import { Container } from "@/components/Container";
@@ -79,7 +78,7 @@ function AvailableProductsSection({
           cardVariant="mobileCompact"
           cardVariantMd="desktopCatalogWide"
           leadingSlot={<CatalogPromoTile />}
-          gridClassName="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4 xl:grid-cols-5"
+          gridClassName="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4"
           empty={
             <EmptyState
               title="لا توجد منتجات حالياً"

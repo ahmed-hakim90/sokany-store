@@ -15,29 +15,32 @@ export function WishlistDrawerLines({
   onRemove: (productId: number) => void;
 }) {
   return (
-    <ul className="space-y-2.5 pb-3" role="list">
+    <ul
+      className="w-full min-w-0 space-y-2.5 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:space-y-3 sm:pb-3"
+      role="list"
+    >
       {items.map((item) => (
         <li
           key={item.productId}
-          className="flex gap-3 rounded-xl border border-border/80 bg-white p-3 shadow-sm"
+          className="flex w-full min-w-0 max-w-full gap-2 overflow-hidden rounded-xl border border-border/80 bg-white p-2 shadow-sm sm:gap-3 sm:p-3"
         >
           <Link
             href={ROUTES.PRODUCT(item.productId)}
-            className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-border bg-image-well"
+            className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg border border-border bg-image-well sm:h-16 sm:w-16"
           >
             <AppImage
               src={item.thumbnail}
               alt=""
               fill
-              sizes="64px"
+              sizes="(max-width: 640px) 15vw, 64px"
               className="object-cover"
             />
           </Link>
-          <div className="flex min-w-0 flex-1 flex-col gap-2">
-            <div className="flex items-start justify-between gap-2">
+          <div className="flex min-w-0 flex-1 flex-col gap-1 overflow-hidden sm:gap-1.5">
+            <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-start gap-1.5 sm:gap-2">
               <Link
                 href={ROUTES.PRODUCT(item.productId)}
-                className="line-clamp-2 text-start text-sm font-semibold text-foreground hover:text-brand-600"
+                className="line-clamp-2 min-w-0 break-words text-start text-sm font-semibold leading-snug text-foreground [overflow-wrap:anywhere] hover:text-brand-600 sm:leading-normal"
               >
                 {item.name}
               </Link>
@@ -45,18 +48,20 @@ export function WishlistDrawerLines({
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="shrink-0 text-muted-foreground hover:text-red-600"
+                className="h-10 w-10 shrink-0 text-muted-foreground hover:text-red-600 sm:h-8 sm:w-8 [&_svg]:h-[1.125rem] [&_svg]:w-[1.125rem] sm:[&_svg]:h-4 sm:[&_svg]:w-4"
                 aria-label={`إزالة ${item.name} من المفضلة`}
                 onClick={() => onRemove(item.productId)}
               >
                 <TrashIcon />
               </IconButton>
             </div>
-            <PriceText
-              amount={item.price}
-              compact
-              className="text-sm font-semibold text-brand-900"
-            />
+            <div className="min-w-0 max-w-full">
+              <PriceText
+                amount={item.price}
+                compact
+                className="max-w-full min-w-0 flex-wrap text-sm font-semibold text-brand-900"
+              />
+            </div>
           </div>
         </li>
       ))}

@@ -39,15 +39,15 @@ export function HomeCategoryExclusiveBanner({
       )}
       aria-labelledby={`home-cat-banner-${category.id}-title`}
     >
-      <div className="absolute inset-0 -z-10 md:hidden">
+      <div className="absolute inset-0-z-10 md:hidden">
         <AppImage
           src={imageSrc}
           alt=""
           fill
           sizes="100vw"
-          className={cn("object-cover", hasRealBannerImage ? "opacity-35" : "opacity-20")}
+          className={cn("object-cover ", hasRealBannerImage ? "opacity-35" : "opacity-20")}
         />
-        <div className="absolute inset-0 bg-black/25" />
+        {/* <div className="absolute inset-0 bg-black/25" /> */}
       </div>
 
       <div className="flex min-h-[14rem] flex-col md:flex-row md:items-stretch">

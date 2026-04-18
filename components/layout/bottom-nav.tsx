@@ -2,11 +2,16 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useRef } from "react";
+import {
+  mobileNavDrawerReturnFocusRef,
+  useMobileNavDrawerOpenStore,
+} from "@/components/layout/mobile-nav-drawer-open-store";
 import { useCart } from "@/hooks/useCart";
 import { ROUTES } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
-const items = [
+const linkItems = [
   { href: ROUTES.HOME, label: "الرئيسية", key: "home", icon: HomeIcon },
   {
     href: ROUTES.CATEGORIES,
@@ -21,8 +26,13 @@ const items = [
     key: "about",
     icon: InfoIcon,
   },
-  { href: ROUTES.ACCOUNT, label: "حسابي", key: "account", icon: UserIcon },
 ] as const;
+
+const mainMenuItem = {
+  label: "القائمة الرئيسية",
+  key: "main-menu",
+  icon: ListIcon,
+} as const;
 
 /**
  * Bottom tab row for mobile commerce chrome.
@@ -31,11 +41,23 @@ const items = [
 export function BottomNavInner() {
   const pathname = usePathname();
   const { totalItems } = useCart();
+  const mainMenuButtonRef = useRef<HTMLButtonElement>(null);
+  const drawerOpen = useMobileNavDrawerOpenStore((s) => s.open);
+  const openDrawer = useMobileNavDrawerOpenStore((s) => s.openDrawer);
+  const isCheckout = pathname === ROUTES.CHECKOUT;
+
+  const tabClass = (active: boolean) =>
+    cn(
+      "flex h-14 w-full max-w-[5.5rem] flex-col items-center justify-center gap-1 rounded-2xl border border-transparent px-1 py-1.5 text-xs font-semibold leading-tight transition-colors duration-200",
+      active
+        ? "border-brand-950 bg-brand-950 text-accent"
+        : "text-muted-foreground hover:bg-black/[0.03] hover:text-foreground/70",
+    );
 
   return (
     <nav aria-label="التنقل السفلي" className="border-t border-border/70 bg-white">
       <ul className="mx-auto flex max-w-lg items-center justify-between gap-0 px-1 py-1.5">
-        {items.map(({ href, label, key, icon: Icon }) => {
+        {linkItems.map(({ href, label, key, icon: Icon }) => {
           const active =
             key === "home"
               ? pathname === ROUTES.HOME
@@ -47,12 +69,7 @@ export function BottomNavInner() {
               <Link
                 href={href}
                 aria-current={active ? "page" : undefined}
-                className={cn(
-                  "flex h-14 w-full max-w-[5.5rem] flex-col items-center justify-center gap-1 rounded-2xl border border-transparent px-1 py-1.5 text-xs font-semibold leading-tight transition-colors duration-200",
-                  active
-                    ? "border-brand-950 bg-brand-950 text-[var(--sokany-accent)]"
-                    : "text-muted-foreground hover:bg-black/[0.03] hover:text-foreground/70",
-                )}
+                className={tabClass(active)}
               >
                 <span className="relative inline-flex text-current">
                   <Icon />
@@ -72,6 +89,29 @@ export function BottomNavInner() {
             </li>
           );
         })}
+        <li className="flex min-w-0 flex-1 justify-center">
+          <button
+            ref={mainMenuButtonRef}
+            type="button"
+            disabled={isCheckout}
+            aria-expanded={drawerOpen}
+            aria-haspopup="dialog"
+            aria-label={mainMenuItem.label}
+            className={cn(
+              tabClass(drawerOpen && !isCheckout),
+              isCheckout && "pointer-events-none opacity-40",
+            )}
+            onClick={() => {
+              mobileNavDrawerReturnFocusRef.current = mainMenuButtonRef.current;
+              openDrawer();
+            }}
+          >   
+            <span className="relative inline-flex text-current">
+              <ListIcon />
+            </span>
+            <span className="line-clamp-1 text-center">{mainMenuItem.label}</span>
+          </button>
+        </li>
       </ul>
     </nav>
   );
@@ -138,7 +178,7 @@ function InfoIcon() {
   );
 }
 
-function UserIcon() {
+function ListIcon() {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -147,7 +187,8 @@ function UserIcon() {
       stroke="currentColor"
       aria-hidden
     >
-      <path d="M20 21a8 8 0 0 0-16 0M12 11a4 4 0 1 0-4-4 4 4 0 0 0 4 4z" />
+      <path d="M8 6h13M8 12h13M8 18h13" strokeLinecap="round" />
+      <path d="M4 6h.01M4 12h.01M4 18h.01" strokeLinecap="round" />
     </svg>
   );
 }

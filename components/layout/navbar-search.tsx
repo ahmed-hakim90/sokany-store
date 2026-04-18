@@ -148,7 +148,7 @@ export function NavbarSearch() {
             goSearch();
           }
         }}  
-        className="min-w-0 max-w-none ro  unded-2xl border-zinc-200/90 bg-white shadow-sm"
+        className="min-w-0 max-w-none border-zinc-200/90 bg-white shadow-sm h-10 sm:h-12"
         compact
         leading={
           <svg

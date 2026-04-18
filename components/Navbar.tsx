@@ -2,13 +2,16 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useRef, useState } from "react";
+import { useEffect } from "react";
 import { AppImage } from "@/components/AppImage";
 import { MobileNavDrawer } from "@/components/layout/mobile-nav-drawer";
+import {
+  mobileNavDrawerReturnFocusRef,
+  useMobileNavDrawerOpenStore,
+} from "@/components/layout/mobile-nav-drawer-open-store";
 import { MobileStoreHotline } from "@/components/layout/mobile-store-hotline";
 import { NavbarSearch } from "@/components/layout/navbar-search";
 import { TopHeader } from "@/components/layout/top-header";
-import { IconButton } from "@/components/ui/icon-button";
 import { useCategories } from "@/features/categories/hooks/useCategories";
 import { useCartDrawerOpenStore } from "@/features/cart/store/useCartDrawerOpenStore";
 import { useWishlistDrawerOpenStore } from "@/features/wishlist/store/useWishlistDrawerOpenStore";
@@ -76,8 +79,8 @@ function MobileCartLink({
 
 export function Navbar() {
   const pathname = usePathname();
-  const [open, setOpen] = useState(false);
-  const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const open = useMobileNavDrawerOpenStore((s) => s.open);
+  const closeDrawer = useMobileNavDrawerOpenStore((s) => s.closeDrawer);
   const { totalItems } = useCart();
   const { totalCount: wishlistCount } = useWishlist();
   const categoriesQuery = useCategories();
@@ -90,18 +93,22 @@ export function Navbar() {
 
   const isCheckout = pathname === ROUTES.CHECKOUT;
   const isAbout = pathname === ROUTES.ABOUT;
+
+  useEffect(() => {
+    if (isCheckout) closeDrawer();
+  }, [isCheckout, closeDrawer]);
   const isServiceCenters =
     pathname === ROUTES.SERVICE_CENTERS ||
     pathname.startsWith(`${ROUTES.SERVICE_CENTERS}/`);
-
+//  لوجو السايت في التوب ناف بار
   const logo = (
     <Link href={ROUTES.HOME} className="flex items-center gap-2.5">
-      <div className="relative h-8 w-8 overflow-hidden rounded-md border border-border bg-image-well sm:h-9 sm:w-9">
-        <AppImage src={SITE_LOGO_PATH} alt={SITE_NAME} fill sizes="36px" />
+      <div className="relative h-12 w-28 overflow-hidden   sm:h-25 sm:w-50">
+        <AppImage src={SITE_LOGO_PATH} alt={SITE_NAME} fill sizes="100%" />
       </div>
-      <span className="font-display text-base font-semibold text-brand-950 sm:text-lg">
+      {/* <span className="font-display text-base font-semibold text-brand-950 sm:text-lg">
         {SITE_NAME}
-      </span>
+      </span> */}
     </Link>
   );
 
@@ -170,23 +177,26 @@ export function Navbar() {
     </div>
   );
 
-  const menuIconButtonClass =
-    "h-11 w-11 min-h-11 min-w-11 text-brand-900/50 hover:bg-surface-muted/45 hover:text-brand-950 [&_svg]:h-[17px] [&_svg]:w-[17px] [&_svg]:stroke-[1.45]";
-
-  const mobileMenuButton = (
-    <IconButton
-      ref={menuButtonRef}
+  const mobileWishlistButton = (
+    <button
       type="button"
-      variant="ghost"
-      size="sm"
-      aria-label={open ? "إغلاق القائمة" : "فتح القائمة"}
-      aria-expanded={open}
+      className="relative inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border/80 bg-white text-brand-950 shadow-sm transition-colors hover:bg-surface-muted/50"
+      aria-label="المفضلة"
+      aria-expanded={desktopWishlistDrawerOpen}
       aria-haspopup="dialog"
-      className={menuIconButtonClass}
-      onClick={() => setOpen((v) => !v)}
+      aria-controls="desktop-wishlist-drawer-panel"
+      onClick={() => {
+        closeDesktopCartDrawer();
+        openDesktopWishlistDrawer();
+      }}
     >
-      {open ? <CloseIcon /> : <MenuIcon />}
-    </IconButton>
+      <WishlistHeartGlyph className="h-[17px] w-[17px]" />
+      {wishlistCount > 0 ? (
+        <span className="absolute -top-1 -end-1 inline-flex min-h-[1.1rem] min-w-[1.1rem] items-center justify-center rounded-full bg-brand-500 px-0.5 text-[9px] font-bold text-black">
+          {wishlistCount > 99 ? "99+" : wishlistCount}
+        </span>
+      ) : null}
+    </button>
   );
 
   const mobileLeading = isCheckout ? (
@@ -198,7 +208,7 @@ export function Navbar() {
       <BackIcon />
     </Link>
   ) : isAbout ? (
-    mobileMenuButton
+    mobileWishlistButton
   ) : (
     <MobileStoreHotline />
   );
@@ -211,10 +221,10 @@ export function Navbar() {
     <Link
       href={ROUTES.HOME}
       className="flex min-w-0 flex-col items-center gap-1"
-      onClick={() => setOpen(false)}
+      onClick={() => closeDrawer()}
     >
-      <div className="relative h-8 w-8 overflow-hidden rounded-md border border-border bg-image-well">
-        <AppImage src={SITE_LOGO_PATH} alt={SITE_NAME} fill sizes="32px" />
+      <div className="relative h-12 w-28 overflow-hidden sm:h-25 sm:w-50">
+        <AppImage src={SITE_LOGO_PATH} alt={SITE_NAME} fill sizes="100%" />
       </div>
       <span className="truncate font-display text-[0.8125rem] font-semibold leading-tight text-brand-950 sm:text-[0.875rem]">
         {SITE_NAME}
@@ -224,7 +234,7 @@ export function Navbar() {
     <Link
       href={ROUTES.HOME}
       className="block truncate font-display text-[0.9375rem] font-semibold tracking-[0.04em] text-brand-950 sm:text-base"
-      onClick={() => setOpen(false)}
+      onClick={() => closeDrawer()}
     >
       {SITE_WORDMARK}
     </Link>
@@ -233,7 +243,7 @@ export function Navbar() {
   const mobileTrailing = isAbout ? (
     <MobileCartLink totalItems={totalItems} />
   ) : (
-    mobileMenuButton
+    mobileWishlistButton
   );
 
   const mobileSecondary =
@@ -264,8 +274,8 @@ export function Navbar() {
       {!isCheckout ? (
         <MobileNavDrawer
           open={open}
-          onClose={() => setOpen(false)}
-          returnFocusRef={menuButtonRef}
+          onClose={closeDrawer}
+          returnFocusRef={mobileNavDrawerReturnFocusRef}
           links={drawerLinks}
           categories={categoriesQuery.data}
           categoriesLoading={categoriesQuery.isLoading}
@@ -319,22 +329,6 @@ function WishlistHeartGlyph({ className }: { className?: string }) {
       aria-hidden
     >
       <path d="M12 21s-7-4.35-9.33-8.15A5.65 5.65 0 0112 5a5.65 5.65 0 019.33 7.85C19 16.65 12 21 12 21z" />
-    </svg>
-  );
-}
-
-function MenuIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.45">
-      <path d="M4 7h16M4 12h16M4 17h16" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function CloseIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.45">
-      <path d="M6 6l12 12M18 6L6 18" strokeLinecap="round" />
     </svg>
   );
 }

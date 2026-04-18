@@ -52,7 +52,7 @@ function RailTile({ href, active, label, children, onPrefetch }: RailTileProps) 
         className={cn(
           "flex flex-col items-center gap-1.5 border border-border/80 bg-[#e8ecf2] p-1.5 text-center text-brand-950 transition-colors",
           active
-            ? "border-brand-950 bg-brand-950 text-[var(--sokany-accent)] shadow-[0_10px_20px_-12px_rgba(2,6,23,0.7)]"
+            ? "border-brand-950 bg-brand-950 text-accent shadow-[0_10px_20px_-12px_rgba(2,6,23,0.7)]"
             : "hover:border-brand-300",
         )}
       >
@@ -60,7 +60,7 @@ function RailTile({ href, active, label, children, onPrefetch }: RailTileProps) 
           className={cn(
             "flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-black/[0.06] bg-white text-brand-800 shadow-sm",
             active &&
-              "border-white/20 bg-white/10 text-[var(--sokany-accent)] shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]",
+              "border-white/20 bg-white/10 text-accent shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]",
           )}
         >
           {children}
