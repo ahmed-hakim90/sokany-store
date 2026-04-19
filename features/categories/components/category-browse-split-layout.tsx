@@ -27,12 +27,13 @@ export function CategoryBrowseSplitLayout({
   return (
     <>
       {/*
-       * تحت lg: عمود — شريط تصنيفات أفقي ثم منطقة رئيسية قابلة للتمرير العمودي داخل max-h-mobile-catalog-split.
-       * من lg: شبكة — sidebar عمودي + عمود المحتوى (مع desktopTopContent اختياري).
+       * تحت lg: عمود — شريط تصنيفات أفقي ثم منطقة رئيسية قابلة للتمرير داخل max-h-mobile-catalog-split.
+       * من lg: شبكة بعرض كامل — sidebar + محتوى بدون حد أقصى للارتفاع حتى يبقى الفوتر أسفل الصفحة.
        */}
       <div
         className={cn(
-          "flex min-h-0 max-h-mobile-catalog-split flex-1 flex-col gap-4 lg:max-h-none",
+          /* أقل من lg: ارتفاع أقصى للكتالوج مع الشريط السفلي للموبايل — من lg فصاعداً لا نحد الارتفاع حتى لا يُضغط المحتوى ويظهر الفوتر بصرياً في منتصف الصفحة */
+          "flex min-h-0 flex-1 flex-col gap-4 max-lg:max-h-mobile-catalog-split",
         )}
       >
         {showNavChrome ? (

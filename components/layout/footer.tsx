@@ -51,7 +51,7 @@ export function Footer() {
       <Container
         className={cn(
           "mx-auto max-w-7xl py-8 md:py-12",
-          "max-md:pb-[calc(120px+env(safe-area-inset-bottom))]",
+          "max-lg:pb-[calc(120px+env(safe-area-inset-bottom))]",
         )}
       >
         {/* هذا القسم يعمل على الموبايل */}
@@ -176,8 +176,14 @@ export function Footer() {
             </a>
           </div>
           <div className="flex flex-col items-center gap-2 text-center">
-            <div className="relative h-12 w-28 overflow-hidden sm:h-25 sm:w-50">
-              <AppImage src={SITE_LOGO_PATH} alt="" fill sizes="100%" />
+            <div className="relative h-12 w-28 overflow-hidden sm:h-14 sm:w-32">
+              <AppImage
+                src={SITE_LOGO_PATH}
+                alt=""
+                fill
+                sizes="100%"
+                className="object-contain"
+              />
             </div>
             {/* <p className="font-display text-xs font-semibold text-brand-950">{SITE_NAME}</p> */}
             <p className="text-xs text-muted-foreground">

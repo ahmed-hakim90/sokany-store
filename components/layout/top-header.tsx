@@ -34,11 +34,11 @@ export function TopHeader({
   return (
     <header
       className={cn(
-        "sticky top-0 z-40 max-md:bg-page/80 max-md:backdrop-blur-[6px] max-md:supports-[backdrop-filter]:bg-page/65 md:border-b md:border-border md:bg-white/95 md:backdrop-blur",
+        "sticky top-0 z-40 max-lg:bg-page/80 max-lg:backdrop-blur-[6px] max-lg:supports-[backdrop-filter]:bg-page/65 lg:border-b lg:border-border lg:bg-white/95 lg:backdrop-blur",
         className,
       )}
     >
-      <div className="md:hidden">
+      <div className="lg:hidden">
         <MobileTopHeader
           wordmark={mobileWordmark}
           leading={mobileLeading}
@@ -48,10 +48,10 @@ export function TopHeader({
         />
       </div>
 
-      <div className="mx-auto hidden min-w-0 max-w-none items-center gap-3 px-4 py-2.5 sm:gap-4 sm:px-6 lg:gap-5 lg:px-8 md:flex">
+      <div className="mx-auto hidden min-w-0 max-w-none items-center gap-3 px-4 py-2.5 sm:gap-4 sm:px-6 lg:flex lg:gap-5 lg:px-8">
         <div className="flex min-w-0 shrink-0 items-center gap-2">{logo}</div>
         {desktopNav ? (
-          <nav className="hidden min-w-0 shrink-0 items-center gap-4 overflow-x-auto overflow-y-hidden whitespace-nowrap text-sm font-medium md:flex lg:gap-6">
+          <nav className="hidden min-w-0 shrink-0 items-center gap-4 overflow-x-auto overflow-y-hidden whitespace-nowrap text-sm font-medium lg:flex xl:gap-6">
             {desktopNav}
           </nav>
         ) : null}

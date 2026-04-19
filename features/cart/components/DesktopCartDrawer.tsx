@@ -7,7 +7,7 @@ import { useTransitionRouter } from "next-view-transitions";
 import { Drawer } from "vaul";
 import { Button } from "@/components/Button";
 import { useCart } from "@/hooks/useCart";
-import { useMinMd } from "@/hooks/useMinMd";
+import { useMinLg } from "@/hooks/useMinLg";
 import { ROUTES } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import {
@@ -19,15 +19,15 @@ import { useCartDrawerOpenStore } from "@/features/cart/store/useCartDrawerOpenS
 export function DesktopCartDrawer() {
   const pathname = usePathname();
   const router = useTransitionRouter();
-  const mdUp = useMinMd();
+  const lgUp = useMinLg();
   const open = useCartDrawerOpenStore((s) => s.open);
   const setOpen = useCartDrawerOpenStore((s) => s.setOpen);
   const closeDrawer = useCartDrawerOpenStore((s) => s.closeDrawer);
   const { hasHydrated, items, updateProductQuantity, removeProduct } = useCart();
 
   useEffect(() => {
-    if (!mdUp) closeDrawer();
-  }, [mdUp, closeDrawer]);
+    if (!lgUp) closeDrawer();
+  }, [lgUp, closeDrawer]);
 
   useEffect(() => {
     closeDrawer();
@@ -46,7 +46,7 @@ export function DesktopCartDrawer() {
     router.push(ROUTES.CHECKOUT);
   }, [closeDrawer, router]);
 
-  if (!mdUp) return null;
+  if (!lgUp) return null;
 
   const isEmpty = items.length === 0;
 

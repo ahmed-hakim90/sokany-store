@@ -105,7 +105,7 @@ export function MobileNavDrawer({
         <>
           <motion.div
             key="mobile-nav-backdrop"
-            className="fixed inset-0 z-[140] bg-slate-900/45 backdrop-blur-[3px] md:hidden"
+            className="fixed inset-0 z-[140] bg-slate-900/45 backdrop-blur-[10px] lg:hidden"
             role="presentation"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}

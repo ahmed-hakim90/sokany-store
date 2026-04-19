@@ -11,6 +11,7 @@ import {
 } from "@/components/layout/mobile-nav-drawer-open-store";
 import { MobileStoreHotline } from "@/components/layout/mobile-store-hotline";
 import { NavbarSearch } from "@/components/layout/navbar-search";
+import { CatalogFilterDrawerTrigger } from "@/features/catalog/components/CatalogFilterDrawerTrigger";
 import { TopHeader } from "@/components/layout/top-header";
 import { useCategories } from "@/features/categories/hooks/useCategories";
 import { useCartDrawerOpenStore } from "@/features/cart/store/useCartDrawerOpenStore";
@@ -103,8 +104,14 @@ export function Navbar() {
 //  لوجو السايت في التوب ناف بار
   const logo = (
     <Link href={ROUTES.HOME} className="flex items-center gap-2.5">
-      <div className="relative h-12 w-28 overflow-hidden   sm:h-25 sm:w-50">
-        <AppImage src={SITE_LOGO_PATH} alt={SITE_NAME} fill sizes="100%" />
+      <div className="relative h-12 w-28 overflow-hidden sm:h-14 sm:w-32">
+        <AppImage
+          src={SITE_LOGO_PATH}
+          alt={SITE_NAME}
+          fill
+          sizes="100%"
+          className="object-contain"
+        />
       </div>
       {/* <span className="font-display text-base font-semibold text-brand-950 sm:text-lg">
         {SITE_NAME}
@@ -127,7 +134,7 @@ export function Navbar() {
   );
 
   const trailing = (
-    <div className="hidden items-center gap-2 md:flex">
+    <div className="hidden items-center gap-2 lg:flex">
       <MobileStoreHotline className="h-10 shrink-0 whitespace-nowrap px-1 text-sm" />
       <Link
         href={ROUTES.ACCOUNT}
@@ -157,6 +164,7 @@ export function Navbar() {
       </button>
       <button
         type="button"
+        data-cart-fly-target="desktop"
         className="relative inline-flex h-10 items-center gap-2 rounded-xl bg-brand-500 px-4 text-sm font-bold text-black shadow-sm transition-colors hover:bg-brand-400 lg:h-11 lg:px-5"
         aria-expanded={desktopCartDrawerOpen}
         aria-haspopup="dialog"
@@ -180,7 +188,7 @@ export function Navbar() {
   const mobileWishlistButton = (
     <button
       type="button"
-      className="relative inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border/80 bg-white text-brand-950 shadow-sm transition-colors hover:bg-surface-muted/50"
+      className="relative inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border/80 bg-white text-brand-950 shadow-sm transition-colors hover:bg-surface-muted/50"
       aria-label="المفضلة"
       aria-expanded={desktopWishlistDrawerOpen}
       aria-haspopup="dialog"
@@ -190,7 +198,7 @@ export function Navbar() {
         openDesktopWishlistDrawer();
       }}
     >
-      <WishlistHeartGlyph className="h-[17px] w-[17px]" />
+      <WishlistHeartGlyph className="h-[18px] w-[18px]" />
       {wishlistCount > 0 ? (
         <span className="absolute -top-1 -end-1 inline-flex min-h-[1.1rem] min-w-[1.1rem] items-center justify-center rounded-full bg-brand-500 px-0.5 text-[9px] font-bold text-black">
           {wishlistCount > 99 ? "99+" : wishlistCount}
@@ -223,8 +231,14 @@ export function Navbar() {
       className="flex min-w-0 flex-col items-center gap-1"
       onClick={() => closeDrawer()}
     >
-      <div className="relative h-12 w-28 overflow-hidden sm:h-25 sm:w-50">
-        <AppImage src={SITE_LOGO_PATH} alt={SITE_NAME} fill sizes="100%" />
+      <div className="relative h-12 w-28 overflow-hidden sm:h-12 sm:w-38">
+        <AppImage
+          src={SITE_LOGO_PATH}
+          alt={SITE_NAME}
+          fill
+          sizes="100%"
+          className="object-contain"
+        />
       </div>
       <span className="truncate font-display text-[0.8125rem] font-semibold leading-tight text-brand-950 sm:text-[0.875rem]">
         {SITE_NAME}
@@ -233,10 +247,18 @@ export function Navbar() {
   ) : (
     <Link
       href={ROUTES.HOME}
-      className="block truncate font-display text-[0.9375rem] font-semibold tracking-[0.04em] text-brand-950 sm:text-base"
+      className="flex min-w-0 justify-center"
       onClick={() => closeDrawer()}
     >
-      {SITE_WORDMARK}
+      <div className="relative mx-auto h-12 w-28 max-w-full overflow-hidden sm:h-12 sm:w-28">
+        <AppImage
+          src={SITE_LOGO_PATH}
+          alt={SITE_NAME}
+          fill
+          sizes="(max-width: 640px) 96px, 128px"
+          className="object-contain"
+        />
+      </div>
     </Link>
   );
 
@@ -244,6 +266,15 @@ export function Navbar() {
     <MobileCartLink totalItems={totalItems} />
   ) : (
     mobileWishlistButton
+  );
+
+  const searchWithFilter = (
+    <div className="flex min-w-0 w-full items-center gap-2">
+      <div className="min-w-0 flex-1">
+        <NavbarSearch />
+      </div>
+      <CatalogFilterDrawerTrigger />
+    </div>
   );
 
   const mobileSecondary =
@@ -262,13 +293,13 @@ export function Navbar() {
     <>
       <TopHeader
         logo={logo}
-        center={<NavbarSearch />}
+        center={searchWithFilter}
         desktopNav={desktopNav}
         trailing={trailing}
         mobileWordmark={mobileWordmark}
         mobileLeading={mobileLeading}
         mobileTrailing={mobileTrailing}
-        mobileToolbarBelow={isCheckout ? undefined : <NavbarSearch />}
+        mobileToolbarBelow={isCheckout ? undefined : searchWithFilter}
         mobileSecondary={mobileSecondary}
       />
       {!isCheckout ? (

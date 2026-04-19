@@ -3,18 +3,25 @@
 import { useState } from "react";
 import { Button } from "@/components/Button";
 
-const DEFAULT_MAX = 15_000;
+export const CATALOG_PRICE_DEFAULT_MAX = 15_000;
+const DEFAULT_MAX = CATALOG_PRICE_DEFAULT_MAX;
 
 export type PriceRangeFilterProps = {
   minPrice?: number;
   maxPrice?: number;
   onApply: (range: { min: number | null; max: number | null }) => void;
+  /** When false, hide inline تطبيق / إعادة التعيين (e.g. catalog filter drawer). */
+  showActionButtons?: boolean;
+  /** Fires when min/max inputs change (for draft + parent CTA). */
+  onValuesChange?: (min: number, max: number) => void;
 };
 
 export function PriceRangeFilter({
   minPrice,
   maxPrice,
   onApply,
+  showActionButtons = true,
+  onValuesChange,
 }: PriceRangeFilterProps) {
   const [min, setMin] = useState(() => minPrice ?? 0);
   const [max, setMax] = useState(() => maxPrice ?? DEFAULT_MAX);
@@ -33,7 +40,11 @@ export function PriceRangeFilter({
           inputMode="numeric"
           className="h-9 w-[5.5rem] rounded-lg border border-border bg-white px-2 text-sm font-medium text-foreground outline-none ring-brand-500/0 focus-visible:ring-2"
           value={min || ""}
-          onChange={(e) => setMin(Number.parseInt(e.target.value, 10) || 0)}
+          onChange={(e) => {
+            const next = Number.parseInt(e.target.value, 10) || 0;
+            setMin(next);
+            onValuesChange?.(next, max);
+          }}
         />
         <span className="text-xs text-muted-foreground">—</span>
         <label className="sr-only" htmlFor="catalog-price-max">
@@ -46,11 +57,14 @@ export function PriceRangeFilter({
           inputMode="numeric"
           className="h-9 w-[5.5rem] rounded-lg border border-border bg-white px-2 text-sm font-medium text-foreground outline-none ring-brand-500/0 focus-visible:ring-2"
           value={max || ""}
-          onChange={(e) =>
-            setMax(Number.parseInt(e.target.value, 10) || DEFAULT_MAX)
-          }
+          onChange={(e) => {
+            const next = Number.parseInt(e.target.value, 10) || DEFAULT_MAX;
+            setMax(next);
+            onValuesChange?.(min, next);
+          }}
         />
       </div>
+      {showActionButtons ? (
       <div className="flex flex-wrap gap-2">
         <Button
           type="button"
@@ -78,6 +92,7 @@ export function PriceRangeFilter({
           إعادة التعيين
         </Button>
       </div>
+      ) : null}
     </div>
   );
 }

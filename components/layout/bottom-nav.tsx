@@ -56,7 +56,7 @@ export function BottomNavInner() {
 
   return (
     <nav aria-label="التنقل السفلي" className="border-t border-border/70 bg-white">
-      <ul className="mx-auto flex max-w-lg items-center justify-between gap-0 px-1 py-1.5">
+      <ul className="mx-auto flex w-full max-w-none items-center justify-between gap-0 px-0 py-1.5 sm:px-0.5">
         {linkItems.map(({ href, label, key, icon: Icon }) => {
           const active =
             key === "home"
@@ -70,6 +70,7 @@ export function BottomNavInner() {
                 href={href}
                 aria-current={active ? "page" : undefined}
                 className={tabClass(active)}
+                {...(isCart ? { "data-cart-fly-target": "mobile" as const } : {})}
               >
                 <span className="relative inline-flex text-current">
                   <Icon />

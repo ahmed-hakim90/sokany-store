@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { forwardRef, useEffect, useState } from "react";
 import { AppImage } from "@/components/AppImage";
 import { cn } from "@/lib/utils";
 import type { ProductImage } from "@/features/products/types";
@@ -13,21 +14,33 @@ export type ProductGalleryProps = {
   className?: string;
   /** Short label over the main image (e.g. NEW TECH). */
   galleryBadge?: string | null;
+  /** Fires when the large preview image changes (e.g. add-to-cart fly animation). */
+  onActiveImageChange?: (src: string) => void;
 };
 
 const THUMB_MAX_INLINE = 4;
 
-export function ProductGallery({
-  images,
-  productName,
-  fallbackSrc,
-  priority,
-  className,
-  galleryBadge,
-}: ProductGalleryProps) {
+export const ProductGallery = forwardRef<HTMLDivElement, ProductGalleryProps>(
+  function ProductGallery(
+    {
+      images,
+      productName,
+      fallbackSrc,
+      priority,
+      className,
+      galleryBadge,
+      onActiveImageChange,
+    },
+    ref,
+  ) {
   const list = images.length > 0 ? images : [];
   const initial = list[0]?.src ?? fallbackSrc;
   const [activeSrc, setActiveSrc] = useState(initial);
+  const reduceMotion = useReducedMotion();
+
+  useEffect(() => {
+    onActiveImageChange?.(activeSrc);
+  }, [activeSrc, onActiveImageChange]);
 
   const overflowCount = list.length > THUMB_MAX_INLINE ? list.length - (THUMB_MAX_INLINE - 1) : 0;
   const showOverflowTile = overflowCount > 0;
@@ -35,14 +48,31 @@ export function ProductGallery({
 
   return (
     <div className={cn("flex min-w-0 flex-col gap-3", className)}>
-      <div className="relative aspect-square overflow-hidden rounded-2xl border border-border bg-image-well shadow-[0_8px_30px_-12px_rgba(15,23,42,0.15)]">
-        <AppImage
-          src={activeSrc}
-          alt={productName}
-          fill
-          sizes="(max-width: 1024px) 100vw, 50vw"
-          priority={priority}
-        />
+      <div
+        ref={ref}
+        className="relative aspect-square overflow-hidden rounded-2xl border border-border bg-image-well shadow-[0_8px_30px_-12px_rgba(15,23,42,0.15)]"
+      >
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={activeSrc}
+            className="absolute inset-0"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{
+              duration: reduceMotion ? 0 : 0.28,
+              ease: [0.4, 0, 0.2, 1],
+            }}
+          >
+            <AppImage
+              src={activeSrc}
+              alt={productName}
+              fill
+              sizes="(max-width: 1024px) 100vw, 50vw"
+              priority={priority}
+            />
+          </motion.div>
+        </AnimatePresence>
         {galleryBadge ? (
           <span className="absolute end-3 top-3 z-10 rounded-md bg-brand-500 px-2.5 py-1 font-display text-[10px] font-bold uppercase leading-none tracking-wide text-black shadow-sm">
             {galleryBadge}
@@ -81,4 +111,5 @@ export function ProductGallery({
       ) : null}
     </div>
   );
-}
+  },
+);

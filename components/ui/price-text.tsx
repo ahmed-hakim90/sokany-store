@@ -41,7 +41,7 @@ export function PriceText({
           tile && "font-bold text-brand-950 tracking-tight",
           emphasized && !compact && "text-2xl",
           emphasized && compact && "text-lg",
-          !emphasized && !compact && "text-base",
+          !emphasized && !compact && "text-xs md:text-sm lg:text-base",
           !emphasized && compact && "text-sm",
           amountClassName,
         )}
@@ -49,7 +49,7 @@ export function PriceText({
         {formatPrice(amount)}
       </span>
       {showOld ? (
-        <span className="text-sm text-muted-foreground line-through">
+        <span className="text-xs md:text-sm lg:text-base text-muted-foreground line-through">
           {formatPrice(compareAt)}
         </span>
       ) : null}

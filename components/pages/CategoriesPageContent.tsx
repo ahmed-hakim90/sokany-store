@@ -44,14 +44,14 @@ function AvailableProductsSection({
       className="space-y-3 rounded-2xl p-5 lg:p-0"
       aria-labelledby="categories-available-products-title"
     >
-      <div className="flex flex-col items-center gap-2 text-center">
+      {/* <div className="flex flex-col items-center gap-2 text-center">
         <h2
           id="categories-available-products-title"
           className="text-base font-bold tracking-tight text-black sm:text-lg md:text-xl"
         >
           منتجات متاحة
         </h2>
-      </div>
+      </div> */}
 
       {productsQuery.isError ? (
         <ErrorState

@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { useEffect, useRef } from "react";
 import { Link } from "next-view-transitions";
 import { ROUTES } from "@/lib/constants";
 import { cn } from "@/lib/utils";
@@ -77,6 +78,22 @@ export function CategorySidebar({
 
   const allActive = isProductsMode ? allProductsActive : !activeSlug;
 
+  const railScrollRef = useRef<HTMLDivElement>(null);
+  const activeRailKey = isProductsMode
+    ? allProductsActive
+      ? "all"
+      : String(activeCategoryId ?? "")
+    : (activeSlug ?? "");
+
+  useEffect(() => {
+    if (variant !== "rail") return;
+    const root = railScrollRef.current;
+    if (!root) return;
+    const activeTile = root.querySelector<HTMLElement>("[data-category-rail-active]");
+    if (!activeTile) return;
+    activeTile.scrollIntoView({ block: "nearest", inline: "nearest" });
+  }, [variant, activeRailKey, categories.length]);
+
   if (variant === "rail") {
     return (
       <nav
@@ -87,19 +104,24 @@ export function CategorySidebar({
         aria-label="تصفية التصنيفات"
       >
         <div
+          ref={railScrollRef}
           className={cn(
             "overflow-x-auto overscroll-x-contain [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
             "snap-x snap-mandatory pb-1",
           )}
         >
           <ul className="flex flex-nowrap gap-2 px-2 py-2.5">
-            <li className="shrink-0 snap-start">
+            <li
+              className="shrink-0 snap-start"
+              data-category-rail-active={allActive ? true : undefined}
+            >
               {isProductsMode ? (
                 <Link
                   href={ROUTES.PRODUCTS}
                   className={cn(chipBase(allActive), "flex flex-col gap-0.5")}
                   onMouseEnter={prefetchAllProducts}
                   onFocus={prefetchAllProducts}
+                  scroll={false}
                 >
                   <span
                     className={cn(
@@ -136,7 +158,11 @@ export function CategorySidebar({
                 : ROUTES.CATEGORY(category.slug);
 
               return (
-                <li key={category.id} className="shrink-0 snap-start">
+                <li
+                  key={category.id}
+                  className="shrink-0 snap-start"
+                  data-category-rail-active={active ? true : undefined}
+                >
                   <Link
                     href={href}
                     scroll={false}
@@ -207,6 +233,7 @@ export function CategorySidebar({
           {isProductsMode ? (
             <Link
               href={ROUTES.PRODUCTS}
+              scroll={false}
               className={cn(
                 "group flex items-start transition-colors",
                 compact

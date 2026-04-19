@@ -25,13 +25,13 @@ export function MobileShell({
         className={cn(
           "min-h-0 flex-1",
           bottomNavPadding &&
-            "pb-mobile-commerce md:pb-0",
+            "pb-mobile-commerce lg:pb-0",
         )}
       >
         {children}
       </div>
       {fab ? (
-        <div className="pointer-events-none fixed bottom-24 end-4 z-40 md:hidden">
+        <div className="pointer-events-none fixed bottom-24 end-4 z-40 lg:hidden">
           <div className="pointer-events-auto">{fab}</div>
         </div>
       ) : null}

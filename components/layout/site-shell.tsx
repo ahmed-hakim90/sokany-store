@@ -3,6 +3,7 @@ import { Footer } from "@/components/layout/footer";
 import { MobileCommerceChrome } from "@/components/layout/mobile-commerce-chrome";
 import { Navbar } from "@/components/Navbar";
 import { DesktopCartDrawer } from "@/features/cart/components/DesktopCartDrawer";
+import { CatalogFilterDrawer } from "@/features/catalog/components/CatalogFilterDrawer";
 import { DesktopWishlistDrawer } from "@/features/wishlist/components/DesktopWishlistDrawer";
 
 export function SiteShell({ children }: { children: React.ReactNode }) {
@@ -17,7 +18,10 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
       <Suspense fallback={null}>
         <DesktopWishlistDrawer />
       </Suspense>
-      <main className="flex min-w-0 max-w-none flex-1 flex-col bg-page pb-mobile-commerce md:pb-0">
+      <Suspense fallback={null}>
+        <CatalogFilterDrawer />
+      </Suspense>
+      <main className="flex min-h-0 min-w-0 max-w-none flex-1 flex-col bg-page pb-mobile-commerce lg:pb-0">
         {children}
       </main>
       <Footer />

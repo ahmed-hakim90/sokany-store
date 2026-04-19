@@ -50,8 +50,8 @@ export function DesktopWishlistDrawer() {
           className={cn(
             "fixed z-[100] flex min-w-0 flex-col bg-page outline-none",
             /* الموبايل: عرض أقل من الشاشة بقليل عشان يبان الـ overlay والضغط عليه يقفل؛ مش full-bleed */
-            "max-md:left-0 max-md:top-0 max-md:bottom-0 max-md:h-full max-md:max-h-[100dvh] max-md:w-[min(22rem,calc(100vw-1.5rem))] max-md:rounded-none max-md:border-0 max-md:border-e max-md:border-border/80 max-md:pt-[env(safe-area-inset-top)] max-md:pb-[env(safe-area-inset-bottom)] max-md:shadow-xl",
-            "md:bottom-2 md:left-2 md:top-2 md:h-[calc(100%-1rem)] md:max-h-[calc(100dvh-1rem)] md:max-w-md md:rounded-2xl md:border md:border-border/80 md:pt-0 md:pb-0",
+            "max-lg:left-0 max-lg:top-0 max-lg:bottom-0 max-lg:h-full max-lg:max-h-[100dvh] max-lg:w-[min(22rem,calc(100vw-1.5rem))] max-lg:rounded-none max-lg:border-0 max-lg:border-e max-lg:border-border/80 max-lg:pt-[env(safe-area-inset-top)] max-lg:pb-[env(safe-area-inset-bottom)] max-lg:shadow-xl",
+            "lg:bottom-2 lg:left-2 lg:top-2 lg:h-[calc(100%-1rem)] lg:max-h-[calc(100dvh-1rem)] lg:max-w-md lg:rounded-2xl lg:border lg:border-border/80 lg:pt-0 lg:pb-0",
           )}
         >
           <div className="relative shrink-0 border-b border-border/80">

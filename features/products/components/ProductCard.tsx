@@ -1,5 +1,6 @@
 "use client";
 
+import { useReducedMotion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "next-view-transitions";
 import { AppImage } from "@/components/AppImage";
@@ -8,7 +9,14 @@ import { IconButton } from "@/components/ui/icon-button";
 import { PriceText } from "@/components/ui/price-text";
 import { cn } from "@/lib/utils";
 import { ROUTES } from "@/lib/constants";
+import { playCartFlyAnimation } from "@/lib/cart-fly-animation";
 import { usePrefetchProduct } from "@/features/products/hooks/usePrefetchProduct";
+import {
+  WishlistHeartBurstPortal,
+  WISHLIST_HEART_BURST_COUNT,
+  WISHLIST_HEART_BURST_STAGGER_SEC,
+  type HeartParticle,
+} from "@/features/products/components/wishlist-heart-burst";
 import type { Product } from "@/features/products/types";
 
 export type ProductCardVariant =
@@ -94,6 +102,8 @@ export function ProductCard({
   className,
 }: ProductCardProps) {
   const prefetchProduct = usePrefetchProduct();
+  const imageFlyRef = useRef<HTMLDivElement>(null);
+  const reduceMotion = useReducedMotion();
   const addFeedbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const layout = variantLayout[variant];
   const tag =
@@ -123,6 +133,11 @@ export function ProductCard({
   const handleAddToCart = () => {
     if (!onCartLineQuantityChange || !product.inStock) return;
     onCartLineQuantityChange(product, Math.min(99, lineQty + 1));
+    void playCartFlyAnimation({
+      fromElement: imageFlyRef.current,
+      imageSrc: product.thumbnail,
+      prefersReducedMotion: Boolean(reduceMotion),
+    });
     setJustAdded(true);
     if (addFeedbackTimerRef.current) {
       clearTimeout(addFeedbackTimerRef.current);
@@ -143,17 +158,19 @@ export function ProductCard({
     >
       <Link
         href={ROUTES.PRODUCT(product.id)}
-        className="relative block aspect-square low-hidden bg-image-well p-1 sm:p-1.5"
+        className="relative block aspect-[4/3] low-hidden bg-image-well p-1 sm:p-1.5"
         onMouseEnter={handlePrefetch}
         onFocus={handlePrefetch}
       >
-        <AppImage
-          src={product.thumbnail}
-          alt={product.name}
-          fill
-          sizes="(max-width: 768px) 50vw, 25vw"
-          className="object-cover object-center"
-        />
+        <div ref={imageFlyRef} className="absolute inset-0">
+          <AppImage
+            src={product.thumbnail}
+            alt={product.name}
+            fill
+            sizes="(max-width: 768px) 50vw, 25vw"
+            className="object-cover object-center"
+          />
+        </div>
         {saleDiscount !== null ? (
           <span className="absolute start-2 top-2 z-[2] rounded-[4] bg-[#101923] px-3 py-1.5 text-sm font-extrabold leading-none tracking-wide text-[#d8ff35] shadow-sm sm:px-3.5 sm:py-2 text-sm">
             %{saleDiscount} خصم
@@ -207,7 +224,7 @@ export function ProductCard({
                 disabled={!product.inStock}
                 onClick={handleAddToCart}
                 className={cn(
-                  "inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-xs/tight font-extrabold transition-colors",
+                  "inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-xs/tight  md:text-sm lg:text-sm font-extrabold transition-colors",
                   product.inStock
                     ? "bg-[#d8ff35] text-[#101923] hover:bg-[#cbf22f]"
                     : "cursor-not-allowed bg-muted text-muted-foreground",
@@ -225,7 +242,7 @@ export function ProductCard({
                 compareAt={compareAt}
                 compact={priceCompact}
                 emphasized={variant === "featured"}
-                className="min-w-0 max-w-none"
+                className="min-w-0 max-w-none "
               />
             </div>
           )}
@@ -251,7 +268,9 @@ function CartIcon() {
   );
 }
 
-/** Optional heart icon for wishlistSlot on ProductCard. */
+/**
+ * زر المفضلة فوق صورة الكارت + منطق إطلاق قلوب طائرة (انظر wishlist-heart-burst.tsx).
+ */
 export function ProductCardWishlistIconButton({
   pressed,
   onPress,
@@ -261,21 +280,65 @@ export function ProductCardWishlistIconButton({
   onPress?: () => void;
   labels?: { add: string; remove: string };
 }) {
+  // مرجع لعنصر الزر في DOM — نحتاجه لقراءة موضعه على الشاشة بعد الضغط.
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  // من Framer: true إذا المستخدم يفضّل تقليل الحركة — لا نطلق جزيئات حتى لا نزعجه.
+  const reduceMotion = useReducedMotion();
+  // عداد يزيد دائماً — يضمن أن كل جزيء له key فريد حتى لو ضغط المستخدم بسرعة عدة مرات.
+  const particleIdRef = useRef(0);
+  // كل الجزيئات «الحية» حالياً؛ تُزال واحدة واحدة عند انتهاء أنيميشنها.
+  const [particles, setParticles] = useState<HeartParticle[]>([]);
+
+  const removeParticle = (id: number) => {
+    setParticles((prev) => prev.filter((p) => p.id !== id));
+  };
+
+  const spawnBurst = () => {
+    if (reduceMotion) return;
+    const el = buttonRef.current;
+    if (!el) return;
+    // مستطيل الزر بالنسبة لنافذة المتصفح (إحداثيات شاشة، ليست نسبية للكارت).
+    const r = el.getBoundingClientRect();
+    // مركز الزر أفقياً ورأسياً — منه تبدأ كل القلوب.
+    const ox = r.left + r.width / 2;
+    const oy = r.top + r.height / 2;
+    const next: HeartParticle[] = Array.from(
+      { length: WISHLIST_HEART_BURST_COUNT },
+      (_, i) => ({
+        id: ++particleIdRef.current,
+        originX: ox,
+        originY: oy,
+        // عشوائي بين تقريباً -21 و +21 بكسل — يمنع صفاً عمودياً مملاً للقلوب.
+        driftX: (Math.random() - 0.5) * 42,
+        // القلب i يبدأ بعد i * stagger — تسلسل زمني «ورا بعض».
+        delay: i * WISHLIST_HEART_BURST_STAGGER_SEC,
+      }),
+    );
+    // نُبقي الجزيئات القديمة لو لم تنتهِ بعد (ضغطات متلاحقة) ونضيف الدفعة الجديدة.
+    setParticles((prev) => [...prev, ...next]);
+  };
+
   return (
-    <IconButton
-      type="button"
-      variant="subtle"
-      size="sm"
-      aria-label={pressed ? labels.remove : labels.add}
-      aria-pressed={pressed}
-      onClick={(e) => {
-        e.preventDefault();
-        onPress?.();
-      }}
-      className="rounded-xl border border-white/60 bg-white/95 shadow-sm backdrop-blur-sm hover:bg-white"
-    >
-      <HeartIcon filled={pressed} />
-    </IconButton>
+    <>
+      <IconButton
+        ref={buttonRef}
+        type="button"
+        variant="subtle"
+        size="sm"
+        aria-label={pressed ? labels.remove : labels.add}
+        aria-pressed={pressed}
+        onClick={(e) => {
+          e.preventDefault();
+          spawnBurst(); // أولاً التأثير البصري…
+          onPress?.(); // …ثم منطق المفضلة في الأب (تبديل الحالة).
+        }}
+        className="rounded-xl border border-white/60 bg-white/95 shadow-sm backdrop-blur-sm hover:bg-white"
+      >
+        <HeartIcon filled={pressed} />
+      </IconButton>
+      {/* يقرأ particles ويرسم البورتال؛ onRemove يصفّر الجزيء من الحالة بعد انتهاء الأنيميشن. */}
+      <WishlistHeartBurstPortal particles={particles} onRemove={removeParticle} />
+    </>
   );
 }
 

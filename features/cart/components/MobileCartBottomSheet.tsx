@@ -117,7 +117,7 @@ export function MobileCartBottomSheet({
         <Drawer.Overlay className="fixed inset-0 z-[90] bg-slate-900/50" />
         <Drawer.Content
           className={cn(
-            "fixed inset-x-0 bottom-0 z-[100] mx-auto flex max-h-[96dvh] min-w-0 max-w-none max-w-lg flex-col rounded-t-2xl border border-border/80 bg-page outline-none",
+            "fixed inset-x-0 bottom-0 z-[100] mx-auto flex max-h-[96dvh] min-w-0 max-w-3xl flex-col rounded-t-2xl border border-border/80 bg-page outline-none sm:max-w-4xl md:max-w-5xl",
             "pb-[env(safe-area-inset-bottom)]",
           )}
         >

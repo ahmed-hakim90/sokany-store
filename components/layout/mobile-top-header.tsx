@@ -31,13 +31,13 @@ export function MobileTopHeader({
   return (
     <div
       className={cn(
-        "border-b border-border/25 bg-page/80 backdrop-blur-[6px] supports-[backdrop-filter]:bg-page/65",
+        "border-b border-border/25 bg-accent-900 supports-[backdrop-filter]:bg-page/30",
         className,
       )}
     >
       <div
         className={cn(
-          "mx-auto grid max-w-lg grid-cols-[minmax(4.5rem,auto)_minmax(0,1fr)_minmax(2.5rem,auto)] items-center gap-x-2 px-5 pt-[max(0.75rem,env(safe-area-inset-top))] pb-1 sm:px-7",
+          "mx-auto grid max-w-lg grid-cols-[minmax(4.5rem,auto)_minmax(0,1fr)_minmax(2.5rem,auto)] items-center gap-x-2 px-2.5 pt-[max(0.75rem,env(safe-area-inset-top))] pb-1 sm:px-7",
         )}
       >
         <div className="flex justify-start [&_button]:-ms-1 [&_a]:-ms-1">
@@ -49,7 +49,9 @@ export function MobileTopHeader({
         </div>
       </div>
       {toolbarBelow ? (
-        <div className="min-w-0 px-5 pb-2 pt-0.5 sm:px-7">{toolbarBelow}</div>
+        <div className="min-w-0 px-2.5 pb-2 pt-0.5 sm:px-7 [&_button]:-me-1">
+          {toolbarBelow}
+        </div>
       ) : null}
       {secondary ? (
         <div className="text-center">

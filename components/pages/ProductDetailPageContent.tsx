@@ -74,6 +74,7 @@ export function ProductDetailPageContent({ id }: { id: number }) {
         <>
           {/* كتلة المنتج الرئيسية: PDP كامل العرض داخل الحاوية */}
           <ProductDetail
+            key={productQuery.data.id}
             product={productQuery.data}
             onAddToCart={addProductToCart}
             onBuyNow={buyNow}

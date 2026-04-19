@@ -48,12 +48,12 @@ export function MobileCommerceChrome() {
   return (
     <div
       ref={rootRef}
-      className="pointer-events-none fixed inset-x-0 bottom-0 z-50  md:hidden"
+      className="pointer-events-none fixed inset-x-0 bottom-0 z-50 lg:hidden"
       style={{
         paddingBottom: "",
       }}
     >
-      <div className="pointer-events-auto mx-auto max-w-lg overflow-hidden rounded-t-2xl bg-white shadow-[0_-8px_28px_-10px_rgba(15,23,42,0.18),0_-1px_0_rgba(15,23,42,0.08)] ring-1 ring-slate-900/[0.06]">
+      <div className="pointer-events-auto mx-auto w-full max-w-3xl overflow-hidden rounded-t-2xl bg-white px-2 shadow-[0_-8px_28px_-10px_rgba(15,23,42,0.18),0_-1px_0_rgba(15,23,42,0.08)] ring-1 ring-slate-900/[0.06] sm:px-4 md:max-w-5xl md:px-5">
         <MobileCartBottomSheet showCartSummary={showCartSummary} />
         <BottomNavInner />
       </div>
