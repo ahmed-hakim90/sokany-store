@@ -1,7 +1,7 @@
 "use client";
 
 import { createPortal } from "react-dom";
-import Link from "next/link";
+import { Link } from "next-view-transitions";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { FocusTrap } from "focus-trap-react";

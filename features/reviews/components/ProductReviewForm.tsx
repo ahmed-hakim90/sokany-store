@@ -6,6 +6,9 @@ import { ZodError } from "zod";
 import { Button } from "@/components/Button";
 import { FormField } from "@/components/ui/form-field";
 import { useCreateReview } from "@/features/reviews/hooks/useCreateReview";
+import { ReviewStarRating } from "@/features/reviews/components/review-star-rating";
+import { cn } from "@/lib/utils";
+import { inputSurfaceClass } from "@/lib/ui-input";
 
 const initial = {
   reviewer: "",
@@ -61,33 +64,24 @@ export function ProductReviewForm({ productId }: { productId: number }) {
           autoComplete="email"
         />
       </div>
-      <div className="mt-3">
-        <label className="text-start text-sm font-medium text-brand-900" htmlFor="review-rating">
-          التقييم (1–5)
-        </label>
-        <select
-          id="review-rating"
-          className="mt-1.5 flex h-10  max-w-[120px] rounded-md border border-border bg-white px-3 text-sm"
+      <div className="mt-3 flex w-full min-w-0 flex-col gap-1.5">
+        <span className="text-start text-sm font-medium text-brand-900">التقييم</span>
+        <ReviewStarRating
           value={fields.rating}
-          onChange={(e) =>
-            setFields((p) => ({ ...p, rating: Number.parseInt(e.target.value, 10) || 5 }))
-          }
-        >
-          {[5, 4, 3, 2, 1].map((n) => (
-            <option key={n} value={n}>
-              {n}
-            </option>
-          ))}
-        </select>
+          onChange={(rating) => setFields((p) => ({ ...p, rating }))}
+        />
       </div>
-      <div className="mt-3">
+      <div className="mt-3 flex w-full min-w-0 flex-col gap-1.5">
         <label className="text-start text-sm font-medium text-brand-900" htmlFor="review-body">
           التعليق
         </label>
         <textarea
           id="review-body"
           rows={4}
-          className="mt-1.5  rounded-md border border-border bg-white px-3 py-2 text-sm outline-none ring-brand-500 focus-visible:ring-2"
+          className={cn(
+            inputSurfaceClass(),
+            "min-h-[5.5rem] w-full min-w-0 resize-y",
+          )}
           value={fields.review}
           onChange={(e) => setFields((p) => ({ ...p, review: e.target.value }))}
           placeholder="صف تجربتك مع المنتج…"

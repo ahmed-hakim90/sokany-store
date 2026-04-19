@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Cairo, Montserrat } from "next/font/google";
+import { ViewTransitions } from "next-view-transitions";
 import { SiteShell } from "@/components/layout/site-shell";
 import { OrganizationJsonLd } from "@/components/seo/OrganizationJsonLd";
 import { QueryProvider } from "@/providers/QueryProvider";
@@ -37,10 +38,12 @@ export default function RootLayout({
     >
       <body className="flex min-h-full min-w-0 flex-col bg-page text-foreground">
         <OrganizationJsonLd />
-        <QueryProvider>
-          <ToastProvider />
-          <SiteShell>{children}</SiteShell>
-        </QueryProvider>
+        <ViewTransitions>
+          <QueryProvider>
+            <ToastProvider />
+            <SiteShell>{children}</SiteShell>
+          </QueryProvider>
+        </ViewTransitions>
       </body>
     </html>
   );

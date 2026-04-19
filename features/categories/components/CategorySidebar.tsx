@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import Link from "next/link";
+import { Link } from "next-view-transitions";
 import { ROUTES } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import type { Category } from "@/features/categories/types";
@@ -40,7 +40,22 @@ export type CategorySidebarProps = {
   allProductsActive?: boolean;
   /** Smaller type and padding for narrow mobile columns (e.g. 1/3 catalog rail). */
   compact?: boolean;
+  /**
+   * `default`: عمودي (sidebar).
+   * `rail`: شريط أفقي بعرض الشاشة مع تمرير أفقي (موبايل/تابلت في صفحات التصنيفات).
+   */
+  variant?: "default" | "rail";
 };
+
+function chipBase(allActiveOrActive: boolean) {
+  return cn(
+    "group shrink-0 snap-start  border px-3 py-2 text-start transition-colors",
+    "max-w-[min(14rem,calc(100vw-3rem))] sm:max-w-[16rem]",
+    allActiveOrActive
+      ? "border-brand-950 bg-brand-950 text-accent shadow-sm"
+      : "border-border/80 bg-white/95 hover:bg-black/[0.03]",
+  );
+}
 
 export function CategorySidebar({
   categories,
@@ -51,6 +66,7 @@ export function CategorySidebar({
   activeCategoryId,
   allProductsActive = false,
   compact = false,
+  variant = "default",
 }: CategorySidebarProps) {
   const isProductsMode = linkMode === "productsQuery";
   const prefetchProducts = usePrefetchProducts();
@@ -59,9 +75,123 @@ export function CategorySidebar({
     void prefetchProducts({ page: 1, per_page: 12 });
   };
 
-  const allActive = isProductsMode
-    ? allProductsActive
-    : !activeSlug;
+  const allActive = isProductsMode ? allProductsActive : !activeSlug;
+
+  if (variant === "rail") {
+    return (
+      <nav
+        className={cn(
+          "w-full min-w-0  border border-border/70 bg-white/90 shadow-sm backdrop-blur-sm",
+          className,
+        )}
+        aria-label="تصفية التصنيفات"
+      >
+        <div
+          className={cn(
+            "overflow-x-auto overscroll-x-contain [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+            "snap-x snap-mandatory pb-1",
+          )}
+        >
+          <ul className="flex flex-nowrap gap-2 px-2 py-2.5">
+            <li className="shrink-0 snap-start">
+              {isProductsMode ? (
+                <Link
+                  href={ROUTES.PRODUCTS}
+                  className={cn(chipBase(allActive), "flex flex-col gap-0.5")}
+                  onMouseEnter={prefetchAllProducts}
+                  onFocus={prefetchAllProducts}
+                >
+                  <span
+                    className={cn(
+                      "line-clamp-2 text-sm leading-snug",
+                      allActive ? "font-bold" : "font-medium text-muted-foreground group-hover:text-foreground",
+                    )}
+                  >
+                    الكل
+                  </span>
+                </Link>
+              ) : (
+                <Link
+                  href={ROUTES.CATEGORIES}
+                  scroll={false}
+                  className={cn(chipBase(allActive), "flex flex-col gap-0.5")}
+                >
+                  <span
+                    className={cn(
+                      "line-clamp-2 text-sm leading-snug",
+                      allActive ? "font-bold" : "font-medium text-muted-foreground group-hover:text-foreground",
+                    )}
+                  >
+                    كل التصنيفات
+                  </span>
+                </Link>
+              )}
+            </li>
+            {categories.map((category) => {
+              const active = isProductsMode
+                ? activeCategoryId === category.id
+                : activeSlug === category.slug;
+              const href = isProductsMode
+                ? `${ROUTES.PRODUCTS}?category=${category.id}`
+                : ROUTES.CATEGORY(category.slug);
+
+              return (
+                <li key={category.id} className="shrink-0 snap-start">
+                  <Link
+                    href={href}
+                    scroll={false}
+                    className={cn(chipBase(active), "flex flex-col gap-0.5")}
+                    onMouseEnter={
+                      isProductsMode
+                        ? () =>
+                            void prefetchProducts({
+                              category: category.id,
+                              page: 1,
+                              per_page: 12,
+                            })
+                        : undefined
+                    }
+                    onFocus={
+                      isProductsMode
+                        ? () =>
+                            void prefetchProducts({
+                              category: category.id,
+                              page: 1,
+                              per_page: 12,
+                            })
+                        : undefined
+                    }
+                  >
+                    <span
+                      className={cn(
+                        "line-clamp-2 text-sm leading-snug",
+                        active
+                          ? "font-bold text-current"
+                          : "font-medium text-muted-foreground group-hover:text-foreground",
+                      )}
+                    >
+                      {category.name}
+                    </span>
+                    <span
+                      className={cn(
+                        "text-[10px] leading-tight",
+                        active ? "text-accent/85" : "text-muted-foreground/85",
+                      )}
+                    >
+                      {/* {category.count} منتج */}
+                    </span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+        {footerSlot ? (
+          <div className="border-t border-border/50 px-2 py-2 text-sm">{footerSlot}</div>
+        ) : null}
+      </nav>
+    );
+  }
 
   return (
     <nav
@@ -72,27 +202,6 @@ export function CategorySidebar({
       )}
       aria-label="تصفية التصنيفات"
     >
-      <header
-        className={cn(
-          "border-b border-border/50",
-          compact ? "mb-2 pb-1.5" : "mb-3 pb-2",
-        )}
-      >
-        <p
-          className={cn(
-            "font-bold text-foreground",
-            compact ? "text-[11px] leading-tight" : "text-sm",
-          )}
-        >
-        </p>
-        <p
-          className={cn(
-            "mt-0.5 text-muted-foreground",
-            compact ? "text-[9px] leading-snug" : "text-[11px]",
-          )}
-        >
-        </p>
-      </header>
       <ul className="divide-y divide-border/40">
         <li className="py-0.5 first:pt-0">
           {isProductsMode ? (

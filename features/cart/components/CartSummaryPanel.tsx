@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import Link from "next/link";
+import { Link } from "next-view-transitions";
 import { AppImage } from "@/components/AppImage";
 import { Card } from "@/components/ui/card";
 import { PriceText } from "@/components/ui/price-text";

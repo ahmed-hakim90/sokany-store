@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, type ReactNode } from "react";
-import Link from "next/link";
+import { Link } from "next-view-transitions";
 import { Card } from "@/components/ui/card";
 import { CategoryIcon } from "@/features/categories/category-icon-registry";
 import { usePrefetchProducts } from "@/features/products/hooks/usePrefetchProducts";

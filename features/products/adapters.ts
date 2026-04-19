@@ -1,3 +1,4 @@
+import { normalizeProductDescriptionSource } from "@/lib/html";
 import { parsePrice, stripHtml } from "@/lib/utils";
 import { toAbsoluteSiteUrl } from "@/lib/site";
 import type { Product, WCProduct } from "@/features/products/types";
@@ -30,8 +31,8 @@ export function mapProduct(raw: WCProduct): Product {
     id: raw.id,
     name: raw.name,
     slug: raw.slug,
-    description: stripHtml(raw.description),
-    shortDescription: stripHtml(raw.short_description),
+    description: normalizeProductDescriptionSource(raw.description),
+    shortDescription: normalizeProductDescriptionSource(raw.short_description),
     sku: raw.sku,
     price: raw.on_sale && salePrice !== null ? salePrice : price,
     regularPrice,

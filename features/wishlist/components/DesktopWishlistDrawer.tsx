@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
+import { useTransitionRouter } from "next-view-transitions";
 import { Drawer } from "vaul";
 import { Button } from "@/components/Button";
 import { IconButton } from "@/components/ui/icon-button";
@@ -13,7 +14,7 @@ import { useWishlistDrawerOpenStore } from "@/features/wishlist/store/useWishlis
 
 export function DesktopWishlistDrawer() {
   const pathname = usePathname();
-  const router = useRouter();
+  const router = useTransitionRouter();
   const open = useWishlistDrawerOpenStore((s) => s.open);
   const setOpen = useWishlistDrawerOpenStore((s) => s.setOpen);
   const closeDrawer = useWishlistDrawerOpenStore((s) => s.closeDrawer);

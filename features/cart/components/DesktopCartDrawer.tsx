@@ -1,8 +1,9 @@
 "use client";
 
 import { useCallback, useEffect } from "react";
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { Link } from "next-view-transitions";
+import { usePathname } from "next/navigation";
+import { useTransitionRouter } from "next-view-transitions";
 import { Drawer } from "vaul";
 import { Button } from "@/components/Button";
 import { useCart } from "@/hooks/useCart";
@@ -17,7 +18,7 @@ import { useCartDrawerOpenStore } from "@/features/cart/store/useCartDrawerOpenS
 
 export function DesktopCartDrawer() {
   const pathname = usePathname();
-  const router = useRouter();
+  const router = useTransitionRouter();
   const mdUp = useMinMd();
   const open = useCartDrawerOpenStore((s) => s.open);
   const setOpen = useCartDrawerOpenStore((s) => s.setOpen);

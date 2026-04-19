@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { Link } from "next-view-transitions";
+import { useTransitionRouter } from "next-view-transitions";
 import { useCallback } from "react";
 import { Button } from "@/components/Button";
 import { Container } from "@/components/Container";
@@ -17,11 +17,12 @@ import { ProductSkeleton } from "@/features/products/components/ProductSkeleton"
 import { ProductReviewForm } from "@/features/reviews/components/ProductReviewForm";
 
 /*
- * صفحة تفاصيل المنتج (/products/[id]): عمود واحد داخل Container؛ التخطيط التفصيلي داخل ProductDetail
- * (معرض + عمود معلومات/شراء يتكيف مع الشاشة). أسفلها أقسام عمودية: التقييمات ثم منتجات ذات صلة بشبكة.
+ * صفحة تفاصيل المنتج (/products/[id]): عمود واحد داخل Container (حواف أفقية فقط).
+ * كتلة المنتج (معرض + معلومات/شراء) بعرض كامل داخل الحاوية.
+ * من sm فما فوق: قسما التقييمات و«منتجات ذات صلة» داخل عمود متمركز max-w-7xl مثل الفوتر؛ lg يبقى نفس الحدود الأفقية من Container.
  */
 export function ProductDetailPageContent({ id }: { id: number }) {
-  const router = useRouter();
+  const router = useTransitionRouter();
   const {
     productQuery,
     reviewsQuery,
@@ -50,7 +51,7 @@ export function ProductDetailPageContent({ id }: { id: number }) {
   );
 
   return (
-    <Container className="py-4 sm:py-10">
+    <Container className="w-full min-w-0 py-4 sm:py-10">
       {/* حالات التحميل/الخطأ/غياب المنتج: محتوى واحد بعرض الحاوية */}
       {productQuery.isPending ? (
         <ProductSkeleton />
@@ -80,108 +81,112 @@ export function ProductDetailPageContent({ id }: { id: number }) {
             canInteractCart={hasHydrated}
           />
 
-          {/* أسفل المنتج: حد فاصل ثم قسم التقييمات (نموذج + قائمة) بعرض كامل */}
+          {/* أسفل المنتج: التقييمات داخل عمود max-w-7xl متمركز */}
           <section className="mt-16 min-w-0 border-t border-border pt-12">
-            <h2 className="font-display text-lg font-bold tracking-tight sm:text-xl">
-              التقييمات
-            </h2>
-            <ProductReviewForm productId={productQuery.data.id} />
-            <div className="mt-4">
-              {reviewsQuery.isPending ? (
-                <ul className="space-y-4" aria-label="جاري تحميل التقييمات">
-                  {Array.from({ length: 3 }).map((_, index) => (
-                    <li
-                      key={index}
-                      className="rounded-xl border border-black/[0.06] bg-white p-4 shadow-[0_2px_16px_-4px_rgba(15,23,42,0.07)]"
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="h-4 w-28 animate-shimmer rounded bg-border/70" />
-                        <div className="h-3 w-14 animate-shimmer rounded bg-border/70" />
-                      </div>
-                      <div className="mt-3 space-y-2">
-                        <div className="h-3 animate-shimmer rounded bg-surface-muted" />
-                        <div className="h-3 w-11/12 animate-shimmer rounded bg-surface-muted" />
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              ) : reviewsQuery.isError ? (
-                <ErrorState
-                  message={reviewsQuery.error.message}
-                  onRetry={() => void reviewsQuery.refetch()}
-                />
-              ) : !reviewsQuery.data || reviewsQuery.data.length === 0 ? (
-                <EmptyState
-                  title="لا توجد تقييمات بعد"
-                  description="كن أول من يشارك تجربته."
-                />
-              ) : (
-                <ul className="space-y-4">
-                  {reviewsQuery.data.map((review) => (
-                    <li
-                      key={review.id}
-                      className="rounded-xl border border-black/[0.06] bg-white p-4 shadow-[0_2px_16px_-4px_rgba(15,23,42,0.07)]"
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <p className="text-sm font-semibold">{review.reviewer}</p>
-                        <span className="text-xs text-zinc-500">
-                          {review.rating.toFixed(1)} / 5
-                        </span>
-                      </div>
-                      <p className="mt-2 break-words text-sm text-zinc-700">{review.review}</p>
-                    </li>
-                  ))}
-                </ul>
-              )}
+            <div className="mx-auto w-full min-w-0 max-w-7xl">
+              <h2 className="font-display text-lg font-bold tracking-tight sm:text-xl">
+                التقييمات
+              </h2>
+              <ProductReviewForm productId={productQuery.data.id} />
+              <div className="mt-4">
+                {reviewsQuery.isPending ? (
+                  <ul className="space-y-4" aria-label="جاري تحميل التقييمات">
+                    {Array.from({ length: 3 }).map((_, index) => (
+                      <li
+                        key={index}
+                        className="rounded-xl border border-black/[0.06] bg-white p-4 shadow-[0_2px_16px_-4px_rgba(15,23,42,0.07)]"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="h-4 w-28 animate-shimmer rounded bg-border/70" />
+                          <div className="h-3 w-14 animate-shimmer rounded bg-border/70" />
+                        </div>
+                        <div className="mt-3 space-y-2">
+                          <div className="h-3 animate-shimmer rounded bg-surface-muted" />
+                          <div className="h-3 w-11/12 animate-shimmer rounded bg-surface-muted" />
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                ) : reviewsQuery.isError ? (
+                  <ErrorState
+                    message={reviewsQuery.error.message}
+                    onRetry={() => void reviewsQuery.refetch()}
+                  />
+                ) : !reviewsQuery.data || reviewsQuery.data.length === 0 ? (
+                  <EmptyState
+                    title="لا توجد تقييمات بعد"
+                    description="كن أول من يشارك تجربته."
+                  />
+                ) : (
+                  <ul className="space-y-4">
+                    {reviewsQuery.data.map((review) => (
+                      <li
+                        key={review.id}
+                        className="rounded-xl border border-black/[0.06] bg-white p-4 shadow-[0_2px_16px_-4px_rgba(15,23,42,0.07)]"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-sm font-semibold">{review.reviewer}</p>
+                          <span className="text-xs text-zinc-500">
+                            {review.rating.toFixed(1)} / 5
+                          </span>
+                        </div>
+                        <p className="mt-2 break-words text-sm text-zinc-700">{review.review}</p>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
             </div>
           </section>
 
-          {/* أسفل التقييمات: عنوان الصف + رابط الكل؛ الشبكة تتمدد بعرض الحاوية */}
+          {/* منتجات ذات صلة: نفس عمود max-w-7xl؛ الشبكة داخل العرض المحدود */}
           <section className="mt-16 min-w-0 border-t border-border pt-12">
-            <div className="flex min-w-0 flex-wrap items-center justify-between gap-4">
-              <h2 className="font-display text-lg font-bold tracking-tight sm:text-xl">
-                منتجات ذات صلة
-              </h2>
-              <Link
-                className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-                href={ROUTES.PRODUCTS}
-              >
-                عرض الكل
-              </Link>
-            </div>
-            <div className="mt-6">
-              {relatedQuery.isError ? (
-                <ErrorState
-                  message={relatedQuery.error.message}
-                  onRetry={() => void relatedQuery.refetch()}
-                />
-              ) : (
-                <ProductGrid
-                  status={
-                    relatedQuery.isPending
-                      ? "loading"
-                      : relatedProducts.length === 0
-                        ? "empty"
-                        : "ready"
-                  }
-                  loading={
-                    <>
-                      {Array.from({ length: 4 }).map((_, index) => (
-                        <ProductSkeleton key={index} />
-                      ))}
-                    </>
-                  }
-                  empty={
-                    <EmptyState
-                      title="لا توجد منتجات ذات صلة"
-                      description="تصفح الكتالوج لمزيد من الأفكار."
-                    />
-                  }
-                  products={relatedProducts}
-                  getCartLineQuantity={getCartLineQuantity}
-                  onCartLineQuantityChange={setProductLineQuantity}
-                />
-              )}
+            <div className="mx-auto w-full min-w-0 max-w-7xl">
+              <div className="flex min-w-0 flex-wrap items-center justify-between gap-4">
+                <h2 className="font-display text-lg font-bold tracking-tight sm:text-xl">
+                  منتجات ذات صلة
+                </h2>
+                <Link
+                  className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                  href={ROUTES.PRODUCTS}
+                >
+                  عرض الكل
+                </Link>
+              </div>
+              <div className="mt-6">
+                {relatedQuery.isError ? (
+                  <ErrorState
+                    message={relatedQuery.error.message}
+                    onRetry={() => void relatedQuery.refetch()}
+                  />
+                ) : (
+                  <ProductGrid
+                    status={
+                      relatedQuery.isPending
+                        ? "loading"
+                        : relatedProducts.length === 0
+                          ? "empty"
+                          : "ready"
+                    }
+                    loading={
+                      <>
+                        {Array.from({ length: 4 }).map((_, index) => (
+                          <ProductSkeleton key={index} />
+                        ))}
+                      </>
+                    }
+                    empty={
+                      <EmptyState
+                        title="لا توجد منتجات ذات صلة"
+                        description="تصفح الكتالوج لمزيد من الأفكار."
+                      />
+                    }
+                    products={relatedProducts}
+                    getCartLineQuantity={getCartLineQuantity}
+                    onCartLineQuantityChange={setProductLineQuantity}
+                  />
+                )}
+              </div>
             </div>
           </section>
         </>

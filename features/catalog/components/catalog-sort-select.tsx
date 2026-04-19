@@ -1,6 +1,7 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { useTransitionRouter } from "next-view-transitions";
 import { startTransition, useCallback } from "react";
 import { ROUTES } from "@/lib/constants";
 
@@ -13,7 +14,7 @@ const OPTIONS = [
 ] as const;
 
 export function CatalogSortSelect() {
-  const router = useRouter();
+  const router = useTransitionRouter();
   const searchParams = useSearchParams();
 
   const currentOrderby = searchParams.get("orderby") ?? "popularity";

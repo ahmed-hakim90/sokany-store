@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "next-view-transitions";
 import { useEffect, useRef } from "react";
 import { AppImage } from "@/components/AppImage";
 import { cn } from "@/lib/utils";

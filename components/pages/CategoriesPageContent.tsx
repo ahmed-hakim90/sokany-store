@@ -1,16 +1,12 @@
 "use client";
 
 import { useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { useTransitionRouter } from "next-view-transitions";
 import { Button } from "@/components/Button";
-import { Container } from "@/components/Container";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorState } from "@/components/ErrorState";
 import { useCart } from "@/hooks/useCart";
 import { DEFAULT_PAGE, ROUTES } from "@/lib/constants";
-import { useCategories } from "@/features/categories/hooks/useCategories";
-import { CategoryScrollerSkeleton } from "@/features/categories/components/CategoryScrollerSkeleton";
-import { CategoryBrowseSplitLayout } from "@/features/categories/components/category-browse-split-layout";
 import { CatalogPromoTile } from "@/features/catalog/components/catalog-promo-tile";
 import { useProducts } from "@/features/products/hooks/useProducts";
 import { ProductGrid } from "@/features/products/components/ProductGrid";
@@ -41,7 +37,7 @@ function AvailableProductsSection({
   productsQuery: ReturnType<typeof useProducts>;
   getCartLineQuantity: (productId: number) => number;
   onCartLineQuantityChange: (product: Product, next: number) => void;
-  router: ReturnType<typeof useRouter>;
+  router: ReturnType<typeof useTransitionRouter>;
 }) {
   return (
     <section
@@ -55,7 +51,6 @@ function AvailableProductsSection({
         >
           منتجات متاحة
         </h2>
-        
       </div>
 
       {productsQuery.isError ? (
@@ -97,12 +92,11 @@ function AvailableProductsSection({
 }
 
 /*
- * صفحة التصنيفات (/categories): Container بعرض المتجر؛ المحتوى إما شريط تقسيم (موبايل + rail / ديسكتوب + sidebar)
- * أو حالات تحميل/خطأ/فراغ بمقدمة ثابتة.
+ * محتوى فهرس التصنيفات (/categories): يُلفّه `app/categories/layout.tsx` بشريط تصنيفات + sidebar.
+ * المقدمة تظهر من lg؛ تحتها قسم المنتجات الشائعة.
  */
 export function CategoriesPageContent() {
-  const router = useRouter();
-  const query = useCategories();
+  const router = useTransitionRouter();
   const productParams = useMemo(
     () => ({
       page: DEFAULT_PAGE,
@@ -115,66 +109,19 @@ export function CategoriesPageContent() {
   const productsQuery = useProducts(productParams);
   const { getCartLineQuantity, setProductLineQuantity } = useCart();
 
-  const categoriesData = query.data;
-  const hasCategories = Boolean(categoriesData?.length);
-
   return (
-    <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-      <Container className="flex min-h-0 flex-1 flex-col px-4 py-4 sm:px-6 lg:px-8 lg:py-10">
-        {query.isPending ? (
-          <div className="mt-6">
-            <div className="hidden lg:block">
-              <CategoriesIntro />
-            </div>
-            <div className="mt-6 lg:mt-8">
-              <CategoryScrollerSkeleton />
-            </div>
-          </div>
-        ) : query.isError ? (
-          <div className="mt-6">
-            <div className="hidden lg:block">
-              <CategoriesIntro />
-            </div>
-            <div className="mt-6 lg:mt-8">
-              <ErrorState
-                message={query.error.message}
-                onRetry={() => void query.refetch()}
-              />
-            </div>
-          </div>
-        ) : !hasCategories || !categoriesData ? (
-          <div className="mt-6">
-            <div className="hidden lg:block">
-              <CategoriesIntro />
-            </div>
-            <div className="mt-6 lg:mt-8">
-              <EmptyState
-                title="لا توجد تصنيفات"
-                description="حاول لاحقاً أو تواصل مع الدعم."
-              />
-            </div>
-          </div>
-        ) : (
-          <CategoryBrowseSplitLayout
-            categories={categoriesData}
-            activeSlug=""
-            showNavChrome
-            renderMainContent={(viewport) => (
-              <>
-                {viewport === "desktop" ? <CategoriesIntro /> : null}
-                <div className={viewport === "desktop" ? "mt-8" : undefined}>
-                  <AvailableProductsSection
-                    productsQuery={productsQuery}
-                    getCartLineQuantity={getCartLineQuantity}
-                    onCartLineQuantityChange={setProductLineQuantity}
-                    router={router}
-                  />
-                </div>
-              </>
-            )}
-          />
-        )}
-      </Container>
-    </div>
+    <>
+      <div className="hidden lg:block">
+        <CategoriesIntro />
+      </div>
+      <div className="mt-0 lg:mt-8">
+        <AvailableProductsSection
+          productsQuery={productsQuery}
+          getCartLineQuantity={getCartLineQuantity}
+          onCartLineQuantityChange={setProductLineQuantity}
+          router={router}
+        />
+      </div>
+    </>
   );
 }

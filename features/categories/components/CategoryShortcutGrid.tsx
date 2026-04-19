@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "next-view-transitions";
 import { Card } from "@/components/ui/card";
 import { CategoryIcon } from "@/features/categories/category-icon-registry";
 import { ROUTES } from "@/lib/constants";

@@ -1,6 +1,17 @@
 @import "tailwindcss";
 @import "../styles/vaul.css";
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.28s;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
 
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 0.01ms;
+  }
+}
 /* Avoid accidental horizontal scroll from full-bleed children / long strings */
 html {
   overflow-x: clip;

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "next-view-transitions";
 import { AppImage } from "@/components/AppImage";
 import { ROUTES } from "@/lib/constants";
 import type { Category } from "@/features/categories/types";

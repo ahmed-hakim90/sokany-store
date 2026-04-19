@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useTransitionRouter } from "next-view-transitions";
 import { Button } from "@/components/Button";
 import { Container } from "@/components/Container";
 import { EmptyState } from "@/components/EmptyState";
@@ -74,7 +74,7 @@ export function HomePageContent({
   heroSlides = [],
   sectionBannerImages = [],
 }: HomePageContentProps) {
-  const router = useRouter();
+  const router = useTransitionRouter();
   const featured = useProducts({ featured: true, per_page: 8 });
   const categories = useCategories({ per_page: 100 });
   const { getCartLineQuantity, setProductLineQuantity } = useCart();

@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "next-view-transitions";
 import { ErrorState } from "@/components/ErrorState";
 import { ROUTES } from "@/lib/constants";
 import type { Category } from "@/features/categories/types";

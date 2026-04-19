@@ -1,12 +1,12 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "next-view-transitions";
 import {
   usePathname,
-  useRouter,
   useSearchParams,
   type ReadonlyURLSearchParams,
 } from "next/navigation";
+import { useTransitionRouter } from "next-view-transitions";
 import {
   startTransition,
   useCallback,
@@ -19,17 +19,17 @@ import { AppImage } from "@/components/AppImage";
 import { SearchField } from "@/components/ui/search-field";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useSearchSuggestions } from "@/hooks/useSearchSuggestions";
-import { formatPrice } from "@/lib/utils";
 import { GLOBAL_PRODUCT_SEARCH_INPUT_ID, ROUTES } from "@/lib/constants";
-import { cn } from "@/lib/utils";
+import {SEARCH_QUICK_KEYWORDS} from "@/lib/search-quick-keywords";
+import { cn, formatPrice } from "@/lib/utils";
 
-function navigateToSearch(router: ReturnType<typeof useRouter>, q: string) {
+function navigateToSearch(router: ReturnType<typeof useTransitionRouter>, q: string) {
   const trimmed = q.trim();
   router.push(`${ROUTES.SEARCH}?q=${encodeURIComponent(trimmed)}`);
 }
 
 function replaceProductsSearch(
-  router: ReturnType<typeof useRouter>,
+  router: ReturnType<typeof useTransitionRouter>,
   searchParams: ReadonlyURLSearchParams,
   raw: string,
 ) {
@@ -54,12 +54,13 @@ function replaceProductsSearch(
 }
 
 export function NavbarSearch() {
-  const router = useRouter();
+  const router = useTransitionRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const rootRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const listboxId = useId();
+  const keywordPanelId = useId();
   const reactId = useId();
   const inputId = `${GLOBAL_PRODUCT_SEARCH_INPUT_ID}-${reactId.replace(/:/g, "")}`;
 
@@ -88,10 +89,12 @@ export function NavbarSearch() {
   const trimmed = value.trim();
   const canSuggest = trimmed.length >= 3;
   const suggestions = useSearchSuggestions(value);
-
-  const showPanel = open && canSuggest;
+  const showKeywordPanel = open && !canSuggest;
+  const showProductPanel = open && canSuggest;
   const loading =
     canSuggest && suggestions.isFetching && !suggestions.data;
+const dropdownOpen = showKeywordPanel || showProductPanel;
+const ariaControlsId = showProductPanel ? listboxId : keywordPanelId;
 
   useEffect(() => {
     if (!open) return;
@@ -115,15 +118,27 @@ export function NavbarSearch() {
     setOpen(false);
     inputRef.current?.blur();
   }, [isProductsPage, router, searchParams, value]);
+const applyQuickKeyword = useCallback((keyword: string) => {
+  const k = keyword.trim();
+  if (!k) return;
+  setValue(k);
+  if (isProductsPage) {
+    replaceProductsSearch(router , searchParams, k);
 
+}else {
+  navigateToSearch(router, k );
+} setOpen(false);
+inputRef.current?.blur();},
+[isProductsPage,router, searchParams]
+);
   return (
     <div ref={rootRef} className="relative min-w-0 max-w-none">
       <SearchField
         ref={inputRef}
         id={inputId}
         role="combobox"
-        aria-expanded={showPanel}
-        aria-controls={listboxId}
+        aria-expanded={dropdownOpen}
+        aria-controls={ariaControlsId}
         aria-autocomplete="list"
         aria-haspopup="listbox"
         aria-label="بحث في المنتجات"
@@ -135,7 +150,7 @@ export function NavbarSearch() {
           if (e.target.value.trim().length >= 3) setOpen(true);
         }}
         onFocus={() => {
-          if (trimmed.length >= 3) setOpen(true);
+          if (trimmed.length >= 0) setOpen(true);
         }}
         onKeyDown={(e) => {
           if (e.key === "Escape") {
@@ -165,30 +180,62 @@ export function NavbarSearch() {
         }
       />
 
-      {showPanel ? (
+      {showKeywordPanel ? (
         <div
-          id={listboxId}
-          role="listbox"
+          id={keywordPanelId}
+          role="region"
+          aria-label="بحث سريع"
           className="absolute start-0 end-0 top-[calc(100%+0.35rem)] z-50 overflow-hidden rounded-lg border border-border bg-white shadow-lg"
           onMouseDown={(e) => e.preventDefault()}
         >
-          {loading ? (
-            <div className="space-y-2 p-3" aria-live="polite" aria-busy="true">
-              <p className="sr-only">جاري التحميل</p>
-              {Array.from({ length: 3 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="flex animate-pulse gap-3 rounded-md bg-surface-muted/60 p-2"
-                >
-                  <div className="h-12 w-12 shrink-0 rounded bg-border" />
-                  <div className="flex min-w-0 flex-1 flex-col gap-2 py-0.5">
-                    <div className="h-3.5 w-[82%] rounded bg-border" />
-                    <div className="h-3 w-1/3 rounded bg-border" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : suggestions.isError ? (
+       <p className="px-3 pt-3 text-xs font-medium text-muted-foreground">
+  الكلمات المفتاحية المقترحة
+</p>
+<ul
+  className="max-h-[min(20rem,50dvh)] divide-y divide-border/60 overflow-y-auto py-1"
+  role="list"
+>
+  {SEARCH_QUICK_KEYWORDS.map((kw, index) => (
+    <li key={`${kw}-${index}`}>
+      <button
+        type="button"
+        className={cn(
+          "w-full px-3 py-2.5 text-start text-sm text-brand-950",
+          "transition-colors hover:bg-surface-muted/80 focus-visible:bg-surface-muted/80 focus-visible:outline-none",
+        )}
+        onClick={() => applyQuickKeyword(kw)}
+      >
+        {kw}
+      </button>
+    </li>
+  ))}
+</ul>
+          </div>
+          ): null}
+          {showProductPanel ? (
+            <div
+              id={listboxId}
+              role="listbox"
+              className="absolute start-0 end-0 top-[calc(100%+0.35rem)] z-50 overflow-hidden rounded-lg border border-border bg-white shadow-lg"
+              onMouseDown={(e) => e.preventDefault()}
+            >
+              {loading ? (
+                <div className="space-y-2 p-3" aria-live="polite" aria-busy="true">
+                  <p className="sr-only">جاري التحميل</p>
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <div
+                      key={i}
+                      className="flex animate-pulse gap-3 rounded-md bg-surface-muted/60 p-2"
+                    >
+                      <div className="h-12 w-12 shrink-0 rounded bg-border" />
+                      <div className="flex min-w-0 flex-1 flex-col gap-2 py-0.5">
+                        <div className="h-3.5 w-[82%] rounded bg-border" />
+                        <div className="h-3 w-1/3 rounded bg-border" />
+                      </div>
+                    </div>
+                  ))}
+                </div> 
+           ) : suggestions.isError ? (
             <div className="p-4 text-center text-sm text-muted-foreground">
               تعذر تحميل الاقتراحات. اضغط Enter للبحث الكامل.
             </div>

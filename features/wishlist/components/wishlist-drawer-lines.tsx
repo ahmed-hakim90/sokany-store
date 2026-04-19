@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "next-view-transitions";
 import { AppImage } from "@/components/AppImage";
 import { PriceText } from "@/components/ui/price-text";
 import { IconButton } from "@/components/ui/icon-button";

@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useState, startTransition } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
+import { useTransitionRouter } from "next-view-transitions";
 import { Drawer } from "vaul";
 import { Button } from "@/components/Button";
 import { PriceText } from "@/components/ui/price-text";
@@ -21,7 +22,7 @@ export function MobileCartBottomSheet({
   showCartSummary,
 }: MobileCartBottomSheetProps) {
   const pathname = usePathname();
-  const router = useRouter();
+  const router = useTransitionRouter();
   const {
     hasHydrated,
     items,

@@ -1,16 +1,14 @@
 "use client";
 
 import { useMemo } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { Link } from "next-view-transitions";
+import { useTransitionRouter } from "next-view-transitions";
 import { Button } from "@/components/Button";
-import { Container } from "@/components/Container";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorState } from "@/components/ErrorState";
 import { useCart } from "@/hooks/useCart";
 import { ROUTES } from "@/lib/constants";
 import { useCategories } from "@/features/categories/hooks/useCategories";
-import { CategoryBrowseSplitLayout } from "@/features/categories/components/category-browse-split-layout";
 import { useProducts } from "@/features/products/hooks/useProducts";
 import { CatalogPromoTile } from "@/features/catalog/components/catalog-promo-tile";
 import { ProductGrid } from "@/features/products/components/ProductGrid";
@@ -53,7 +51,7 @@ function CategorySlugProductsSection({
   productsQuery: ReturnType<typeof useProducts>;
   getCartLineQuantity: (productId: number) => number;
   onCartLineQuantityChange: (product: Product, next: number) => void;
-  router: ReturnType<typeof useRouter>;
+  router: ReturnType<typeof useTransitionRouter>;
 }) {
   const showRefreshSkeleton =
     productsQuery.isFetching &&
@@ -100,12 +98,11 @@ function CategorySlugProductsSection({
 }
 
 /*
- * صفحة تصنيف بالمسار (/categories/[slug]): نفس منطق التقسيم مثل صفحة التصنيفات الجذرية —
- * تحت lg عمود تمرير + CategorySidebar بنفس نمط سطح المكتب؛ من lg شبكة مع CategorySidebar عند توفر التنقل.
- * أعلى المحتوى: اسم التصنيف ووصف ورابط لكل منتجات التصنيف في الكتالوج.
+ * محتوى صفحة تصنيف (/categories/[slug]): يُلفّه layout المشترك بشريط التصنيفات.
+ * العنوان التحريري يظهر من lg؛ الشبكة تحتها على كل العرض.
  */
 export function CategorySlugPageContent({ slug }: { slug: string }) {
-  const router = useRouter();
+  const router = useTransitionRouter();
   const categoriesNav = useCategories();
   const navCategories = categoriesNav.data;
   const activeCategory = useMemo(
@@ -128,66 +125,61 @@ export function CategorySlugPageContent({ slug }: { slug: string }) {
   });
   const { getCartLineQuantity, setProductLineQuantity } = useCart();
 
-  const hasNavCategories = Boolean(navCategories?.length);
+  if (categoriesNav.isPending) {
+    return (
+      <div className="space-y-8">
+        <div className="hidden h-10 w-1/3 max-w-xs animate-shimmer rounded bg-brand-100 lg:block" />
+        <div className="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <ProductSkeleton key={i} />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (categoriesNav.isError) {
+    return (
+      <ErrorState
+        message={categoriesNav.error.message}
+        onRetry={() => void categoriesNav.refetch()}
+      />
+    );
+  }
+
+  if (!activeCategory) {
+    return (
+      <EmptyState
+        title="التصنيف غير موجود"
+        description="تصفح جميع التصنيفات من القائمة."
+        action={
+          <Button type="button" onClick={() => router.push(ROUTES.CATEGORIES)}>
+            كل التصنيفات
+          </Button>
+        }
+      />
+    );
+  }
+
+  const category = activeCategory;
 
   return (
-    <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-      <Container className="flex min-h-0 flex-1 flex-col px-4 py-4 sm:px-6 lg:px-8 lg:py-10">
-        {/* تحميل / خطأ / غير موجود: حالات بعرض الحاوية */}
-        {categoriesNav.isPending ? (
-          <div className="space-y-8">
-            <div className="h-10 w-1/3 animate-shimmer rounded bg-brand-100" />
-            <div className="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4">
-              {Array.from({ length: 8 }).map((_, i) => (
-                <ProductSkeleton key={i} />
-              ))}
-            </div>
-          </div>
-        ) : categoriesNav.isError ? (
-          <ErrorState
-            message={categoriesNav.error.message}
-            onRetry={() => void categoriesNav.refetch()}
-          />
-        ) : !activeCategory ? (
-          <EmptyState
-            title="التصنيف غير موجود"
-            description="تصفح جميع التصنيفات من القائمة."
-            action={
-              <Button type="button" onClick={() => router.push(ROUTES.CATEGORIES)}>
-                كل التصنيفات
-              </Button>
-            }
-          />
-        ) : (() => {
-          const category = activeCategory;
-          return (
-            <CategoryBrowseSplitLayout
-              categories={navCategories ?? []}
-              activeSlug={slug}
-              showNavChrome={hasNavCategories}
-              renderMainContent={(viewport) => (
-                <>
-                  {viewport === "desktop" ? (
-                    <CategorySlugHeader
-                      categoryId={category.id}
-                      title={category.name}
-                      description={category.description}
-                    />
-                  ) : null}
-                  <div className={viewport === "desktop" ? "mt-8" : undefined}>
-                    <CategorySlugProductsSection
-                      productsQuery={productsQuery}
-                      getCartLineQuantity={getCartLineQuantity}
-                      onCartLineQuantityChange={setProductLineQuantity}
-                      router={router}
-                    />
-                  </div>
-                </>
-              )}
-            />
-          );
-        })()}
-      </Container>
-    </div>
+    <>
+      <div className="hidden lg:block">
+        <CategorySlugHeader
+          categoryId={category.id}
+          title={category.name}
+          description={category.description}
+        />
+      </div>
+      <div className="mt-0 lg:mt-8">
+        <CategorySlugProductsSection
+          productsQuery={productsQuery}
+          getCartLineQuantity={getCartLineQuantity}
+          onCartLineQuantityChange={setProductLineQuantity}
+          router={router}
+        />
+      </div>
+    </>
   );
 }

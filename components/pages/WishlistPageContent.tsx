@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useTransitionRouter } from "next-view-transitions";
 import { Button } from "@/components/Button";
 import { Container } from "@/components/Container";
 import { WishlistDrawerLines } from "@/features/wishlist/components/wishlist-drawer-lines";
@@ -12,7 +12,7 @@ import { ROUTES } from "@/lib/constants";
  * ومن md فما فوق عرض أقصى للقائمة (max-w-2xl) لتسهيل القراءة.
  */
 export function WishlistPageContent() {
-  const router = useRouter();
+  const router = useTransitionRouter();
   const { hasHydrated, items, removeFromWishlist } = useWishlist();
   const isEmpty = items.length === 0;
 

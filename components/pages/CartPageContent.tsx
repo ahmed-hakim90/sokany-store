@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { Link } from "next-view-transitions";
+import { useTransitionRouter } from "next-view-transitions";
 import { AppImage } from "@/components/AppImage";
 import { Button } from "@/components/Button";
 import { Container } from "@/components/Container";
@@ -17,7 +17,7 @@ import { CartSummaryPanel } from "@/features/cart/components/CartSummaryPanel";
  * الجوال/التابلت: قائمة البطاقات فقط؛ ملخص الطلب والدفع يظهر في لوحة جانبية من lg في العمود الأيمن.
  */
 export function CartPageContent() {
-  const router = useRouter();
+  const router = useTransitionRouter();
   const { items, totalPrice, isEmpty, updateProductQuantity, removeProduct } =
     useCart();
 
