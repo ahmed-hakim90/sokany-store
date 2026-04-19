@@ -76,7 +76,7 @@ export function ProductsPageContent() {
 
   return (
     <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-      <Container className="flex min-h-0 flex-1 flex-col px-4 py-4 sm:px-6 lg:px-8 lg:py-10">
+      <Container className="flex min-h-0 flex-1 flex-col sm:px-2 lg:px-8 lg:py-10">
         <div className="shrink-0">
           <h1 className="font-display text-xl font-bold tracking-tight text-brand-950 sm:text-2xl md:text-3xl">
             المنتجات

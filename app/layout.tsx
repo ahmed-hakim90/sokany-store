@@ -24,6 +24,13 @@ const montserrat = Montserrat({
 export const metadata: Metadata = {
   metadataBase: new URL(getSiteUrl()),
   title: "سوكانى المغربى",
+  icons: {
+    icon: [
+      { url: "/images/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/images/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: "/images/icon-192.png",
+  },
 };
 
 export default function RootLayout({

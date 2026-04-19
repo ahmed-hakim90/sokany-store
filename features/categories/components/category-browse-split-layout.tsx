@@ -33,7 +33,7 @@ export function CategoryBrowseSplitLayout({
       <div
         className={cn(
           /* أقل من lg: ارتفاع أقصى للكتالوج مع الشريط السفلي للموبايل — من lg فصاعداً لا نحد الارتفاع حتى لا يُضغط المحتوى ويظهر الفوتر بصرياً في منتصف الصفحة */
-          "flex min-h-0 flex-1 flex-col gap-4 max-lg:max-h-mobile-catalog-split",
+          "flex min-h-0 flex-1 flex-col gap-4 max-lg:max-h-mobile-catalog-split sm:px-2 lg:px-1",
         )}
       >
         {showNavChrome ? (

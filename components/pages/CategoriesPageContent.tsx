@@ -41,7 +41,7 @@ function AvailableProductsSection({
 }) {
   return (
     <section
-      className="space-y-3 rounded-2xl p-5 lg:p-0"
+      className="space-y-3 rounded-2xl  lg:p-0"
       aria-labelledby="categories-available-products-title"
     >
       {/* <div className="flex flex-col items-center gap-2 text-center">

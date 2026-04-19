@@ -23,7 +23,7 @@ export default function CategoriesLayout({ children }: { children: ReactNode }) 
 
   return (
     <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-      <Container className="flex min-h-0 flex-1 flex-col px-4 py-4 sm:px-6 lg:px-8 lg:py-10">
+      <Container className="flex min-h-0 flex-1 flex-col sm:px-2 lg:px-8 lg:py-10">
         {query.isPending ? (
           <div className="mt-6">
             <div className="rounded-editorial border border-border/70 bg-white/90 py-0.5 shadow-sm backdrop-blur-sm">
