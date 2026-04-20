@@ -28,12 +28,31 @@ function siteImagePatterns(): NonNullable<
 }
 
 const nextConfig: NextConfig = {
+  async redirects() {
+    return [
+      {
+        source: "/order-tracking",
+        destination: "/track-order",
+        permanent: true,
+      },
+      {
+        source: "/service-centers",
+        destination: "/branches",
+        permanent: true,
+      },
+    ];
+  },
   images: {
     remotePatterns: [
       {
         protocol: "https",
         hostname: "sokany-eg.com",
         pathname: "/wp-content/**",
+      },
+      {
+        protocol: "https",
+        hostname: "img.freepik.com",
+        pathname: "/**",
       },
       ...siteImagePatterns(),
     ],

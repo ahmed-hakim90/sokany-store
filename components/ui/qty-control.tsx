@@ -12,6 +12,8 @@ export type QtyControlProps = {
   className?: string;
   /** `segmented` matches PDP pill row (− | qty | +) in a rounded rectangle. */
   layout?: "pill" | "segmented";
+  /** Use ≥44px tap targets for +/- (cart, mobile drawers). */
+  touchComfortable?: boolean;
 };
 
 export function QtyControl({
@@ -22,10 +24,12 @@ export function QtyControl({
   disabled,
   className,
   layout = "pill",
+  touchComfortable = false,
 }: QtyControlProps) {
   const decDisabled = disabled || value <= min;
   const incDisabled = disabled || value >= max;
   const segmented = layout === "segmented";
+  const iconSize = touchComfortable ? "lg" : "sm";
 
   return (
     <div
@@ -40,13 +44,17 @@ export function QtyControl({
       <IconButton
         type="button"
         variant="subtle"
-        size="sm"
+        size={iconSize}
         aria-label="نقص الكمية"
         disabled={decDisabled}
         onClick={() => onChange(Math.max(min, value - 1))}
         className={cn(
           "border-0",
-          segmented ? "rounded-none px-3 py-2.5 hover:bg-white/70" : "rounded-full",
+          segmented
+            ? touchComfortable
+              ? "rounded-none px-2 py-2 hover:bg-white/70"
+              : "rounded-none px-3 py-2.5 hover:bg-white/70"
+            : "rounded-full",
         )}
       >
         <MinusIcon />
@@ -63,13 +71,17 @@ export function QtyControl({
       <IconButton
         type="button"
         variant="subtle"
-        size="sm"
+        size={iconSize}
         aria-label="زيادة الكمية"
         disabled={incDisabled}
         onClick={() => onChange(Math.min(max, value + 1))}
         className={cn(
           "border-0",
-          segmented ? "rounded-none px-3 py-2.5 hover:bg-white/70" : "rounded-full",
+          segmented
+            ? touchComfortable
+              ? "rounded-none px-2 py-2 hover:bg-white/70"
+              : "rounded-none px-3 py-2.5 hover:bg-white/70"
+            : "rounded-full",
         )}
       >
         <PlusIcon />

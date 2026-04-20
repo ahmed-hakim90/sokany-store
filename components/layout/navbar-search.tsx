@@ -163,7 +163,7 @@ inputRef.current?.blur();},
             goSearch();
           }
         }}  
-        className="min-w-0 max-w-none border-zinc-200/90 bg-white shadow-sm h-10 sm:h-12"
+        className="min-w-0 max-w-none border-zinc-200/90 bg-white shadow-sm h-9 sm:h-10 lg:h-12"
         compact
         leading={
           <svg

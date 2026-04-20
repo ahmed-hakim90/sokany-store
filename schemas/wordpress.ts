@@ -83,6 +83,8 @@ export const wpProductSchema = z.object({
   attributes: z.array(wpProductAttributeSchema).default([]),
   average_rating: numericString,
   rating_count: z.number().default(0),
+  /** WooCommerce «Linked products» — upsells/related IDs from the REST product payload. */
+  related_ids: z.array(z.number()).default([]),
   meta_data: z.array(z.unknown()).default([]),
 });
 

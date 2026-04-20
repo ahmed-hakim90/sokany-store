@@ -25,7 +25,10 @@ export function AppImage({
   priority,
   width,
   height,
-}: Pick<ImageProps, "src" | "alt" | "className" | "fill" | "sizes" | "priority" | "width" | "height">) {
+}: Pick<
+  ImageProps,
+  "src" | "alt" | "className" | "fill" | "sizes" | "priority" | "width" | "height"
+>) {
   const [currentSrc, setCurrentSrc] = useState(() => normalizeSrc(src));
 
   useEffect(() => {
@@ -40,6 +43,7 @@ export function AppImage({
       fill={fill}
       sizes={sizes}
       priority={priority}
+      loading={priority ? "eager" : undefined}
       width={width}
       height={height}
       onError={() => setCurrentSrc(PLACEHOLDER_PATH)}

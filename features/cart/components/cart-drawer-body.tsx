@@ -8,7 +8,7 @@ import { PriceText } from "@/components/ui/price-text";
 import { QtyControl } from "@/components/ui/qty-control";
 import { IconButton } from "@/components/ui/icon-button";
 import { ROUTES } from "@/lib/constants";
-import { formatPrice } from "@/lib/utils";
+import { cn, formatPrice } from "@/lib/utils";
 import type { CartItem } from "@/features/cart/types";
 
 export function CartDrawerLines({
@@ -108,7 +108,7 @@ const CartSheetLine = memo(function CartSheetLine({
             aria-label={`إزالة ${item.name}`}
             onClick={() => onRemove(item.productId)}
           >
-            <TrashIcon />
+            <CartTrashIcon />
           </IconButton>
         </div>
         <div className="flex flex-wrap items-center justify-between gap-2">
@@ -119,6 +119,7 @@ const CartSheetLine = memo(function CartSheetLine({
             value={item.quantity}
             min={1}
             max={999}
+            touchComfortable
             onChange={(q) => onQuantityChange(item.productId, q)}
           />
         </div>
@@ -134,11 +135,11 @@ const CartSheetLine = memo(function CartSheetLine({
   );
 });
 
-function TrashIcon() {
+export function CartTrashIcon({ className }: { className?: string }) {
   return (
     <svg
       viewBox="0 0 24 24"
-      className="h-4 w-4"
+      className={cn("h-4 w-4 shrink-0", className)}
       fill="none"
       stroke="currentColor"
       strokeWidth="1.8"

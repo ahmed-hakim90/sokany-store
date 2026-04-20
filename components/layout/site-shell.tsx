@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { Footer } from "@/components/layout/footer";
+import { FooterGate } from "@/components/layout/footer-gate";
 import { MobileCommerceChrome } from "@/components/layout/mobile-commerce-chrome";
 import { Navbar } from "@/components/Navbar";
 import { DesktopCartDrawer } from "@/features/cart/components/DesktopCartDrawer";
@@ -24,7 +24,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
       <main className="flex min-h-0 min-w-0 max-w-none flex-1 flex-col bg-page pb-mobile-commerce lg:pb-0">
         {children}
       </main>
-      <Footer />
+      <FooterGate />
       <MobileCommerceChrome />
     </>
   );

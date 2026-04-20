@@ -123,6 +123,27 @@ body {
   background: var(--sokany-accent);
 }
 
+@keyframes cart-success-heart-float {
+  0% {
+    transform: translate3d(0, 0, 0) scale(0.75);
+    opacity: 0;
+  }
+  12% {
+    opacity: 0.95;
+  }
+  100% {
+    transform: translate3d(0, -42rem, 0) scale(0.45);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cart-success-heart {
+    animation: none !important;
+    opacity: 0.35;
+  }
+}
+
 /*
  * Utilities that reference CSS variables — keep them here instead of Tailwind arbitrary
  * values like `[var(--x)]`, which Tailwind v4 can mis-parse as `var(-x)` and break the build.
@@ -130,6 +151,10 @@ body {
 @layer utilities {
   .pb-mobile-commerce {
     padding-bottom: var(--mobile-commerce-chrome-height, 12rem);
+  }
+  /** Sit fixed UI (e.g. PDP sticky CTA) above the mobile bottom nav — must stay below z-50 modals. */
+  .bottom-mobile-commerce {
+    bottom: var(--mobile-commerce-chrome-height, 5rem);
   }
   .rounded-editorial {
     border-radius: var(--radius-editorial, 1.5rem);

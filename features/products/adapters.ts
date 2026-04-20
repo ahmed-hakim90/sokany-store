@@ -65,6 +65,7 @@ export function mapProduct(raw: WCProduct): Product {
       variation: a.variation,
       options: [...a.options],
     })),
+    relatedIds: raw.related_ids ?? [],
   };
 }
 

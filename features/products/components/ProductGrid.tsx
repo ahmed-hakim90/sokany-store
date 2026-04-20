@@ -77,7 +77,7 @@ export function ProductGrid({
   return (
     <div className={cn("min-w-0", gridClass, className)}>
       {leadingSlot ? <div className="min-w-0">{leadingSlot}</div> : null}
-      {products.map((product) =>
+      {products.map((product, index) =>
         renderItem ? (
           <div key={product.id} className="min-w-0">
             {renderItem(product)}
@@ -86,6 +86,7 @@ export function ProductGrid({
           <ProductCard
             key={product.id}
             product={product}
+            imagePriority={index < 4}
             getCartLineQuantity={getCartLineQuantity}
             onCartLineQuantityChange={onCartLineQuantityChange}
             variant={resolvedVariant}

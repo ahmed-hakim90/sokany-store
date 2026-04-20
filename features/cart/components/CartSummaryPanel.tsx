@@ -12,6 +12,11 @@ export type CartSummaryPanelProps = {
   subtotal: number;
   total: number;
   shippingLabel?: string;
+  /** VAT / fees — cart estimate only; final at checkout. */
+  showEstimatedTaxRow?: boolean;
+  estimatedTaxLabel?: string;
+  /** e.g. free-shipping progress bar — inserted after subtotal/shipping block, before الإجمالي. */
+  beforeTotal?: ReactNode;
   /** Shown below totals (e.g. checkout button). */
   footer?: ReactNode;
   className?: string;
@@ -23,6 +28,9 @@ export function CartSummaryPanel({
   subtotal,
   total,
   shippingLabel = "يُحسب عند الطلب",
+  showEstimatedTaxRow = true,
+  estimatedTaxLabel = "تُحسب عند إتمام الطلب",
+  beforeTotal,
   footer,
   className,
   previewLimit = 4,
@@ -55,7 +63,7 @@ export function CartSummaryPanel({
                   {item.name}
                 </Link>
                 <p className="text-xs text-muted-foreground">
-                  ×{item.quantity} · {formatPrice(item.price)} each
+                  ×{item.quantity} · {formatPrice(item.price)} للوحدة
                 </p>
               </div>
               <PriceText
@@ -77,8 +85,15 @@ export function CartSummaryPanel({
         </div>
         <div className="flex justify-between text-muted-foreground">
           <span>الشحن</span>
-          <span>{shippingLabel}</span>
+          <span className="text-start font-medium text-foreground">{shippingLabel}</span>
         </div>
+        {showEstimatedTaxRow ? (
+          <div className="flex justify-between text-muted-foreground">
+            <span>الضريبة والرسوم</span>
+            <span className="text-start text-foreground/90">{estimatedTaxLabel}</span>
+          </div>
+        ) : null}
+        {beforeTotal ? <div className="pt-1">{beforeTotal}</div> : null}
         <div className="flex justify-between border-t border-border pt-3 text-base font-semibold text-brand-950">
           <span>الإجمالي</span>
           <PriceText amount={total} emphasized className="text-brand-950" />

@@ -3,6 +3,9 @@ export const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000";
 export const SITE_NAME =
   process.env.NEXT_PUBLIC_SITE_NAME ?? "Sokany-Eg";
+/** Arabic brand line for SEO titles (product/category pages). Override via env for «سوكانى مصر» vs legal name. */
+export const SITE_BRAND_TITLE_AR =
+  process.env.NEXT_PUBLIC_SITE_BRAND_TITLE_AR ?? "سوكانى المغربى";
 /** Compact mobile header wordmark (Latin mark; override via env). */
 export const SITE_WORDMARK =
   process.env.NEXT_PUBLIC_SITE_WORDMARK ?? "SOKANY-Eg";
@@ -14,6 +17,10 @@ export const DEFAULT_CURRENCY =
 export const CURRENCY_LOCALE =
   process.env.NEXT_PUBLIC_CURRENCY_LOCALE ?? "ar-EG";
 export const CART_STORAGE_KEY = "woo_cart";
+/** Minimum cart subtotal (EGP) for free shipping messaging on cart — override via env. */
+export const FREE_SHIPPING_THRESHOLD_EGP = Number(
+  process.env.NEXT_PUBLIC_FREE_SHIPPING_THRESHOLD_EGP ?? 500,
+);
 export const WISHLIST_STORAGE_KEY = "woo_wishlist";
 export const AUTH_TOKEN_KEY = "woo_auth_token";
 export const DEFAULT_PAGE = 1;
@@ -42,13 +49,22 @@ export const ROUTES = {
   CART: "/cart",
   CHECKOUT: "/checkout",
   ABOUT: "/about",
-  SERVICE_CENTERS: "/service-centers",
+  /** الفروع ومراكز الصيانة (كان المسار السابق `/service-centers` مع إعادة توجيه 301). */
+  SERVICE_CENTERS: "/branches",
+  /** الموزعون المعتمدون (تجزئة معتمدة من الوكيل). */
+  RETAILERS: "/retailers",
   ACCOUNT: "/account",
   /** قائمة المفضلة المحفوظة محلياً (صفحة مستقلة + نفس المحتوى داخل الدرج). */
   WISHLIST: "/wishlist",
+  /** تتبع حالة الطلب برقم الطلب أو الموبايل. */
+  ORDER_TRACKING: "/track-order",
   LOGIN: "/login",
   REGISTER: "/register",
 } as const;
+
+/** رابط دردشة واتساب لخدمة العملاء (مثل `https://wa.me/201xxxxxxxxxx`). يُضبط عبر البيئة لصفحة التتبع. */
+export const WHATSAPP_SUPPORT_URL =
+  process.env.NEXT_PUBLIC_WHATSAPP_SUPPORT_URL?.trim() ?? "";
 
 /** Prefix for header product search input `id` (suffix from `useId()`; two instances may exist). */
 export const GLOBAL_PRODUCT_SEARCH_INPUT_ID = "global-product-search";

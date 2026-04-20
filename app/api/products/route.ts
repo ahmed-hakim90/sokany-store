@@ -77,7 +77,19 @@ export async function GET(request: NextRequest) {
     const sourceCategories = getSnapshotCategories() ?? mockCategories;
     let all = listMockProductsMatching(filterOpts, sourceProducts);
 
-    if (category !== undefined) {
+    const includeRaw = searchParams.get("include")?.trim();
+    if (includeRaw) {
+      const order = includeRaw
+        .split(",")
+        .map((s) => Number.parseInt(s.trim(), 10))
+        .filter((n) => Number.isFinite(n));
+      const byId = new Map(all.map((p) => [p.id, p]));
+      all = order
+        .map((id) => byId.get(id))
+        .filter((p): p is WCProduct => p != null);
+    }
+
+    if (!includeRaw && category !== undefined) {
       let categoryIds = new Set<number>();
       if (typeof category === "number") {
         categoryIds = includeChildren

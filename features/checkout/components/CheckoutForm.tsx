@@ -9,12 +9,14 @@ import { CheckoutPaymentForm } from "@/features/checkout/components/CheckoutPaym
 import { CheckoutReassuranceNote } from "@/features/checkout/components/checkout-reassurance-note";
 import { CheckoutShippingForm } from "@/features/checkout/components/CheckoutShippingForm";
 import { CheckoutSummary } from "@/features/checkout/components/CheckoutSummary";
+import { OrderSuccessCelebration } from "@/features/checkout/components/order-success-celebration";
 import { CheckoutSupportFooter } from "@/features/checkout/components/checkout-support-footer";
 import { useCheckoutForm } from "@/features/checkout/hooks/useCheckoutForm";
 
 /*
  * نموذج إتمام الطلب: على الجوال عمود واحد — الملخص أولاً (order-1) ثم حقول الشحن والدفع (order-2).
  * من lg: صف أفقي بعرض أقصى أوسع — عمود النموذج يتمدد، عمود الملخص max-width مع sticky عند التمرير.
+ * بعد نجاح الطلب: `OrderSuccessCelebration` (شكر + قلوب) فوق الطبقة z-[200].
  */
 export function CheckoutForm() {
   const {
@@ -27,6 +29,8 @@ export function CheckoutForm() {
     shippingMethodTitle,
     cartEmpty,
     isSubmitting,
+    orderSuccessOpen,
+    dismissOrderSuccess,
     update,
     updateShippingMethod,
     updatePaymentMethod,
@@ -81,6 +85,7 @@ export function CheckoutForm() {
 
   return (
     <>
+      <OrderSuccessCelebration open={orderSuccessOpen} onDismiss={dismissOrderSuccess} />
       <CheckoutLoadingOverlay visible={isSubmitting} />
       {/* حاوية مركزية: ضيقة على الجوال/تابلت، تتسع وتتحول لصف من عمودين من lg */}
       <div

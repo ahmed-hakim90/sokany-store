@@ -1,27 +1,40 @@
 import { cn } from "@/lib/utils";
 
-export function ProductDetailTrustBadges({ className }: { className?: string }) {
+/** ثلاث إشارات ثقة مضغوطة تحت أزرار الشراء — شحن، دفع عند الاستلام، ضمان. */
+export function ProductDetailTrustStrip({ className }: { className?: string }) {
   return (
-    <div className={cn("grid grid-cols-1 gap-3 sm:grid-cols-2", className)}>
-      <div className="flex gap-3 rounded-2xl border border-border bg-white/90 px-3.5 py-3 shadow-[0_1px_0_rgba(15,23,42,0.04)]">
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-surface-muted text-brand-900">
+    <ul
+      className={cn(
+        "grid grid-cols-3 gap-1.5 sm:gap-2",
+        className,
+      )}
+      aria-label="مزايا الطلب والضمان"
+    >
+      <li className="flex min-h-[4.25rem] flex-col items-center justify-center gap-1 rounded-xl border border-border/80 bg-white/90 px-1.5 py-2 text-center shadow-[0_1px_0_rgba(15,23,42,0.04)]">
+        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-surface-muted text-brand-900">
           <TruckIcon />
         </span>
-        <div className="min-w-0">
-          <p className="text-xs font-semibold text-foreground">توصيل سريع</p>
-          <p className="mt-0.5 text-xs leading-snug text-muted-foreground">خلال 24–48 ساعة داخل القاهرة والجيزة</p>
-        </div>
-      </div>
-      <div className="flex gap-3 rounded-2xl border border-border bg-white/90 px-3.5 py-3 shadow-[0_1px_0_rgba(15,23,42,0.04)]">
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-surface-muted text-brand-900">
+        <span className="text-[10px] font-semibold leading-tight text-foreground sm:text-[11px]">
+          شحن سريع لجميع المحافظات
+        </span>
+      </li>
+      <li className="flex min-h-[4.25rem] flex-col items-center justify-center gap-1 rounded-xl border border-border/80 bg-white/90 px-1.5 py-2 text-center shadow-[0_1px_0_rgba(15,23,42,0.04)]">
+        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-surface-muted text-brand-900">
+          <CashIcon />
+        </span>
+        <span className="text-[10px] font-semibold leading-tight text-foreground sm:text-[11px]">
+          دفع عند الاستلام
+        </span>
+      </li>
+      <li className="flex min-h-[4.25rem] flex-col items-center justify-center gap-1 rounded-xl border border-border/80 bg-white/90 px-1.5 py-2 text-center shadow-[0_1px_0_rgba(15,23,42,0.04)]">
+        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-surface-muted text-brand-900">
           <ShieldIcon />
         </span>
-        <div className="min-w-0">
-          <p className="text-xs font-semibold text-foreground">ضمان سوكانى</p>
-          <p className="mt-0.5 text-xs leading-snug text-muted-foreground">ضمان شامل لمدة سنتين على عيوب التصنيع</p>
-        </div>
-      </div>
-    </div>
+        <span className="text-[10px] font-semibold leading-tight text-foreground sm:text-[11px]">
+          ضمان سوكانى أصلي
+        </span>
+      </li>
+    </ul>
   );
 }
 
@@ -36,6 +49,28 @@ function TruckIcon() {
         strokeLinejoin="round"
       />
       <path d="M14 9h4l3 3v3h-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function CashIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden>
+      <rect
+        x="3"
+        y="6"
+        width="18"
+        height="12"
+        rx="2"
+        stroke="currentColor"
+        strokeWidth="1.5"
+      />
+      <path
+        d="M12 10v4M9.5 12h5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { forwardRef } from "react";
 import { Button } from "@/components/Button";
 import { PriceText } from "@/components/ui/price-text";
 import { QtyControl } from "@/components/ui/qty-control";
@@ -9,7 +10,7 @@ import {
   ProductSpecsList,
   type ProductSpecItem,
 } from "@/features/products/components/ProductSpecsList";
-import { ProductDetailTrustBadges } from "@/features/products/components/product-detail-trust-badges";
+import { ProductDetailTrustStrip } from "@/features/products/components/product-detail-trust-badges";
 import type { Product } from "@/features/products/types";
 import { cn } from "@/lib/utils";
 
@@ -19,25 +20,31 @@ function savePercent(product: Product): number | null {
   return Math.round((1 - product.price / product.regularPrice) * 100);
 }
 
-export function ProductDetailInfoColumn({
-  product,
-  quantity,
-  onQuantityChange,
-  onAddToCart,
-  onBuyNow,
-  specs,
-  canInteractCart = true,
-  className,
-}: {
-  product: Product;
-  quantity: number;
-  onQuantityChange: (next: number) => void;
-  onAddToCart: () => void;
-  onBuyNow?: () => void;
-  specs: ProductSpecItem[];
-  canInteractCart?: boolean;
-  className?: string;
-}) {
+export const ProductDetailInfoColumn = forwardRef<
+  HTMLDivElement,
+  {
+    product: Product;
+    quantity: number;
+    onQuantityChange: (next: number) => void;
+    onAddToCart: () => void;
+    onBuyNow?: () => void;
+    specs: ProductSpecItem[];
+    canInteractCart?: boolean;
+    className?: string;
+  }
+>(function ProductDetailInfoColumn(
+  {
+    product,
+    quantity,
+    onQuantityChange,
+    onAddToCart,
+    onBuyNow,
+    specs,
+    canInteractCart = true,
+    className,
+  },
+  ref,
+) {
   const compareAt =
     product.onSale && product.salePrice !== null ? product.regularPrice : null;
   const pct = savePercent(product);
@@ -79,16 +86,10 @@ export function ProductDetailInfoColumn({
         ) : null}
       </div>
 
-      <ProductSpecsList
-        items={specs}
-        title="المواصفات التقنية"
-        variant="panel"
-        className="border-t border-border/80 pt-5"
-      />
-
-      <ProductDetailTrustBadges />
-
-      <div className="flex flex-col gap-3 border-t border-border/80 pt-5">
+      <div
+        ref={ref}
+        className="flex flex-col gap-3 border-t border-border/80 pt-5"
+      >
         {product.inStock ? (
           <QtyControl
             value={quantity}
@@ -126,12 +127,21 @@ export function ProductDetailInfoColumn({
             </Button>
           ) : null}
         </div>
+
+        <ProductDetailTrustStrip />
       </div>
+
+      <ProductSpecsList
+        items={specs}
+        title="المواصفات التقنية"
+        variant="panel"
+        className="border-t border-border/80 pt-5"
+      />
 
       <ProductDetailDescriptionBlocks product={product} className="pt-2" />
     </div>
   );
-}
+});
 
 function CartIcon({ className }: { className?: string }) {
   return (

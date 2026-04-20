@@ -9,6 +9,8 @@ export type PriceTextProps = {
   presentation?: "default" | "tile";
   /** Applied to the main amount span (e.g. home product tiles). */
   amountClassName?: string;
+  /** Applied to the crossed-out compare price when shown. */
+  compareAtClassName?: string;
   className?: string;
 };
 
@@ -19,6 +21,7 @@ export function PriceText({
   compact,
   presentation = "default",
   amountClassName,
+  compareAtClassName,
   className,
 }: PriceTextProps) {
   const showOld =
@@ -49,7 +52,12 @@ export function PriceText({
         {formatPrice(amount)}
       </span>
       {showOld ? (
-        <span className="text-xs md:text-sm lg:text-base text-muted-foreground line-through">
+        <span
+          className={cn(
+            "text-xs md:text-sm lg:text-base text-muted-foreground line-through",
+            compareAtClassName,
+          )}
+        >
           {formatPrice(compareAt)}
         </span>
       ) : null}

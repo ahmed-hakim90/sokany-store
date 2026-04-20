@@ -17,6 +17,7 @@ import { ProductGrid } from "@/features/products/components/ProductGrid";
 import { ROUTES } from "@/lib/constants";
 import { useCategories } from "@/features/categories/hooks/useCategories";
 import { HomeCategoryImageScroller } from "@/features/home/components/home-category-image-scroller";
+import { HomeFlashSaleCountdownStrip } from "@/features/home/components/home-flash-sale-countdown";
 import { useProducts } from "@/features/products/hooks/useProducts";
 
 function ShieldIcon() {
@@ -57,11 +58,10 @@ function CheckSealIcon() {
 
 /*
  * الصفحة الرئيسية (/): عمود واحد داخل Container بمسافات رأسية تتسع تدريجياً (sm → md).
- * التسلسل: هيرو (330×540 سكروول أفقي + auto-rotate) → شريط صور التصنيفات
- * (240×120 سكروول أفقي + auto-rotate، بيانات ديناميكية من /api/categories)
- * → شريط ثقة (نسختان حسب md) → الأكثر مبيعاً (شبكة: ٢ عمود جوال، ٣ من md، ٤ من lg)
- * → أقسام الأب للتصنيفات (نفس شبكة المنتجات تحت كل بانر «حصرياً»)
- * → بطاقة عرض ترويجي في الأسفل.
+ * التسلسل: هيرو (سكروول أفقي + auto-rotate) → شريط صور التصنيفات
+ * (240×120 سكروول أفقي) → عروض سريعة (منتجات on_sale + عداد حتى منتصف الليل) → شريط ثقة
+ * → الأكثر مبيعاً (featured) → وصل حديثاً (orderby تاريخ) → أقسام الأب للتصنيفات
+ * → بطاقة ترويجي في الأسفل.
  */
 export type HomePageContentProps = {
   /** Hero slides resolved on the server from `public/images/hero/`. */
@@ -76,6 +76,17 @@ export function HomePageContent({
 }: HomePageContentProps) {
   const router = useTransitionRouter();
   const featured = useProducts({ featured: true, per_page: 8 });
+  const flashSales = useProducts({
+    on_sale: true,
+    per_page: 8,
+    orderby: "date",
+    order: "desc",
+  });
+  const newArrivals = useProducts({
+    per_page: 8,
+    orderby: "date",
+    order: "desc",
+  });
   const categories = useCategories({ per_page: 100 });
   const { getCartLineQuantity, setProductLineQuantity } = useCart();
   const categoryTiles = (categories.data ?? []).map((category) => ({
@@ -92,6 +103,57 @@ export function HomePageContent({
 
         {/* تحت البانر مباشرة: شريط صور ديناميكي من التصنيفات المتاحة في API */}
         <HomeCategoryImageScroller tiles={categoryTiles} />
+
+        {/* عروض سريعة: منتجات مخفّضة من WooCommerce + عداد تنازلي */}
+        {flashSales.isError ? (
+          <ErrorState
+            message={flashSales.error.message}
+            onRetry={() => void flashSales.refetch()}
+          />
+        ) : flashSales.isPending || (flashSales.data?.length ?? 0) > 0 ? (
+          <section className="space-y-4" aria-labelledby="home-flash-sales-title">
+            <div className="flex flex-col items-center gap-4 text-center">
+              <div className="space-y-1">
+                <h2
+                  id="home-flash-sales-title"
+                  className="text-base font-bold tracking-tight text-black sm:text-lg md:text-xl"
+                >
+                  عروض سريعة
+                </h2>
+                <p className="mx-auto max-w-md text-xs text-muted-foreground sm:text-sm">
+                  خصومات لفترة محدودة — تنتهي مع نهاية يوم اليوم.
+                </p>
+              </div>
+              <HomeFlashSaleCountdownStrip className="mx-auto w-full" />
+            </div>
+            <ProductGrid
+              status={
+                flashSales.isPending
+                  ? "loading"
+                  : !flashSales.data?.length
+                    ? "empty"
+                    : "ready"
+              }
+              products={flashSales.data ?? []}
+              getCartLineQuantity={getCartLineQuantity}
+              onCartLineQuantityChange={setProductLineQuantity}
+              cardVariant="mobileCompact"
+              cardVariantMd="desktopCatalogWide"
+              gridClassName="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4"
+              empty={
+                <EmptyState
+                  title="لا توجد عروض نشطة حالياً"
+                  description="تصفح المنتجات للمزيد."
+                  action={
+                    <Button type="button" onClick={() => router.push(ROUTES.PRODUCTS)}>
+                      المنتجات
+                    </Button>
+                  }
+                />
+              }
+            />
+          </section>
+        ) : null}
 
         {/* من md فما فوق: ثلاثية ثقة بعرض الشبكة؛ مخفية على الجوال */}
         <HomeTrustStrip
@@ -172,6 +234,51 @@ export function HomePageContent({
             />
           )}
         </section>
+
+        {/* وصل حديثاً: أحدث المنتجات حسب التاريخ */}
+        {newArrivals.isError ? (
+          <ErrorState
+            message={newArrivals.error.message}
+            onRetry={() => void newArrivals.refetch()}
+          />
+        ) : newArrivals.isPending || (newArrivals.data?.length ?? 0) > 0 ? (
+          <section className="space-y-4" aria-labelledby="home-new-arrivals-title">
+            <div className="flex flex-col items-center gap-2 text-center">
+              <h2
+                id="home-new-arrivals-title"
+                className="text-base font-bold tracking-tight text-black sm:text-lg md:text-xl"
+              >
+                وصل حديثاً
+              </h2>
+            </div>
+            <ProductGrid
+              status={
+                newArrivals.isPending
+                  ? "loading"
+                  : !newArrivals.data?.length
+                    ? "empty"
+                    : "ready"
+              }
+              products={newArrivals.data ?? []}
+              getCartLineQuantity={getCartLineQuantity}
+              onCartLineQuantityChange={setProductLineQuantity}
+              cardVariant="mobileCompact"
+              cardVariantMd="desktopCatalogWide"
+              gridClassName="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4"
+              empty={
+                <EmptyState
+                  title="لا توجد منتجات جديدة حالياً"
+                  description="تصفح الكتالوج الكامل."
+                  action={
+                    <Button type="button" onClick={() => router.push(ROUTES.PRODUCTS)}>
+                      المنتجات
+                    </Button>
+                  }
+                />
+              }
+            />
+          </section>
+        ) : null}
 
         {/* أقسام رأسية لكل تصنيف أب: شبكات/سكك داخل نفس العمود عند توفر التصنيفات */}
         {categories.data && categories.data.length > 0 ? (

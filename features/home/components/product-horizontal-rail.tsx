@@ -180,10 +180,11 @@ export function ProductHorizontalRail({
 
   return (
     <RailScrollWrap role="region" aria-label={ariaLabel} className={className} layoutKey={layoutKey}>
-      {products.map((product) => (
+      {products.map((product, index) => (
         <div key={product.id} className={cardShellClass}>
           <ProductCard
             product={product}
+            imagePriority={index < 3}
             variant="mobileCompact"
             getCartLineQuantity={getCartLineQuantity}
             onCartLineQuantityChange={onCartLineQuantityChange}

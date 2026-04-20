@@ -87,7 +87,7 @@ export function HomeCategoryImageScroller({
     <section className={cn("-mx-4 sm:mx-0", className)}>
       <div
         ref={scrollerRef}
-        className="flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-[calc((100vw-240px)/2)] pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-[calc((100vw-240px)/2)] px-3 pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:px-0"
       >
         {tiles.map((tile, index) => (
           <CategoryImageCard
@@ -102,7 +102,7 @@ export function HomeCategoryImageScroller({
 
 function CategoryImageCard({ tile }: { tile: HomeCategoryTile }) {
   const content = (
-    <div className="relative h-[120px] w-[240px] shrink-0 snap-center overflow-hidden rounded-xl bg-image-well">
+    <div className="relative h-[120px] w-[240px] shrink-0 snap-center overflow-hidden rounded-xl bg-image-well shadow-sm ring-1 ring-black/[0.07]">
       <AppImage
         src={tile.imageSrc}
         alt={tile.imageAlt ?? ""}

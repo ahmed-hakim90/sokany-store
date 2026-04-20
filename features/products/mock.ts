@@ -59,6 +59,7 @@ export const mockProducts: WCProduct[] = [
     ],
     average_rating: "4.8",
     rating_count: 127,
+    related_ids: [39476, 39037, 109195],
     meta_data: [],
   },
 

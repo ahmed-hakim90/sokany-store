@@ -60,6 +60,8 @@ export type WCProduct = {
   attributes: WCProductAttribute[];
   average_rating: string;
   rating_count: number;
+  /** From WooCommerce `related_ids` — linked products for cross-sell. */
+  related_ids?: number[];
   meta_data: unknown[];
 };
 
@@ -99,4 +101,6 @@ export type Product = {
     variation: boolean;
     options: string[];
   }[];
+  /** WooCommerce linked related product IDs (preferred source for «ذات صلة»). */
+  relatedIds: number[];
 };

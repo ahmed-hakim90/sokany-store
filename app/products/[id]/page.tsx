@@ -8,6 +8,7 @@ import { getProductByIdMeta } from "@/features/products/services/getProductByIdM
 import { toProductViewFromProduct } from "@/features/products/product-view";
 import { formatPriceEgp } from "@/lib/format";
 import { trimMetaDescription } from "@/lib/html";
+import { SITE_BRAND_TITLE_AR } from "@/lib/constants";
 import { getSiteUrl } from "@/lib/site";
 
 type PageProps = { params: Promise<{ id: string }> };
@@ -24,8 +25,8 @@ export async function generateMetadata({
   if (!product) return { title: "منتج غير موجود" };
 
   const site = getSiteUrl();
-  const title = `${product.name} | سوكانى المغربى`;
-  const fallback = `اشتري ${product.name} بسعر ${formatPriceEgp(product.price)} من سوكانى المغربى. ضمان أصلي وشحن سريع.`;
+  const title = `${product.name} | ${SITE_BRAND_TITLE_AR}`;
+  const fallback = `اشتري ${product.name} بسعر ${formatPriceEgp(product.price)} من ${SITE_BRAND_TITLE_AR}. ضمان أصلي وشحن سريع.`;
   const description = trimMetaDescription(
     product.shortDescription || fallback,
   );
@@ -45,7 +46,7 @@ export async function generateMetadata({
       description,
       type: "website",
       url: `${site}/products/${product.id}`,
-      siteName: "سوكانى المغربى",
+      siteName: SITE_BRAND_TITLE_AR,
       locale: "ar_EG",
       images: thumb
         ? [{ url: thumb.src, width: 800, height: 800, alt: product.name }]

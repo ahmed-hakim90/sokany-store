@@ -4,7 +4,7 @@ import { forwardRef } from "react";
 import { cn } from "@/lib/utils";
 
 export type IconButtonVariant = "ghost" | "subtle" | "accent";
-export type IconButtonSize = "sm" | "md";
+export type IconButtonSize = "sm" | "md" | "lg";
 
 const base =
   "inline-flex shrink-0 items-center justify-center rounded-full transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 disabled:pointer-events-none disabled:opacity-50";
@@ -19,6 +19,8 @@ const variantClasses: Record<IconButtonVariant, string> = {
 const sizeClasses: Record<IconButtonSize, string> = {
   sm: "h-8 w-8 [&_svg]:h-4 [&_svg]:w-4",
   md: "h-10 w-10 [&_svg]:h-5 [&_svg]:w-5",
+  /** ~44×44px touch target (iOS HIG / Material). */
+  lg: "h-11 min-h-[44px] min-w-[44px] w-11 [&_svg]:h-5 [&_svg]:w-5",
 };
 
 export type IconButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {

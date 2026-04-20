@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useCart } from "@/hooks/useCart";
 import {
@@ -34,6 +34,11 @@ const initialValues: CheckoutFormData = {
 export function useCheckoutForm() {
   const [values, setValues] = useState<CheckoutFormData>(initialValues);
   const [errors, setErrors] = useState<Partial<Record<keyof CheckoutFormData, string>>>({});
+  const [orderSuccessOpen, setOrderSuccessOpen] = useState(false);
+
+  const dismissOrderSuccess = useCallback(() => {
+    setOrderSuccessOpen(false);
+  }, []);
   const { items, totalPrice, clearCart } = useCart();
   const checkoutOrder = useCheckoutOrderMutation();
 
@@ -61,7 +66,7 @@ export function useCheckoutForm() {
       {
         onSuccess: () => {
           clearCart();
-          toast.success("تم استلام الطلب بنجاح!");
+          setOrderSuccessOpen(true);
           setValues(initialValues);
           setErrors({});
         },
@@ -93,6 +98,8 @@ export function useCheckoutForm() {
     shippingMethodTitle,
     cartEmpty,
     isSubmitting: checkoutOrder.isPending,
+    orderSuccessOpen,
+    dismissOrderSuccess,
     update,
     updateShippingMethod,
     updatePaymentMethod,

@@ -12,14 +12,14 @@ import { useProductDetailPage } from "@/hooks/useProductDetailPage";
 import { ROUTES } from "@/lib/constants";
 import type { Product } from "@/features/products/types";
 import { ProductDetail } from "@/features/products/components/ProductDetail";
-import { ProductGrid } from "@/features/products/components/ProductGrid";
+import { ProductCarouselRow } from "@/features/products/components/product-carousel-row";
 import { ProductSkeleton } from "@/features/products/components/ProductSkeleton";
 import { ProductReviewForm } from "@/features/reviews/components/ProductReviewForm";
 
 /*
  * صفحة تفاصيل المنتج (/products/[id]): عمود واحد داخل Container (حواف أفقية فقط).
- * كتلة المنتج (معرض + معلومات/شراء) بعرض كامل داخل الحاوية.
- * من sm فما فوق: قسما التقييمات و«منتجات ذات صلة» داخل عمود متمركز max-w-7xl مثل الفوتر؛ lg يبقى نفس الحدود الأفقية من Container.
+ * كتلة المنتج (معرض + معلومات/شراء) بعرض كامل داخل الحاوية؛ شريط «أضف للسلة» ثابت عند التمرير بعد كتلة الشراء.
+ * من sm فما فوق: التقييمات و«منتجات ذات صلة» (كاروسيل أفقي) داخل عمود max-w-7xl؛ lg يبقى نفس الحدود الأفقية من Container.
  */
 export function ProductDetailPageContent({ id }: { id: number }) {
   const router = useTransitionRouter();
@@ -161,20 +161,13 @@ export function ProductDetailPageContent({ id }: { id: number }) {
                     onRetry={() => void relatedQuery.refetch()}
                   />
                 ) : (
-                  <ProductGrid
+                  <ProductCarouselRow
                     status={
                       relatedQuery.isPending
                         ? "loading"
                         : relatedProducts.length === 0
                           ? "empty"
                           : "ready"
-                    }
-                    loading={
-                      <>
-                        {Array.from({ length: 4 }).map((_, index) => (
-                          <ProductSkeleton key={index} />
-                        ))}
-                      </>
                     }
                     empty={
                       <EmptyState

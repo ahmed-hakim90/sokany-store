@@ -32,8 +32,10 @@ const primaryNavLinks = [
 
 const drawerExtraLinks = [
   { href: ROUTES.CATEGORIES, label: "كل التصنيفات" },
+  { href: ROUTES.ORDER_TRACKING, label: "تتبع الطلب" },
   { href: ROUTES.ABOUT, label: "من نحن" },
   { href: ROUTES.SERVICE_CENTERS, label: "الفروع" },
+  { href: ROUTES.RETAILERS, label: "الموزعون المعتمدون" },
 ] as const;
 
 const drawerLinks = [...primaryNavLinks, ...drawerExtraLinks] as const;
@@ -101,10 +103,13 @@ export function Navbar() {
   const isServiceCenters =
     pathname === ROUTES.SERVICE_CENTERS ||
     pathname.startsWith(`${ROUTES.SERVICE_CENTERS}/`);
+  const isRetailers =
+    pathname === ROUTES.RETAILERS ||
+    pathname.startsWith(`${ROUTES.RETAILERS}/`);
 //  لوجو السايت في التوب ناف بار
   const logo = (
     <Link href={ROUTES.HOME} className="flex items-center gap-2.5">
-      <div className="relative h-12 w-28 overflow-hidden sm:h-14 sm:w-32">
+      <div className="relative h-14 w-32 overflow-hidden sm:h-[3.75rem] sm:w-36">
         <AppImage
           src={SITE_LOGO_PATH}
           alt={SITE_NAME}
@@ -231,7 +236,7 @@ export function Navbar() {
       className="flex min-w-0 flex-col items-center gap-1"
       onClick={() => closeDrawer()}
     >
-      <div className="relative h-12 w-28 overflow-hidden sm:h-12 sm:w-38">
+      <div className="relative h-14 w-32 overflow-hidden sm:h-14 sm:w-36">
         <AppImage
           src={SITE_LOGO_PATH}
           alt={SITE_NAME}
@@ -250,12 +255,12 @@ export function Navbar() {
       className="flex min-w-0 justify-center"
       onClick={() => closeDrawer()}
     >
-      <div className="relative mx-auto h-12 w-28 max-w-full overflow-hidden sm:h-12 sm:w-28">
+      <div className="relative mx-auto h-14 w-32 max-w-full overflow-hidden sm:h-14 sm:w-32">
         <AppImage
           src={SITE_LOGO_PATH}
           alt={SITE_NAME}
           fill
-          sizes="(max-width: 640px) 96px, 128px"
+          sizes="(max-width: 640px) 128px, 144px"
           className="object-contain"
         />
       </div>
@@ -285,6 +290,8 @@ export function Navbar() {
       </span>
     ) : isServiceCenters ? (
       <span className="whitespace-normal">اعثر على أقرب مركز خدمة</span>
+    ) : isRetailers ? (
+      <span className="whitespace-normal">موزعون معتمدون من الوكيل</span>
     ) : isAbout ? (
       <span className="whitespace-normal">جودة أصلية · تجربة واضحة</span>
     ) : undefined;

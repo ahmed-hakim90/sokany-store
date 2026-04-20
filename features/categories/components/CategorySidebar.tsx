@@ -50,7 +50,7 @@ export type CategorySidebarProps = {
 
 function chipBase(allActiveOrActive: boolean) {
   return cn(
-    "group shrink-0 snap-start  border px-3 py-2 text-start transition-colors",
+    "group shrink-0 snap-start  border px-3 py-2 text-start transition-colors shadow-sm",
     "max-w-[min(14rem,calc(100vw-3rem))] sm:max-w-[16rem]",
     allActiveOrActive
       ? "border-brand-950 bg-brand-950 text-accent shadow-sm"
