@@ -11,6 +11,7 @@ import { CheckoutShippingForm } from "@/features/checkout/components/CheckoutShi
 import { CheckoutSummary } from "@/features/checkout/components/CheckoutSummary";
 import { OrderSuccessCelebration } from "@/features/checkout/components/order-success-celebration";
 import { CheckoutSupportFooter } from "@/features/checkout/components/checkout-support-footer";
+import { CheckoutRegister } from "@/features/checkout/components/checkout-register";
 import { useCheckoutForm } from "@/features/checkout/hooks/useCheckoutForm";
 
 /*
@@ -34,6 +35,7 @@ export function CheckoutForm() {
     update,
     updateShippingMethod,
     updatePaymentMethod,
+    setCreateAccount,
     submitOrder,
   } = useCheckoutForm();
 
@@ -65,6 +67,12 @@ export function CheckoutForm() {
         errors={errors}
         onPaymentMethodChange={updatePaymentMethod}
         onCustomerNoteChange={(v) => update("customerNote", v)}
+      />
+      <CheckoutRegister
+        values={values}
+        errors={errors}
+        onCreateAccountChange={setCreateAccount}
+        onPasswordChange={(v) => update("accountPassword", v)}
       />
       <CheckoutCouponRow />
       <CheckoutLegalNote />

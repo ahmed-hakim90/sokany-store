@@ -11,6 +11,7 @@ export const loginSessionResponseSchema = z.object({
 /** JSON body from `POST /api/auth/register` on success. */
 export const registerResponseSchema = z.object({
   ok: z.literal(true),
+  customerId: z.number().int().positive(),
 });
 
 /** JSON body from `POST /api/auth/logout` on success. */

@@ -121,4 +121,5 @@ export type CreateOrderPayload = {
   payment_method_title: string;
   customer_note: string;
   set_paid?: boolean;
+  customer_id?: number;
 };

@@ -60,6 +60,8 @@ export const ROUTES = {
   ORDER_TRACKING: "/track-order",
   LOGIN: "/login",
   REGISTER: "/register",
+  /** طلبات العميل المسجّل (يتطلب جلسة). */
+  MY_ORDERS: "/my-orders",
 } as const;
 
 /** رابط دردشة واتساب لخدمة العملاء (مثل `https://wa.me/201xxxxxxxxxx`). يُضبط عبر البيئة لصفحة التتبع. */

@@ -1,3 +1,4 @@
+import axios from "axios";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { createWooClient } from "@/lib/create-woo-client";
@@ -35,15 +36,31 @@ export async function POST(request: NextRequest) {
   };
   try {
     const woo = createWooClient();
-    await woo.post("/customers", {
+    const res = await woo.post<{ id: number }>("/customers", {
       email: payload.email,
       username: payload.username,
       password: payload.password,
       first_name: payload.firstName,
       last_name: payload.lastName,
     });
-    return NextResponse.json({ ok: true }, { status: 201 });
-  } catch {
+    const customerId = typeof res.data?.id === "number" ? res.data.id : undefined;
+    if (!customerId) {
+      return NextResponse.json(
+        { error: "Registration failed" },
+        { status: 500 },
+      );
+    }
+    return NextResponse.json({ ok: true as const, customerId }, { status: 201 });
+  } catch (e) {
+    if (axios.isAxiosError(e) && e.response?.status === 400) {
+      return NextResponse.json(
+        {
+          error:
+            "قد يكون البريد أو اسم المستخدم مسجّلاً مسبقاً. سجّل الدخول أو استخدم بريداً آخر.",
+        },
+        { status: 409 },
+      );
+    }
     return NextResponse.json(
       { error: "Registration failed" },
       { status: 500 },

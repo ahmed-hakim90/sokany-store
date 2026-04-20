@@ -16,6 +16,7 @@ const footerLinks = [
   { href: ROUTES.PRODUCTS, label: "المنتجات" },
   { href: ROUTES.CART, label: "السلة" },
   { href: ROUTES.CHECKOUT, label: "إتمام الطلب" },
+  { href: ROUTES.MY_ORDERS, label: "طلباتي" },
   { href: ROUTES.ORDER_TRACKING, label: "تتبع الطلب" },
   { href: ROUTES.ABOUT, label: "من نحن" },
   { href: ROUTES.SERVICE_CENTERS, label: "مراكز الخدمة" },

@@ -18,4 +18,7 @@ export type CheckoutFormData = {
   shippingMethod: ShippingMethod;
   paymentMethod: PaymentMethod;
   customerNote: string;
+  /** اختياري عند الدفع — إنشاء عميل WooCommerce ثم ربط الطلب بـ customer_id */
+  createAccount: boolean;
+  accountPassword: string;
 };

@@ -29,6 +29,8 @@ const initialValues: CheckoutFormData = {
   shippingMethod: "flat_rate",
   paymentMethod: "cod",
   customerNote: "",
+  createAccount: false,
+  accountPassword: "",
 };
 
 export function useCheckoutForm() {
@@ -59,6 +61,14 @@ export function useCheckoutForm() {
     setValues((prev) => ({ ...prev, paymentMethod: value }));
   };
 
+  const setCreateAccount = (createAccount: boolean) => {
+    setValues((prev) => ({
+      ...prev,
+      createAccount,
+      accountPassword: createAccount ? prev.accountPassword : "",
+    }));
+  };
+
   const submitOrder = () => {
     setErrors({});
     checkoutOrder.mutate(
@@ -79,6 +89,10 @@ export function useCheckoutForm() {
               toast.error("يرجى تصحيح الحقول المظللة.");
             } else if (error.kind === "payload") {
               toast.error("تعذر التحقق من بيانات الطلب. راجع الحقول أو حاول لاحقاً.");
+            } else if (error.kind === "register") {
+              toast.error(
+                error.fieldErrors.accountPassword ?? "تعذر إنشاء الحساب.",
+              );
             }
             return;
           }
@@ -103,6 +117,7 @@ export function useCheckoutForm() {
     update,
     updateShippingMethod,
     updatePaymentMethod,
+    setCreateAccount,
     submitOrder,
   };
 }

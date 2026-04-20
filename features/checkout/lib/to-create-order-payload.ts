@@ -30,6 +30,7 @@ export function shippingMethodTitleFor(values: CheckoutFormData): string | undef
 export function toCreateOrderPayload(
   values: CheckoutFormData,
   items: CartItem[],
+  options?: { customerId?: number },
 ): CreateOrderPayload {
   const shipping = {
     first_name: values.shippingFirstName,
@@ -66,5 +67,6 @@ export function toCreateOrderPayload(
     payment_method_title: PAYMENT_METHOD_LABELS[values.paymentMethod],
     customer_note: values.customerNote,
     set_paid: false,
+    ...(options?.customerId ? { customer_id: options.customerId } : {}),
   };
 }

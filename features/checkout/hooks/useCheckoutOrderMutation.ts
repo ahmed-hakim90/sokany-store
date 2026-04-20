@@ -2,6 +2,9 @@
 
 import { useMutation } from "@tanstack/react-query";
 import type { ZodError } from "zod";
+import { registerCustomer } from "@/features/auth/services/register";
+import { login } from "@/features/auth/services/login";
+import { useAuthStore } from "@/features/auth/store/useAuthStore";
 import { checkoutSchema } from "@/features/checkout/schema";
 import { mapPayloadIssuesToCheckoutFields } from "@/features/checkout/lib/map-order-payload-issues";
 import { toCreateOrderPayload } from "@/features/checkout/lib/to-create-order-payload";
@@ -16,12 +19,12 @@ export type CheckoutOrderMutationInput = {
 };
 
 export class CheckoutOrderMutationError extends Error {
-  readonly kind: "checkout" | "payload" | "empty_cart";
+  readonly kind: "checkout" | "payload" | "empty_cart" | "register";
   readonly fieldErrors: Partial<Record<keyof CheckoutFormData, string>>;
   readonly zodError?: ZodError;
 
   constructor(params: {
-    kind: "checkout" | "payload" | "empty_cart";
+    kind: "checkout" | "payload" | "empty_cart" | "register";
     message: string;
     fieldErrors?: Partial<Record<keyof CheckoutFormData, string>>;
     zodError?: ZodError;
@@ -73,7 +76,34 @@ export function useCheckoutOrderMutation() {
         });
       }
 
-      const rawPayload = toCreateOrderPayload(checkoutParsed.data, items);
+      const data = checkoutParsed.data;
+      const wantsNewAccount =
+        data.createAccount && !useAuthStore.getState().isAuthenticated;
+
+      let customerId: number | undefined;
+      if (wantsNewAccount) {
+        try {
+          const reg = await registerCustomer({
+            email: data.contactEmail,
+            username: data.contactEmail,
+            password: data.accountPassword,
+            firstName: data.contactFirstName,
+            lastName: data.contactLastName,
+          });
+          customerId = reg.customerId;
+        } catch (e) {
+          const msg =
+            e instanceof Error ? e.message : "تعذر إنشاء الحساب. حاول مرة أخرى.";
+          throw new CheckoutOrderMutationError({
+            kind: "register",
+            message: msg,
+            fieldErrors: { accountPassword: msg },
+            cause: e,
+          });
+        }
+      }
+
+      const rawPayload = toCreateOrderPayload(data, items, { customerId });
       const payloadParsed = createOrderPayloadSchema.safeParse(rawPayload);
       if (!payloadParsed.success) {
         throw new CheckoutOrderMutationError({
@@ -84,7 +114,20 @@ export function useCheckoutOrderMutation() {
         });
       }
 
-      return createOrder(payloadParsed.data);
+      const order = await createOrder(payloadParsed.data);
+
+      if (wantsNewAccount && customerId !== undefined) {
+        try {
+          await login({
+            username: data.contactEmail,
+            password: data.accountPassword,
+          });
+        } catch {
+          /* الطلب أُنشئ؛ تسجيل الدخول التلقائي اختياري */
+        }
+      }
+
+      return order;
     },
   });
 }

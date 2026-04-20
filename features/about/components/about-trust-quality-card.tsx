@@ -9,9 +9,14 @@ export type AboutTrustQualityCardProps = {
   className?: string;
 };
 
+function trustTileGridClass(count: number) {
+  if (count === 2) return "grid grid-cols-2 gap-3 sm:gap-4";
+  if (count === 3) return "grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4";
+  return "grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4";
+}
+
 export function AboutTrustQualityCard({ title, body, tiles, className }: AboutTrustQualityCardProps) {
-  const [a, b] = tiles;
-  if (!a || !b || tiles.length < 2) return null;
+  if (tiles.length < 2) return null;
 
   return (
     <article
@@ -24,8 +29,8 @@ export function AboutTrustQualityCard({ title, body, tiles, className }: AboutTr
       <p className="mt-4 max-w-prose text-pretty text-sm leading-[1.85] text-muted-foreground sm:text-[15px]">
         {body}
       </p>
-      <div className="mt-8 grid grid-cols-2 gap-3 sm:gap-4">
-        {[a, b].map((tile) => (
+      <div className={cn("mt-8", trustTileGridClass(tiles.length))}>
+        {tiles.map((tile) => (
           <div
             key={tile.title}
             className="rounded-2xl border border-border/70 bg-page/90 px-4 py-4 sm:px-5 sm:py-5"

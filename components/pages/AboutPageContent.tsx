@@ -4,15 +4,19 @@ import { AboutEditorialHero } from "@/features/about/components/about-editorial-
 import { AboutLimeStatRibbon } from "@/features/about/components/about-lime-stat-ribbon";
 import { AboutQuoteBlock } from "@/features/about/components/about-quote-block";
 import { AboutServiceShowcaseCard } from "@/features/about/components/about-service-showcase-card";
+import { AboutStoryboardSection } from "@/features/about/components/about-storyboard-section";
 import { AboutTrustQualityCard } from "@/features/about/components/about-trust-quality-card";
 import { AboutValueFeatureBlock } from "@/features/about/components/about-value-feature-block";
+import { AboutStoryBlock } from "@/features/about/components/AboutStoryBlock";
 import { aboutContent } from "@/features/about/content";
 import { Container } from "@/components/Container";
 
 /*
- * صفحة من نحن (/about): خلفية الصفحة ثم عمود واحد داخل Container بمسافات رأسية كبيرة تتسع (sm/md).
- * الأقسام تُعرض بالترتيب من الأعلى للأسفل: هيرو تحريري → ثقة → شريط إحصاء → بطاقة ميديا داكنة
- * → قيم → عرض خدمة → ما بعد البيع → اقتباس.
+ * صفحة من نحن (/about): عمود واحد داخل Container بمسافات رأسية (gap-14…md:gap-20).
+ * من الأعلى للأسفل: هيرو → بطاقة ثقة (٣ بلاطات) → ستوري بورد أفقي على الجوال → شريط +10 سنوات
+ * → ميديا داكنة (مؤسسة المغربي) → «ليه تختار سوكاني؟» (٤ بلاطات) → رؤيتنا (نص) → صورة + رابط موزّعين
+ * → خدمات المغربي → اقتباس ختامي.
+ * الاستجابة: الجوال أولاً؛ الستوري بورد scroll-snap أفقي، ومن md شبكة أعمدة.
  */
 export function AboutPageContent() {
   return (
@@ -31,6 +35,12 @@ export function AboutPageContent() {
           tiles={aboutContent.trust.tiles}
         />
 
+        <AboutStoryboardSection
+          title={aboutContent.storyboard.title}
+          intro={aboutContent.storyboard.intro}
+          frames={aboutContent.storyboard.frames}
+        />
+
         <AboutLimeStatRibbon value={aboutContent.limeStat.value} label={aboutContent.limeStat.label} />
 
         <AboutDarkMediaCard
@@ -45,6 +55,8 @@ export function AboutPageContent() {
           body={aboutContent.value.body}
           tiles={aboutContent.value.tiles}
         />
+
+        <AboutStoryBlock title={aboutContent.vision.title} paragraphs={[...aboutContent.vision.paragraphs]} />
 
         <AboutServiceShowcaseCard
           imageSrc={aboutContent.serviceShowcase.imageSrc}
