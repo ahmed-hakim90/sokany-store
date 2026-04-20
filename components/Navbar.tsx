@@ -2,7 +2,7 @@
 
 import { Link } from "next-view-transitions";
 import { usePathname } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { AppImage } from "@/components/AppImage";
 import { MobileNavDrawer } from "@/components/layout/mobile-nav-drawer";
 import {
@@ -18,7 +18,12 @@ import { useCartDrawerOpenStore } from "@/features/cart/store/useCartDrawerOpenS
 import { useWishlistDrawerOpenStore } from "@/features/wishlist/store/useWishlistDrawerOpenStore";
 import { useCart } from "@/hooks/useCart";
 import { useWishlist } from "@/hooks/useWishlist";
-import { ROUTES, SITE_LOGO_PATH, SITE_NAME, SITE_WORDMARK } from "@/lib/constants";
+import {
+  ROUTES,
+  SITE_LOGO_DISABLED,
+  SITE_LOGO_PATH,
+  SITE_NAME,
+} from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 /** Primary strip (desktop) + top of drawer — matches storefront reference. */
@@ -106,21 +111,30 @@ export function Navbar() {
   const isRetailers =
     pathname === ROUTES.RETAILERS ||
     pathname.startsWith(`${ROUTES.RETAILERS}/`);
-//  لوجو السايت في التوب ناف بار
+
+  const [logoLoadFailed, setLogoLoadFailed] = useState(false);
+  const showHeaderWordmarkText = SITE_LOGO_DISABLED || logoLoadFailed;
+  const headerBrandTextClass =
+    "truncate font-display text-base font-semibold tracking-tight text-brand-950 sm:text-lg";
+
+  // لوجو السايت في التوب ناف بار — بدون صورة: اسم الموقع (أو تعطيل اللوجو عبر env فارغ)
   const logo = (
-    <Link href={ROUTES.HOME} className="flex items-center gap-2.5">
-      <div className="relative h-14 w-32 overflow-hidden sm:h-[3.75rem] sm:w-36">
-        <AppImage
-          src={SITE_LOGO_PATH}
-          alt={SITE_NAME}
-          fill
-          sizes="100%"
-          className="object-contain"
-        />
-      </div>
-      {/* <span className="font-display text-base font-semibold text-brand-950 sm:text-lg">
-        {SITE_NAME}
-      </span> */}
+    <Link href={ROUTES.HOME} className="flex min-w-0 items-center gap-2.5">
+      {showHeaderWordmarkText ? (
+        <span className={cn(headerBrandTextClass, "max-w-[11rem]")}>{SITE_NAME}</span>
+      ) : (
+        <div className="relative h-14 w-32 overflow-hidden sm:h-[3.75rem] sm:w-36">
+          <AppImage
+            src={SITE_LOGO_PATH}
+            alt={SITE_NAME}
+            fill
+            sizes="100%"
+            className="object-contain"
+            usePlaceholderOnError={false}
+            onLoadError={() => setLogoLoadFailed(true)}
+          />
+        </div>
+      )}
     </Link>
   );
 
@@ -236,18 +250,33 @@ export function Navbar() {
       className="flex min-w-0 flex-col items-center gap-1"
       onClick={() => closeDrawer()}
     >
-      <div className="relative h-14 w-32 overflow-hidden sm:h-14 sm:w-36">
-        <AppImage
-          src={SITE_LOGO_PATH}
-          alt={SITE_NAME}
-          fill
-          sizes="100%"
-          className="object-contain"
-        />
-      </div>
-      <span className="truncate font-display text-[0.8125rem] font-semibold leading-tight text-brand-950 sm:text-[0.875rem]">
-        {SITE_NAME}
-      </span>
+      {showHeaderWordmarkText ? (
+        <span
+          className={cn(
+            headerBrandTextClass,
+            "text-center text-[0.9375rem] sm:text-base",
+          )}
+        >
+          {SITE_NAME}
+        </span>
+      ) : (
+        <>
+          <div className="relative h-14 w-32 overflow-hidden sm:h-14 sm:w-36">
+            <AppImage
+              src={SITE_LOGO_PATH}
+              alt={SITE_NAME}
+              fill
+              sizes="100%"
+              className="object-contain"
+              usePlaceholderOnError={false}
+              onLoadError={() => setLogoLoadFailed(true)}
+            />
+          </div>
+          <span className="truncate font-display text-[0.8125rem] font-semibold leading-tight text-brand-950 sm:text-[0.875rem]">
+            {SITE_NAME}
+          </span>
+        </>
+      )}
     </Link>
   ) : (
     <Link
@@ -255,15 +284,28 @@ export function Navbar() {
       className="flex min-w-0 justify-center"
       onClick={() => closeDrawer()}
     >
-      <div className="relative mx-auto h-14 w-32 max-w-full overflow-hidden sm:h-14 sm:w-32">
-        <AppImage
-          src={SITE_LOGO_PATH}
-          alt={SITE_NAME}
-          fill
-          sizes="(max-width: 640px) 128px, 144px"
-          className="object-contain"
-        />
-      </div>
+      {showHeaderWordmarkText ? (
+        <span
+          className={cn(
+            headerBrandTextClass,
+            "text-center text-[0.9375rem] sm:text-base",
+          )}
+        >
+          {SITE_NAME}
+        </span>
+      ) : (
+        <div className="relative mx-auto h-14 w-32 max-w-full overflow-hidden sm:h-14 sm:w-32">
+          <AppImage
+            src={SITE_LOGO_PATH}
+            alt={SITE_NAME}
+            fill
+            sizes="(max-width: 640px) 128px, 144px"
+            className="object-contain"
+            usePlaceholderOnError={false}
+            onLoadError={() => setLogoLoadFailed(true)}
+          />
+        </div>
+      )}
     </Link>
   );
 

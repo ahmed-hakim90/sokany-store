@@ -25,10 +25,17 @@ export function AppImage({
   priority,
   width,
   height,
+  onLoadError,
+  usePlaceholderOnError = true,
 }: Pick<
   ImageProps,
   "src" | "alt" | "className" | "fill" | "sizes" | "priority" | "width" | "height"
->) {
+> & {
+  /** Called when the image fails to load (before optional placeholder swap). */
+  onLoadError?: () => void;
+  /** When false, failed loads do not switch to `/images/placeholder.png` (e.g. parent shows text). @default true */
+  usePlaceholderOnError?: boolean;
+}) {
   const [currentSrc, setCurrentSrc] = useState(() => normalizeSrc(src));
 
   useEffect(() => {
@@ -46,7 +53,12 @@ export function AppImage({
       loading={priority ? "eager" : undefined}
       width={width}
       height={height}
-      onError={() => setCurrentSrc(PLACEHOLDER_PATH)}
+      onError={() => {
+        onLoadError?.();
+        if (usePlaceholderOnError) {
+          setCurrentSrc(PLACEHOLDER_PATH);
+        }
+      }}
     />
   );
 }

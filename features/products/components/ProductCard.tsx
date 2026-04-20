@@ -18,6 +18,8 @@ import {
   WISHLIST_HEART_BURST_STAGGER_SEC,
   type HeartParticle,
 } from "@/features/products/components/wishlist-heart-burst";
+import { ProductRatingDisplay } from "@/features/products/components/product-rating-display";
+import { ProductStatusBadge } from "@/features/products/components/product-status-badge";
 import type { Product } from "@/features/products/types";
 
 export type ProductCardVariant =
@@ -266,6 +268,13 @@ export function ProductCard({
             </span>
           ) : null}
           {titleLink}
+          <ProductRatingDisplay
+            rating={product.rating}
+            ratingCount={product.ratingCount}
+            size={variant === "mobileCompact" ? "xs" : "sm"}
+            className="mt-1"
+          />
+          <ProductStatusBadge product={product} className="mt-1" />
           <div
             className={cn(
               "mt-auto flex min-h-[3.25rem] items-end pt-1",

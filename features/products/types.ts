@@ -91,6 +91,10 @@ export type Product = {
   categories: { id: number; name: string; slug: string }[];
   rating: number;
   ratingCount: number;
+  /** WooCommerce `date_created` — used for «جديد» on cards */
+  dateCreated: string;
+  /** WooCommerce `total_sales` — used for «الأكثر مبيعاً» on cards */
+  totalSales: number;
   permalink: string;
   tags: { id: number; name: string; slug: string }[];
   attributes: {

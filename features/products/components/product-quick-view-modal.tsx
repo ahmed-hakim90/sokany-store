@@ -7,6 +7,8 @@ import { AppImage } from "@/components/AppImage";
 import { IconButton } from "@/components/ui/icon-button";
 import { PriceText } from "@/components/ui/price-text";
 import { ROUTES } from "@/lib/constants";
+import { ProductRatingDisplay } from "@/features/products/components/product-rating-display";
+import { ProductStatusBadge } from "@/features/products/components/product-status-badge";
 import { cn, stripHtml } from "@/lib/utils";
 import type { Product } from "@/features/products/types";
 
@@ -121,9 +123,18 @@ export function ProductQuickViewModal({
         )}
       >
         <div className="flex items-start justify-between gap-2 border-b border-border/60 px-4 py-3">
-          <h2 id={titleId} className="min-w-0 flex-1 text-base font-bold leading-snug text-neutral-950">
-            {product.name}
-          </h2>
+          <div className="min-w-0 flex-1">
+            <h2 id={titleId} className="text-base font-bold leading-snug text-neutral-950">
+              {product.name}
+            </h2>
+            <ProductRatingDisplay
+              rating={product.rating}
+              ratingCount={product.ratingCount}
+              size="sm"
+              className="mt-2"
+            />
+            <ProductStatusBadge product={product} className="mt-1.5" />
+          </div>
           <IconButton
             ref={closeRef}
             type="button"

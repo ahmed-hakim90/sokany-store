@@ -9,9 +9,14 @@ export const SITE_BRAND_TITLE_AR =
 /** Compact mobile header wordmark (Latin mark; override via env). */
 export const SITE_WORDMARK =
   process.env.NEXT_PUBLIC_SITE_WORDMARK ?? "SOKANY-Eg";
+const rawSiteLogoPath = process.env.NEXT_PUBLIC_SITE_LOGO_PATH;
+/** Set `NEXT_PUBLIC_SITE_LOGO_PATH=` (empty) to use the site name instead of a logo image where supported. */
+export const SITE_LOGO_DISABLED =
+  typeof rawSiteLogoPath === "string" && rawSiteLogoPath.trim() === "";
 /** Public path to storefront logo (`public/` root). Override via `NEXT_PUBLIC_SITE_LOGO_PATH`. */
-export const SITE_LOGO_PATH =
-  process.env.NEXT_PUBLIC_SITE_LOGO_PATH?.trim() || "/images/logo.png";
+export const SITE_LOGO_PATH = SITE_LOGO_DISABLED
+  ? "/images/logo.png"
+  : rawSiteLogoPath?.trim() || "/images/logo.png";
 export const DEFAULT_CURRENCY =
   process.env.NEXT_PUBLIC_DEFAULT_CURRENCY ?? "EGP";
 export const CURRENCY_LOCALE =
@@ -70,6 +75,24 @@ export const WHATSAPP_SUPPORT_URL =
 
 /** Prefix for header product search input `id` (suffix from `useId()`; two instances may exist). */
 export const GLOBAL_PRODUCT_SEARCH_INPUT_ID = "global-product-search";
+
+/**
+ * Microsoft Clarity project ID. Set `NEXT_PUBLIC_CLARITY_PROJECT_ID=` (empty) to disable.
+ * When the env var is omitted, the production project id is used.
+ */
+const rawClarityId = process.env.NEXT_PUBLIC_CLARITY_PROJECT_ID;
+export const CLARITY_PROJECT_ID =
+  rawClarityId === undefined ? "wen7myivca" : rawClarityId.trim();
+
+/**
+ * Google Analytics 4 measurement ID (`G-xxxxxxxxxx`).
+ * Omit env for default; set `NEXT_PUBLIC_GA_MEASUREMENT_ID=` (empty) to disable.
+ */
+const rawGaMeasurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
+export const GA_MEASUREMENT_ID =
+  rawGaMeasurementId === undefined
+    ? "G-RLD66T23W5"
+    : rawGaMeasurementId.trim();
 
 /** WordPress JWT Auth plugin token endpoint path (relative to WC_BASE_URL origin). */
 export const WP_JWT_AUTH_TOKEN_PATH = "/wp-json/jwt-auth/v1/token";

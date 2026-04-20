@@ -51,6 +51,8 @@ export function mapProduct(raw: WCProduct): Product {
     })),
     rating: Number.isFinite(rating) ? rating : 0,
     ratingCount: raw.rating_count,
+    dateCreated: raw.date_created,
+    totalSales: raw.total_sales,
     permalink: raw.permalink,
     tags: raw.tags.map((t) => ({
       id: t.id,

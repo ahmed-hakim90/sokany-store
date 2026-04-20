@@ -7,7 +7,13 @@ import { Container } from "@/components/Container";
 import { MobileAccordionSection } from "@/components/ui/mobile-accordion-section";
 import { useCategories } from "@/features/categories/hooks/useCategories";
 import { mockCategories } from "@/features/categories/mock";
-import { CONTACT_EMAIL, ROUTES, SITE_LOGO_PATH, SITE_NAME } from "@/lib/constants";
+import {
+  CONTACT_EMAIL,
+  ROUTES,
+  SITE_LOGO_DISABLED,
+  SITE_LOGO_PATH,
+  SITE_NAME,
+} from "@/lib/constants";
 import { SOCIAL_LINKS } from "@/lib/social-links";
 import { cn } from "@/lib/utils";
 
@@ -179,15 +185,21 @@ export function Footer() {
             </a>
           </div>
           <div className="flex flex-col items-center gap-2 text-center">
-            <div className="relative h-12 w-28 overflow-hidden sm:h-14 sm:w-32">
-              <AppImage
-                src={SITE_LOGO_PATH}
-                alt=""
-                fill
-                sizes="100%"
-                className="object-contain"
-              />
-            </div>
+            {SITE_LOGO_DISABLED ? (
+              <p className="font-display text-sm font-semibold text-brand-950 sm:text-base">
+                {SITE_NAME}
+              </p>
+            ) : (
+              <div className="relative h-12 w-28 overflow-hidden sm:h-14 sm:w-32">
+                <AppImage
+                  src={SITE_LOGO_PATH}
+                  alt=""
+                  fill
+                  sizes="100%"
+                  className="object-contain"
+                />
+              </div>
+            )}
             {/* <p className="font-display text-xs font-semibold text-brand-950">{SITE_NAME}</p> */}
             <p className="text-xs text-muted-foreground">
               © {year} {SITE_NAME}. جميع الحقوق محفوظة.

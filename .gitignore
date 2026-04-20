@@ -44,3 +44,10 @@ next-env.d.ts
 data/sokany-eg/_errors.json
 data/sokany-eg/.cache/
 
+# Playwright
+node_modules/
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/
