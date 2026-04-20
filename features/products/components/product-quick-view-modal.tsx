@@ -6,6 +6,7 @@ import { Link } from "next-view-transitions";
 import { AppImage } from "@/components/AppImage";
 import { IconButton } from "@/components/ui/icon-button";
 import { PriceText } from "@/components/ui/price-text";
+import { usePointerSwipe } from "@/hooks/usePointerSwipe";
 import { ROUTES } from "@/lib/constants";
 import { ProductRatingDisplay } from "@/features/products/components/product-rating-display";
 import { ProductStatusBadge } from "@/features/products/components/product-status-badge";
@@ -54,6 +55,10 @@ export function ProductQuickViewModal({
   }, []);
 
   useEffect(() => {
+    setIndex(0);
+  }, [product.id]);
+
+  useEffect(() => {
     if (!open) {
       setIndex(0);
       return;
@@ -64,17 +69,34 @@ export function ProductQuickViewModal({
     return () => cancelAnimationFrame(t);
   }, [open]);
 
+  const goPrev = useCallback(() => {
+    setIndex((i) => (i <= 0 ? slides.length - 1 : i - 1));
+  }, [slides.length]);
+
+  const goNext = useCallback(() => {
+    setIndex((i) => (i >= slides.length - 1 ? 0 : i + 1));
+  }, [slides.length]);
+
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         e.preventDefault();
         onOpenChange(false);
+        return;
+      }
+      if (slides.length <= 1) return;
+      if (e.key === "ArrowRight") {
+        e.preventDefault();
+        goNext();
+      } else if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        goPrev();
       }
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [open, onOpenChange]);
+  }, [open, onOpenChange, slides.length, goNext, goPrev]);
 
   useEffect(() => {
     if (!open) return;
@@ -85,17 +107,15 @@ export function ProductQuickViewModal({
     };
   }, [open]);
 
+  const gallerySwipe = usePointerSwipe({
+    enabled: slides.length > 1,
+    onSwipeNext: goNext,
+    onSwipePrev: goPrev,
+  });
+
   const plainDesc = stripHtml(product.shortDescription || product.description || "");
   const excerpt =
     plainDesc.length > 320 ? `${plainDesc.slice(0, 320).trim()}…` : plainDesc;
-
-  const goPrev = useCallback(() => {
-    setIndex((i) => (i <= 0 ? slides.length - 1 : i - 1));
-  }, [slides.length]);
-
-  const goNext = useCallback(() => {
-    setIndex((i) => (i >= slides.length - 1 ? 0 : i + 1));
-  }, [slides.length]);
 
   if (!mounted || !open) return null;
 
@@ -149,51 +169,52 @@ export function ProductQuickViewModal({
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
-          <div className="relative aspect-square w-full bg-white">
+          <div
+            className={cn(
+              "relative aspect-square w-full touch-none bg-white select-none",
+              slides.length > 1 && "cursor-grab active:cursor-grabbing",
+            )}
+            role="region"
+            aria-roledescription="معرض صور"
+            aria-label={slides.length > 1 ? `صورة ${index + 1} من ${slides.length}` : undefined}
+            {...gallerySwipe}
+          >
             <AppImage
               src={slide.src}
               alt={slide.alt}
               fill
               sizes="(max-width: 640px) 100vw, 32rem"
-              className="object-contain"
+              className="pointer-events-none object-contain"
             />
-            {slides.length > 1 ? (
-              <>
-                {/* RTL: التالي على start (يمين الشاشة)، السابق على end (يسار) */}
-                <button
-                  type="button"
-                  onClick={goNext}
-                  className="absolute start-2 top-1/2 z-[2] flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-border/80 bg-white/95 text-foreground shadow-md backdrop-blur-sm transition hover:bg-white"
-                  aria-label="الصورة التالية"
-                >
-                  <ChevronFwd />
-                </button>
-                <button
-                  type="button"
-                  onClick={goPrev}
-                  className="absolute end-2 top-1/2 z-[2] flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-border/80 bg-white/95 text-foreground shadow-md backdrop-blur-sm transition hover:bg-white"
-                  aria-label="الصورة السابقة"
-                >
-                  <ChevronBack />
-                </button>
-                <div className="absolute bottom-3 left-1/2 z-[2] flex -translate-x-1/2 gap-1.5 rounded-full bg-black/35 px-2 py-1.5 backdrop-blur-sm">
-                  {slides.map((s, i) => (
-                    <button
-                      key={s.key}
-                      type="button"
-                      aria-label={`صورة ${i + 1} من ${slides.length}`}
-                      aria-current={i === index}
-                      className={cn(
-                        "h-2 w-2 rounded-full transition",
-                        i === index ? "bg-white" : "bg-white/45 hover:bg-white/70",
-                      )}
-                      onClick={() => setIndex(i)}
-                    />
-                  ))}
-                </div>
-              </>
-            ) : null}
           </div>
+
+          {slides.length > 1 ? (
+            <div className="flex gap-2 overflow-x-auto border-b border-border/50 bg-neutral-50/80 px-3 py-2.5 [scrollbar-width:thin]">
+              {slides.map((s, i) => (
+                <button
+                  key={s.key}
+                  type="button"
+                  aria-label={`صورة ${i + 1} من ${slides.length}`}
+                  aria-current={i === index}
+                  onClick={() => setIndex(i)}
+                  className={cn(
+                    "relative h-14 w-14 shrink-0 overflow-hidden rounded-lg ring-2 transition ring-offset-2 ring-offset-neutral-50",
+                    i === index
+                      ? "ring-brand-500"
+                      : "ring-transparent hover:ring-neutral-300",
+                  )}
+                >
+                  <AppImage
+                    src={s.src}
+                    alt=""
+                    fill
+                    sizes="56px"
+                    className="object-cover"
+                  />
+                </button>
+              ))}
+            </div>
+          ) : null}
 
           <div className="space-y-3 px-4 py-4">
             <div className="rounded-xl bg-surface-muted/50 px-3 py-3 ring-1 ring-border/50">
@@ -254,34 +275,6 @@ function CloseIcon() {
         stroke="currentColor"
         strokeWidth="2"
         strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
-function ChevronBack() {
-  return (
-    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden>
-      <path
-        d="M14 6l-6 6 6 6"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-function ChevronFwd() {
-  return (
-    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden>
-      <path
-        d="M10 6l6 6-6 6"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
       />
     </svg>
   );

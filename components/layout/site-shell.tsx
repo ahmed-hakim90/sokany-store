@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { FooterGate } from "@/components/layout/footer-gate";
 import { MobileCommerceChrome } from "@/components/layout/mobile-commerce-chrome";
+import { MobileScrollCollapseController } from "@/components/layout/mobile-scroll-collapse-controller";
 import { Navbar } from "@/components/Navbar";
 import { DesktopCartDrawer } from "@/features/cart/components/DesktopCartDrawer";
 import { CatalogFilterDrawer } from "@/features/catalog/components/CatalogFilterDrawer";
@@ -25,6 +26,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
         {children}
       </main>
       <FooterGate />
+      <MobileScrollCollapseController />
       <MobileCommerceChrome />
     </>
   );

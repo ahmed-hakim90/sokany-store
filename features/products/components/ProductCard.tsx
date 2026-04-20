@@ -1,13 +1,15 @@
 "use client";
 
 import { useReducedMotion } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "next-view-transitions";
 import { AppImage } from "@/components/AppImage";
 import { Card } from "@/components/ui/card";
 import { IconButton } from "@/components/ui/icon-button";
 import { PriceText } from "@/components/ui/price-text";
 import { cn } from "@/lib/utils";
+import { usePointerSwipe } from "@/hooks/usePointerSwipe";
 import { ROUTES } from "@/lib/constants";
 import { playCartFlyAnimation } from "@/lib/cart-fly-animation";
 import { usePrefetchProduct } from "@/features/products/hooks/usePrefetchProduct";
@@ -103,6 +105,7 @@ export function ProductCard({
   wishlistSlot,
   className,
 }: ProductCardProps) {
+  const router = useRouter();
   const prefetchProduct = usePrefetchProduct();
   const imageFlyRef = useRef<HTMLDivElement>(null);
   const reduceMotion = useReducedMotion();
@@ -122,6 +125,44 @@ export function ProductCard({
   const [justAdded, setJustAdded] = useState(false);
   const [quickViewOpen, setQuickViewOpen] = useState(false);
 
+  const cardSlides = useMemo(() => {
+    if (product.images.length > 0) {
+      return product.images.map((img) => ({
+        key: String(img.id),
+        src: img.src,
+        alt: img.alt || product.name,
+      }));
+    }
+    return [{ key: "thumb", src: product.thumbnail, alt: product.name }];
+  }, [product]);
+
+  const [imageIndex, setImageIndex] = useState(0);
+  const multiImage = cardSlides.length > 1;
+  const activeSlide = cardSlides[imageIndex] ?? cardSlides[0];
+
+  useEffect(() => {
+    setImageIndex(0);
+  }, [product.id]);
+
+  const goImgNext = useCallback(() => {
+    setImageIndex((i) => (i >= cardSlides.length - 1 ? 0 : i + 1));
+  }, [cardSlides.length]);
+
+  const goImgPrev = useCallback(() => {
+    setImageIndex((i) => (i <= 0 ? cardSlides.length - 1 : i - 1));
+  }, [cardSlides.length]);
+
+  const navigateToProduct = useCallback(() => {
+    router.push(ROUTES.PRODUCT(product.id));
+  }, [router, product.id]);
+
+  const cardImageSwipe = usePointerSwipe({
+    enabled: multiImage,
+    onSwipeNext: goImgNext,
+    onSwipePrev: goImgPrev,
+    onTap: navigateToProduct,
+  });
+
   useEffect(() => {
     return () => {
       if (addFeedbackTimerRef.current) {
@@ -135,7 +176,7 @@ export function ProductCard({
     onCartLineQuantityChange(product, Math.min(99, lineQty + 1));
     void playCartFlyAnimation({
       fromElement: imageFlyRef.current,
-      imageSrc: product.thumbnail,
+      imageSrc: activeSlide.src,
       prefersReducedMotion: Boolean(reduceMotion),
     });
     setJustAdded(true);
@@ -196,21 +237,30 @@ export function ProductCard({
         <div className="relative aspect-square overflow-hidden bg-white">
           <div ref={imageFlyRef} className="absolute inset-0 z-0">
             <AppImage
-              src={product.thumbnail}
-              alt={product.name}
+              src={activeSlide.src}
+              alt={activeSlide.alt}
               fill
               sizes={imageSizes}
               priority={imagePriority}
               className="object-contain object-center"
             />
           </div>
-          <Link
-            href={ROUTES.PRODUCT(product.id)}
-            className="absolute inset-0 z-[1]"
-            onMouseEnter={handlePrefetch}
-            onFocus={handlePrefetch}
-            aria-label={product.name}
-          />
+          {multiImage ? (
+            <div
+              className="absolute inset-0 z-[1] touch-none select-none"
+              aria-hidden
+              onPointerEnter={handlePrefetch}
+              {...cardImageSwipe}
+            />
+          ) : (
+            <Link
+              href={ROUTES.PRODUCT(product.id)}
+              className="absolute inset-0 z-[1]"
+              onMouseEnter={handlePrefetch}
+              onFocus={handlePrefetch}
+              aria-label={product.name}
+            />
+          )}
           {product.featured ? (
             <span className="pointer-events-none absolute left-2 top-2 z-[3] rounded-md bg-sky-700 px-2 py-1 text-[10px] font-bold leading-none text-white shadow-sm">
               مميز

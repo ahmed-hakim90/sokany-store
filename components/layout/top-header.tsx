@@ -16,6 +16,8 @@ export type TopHeaderProps = {
   mobileTrailing: React.ReactNode;
   mobileToolbarBelow?: React.ReactNode;
   mobileSecondary?: React.ReactNode;
+  /** عند true على الموبايل يُطوى الهيدر العلوي (سكرول للأسفل). */
+  mobileChromeCollapsed?: boolean;
   className?: string;
 };
 
@@ -29,6 +31,7 @@ export function TopHeader({
   mobileTrailing,
   mobileToolbarBelow,
   mobileSecondary,
+  mobileChromeCollapsed = false,
   className,
 }: TopHeaderProps) {
   return (
@@ -38,7 +41,12 @@ export function TopHeader({
         className,
       )}
     >
-      <div className="lg:hidden">
+      <div
+        className={cn(
+          "lg:hidden overflow-hidden transition-[max-height] duration-300 ease-out motion-reduce:transition-none",
+          mobileChromeCollapsed ? "pointer-events-none max-h-0" : "max-h-[100dvh]",
+        )}
+      >
         <MobileTopHeader
           wordmark={mobileWordmark}
           leading={mobileLeading}

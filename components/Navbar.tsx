@@ -12,6 +12,7 @@ import {
 import { MobileStoreHotline } from "@/components/layout/mobile-store-hotline";
 import { NavbarSearch } from "@/components/layout/navbar-search";
 import { CatalogFilterDrawerTrigger } from "@/features/catalog/components/CatalogFilterDrawerTrigger";
+import { useMobileChromeCollapsedStore } from "@/components/layout/mobile-chrome-collapsed-store";
 import { TopHeader } from "@/components/layout/top-header";
 import { useCategories } from "@/features/categories/hooks/useCategories";
 import { useCartDrawerOpenStore } from "@/features/cart/store/useCartDrawerOpenStore";
@@ -98,6 +99,7 @@ export function Navbar() {
   const openDesktopWishlistDrawer = useWishlistDrawerOpenStore((s) => s.openDrawer);
   const closeDesktopWishlistDrawer = useWishlistDrawerOpenStore((s) => s.closeDrawer);
   const desktopWishlistDrawerOpen = useWishlistDrawerOpenStore((s) => s.open);
+  const mobileChromeCollapsed = useMobileChromeCollapsedStore((s) => s.collapsed);
 
   const isCheckout = pathname === ROUTES.CHECKOUT;
   const isAbout = pathname === ROUTES.ABOUT;
@@ -350,6 +352,7 @@ export function Navbar() {
         mobileTrailing={mobileTrailing}
         mobileToolbarBelow={isCheckout ? undefined : searchWithFilter}
         mobileSecondary={mobileSecondary}
+        mobileChromeCollapsed={mobileChromeCollapsed}
       />
       {!isCheckout ? (
         <MobileNavDrawer

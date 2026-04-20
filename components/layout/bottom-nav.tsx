@@ -3,6 +3,7 @@
 import { Link } from "next-view-transitions";
 import { usePathname } from "next/navigation";
 import { useRef } from "react";
+import { useMobileChromeCollapsedStore } from "@/components/layout/mobile-chrome-collapsed-store";
 import {
   mobileNavDrawerReturnFocusRef,
   useMobileNavDrawerOpenStore,
@@ -44,6 +45,8 @@ export function BottomNavInner() {
   const mainMenuButtonRef = useRef<HTMLButtonElement>(null);
   const drawerOpen = useMobileNavDrawerOpenStore((s) => s.open);
   const openDrawer = useMobileNavDrawerOpenStore((s) => s.openDrawer);
+  const mobileChromeCollapsed = useMobileChromeCollapsedStore((s) => s.collapsed);
+  const expandMobileChrome = useMobileChromeCollapsedStore((s) => s.expand);
   const isCheckout = pathname === ROUTES.CHECKOUT;
 
   const tabClass = (active: boolean) =>
@@ -71,6 +74,12 @@ export function BottomNavInner() {
                 aria-current={active ? "page" : undefined}
                 className={tabClass(active)}
                 {...(isCart ? { "data-cart-fly-target": "mobile" as const } : {})}
+                onClick={(e) => {
+                  if (isCart && mobileChromeCollapsed) {
+                    e.preventDefault();
+                    expandMobileChrome();
+                  }
+                }}
               >
                 <span className="relative inline-flex text-current">
                   <Icon />
