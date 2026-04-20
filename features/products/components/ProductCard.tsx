@@ -163,6 +163,17 @@ export function ProductCard({
     onTap: navigateToProduct,
   });
 
+  /** تبديل تلقائي للصور في الكارت — يُوقف مع «تقليل الحركة» وعند إخفاء التبويب. */
+  useEffect(() => {
+    if (!multiImage || reduceMotion) return;
+    const intervalMs = 5000;
+    const id = window.setInterval(() => {
+      if (document.visibilityState !== "visible") return;
+      goImgNext();
+    }, intervalMs);
+    return () => window.clearInterval(id);
+  }, [multiImage, reduceMotion, goImgNext]);
+
   useEffect(() => {
     return () => {
       if (addFeedbackTimerRef.current) {
@@ -339,7 +350,7 @@ export function ProductCard({
                 size="md"
                 disabled={!product.inStock}
                 aria-label={justAdded ? "تمت الإضافة للسلة" : "أضف للسلة"}
-                className="shrink-0 shadow-sm"
+                className="h-11 min-h-[44px] min-w-14 w-14 shrink-0 shadow-sm [&_svg]:h-6 [&_svg]:w-6"
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
@@ -388,9 +399,10 @@ function EyeIcon({ className }: { className?: string }) {
 }
 
 function CartGlyph({ added }: { added?: boolean }) {
+  const iconClass = "h-6 w-6 shrink-0";
   if (added) {
     return (
-      <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden>
+      <svg viewBox="0 0 24 24" className={iconClass} aria-hidden>
         <path
           fill="currentColor"
           d="M9.55 17.65l-4.1-4.1 1.4-1.45 2.7 2.7 6.75-6.75 1.45 1.45-8.2 8.15z"
@@ -399,16 +411,16 @@ function CartGlyph({ added }: { added?: boolean }) {
     );
   }
   return (
-    <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5" aria-hidden>
+    <svg viewBox="0 0 24 24" fill="none" className={iconClass} aria-hidden>
       <path
         d="M3 4h2.2c.5 0 .93.33 1.06.81l.54 2.02m0 0L8 12h9.5a1 1 0 00.97-.76l1.2-4.8a.75.75 0 00-.73-.94H6.8z"
         stroke="currentColor"
-        strokeWidth="1.8"
+        strokeWidth="2.1"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      <circle cx="10" cy="18.2" r="1.3" fill="currentColor" />
-      <circle cx="17" cy="18.2" r="1.3" fill="currentColor" />
+      <circle cx="10" cy="18.2" r="1.35" fill="currentColor" />
+      <circle cx="17" cy="18.2" r="1.35" fill="currentColor" />
     </svg>
   );
 }

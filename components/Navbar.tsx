@@ -99,7 +99,9 @@ export function Navbar() {
   const openDesktopWishlistDrawer = useWishlistDrawerOpenStore((s) => s.openDrawer);
   const closeDesktopWishlistDrawer = useWishlistDrawerOpenStore((s) => s.closeDrawer);
   const desktopWishlistDrawerOpen = useWishlistDrawerOpenStore((s) => s.open);
-  const mobileChromeCollapsed = useMobileChromeCollapsedStore((s) => s.collapsed);
+  const mobileChromeCollapsed = useMobileChromeCollapsedStore(
+    (s) => s.headerHidden,
+  );
 
   const isCheckout = pathname === ROUTES.CHECKOUT;
   const isAbout = pathname === ROUTES.ABOUT;

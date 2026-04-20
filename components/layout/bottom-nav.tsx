@@ -45,8 +45,10 @@ export function BottomNavInner() {
   const mainMenuButtonRef = useRef<HTMLButtonElement>(null);
   const drawerOpen = useMobileNavDrawerOpenStore((s) => s.open);
   const openDrawer = useMobileNavDrawerOpenStore((s) => s.openDrawer);
-  const mobileChromeCollapsed = useMobileChromeCollapsedStore((s) => s.collapsed);
-  const expandMobileChrome = useMobileChromeCollapsedStore((s) => s.expand);
+  const cartPeekHidden = useMobileChromeCollapsedStore((s) => s.cartPeekHidden);
+  const showCartPeekOnly = useMobileChromeCollapsedStore(
+    (s) => s.showCartPeekOnly,
+  );
   const isCheckout = pathname === ROUTES.CHECKOUT;
 
   const tabClass = (active: boolean) =>
@@ -75,9 +77,9 @@ export function BottomNavInner() {
                 className={tabClass(active)}
                 {...(isCart ? { "data-cart-fly-target": "mobile" as const } : {})}
                 onClick={(e) => {
-                  if (isCart && mobileChromeCollapsed) {
+                  if (isCart && cartPeekHidden) {
                     e.preventDefault();
-                    expandMobileChrome();
+                    showCartPeekOnly();
                   }
                 }}
               >

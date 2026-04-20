@@ -4,23 +4,26 @@ import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { useMobileChromeCollapsedStore } from "@/components/layout/mobile-chrome-collapsed-store";
 
-const SCROLL_DELTA = 10;
+/** عتبة أكبر قليلاً لتقليل التفعيل العرضي عند اهتزاز السكرول. */
+const SCROLL_DOWN_DELTA = 14;
 const NEAR_TOP_PX = 48;
 
 /**
- * على الشاشات الصغيرة: يخفي الهيدر العلوي وشريط ملخص السلة عند السكرول للأسفل،
- * ويعيدهما عند السكرول للأعلى أو عند العودة لأعلى الصفحة.
- * يُصفّر الحالة عند تغيير المسار أو عند الانتقال لعرض سطح المكتب.
+ * موبايل: يخفي الهيدر وشريط ملخص السلة عند السكرول للأسفل.
+ * لا يعيد إظهارهما عند سكرول بسيط للأعلى (يقلل الطفو المزعج) —
+ * الإظهار عند الاقتراب من أعلى الصفحة أو عند تغيير المسار.
  */
 export function MobileScrollCollapseController() {
   const pathname = usePathname();
-  const expand = useMobileChromeCollapsedStore((s) => s.expand);
-  const setCollapsed = useMobileChromeCollapsedStore((s) => s.setCollapsed);
+  const resetChrome = useMobileChromeCollapsedStore((s) => s.resetChrome);
+  const hideChromeFromScroll = useMobileChromeCollapsedStore(
+    (s) => s.hideChromeFromScroll,
+  );
   const lastYRef = useRef(0);
 
   useEffect(() => {
-    expand();
-  }, [pathname, expand]);
+    resetChrome();
+  }, [pathname, resetChrome]);
 
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 1023px)");
@@ -34,19 +37,17 @@ export function MobileScrollCollapseController() {
       lastYRef.current = y;
 
       if (y < NEAR_TOP_PX) {
-        setCollapsed(false);
+        resetChrome();
         return;
       }
-      if (delta > SCROLL_DELTA) {
-        setCollapsed(true);
-      } else if (delta < -SCROLL_DELTA) {
-        setCollapsed(false);
+      if (delta > SCROLL_DOWN_DELTA) {
+        hideChromeFromScroll();
       }
     };
 
     const onMqChange = () => {
       if (!mq.matches) {
-        setCollapsed(false);
+        resetChrome();
       }
     };
 
@@ -56,7 +57,7 @@ export function MobileScrollCollapseController() {
       window.removeEventListener("scroll", onScroll);
       mq.removeEventListener("change", onMqChange);
     };
-  }, [setCollapsed]);
+  }, [resetChrome, hideChromeFromScroll]);
 
   return null;
 }

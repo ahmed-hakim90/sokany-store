@@ -59,7 +59,7 @@ function CheckSealIcon() {
 /*
  * الصفحة الرئيسية (/): عمود واحد داخل Container بمسافات رأسية تتسع تدريجياً (sm → md).
  * التسلسل: هيرو (سكروول أفقي + auto-rotate) → شريط صور التصنيفات
- * (240×120 سكروول أفقي) → عروض سريعة (منتجات on_sale + عداد حتى منتصف الليل) → شريط ثقة
+ * (240×120 سكروول أفقي) → عروض سريعة (بانر أزرق + عداد + CTA ثم شبكة on_sale) → شريط ثقة
  * → الأكثر مبيعاً (featured) → وصل حديثاً (orderby تاريخ) → أقسام الأب للتصنيفات
  * → بطاقة ترويجي في الأسفل.
  */
@@ -112,20 +112,7 @@ export function HomePageContent({
           />
         ) : flashSales.isPending || (flashSales.data?.length ?? 0) > 0 ? (
           <section className="space-y-4" aria-labelledby="home-flash-sales-title">
-            <div className="flex flex-col items-center gap-4 text-center">
-              <div className="space-y-1">
-                <h2
-                  id="home-flash-sales-title"
-                  className="text-base font-bold tracking-tight text-black sm:text-lg md:text-xl"
-                >
-                  عروض سريعة
-                </h2>
-                <p className="mx-auto max-w-md text-xs text-muted-foreground sm:text-sm">
-                  خصومات لفترة محدودة — تنتهي مع نهاية يوم اليوم.
-                </p>
-              </div>
-              <HomeFlashSaleCountdownStrip className="mx-auto w-full" />
-            </div>
+            <HomeFlashSaleCountdownStrip className="w-full" />
             <ProductGrid
               status={
                 flashSales.isPending

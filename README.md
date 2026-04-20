@@ -79,8 +79,10 @@ Edit `.env.local`. Important variables:
 | `WC_CONSUMER_KEY` / `WC_CONSUMER_SECRET` | WooCommerce REST credentials (**server only**) |
 | `JWT_SECRET` | Secret for app-issued JWTs |
 | `NEXT_PUBLIC_SITE_URL` | Canonical site URL (metadata, SEO, optional image hosts) |
+| `NEXT_PUBLIC_GA_MEASUREMENT_ID` | Google Analytics 4 (`G-…`); **empty string disables** GA |
+| `NEXT_PUBLIC_CLARITY_PROJECT_ID` | Microsoft Clarity project id; **empty string disables** Clarity |
 
-See `.env.local.example` for the full list (currency, locale, branding, etc.).
+See `.env.local.example` for the full list (currency, locale, branding, webhooks, hotline, etc.).
 
 ### Run
 
@@ -97,14 +99,61 @@ npm run lint                     # ESLint
 
 ---
 
-## Key features (quick scan)
+## 4. Storefront features (ميزات الواجهة)
 
-- **Prefetching** — Product hooks support prefetch patterns for snappier navigation.
-- **Cart** — Add / remove / clear; totals guarded until Zustand rehydrates.
-- **Checkout & orders** — Wired through feature services and API routes toward WooCommerce.
-- **Reviews** — Create flow with optimistic list updates.
-- **Security headers** — Baseline headers in `next.config.ts` (`X-Frame-Options`, `Referrer-Policy`, …).
-- **Images** — `next.config.ts` `remotePatterns` + shared `AppImage` + fallbacks.
+**تجربة المستخدم:** واجهة **عربية RTL**، عملة ومحلية قابلة للضبط من البيئة، وتركيز على **الموبايل أولاً** — انظر [رؤية المشروع](docs/project-vision.md).
+
+| المسار / النطاق | ماذا يقدّم |
+|-----------------|------------|
+| **الرئيسية `/`** | شرائح فئات، عروض، شرائط ثقة، عدّ تنازلي لعروض محدودة |
+| **الكتالوج** `/products`، `/categories`، `/categories/[slug]` | شبكة منتجات، تصفية وترتيب، اختصارات تصنيفات |
+| **المنتج** `/products/[id]` | معرض صور، مواصفات، مراجعات، إضافة للسلة |
+| **البحث** `/search` | بحث في المنتجات ضمن تدفق المتجر |
+| **السلة والدفع** `/cart`، `/checkout` | سلة بأدراج على الموبايل/الديسكتوب، إتمام الطلب نحو WooCommerce |
+| **الحساب والطلبات** `/account`، `/my-orders` | تسجيل/دخول، طلباتي |
+| **التتبع** `/track-order` | متابعة حالة الطلب |
+| **قائمة الأمنيات** `/wishlist` | حفظ المنتجات مع درج مخصص |
+| **الثقة والمحتوى** `/about`، `/branches`، `/retailers` | من نحن، فروع مع روابط خرائط، موزّعون معتمدون |
+
+---
+
+## 5. Mobile shell & UX
+
+- **كروم تجاري سفلي ثابت** — ملخص سلة + شريط تنقل سفلي في طبقة `fixed` واحدة؛ ارتفاع الكروم يُزامَن مع متغيّرات CSS حتى يبقى حشو المحتوى متسقًا (تفاصيل في [`docs/tech-audit.md`](docs/tech-audit.md)).
+- **أدراج (Drawers)** — سلة، أمنيات، وفلاتر الكتالوج كطبقات بدل قفزات ثقيلة بين الصفحات حيث يناسب المنتج.
+- **PWA** — [`app/manifest.ts`](app/manifest.ts) للتثبيت وألوان السمة واتجاه RTL.
+
+---
+
+## 6. Analytics & monitoring (optional)
+
+يُحمَّل من [`app/layout.tsx`](app/layout.tsx) عندما تكون المعرفات **غير فارغة** (المصدر: [`lib/constants.ts`](lib/constants.ts)):
+
+| الأداة | متغير البيئة | ملاحظة |
+|--------|----------------|--------|
+| **Google Analytics 4** | `NEXT_PUBLIC_GA_MEASUREMENT_ID` | `@next/third-parties/google` — عطّل بقيمة فارغة |
+| **Microsoft Clarity** | `NEXT_PUBLIC_CLARITY_PROJECT_ID` | تسجيل جلسات وخرائط حرارة — عطّل بقيمة فارغة |
+
+---
+
+## 7. Developer features (implementation quick scan)
+
+- **Prefetching** — Hooks like `usePrefetchProduct` for snappier navigation to PDP.
+- **Cart** — Add / remove / clear; totals guarded until Zustand rehydrates (`useHasHydrated`).
+- **Checkout & orders** — Feature services + `/app/api/*` routes toward WooCommerce.
+- **Reviews** — Create flow with TanStack Query optimistic updates (`onMutate`).
+- **Security headers** — Baseline in `next.config.ts` (`X-Frame-Options`, `Referrer-Policy`, …).
+- **Images** — `remotePatterns` in `next.config.ts` + shared `AppImage` + fallbacks.
+- **Webhooks** — WooCommerce webhook handler for revalidation (see `.env.local.example`).
+
+---
+
+## Further reading (المستندات)
+
+| Document | Purpose |
+|----------|---------|
+| [`docs/project-vision.md`](docs/project-vision.md) | Brand/SEO intent, mobile-first principles, roadmap ideas |
+| [`docs/tech-audit.md`](docs/tech-audit.md) | Layout shift (CLS), mobile commerce chrome, search/menu UX notes |
 
 ---
 

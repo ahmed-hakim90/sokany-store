@@ -1,6 +1,9 @@
 "use client";
 
+import { Zap } from "lucide-react";
+import { Link } from "next-view-transitions";
 import { useEffect, useMemo, useState } from "react";
+import { ROUTES } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 function splitHms(totalMs: number): { h: number; m: number; s: number } {
@@ -18,14 +21,17 @@ function pad2(n: number): string {
 
 type HomeFlashSaleCountdownStripProps = {
   className?: string;
+  /** يطابق `aria-labelledby` على الـ section الأب (عنوان القسم المرئي داخل البانر). */
+  titleId?: string;
 };
 
-/**
- * شريط عداد داخل بطاقة بيضاء متناسقة مع شريط الثقة (ظل خفيف + حلقة).
- * عدّ تنازلي حتى منتصف الليل المحلي.
+/*
+ * بانر «عروض سريعة»: تدرج أزرق داكن، شارة عنوان، نص فرعي، عداد بخلايا شفافة على سطر واحد، زر CTA.
+ * على الموبايل والديسكتوب: عمود متمركز؛ الأرقام LTR داخل الخلايا.
  */
 export function HomeFlashSaleCountdownStrip({
   className,
+  titleId = "home-flash-sales-title",
 }: HomeFlashSaleCountdownStripProps) {
   const [msLeft, setMsLeft] = useState<number | null>(null);
 
@@ -47,36 +53,50 @@ export function HomeFlashSaleCountdownStrip({
   );
 
   const durationIso =
-    msLeft === null
-      ? undefined
-      : `PT${Math.floor(msLeft / 1000)}S`;
+    msLeft === null ? undefined : `PT${Math.floor(msLeft / 1000)}S`;
 
   return (
     <div
       className={cn(
-        "flex w-full max-w-md flex-col items-stretch gap-3 rounded-2xl bg-white px-3 py-3 shadow-[0_4px_18px_-6px_rgba(15,23,42,0.1)] ring-1 ring-black/[0.04] sm:max-w-lg sm:flex-row sm:items-center sm:gap-4 sm:px-4 sm:py-3.5",
+        "relative flex w-full flex-col items-center gap-6 overflow-hidden rounded-[2rem] bg-gradient-to-br from-blue-800 via-blue-900 to-slate-950 p-6 text-white shadow-2xl sm:gap-8 sm:p-8",
         className,
       )}
     >
-      <div className="flex items-center gap-3 sm:min-w-0 sm:flex-1">
-        <span
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-500/15 text-brand-950"
-          aria-hidden
+      {/* وهج زخرفي */}
+      <div
+        className="pointer-events-none absolute -bottom-12 -start-16 h-48 w-48 rounded-full bg-amber-400/25 blur-3xl"
+        aria-hidden
+      />
+      <div
+        className="pointer-events-none absolute -end-10 -top-10 h-40 w-40 rounded-full bg-amber-300/20 blur-3xl"
+        aria-hidden
+      />
+
+      {/* أيقونة برق كبيرة خلفية */}
+      <div
+        className="pointer-events-none absolute end-0 top-0 p-4 opacity-[0.12] sm:p-8"
+        aria-hidden
+      >
+        <Zap className="size-24 text-amber-300 sm:size-[7.5rem]" strokeWidth={1.25} />
+      </div>
+
+      <div className="relative z-10 flex flex-col items-center gap-2 text-center">
+        <h2
+          id={titleId}
+          className="inline-block rounded-full bg-yellow-400 px-4 py-1.5 text-[10px] font-black text-blue-950 shadow-sm"
         >
-          <BoltIcon />
-        </span>
-        <div className="min-w-0 text-start">
-          <p className="text-xs font-bold leading-snug text-brand-950 sm:text-sm">
-            ينتهي اليوم
-          </p>
-          <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground sm:text-xs">
-            متبقٍ على نهاية عروض اليوم
-          </p>
-        </div>
+          عروض سريعة
+        </h2>
+        <p className="text-3xl font-extrabold tracking-tight text-white md:text-4xl">
+          ينتهي اليوم
+        </p>
+        <p className="max-w-md text-sm font-medium text-blue-100">
+          خصومات لفترة محدودة — تنتهي مع نهاية يوم اليوم.
+        </p>
       </div>
 
       <div
-        className="flex items-center justify-center gap-1.5 sm:shrink-0"
+        className="relative z-10 flex w-full max-w-sm items-center justify-center gap-1.5 sm:max-w-md sm:gap-2 md:max-w-lg"
         role="timer"
         aria-live="polite"
         aria-atomic="true"
@@ -84,13 +104,9 @@ export function HomeFlashSaleCountdownStrip({
         {parts === null ? (
           <>
             <TimeSegmentPlaceholder label="ساعة" />
-            <span className="pb-4 text-sm font-bold text-muted-foreground/50" aria-hidden>
-              :
-            </span>
+            <TimerColon />
             <TimeSegmentPlaceholder label="دقيقة" />
-            <span className="pb-4 text-sm font-bold text-muted-foreground/50" aria-hidden>
-              :
-            </span>
+            <TimerColon />
             <TimeSegmentPlaceholder label="ثانية" />
           </>
         ) : (
@@ -100,31 +116,45 @@ export function HomeFlashSaleCountdownStrip({
             suppressHydrationWarning
           >
             <TimeSegment value={pad2(parts.h)} label="ساعة" />
-            <span className="pb-4 text-sm font-bold text-muted-foreground/70" aria-hidden>
-              :
-            </span>
+            <TimerColon />
             <TimeSegment value={pad2(parts.m)} label="دقيقة" />
-            <span className="pb-4 text-sm font-bold text-muted-foreground/70" aria-hidden>
-              :
-            </span>
+            <TimerColon />
             <TimeSegment value={pad2(parts.s)} label="ثانية" />
           </time>
         )}
       </div>
+
+      <Link
+        href={ROUTES.PRODUCTS}
+        className="relative z-10 flex h-11 w-full max-w-sm items-center justify-center rounded-xl border-2 border-yellow-400/90 bg-slate-950/80 px-6 text-sm font-bold text-yellow-400 shadow-[0_0_24px_-8px_rgba(250,204,21,0.45)] transition-colors hover:bg-slate-900/90 hover:text-yellow-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-yellow-400 sm:max-w-md"
+      >
+        تسوق الآن
+      </Link>
     </div>
+  );
+}
+
+function TimerColon() {
+  return (
+    <span
+      className="select-none pb-6 text-2xl font-bold leading-none text-white/45 sm:text-3xl md:pb-7 md:text-4xl"
+      aria-hidden
+    >
+      :
+    </span>
   );
 }
 
 function TimeSegment({ value, label }: { value: string; label: string }) {
   return (
-    <div className="flex min-w-[3rem] flex-col items-center gap-0.5 sm:min-w-[3.25rem]">
-      <span
-        className="w-full rounded-xl bg-page px-2 py-1.5 text-center text-lg font-extrabold tabular-nums tracking-tight text-brand-950 shadow-inner ring-1 ring-black/[0.04] sm:text-xl"
+    <div className="flex min-w-0 flex-1 flex-col items-center gap-2">
+      <div
+        className="w-full rounded-2xl border border-white/10 bg-white/10 px-1 py-3 text-center text-2xl font-black tabular-nums tracking-tight text-white shadow-inner backdrop-blur-sm sm:px-2 sm:py-4 sm:text-3xl md:py-5 md:text-4xl"
         dir="ltr"
       >
         {value}
-      </span>
-      <span className="text-[10px] font-medium text-muted-foreground sm:text-[11px]">
+      </div>
+      <span className="text-[10px] font-bold tracking-wide text-blue-100">
         {label}
       </span>
     </div>
@@ -133,25 +163,17 @@ function TimeSegment({ value, label }: { value: string; label: string }) {
 
 function TimeSegmentPlaceholder({ label }: { label: string }) {
   return (
-    <div className="flex min-w-[3rem] flex-col items-center gap-0.5 sm:min-w-[3.25rem]">
-      <span
-        className="w-full rounded-xl bg-page px-2 py-1.5 text-center text-lg font-extrabold tabular-nums text-muted-foreground/50 sm:text-xl"
+    <div className="flex min-w-0 flex-1 flex-col items-center gap-2">
+      <div
+        className="w-full rounded-2xl border border-white/5 bg-white/5 px-1 py-3 text-center text-2xl font-black tabular-nums text-white/35 sm:px-2 sm:py-4 sm:text-3xl md:py-5 md:text-4xl"
         dir="ltr"
         aria-hidden
       >
         --
-      </span>
-      <span className="text-[10px] font-medium text-muted-foreground sm:text-[11px]">
+      </div>
+      <span className="text-[10px] font-bold tracking-wide text-blue-100/80">
         {label}
       </span>
     </div>
-  );
-}
-
-function BoltIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor" aria-hidden>
-      <path d="M13 3L4 14h7l-1 8 10-12h-7l1-7z" />
-    </svg>
   );
 }
