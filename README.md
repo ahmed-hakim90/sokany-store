@@ -115,6 +115,16 @@ npm run lint                     # ESLint
 | **قائمة الأمنيات** `/wishlist` | حفظ المنتجات مع درج مخصص |
 | **الثقة والمحتوى** `/about`، `/branches`، `/retailers` | من نحن، فروع مع روابط خرائط، موزّعون معتمدون |
 
+**محتوى ديناميكي وعمليات (جديد نسبيًا في المستودع):**
+
+| المسار / الموضوع | ماذا يقدّم |
+|-------------------|------------|
+| **CMS (Firestore)** | هيرو، بانرات أقسام، فروع، موزّعون، إعلانات مميزة، شريط إعلان، عروض محدودة — تُقرأ على الخادم مع تخزين مؤقت وإبطال عند الحفظ. |
+| **لوحة التحكم** `/control` | تعديل إعدادات الموقع ورفع الوسائط؛ **إشعارات ويب** عبر FCM لموضوع المشتركين (مع تهيئة Firebase Admin و VAPID). |
+| **PWA + FCM** | Service worker يولَّد من `/api/pwa-sw` — offline، وإشعارات خلفية عند تفعيل Firebase Messaging. |
+
+شرح عربي مُكمل: [`docs/platform-features-ar.md`](docs/platform-features-ar.md).
+
 ---
 
 ## 5. Mobile shell & UX
@@ -153,6 +163,8 @@ npm run lint                     # ESLint
 | Document | Purpose |
 |----------|---------|
 | [`docs/project-vision.md`](docs/project-vision.md) | Brand/SEO intent, mobile-first principles, roadmap ideas |
+| [`docs/platform-features-ar.md`](docs/platform-features-ar.md) | Arabic overview: storefront + CMS + control panel + web push (FCM) |
+| [`docs/firebase-web-push-vapid.md`](docs/firebase-web-push-vapid.md) | VAPID key setup for web push in Firebase |
 | [`docs/tech-audit.md`](docs/tech-audit.md) | Layout shift (CLS), mobile commerce chrome, search/menu UX notes |
 
 ---
