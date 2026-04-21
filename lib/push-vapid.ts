@@ -4,8 +4,9 @@
  */
 export function isLikelyValidFirebaseVapidPublicKey(key: string): boolean {
   const t = key.trim();
-  if (t.length < 80 || t.length > 130) return false;
-  return /^[A-Za-z0-9_-]+$/.test(t);
+  /** طول تقريبي لـ P-256 SPKI Base64 URL؛ مع هامش + دعم padding `=` أحياناً */
+  if (t.length < 70 || t.length > 140) return false;
+  return /^[A-Za-z0-9_-]+={0,2}$/.test(t);
 }
 
 /** تحذير في التطوير فقط — لا يُستدعى من السيرفر. */

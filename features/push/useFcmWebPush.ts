@@ -27,7 +27,7 @@ async function registerTokenWithServer(messaging: Messaging): Promise<void> {
     const msg = e instanceof Error ? e.message : String(e);
     if (messagingErrorIsInvalidVapid(msg)) {
       throw new Error(
-        "مفتاح VAPID غير صالح. انسخ المفتاح العام من Firebase → Project settings → Cloud Messaging → Web Push certificates (نفس مشروع NEXT_PUBLIC_FIREBASE_*).",
+        "مفتاح VAPID غير صالح: انسخ المفتاح العام فقط من Firebase → Project settings → Cloud Messaging → Web Push certificates (وليس Legacy server key). نفس مشروع NEXT_PUBLIC_FIREBASE_*، سطر واحد في .env ثم أعد تشغيل dev. راجع docs/firebase-web-push-vapid.md",
       );
     }
     throw e;
