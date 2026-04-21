@@ -6,8 +6,11 @@ export const runtime = "nodejs";
 const FIREBASE_JS = "12.12.0";
 
 /**
- * Service worker واحد: تثبيت PWA، تخزين صفحة offline، FCM في الخلفية، إشعارات النقر.
- * يُولَّد ليحقن إعداد Firebase العام (المفاتيح علنية أصلاً في العميل).
+ * Service worker واحد: تثبيت PWA، FCM في الخلفية، إشعارات النقر.
+ *
+ * لا نعترض طلبات التصفح (`navigate`) — الاعتراض + `respondWith(fetch)` يكسر بث React Server
+ * Components في Safari/iOS ويظهر أحيانًا صفحة خطأ Vercel («This page couldn't load»).
+ * صفحة `/offline` تُخزَّن للاستخدام اليدوي فقط إن لزم.
  */
 export async function GET() {
   const firebaseConfig = {
@@ -24,7 +27,7 @@ export async function GET() {
 
   const body = `/* Sokany PWA service worker — generated */
 const FIREBASE_VERSION = "${FIREBASE_JS}";
-const CACHE_NAME = "sokany-pwa-v2";
+const CACHE_NAME = "sokany-pwa-v3";
 const OFFLINE_URL = "/offline";
 const DEFAULT_ICON = "${icon192}";
 const firebaseConfig = ${configJson};
@@ -44,15 +47,14 @@ self.addEventListener("install", (event) => {
 });
 
 self.addEventListener("activate", (event) => {
-  event.waitUntil(self.clients.claim());
-});
-
-self.addEventListener("fetch", (event) => {
-  if (event.request.mode === "navigate") {
-    event.respondWith(
-      fetch(event.request).catch(() => caches.match(OFFLINE_URL))
-    );
-  }
+  event.waitUntil(
+    caches
+      .keys()
+      .then((keys) =>
+        Promise.all(keys.filter((k) => k !== CACHE_NAME && k.startsWith("sokany-pwa-")).map((k) => caches.delete(k))),
+      )
+      .then(() => self.clients.claim()),
+  );
 });
 
 if (firebaseConfig.apiKey && firebaseConfig.messagingSenderId && firebaseConfig.appId) {
