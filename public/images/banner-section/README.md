@@ -4,6 +4,10 @@
 [`features/home/services/getBannerSectionOrderedImages.ts`](../../../features/home/services/getBannerSectionOrderedImages.ts)
 ويرجع **قائمة مرتبة** من المسارات؛ الصفحة تربط **أول قسم أب** بأول صورة، الثاني بالثانية، وهكذا.
 
+## مقاسات التصدير للمصمم
+
+للمقاسات الموصى بها وسلوك العرض (`object-cover`، العرض على الشاشات)، انظر [`docs/design-image-sizes-ar.md`](../../../docs/design-image-sizes-ar.md).
+
 ## التسمية والترتيب
 
 - ابدأ اسم الملف برقم بالترتيب المرغوب (يفضّل بادئة مثل `01`، `02`، `03`):

@@ -1,6 +1,7 @@
 "use client";
 
 import { memo } from "react";
+import { ArrowLeft } from "lucide-react";
 import { Link } from "next-view-transitions";
 import { AppImage } from "@/components/AppImage";
 import { Button } from "@/components/Button";
@@ -62,23 +63,37 @@ export function CartDrawerPeekFooter({
       className={cn(
         "shrink-0 px-4 pb-4 pt-3",
         premium
-          ? "rounded-b-[1.35rem] border-t border-slate-200/70 bg-slate-100/40 backdrop-blur-md"
+          ? "rounded-b-[1.35rem] border-t border-white/40 bg-white/50 backdrop-blur-md"
           : "border-t border-border bg-white shadow-[0_-4px_20px_-6px_rgba(15,23,42,0.08)]",
       )}
     >
-      <Button
-        type="button"
-        variant="primary"
-        size="lg"
-        className={cn(
-          "min-w-0 max-w-none font-bold",
-          premium &&
-            "rounded-2xl border border-brand-800/15 bg-brand-300 py-3 font-black text-slate-900 shadow-lg shadow-brand-500/20 hover:bg-brand-400/90",
-        )}
-        onClick={onCheckout}
-      >
-        الانتقال للدفع
-      </Button>
+      {premium ? (
+        <button
+          type="button"
+          className={cn(
+            "inline-flex w-full min-w-0 items-center justify-between gap-3 rounded-full border border-brand-800/12 bg-brand-300 py-2.5 ps-5 pe-2 text-sm font-black text-brand-950 shadow-md transition-[transform,colors] hover:bg-brand-400/85 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 sm:text-base",
+          )}
+          onClick={onCheckout}
+        >
+          <span className="min-w-0 truncate">الانتقال للدفع</span>
+          <span
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-brand-950 shadow-sm ring-1 ring-black/[0.06]"
+            aria-hidden
+          >
+            <ArrowLeft className="size-5 rtl:rotate-180" />
+          </span>
+        </button>
+      ) : (
+        <Button
+          type="button"
+          variant="primary"
+          size="lg"
+          className="min-w-0 max-w-none font-bold"
+          onClick={onCheckout}
+        >
+          الانتقال للدفع
+        </Button>
+      )}
       {showFullCartLink ? (
         <p className="mt-3 text-center text-xs text-muted-foreground">
           <Link

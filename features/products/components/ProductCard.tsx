@@ -76,8 +76,9 @@ const variantLayout: Record<
 > = {
   mobileCompact: {
     card: "overflow-hidden p-0",
-    body: "gap-2 p-2.5 sm:p-3",
-    title: "line-clamp-2 min-h-[2.5rem] text-xs font-bold leading-snug text-neutral-950",
+    body: "gap-1.5 p-2.5 sm:p-3",
+    title:
+      "line-clamp-2 min-h-[2.5rem] text-xs font-bold leading-snug text-slate-900",
   },
   desktopCatalog: {
     card: "overflow-hidden p-0",
@@ -226,8 +227,10 @@ export function ProductCard({
       compact={priceCompact}
       emphasized={false}
       amountClassName={cn(
-        "font-bold text-neutral-950",
-        priceCompact ? "text-sm" : "text-base md:text-lg",
+        "font-bold text-slate-900",
+        priceCompact &&
+          "font-display text-lg font-extrabold tracking-tight md:text-xl",
+        !priceCompact && "text-base md:text-lg",
         variant === "featured" && !priceCompact && "text-lg md:text-xl",
       )}
       compareAtClassName="!text-xs !text-neutral-400 md:!text-xs"
@@ -240,7 +243,10 @@ export function ProductCard({
       <Card
         variant="product"
         className={cn(
-          "group/card flex h-full min-w-0 flex-col rounded-xl border-black/[0.06] transition-shadow duration-300 hover:shadow-[0_14px_44px_-14px_rgba(15,23,42,0.18)] motion-reduce:transition-none",
+          "group/card flex h-full min-w-0 flex-col border-slate-200/90 transition-shadow duration-300 motion-reduce:transition-none",
+          variant === "mobileCompact"
+            ? "rounded-2xl shadow-[0_10px_40px_-14px_rgba(15,23,42,0.18)] ring-1 ring-slate-900/[0.04] hover:shadow-[0_16px_48px_-16px_rgba(15,23,42,0.22)]"
+            : "rounded-xl border-black/[0.06] hover:shadow-[0_14px_44px_-14px_rgba(15,23,42,0.18)]",
           layout.card,
           className,
         )}
@@ -342,7 +348,7 @@ export function ProductCard({
                 e.stopPropagation();
                 setQuickViewOpen(true);
               }}
-              className="inline-flex items-center gap-1.5 rounded-full border border-white/50 bg-black/55 px-3 py-1.5 text-[11px] font-bold text-white shadow-md backdrop-blur-sm"
+              className="inline-flex items-center gap-1.5 rounded-full border border-white/25 bg-slate-900/70 px-3 py-1.5 text-[11px] font-bold text-white shadow-lg shadow-slate-900/25 backdrop-blur-md"
             >
               <EyeIcon className="h-3.5 w-3.5" />
               <span>معاينة</span>
@@ -357,37 +363,46 @@ export function ProductCard({
             </span>
           ) : null}
           {titleLink}
-          <ProductRatingDisplay
-            rating={product.rating}
-            ratingCount={product.ratingCount}
-            size={variant === "mobileCompact" ? "xs" : "sm"}
-            className="mt-1"
-          />
-          <ProductStatusBadge product={product} className="mt-1" />
           <div
             className={cn(
-              "mt-auto flex pt-1",
-              showCartQty
-                ? cn(
-                    "items-center justify-between gap-2 pe-1",
-                    wishlistSlot ? "min-h-[4.75rem]" : "min-h-[3.25rem]",
-                  )
-                : "min-h-[3.25rem] items-end",
+              "mt-1 flex flex-wrap items-center justify-between gap-x-2 gap-y-1",
+              variant === "mobileCompact" && "min-h-[1.25rem]",
             )}
           >
-            <div className="min-w-0 min-h-0 flex-1">{priceBlock}</div>
+            <ProductRatingDisplay
+              rating={product.rating}
+              ratingCount={product.ratingCount}
+              size={variant === "mobileCompact" ? "xs" : "sm"}
+              className="min-w-0"
+            />
+            <ProductStatusBadge product={product} className="ms-auto shrink-0" />
+          </div>
+          <div
+            className={cn(
+              "mt-auto flex pt-2",
+              showCartQty
+                ? "items-center justify-between gap-2"
+                : "min-h-[3.25rem] items-end pt-1",
+            )}
+          >
+            <div
+              className={cn(
+                "min-h-0 min-w-0 flex-1",
+                "flex justify-start",
+              )}
+            >
+              {priceBlock}
+            </div>
             {showCartQty ? (
-              <div className="flex shrink-0 flex-col items-center gap-1.5">
-                {wishlistSlot ? (
-                  <div className="flex w-14 justify-center">{wishlistSlot}</div>
-                ) : null}
+              <div className="flex shrink-0 items-center gap-2">
+                {wishlistSlot}
                 <IconButton
                   type="button"
                   variant="accent"
                   size="md"
                   disabled={!product.inStock}
                   aria-label={justAdded ? "تمت الإضافة للسلة" : "أضف للسلة"}
-                  className="h-11 min-h-[44px] min-w-14 w-14 shrink-0 rounded-lg shadow-sm [&_svg]:h-6 [&_svg]:w-6"
+                  className="h-11 min-h-[44px] min-w-11 w-11 shrink-0 rounded-full shadow-md shadow-brand-500/20 ring-1 ring-black/[0.06] [&_svg]:h-6 [&_svg]:w-6"
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
@@ -528,7 +543,7 @@ export function ProductCardWishlistIconButton({
           spawnBurst(); // أولاً التأثير البصري…
           onPress?.(); // …ثم منطق المفضلة في الأب (تبديل الحالة).
         }}
-        className="rounded-xl border border-white/60 bg-white/95 shadow-sm backdrop-blur-sm hover:bg-white"
+        className="h-11 w-11 shrink-0 rounded-full border border-slate-200/90 bg-white/95 shadow-md shadow-slate-900/10 ring-1 ring-slate-900/[0.05] backdrop-blur-sm hover:bg-white"
       >
         <HeartIcon filled={pressed} />
       </IconButton>
