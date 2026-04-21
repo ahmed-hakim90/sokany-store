@@ -21,3 +21,16 @@ export function formatPriceEgp(amount: string | number): string {
     n,
   );
 }
+
+/**
+ * Latin digits, en-US grouping — readable without wide Arabic-indic separators.
+ * Pair with a separate small «ج.م» label in floating checkout UI.
+ */
+export function formatPriceAmountCheckout(amount: number): string {
+  if (!Number.isFinite(amount)) return "0";
+  return new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+    useGrouping: true,
+  }).format(amount);
+}

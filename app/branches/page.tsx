@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import { BranchesPageContent } from "@/components/pages/BranchesPageContent";
 import { getPublicSiteContent } from "@/features/cms/services/getPublicSiteContent";
+import { SITE_BRAND_TITLE_AR } from "@/lib/constants";
 import { getSiteUrl } from "@/lib/site";
 
-const title = "الفروع ومراكز الصيانة | سوكانى المغربى";
+const title = `الفروع ومراكز الصيانة | ${SITE_BRAND_TITLE_AR}`;
 const description =
   "فروع البيع ومراكز الصيانة المعتمدة — عناوين، واتساب، والموقع على الخريطة.";
 
@@ -14,7 +15,7 @@ export const metadata: Metadata = {
     title,
     description,
     url: `${getSiteUrl()}/branches`,
-    siteName: "سوكانى المغربى",
+    siteName: SITE_BRAND_TITLE_AR,
     locale: "ar_EG",
     type: "website",
   },

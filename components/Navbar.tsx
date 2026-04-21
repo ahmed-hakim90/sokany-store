@@ -34,12 +34,27 @@ const primaryNavLinks = [
   { href: ROUTES.PRODUCTS, label: "العروض" },
 ] as const;
 
-const drawerExtraLinks = [
+/** روابط تظهر في صف الديسكتوب بعد «العروض» (ليست داخل «خدماتنا»). */
+const desktopPrimaryBarExtraLinks = [
   { href: ROUTES.CATEGORIES, label: "كل التصنيفات" },
-  { href: ROUTES.ORDER_TRACKING, label: "تتبع الطلب" },
   { href: ROUTES.ABOUT, label: "من نحن" },
   { href: ROUTES.SERVICE_CENTERS, label: "الفروع" },
   { href: ROUTES.RETAILERS, label: "الموزعون المعتمدون" },
+  { href: ROUTES.ORDER_TRACKING, label: "تتبع الطلب" },
+] as const;
+
+/** باقي الروابط تحت زر «خدماتنا» على الديسكتوب. */
+const servicesDropdownLinks = [
+  { href: ROUTES.CONTACT, label: "تواصل معنا" },
+  { href: ROUTES.TERMS, label: "الشروط والأحكام" },
+  { href: ROUTES.RETURNS_POLICY, label: "سياسة الاسترجاع والاستبدال" },
+  { href: ROUTES.WARRANTY, label: "الصيانة والضمان" },
+  { href: ROUTES.PRIVACY, label: "سياسة الخصوصية" },
+] as const;
+
+const drawerExtraLinks = [
+  ...desktopPrimaryBarExtraLinks,
+  ...servicesDropdownLinks,
 ] as const;
 
 const drawerLinks = [...primaryNavLinks, ...drawerExtraLinks] as const;
@@ -162,7 +177,8 @@ export function Navbar({
       <DesktopCategoryMegaNav
         categories={categoriesQuery.data}
         categoriesLoading={categoriesQuery.isLoading}
-        moreLinks={drawerExtraLinks}
+        primaryBarExtraLinks={desktopPrimaryBarExtraLinks}
+        moreLinks={servicesDropdownLinks}
         socialLinks={socialLinks}
       />
     ) : null;

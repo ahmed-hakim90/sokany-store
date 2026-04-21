@@ -6,6 +6,8 @@ export type OrganizationJsonLdProps = {
   organizationName: string;
   logoUrl: string;
   telephone: string;
+  /** وصف قصير للمنظمة — يُعرَض أحياناً في الأغراض الغنية. */
+  description?: string;
 };
 
 export function OrganizationJsonLd({
@@ -13,10 +15,11 @@ export function OrganizationJsonLd({
   organizationName,
   logoUrl,
   telephone,
+  description,
 }: OrganizationJsonLdProps) {
   const site = getSiteUrl();
 
-  const jsonLd = {
+  const jsonLd: Record<string, unknown> = {
     "@context": "https://schema.org",
     "@type": "Organization",
     name: organizationName,
@@ -30,6 +33,10 @@ export function OrganizationJsonLd({
     },
     sameAs,
   };
+
+  if (description?.trim()) {
+    jsonLd.description = description.trim();
+  }
 
   return (
     <script

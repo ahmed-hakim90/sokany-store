@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { AppImage } from "@/components/AppImage";
 import { Button } from "@/components/Button";
+import { SOCIAL_ICON_PRESETS, isKnownSocialIconKey } from "@/lib/social-icon-presets";
 import { SOCIAL_LINKS, type SocialLink } from "@/lib/social-links";
 import type {
   CmsHomeHeroDoc,
@@ -350,23 +351,40 @@ export function SocialLinksForm({
     <section className="space-y-4 rounded-2xl border border-border bg-white p-5 shadow-sm">
       <h2 className="font-display text-lg font-bold">روابط السوشيال (الفوتر و SEO)</h2>
       <p className="text-sm text-muted-foreground">
-        المفتاح يُستخدم داخليًا (مثل facebook). الرابط يجب أن يكون URL كاملًا يبدأ بـ https://
+        اختر نوع الأيقونة من القائمة — تُعرض في الفوتر وقائمة التصنيفات والإجراءات السريعة على الجوال. الرابط يجب أن يكون
+        URL كاملًا يبدأ بـ https://
       </p>
       <ul className="space-y-3">
-        {rows.map((row, i) => (
+        {rows.map((row, i) => {
+          const iconSelectValue =
+            row.key === ""
+              ? ""
+              : isKnownSocialIconKey(row.key)
+                ? row.key.trim().toLowerCase()
+                : row.key;
+          return (
           <li
             key={i}
             className="grid gap-2 rounded-xl border border-border/80 p-3 sm:grid-cols-3 sm:gap-3"
           >
             <div>
-              <label className="text-xs text-muted-foreground">المفتاح</label>
-              <input
-                value={row.key}
+              <label className="text-xs text-muted-foreground">الأيقونة</label>
+              <select
+                value={iconSelectValue}
                 onChange={(e) => updateRow(i, "key", e.target.value)}
                 dir="ltr"
-                className="mt-1 w-full rounded-lg border border-border px-3 py-2 font-mono text-sm"
-                placeholder="facebook"
-              />
+                className="mt-1 w-full rounded-lg border border-border bg-white px-3 py-2 text-sm"
+              >
+                <option value="">— اختر الأيقونة —</option>
+                {SOCIAL_ICON_PRESETS.map((p) => (
+                  <option key={p.key} value={p.key}>
+                    {p.labelAr}
+                  </option>
+                ))}
+                {row.key && !isKnownSocialIconKey(row.key) ? (
+                  <option value={row.key}>{row.key} (مفتاح محفوظ)</option>
+                ) : null}
+              </select>
             </div>
             <div>
               <label className="text-xs text-muted-foreground">العنوان الظاهر</label>
@@ -399,7 +417,8 @@ export function SocialLinksForm({
               </div>
             </div>
           </li>
-        ))}
+          );
+        })}
       </ul>
       <div className="flex flex-wrap gap-2">
         <Button type="button" variant="secondary" size="sm" onClick={addRow}>

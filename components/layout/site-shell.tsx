@@ -3,6 +3,7 @@ import { PwaEngagementStack } from "@/components/PwaEngagementStack";
 import { FooterGate } from "@/components/layout/footer-gate";
 import { MobileCommerceChrome } from "@/components/layout/mobile-commerce-chrome";
 import { MobileScrollCollapseController } from "@/components/layout/mobile-scroll-collapse-controller";
+import { MobileFloatingActions } from "@/components/layout/mobile-floating-actions";
 import { TopAnnouncementBar } from "@/components/layout/top-announcement-bar";
 import { Navbar } from "@/components/Navbar";
 import { DesktopCartDrawer } from "@/features/cart/components/DesktopCartDrawer";
@@ -59,6 +60,7 @@ export function SiteShell({
         logoPath={branding.logoPath}
         logoDisabled={branding.logoDisabled}
       />
+      <MobileFloatingActions socialLinks={socialLinks} />
       <MobileScrollCollapseController />
       <MobileCommerceChrome />
       <PwaEngagementStack />

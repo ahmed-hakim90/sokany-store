@@ -1,51 +1,65 @@
 import type { Metadata } from "next";
+import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
 import {
   HomePageContent,
   type HomeBottomPromo,
 } from "@/components/pages/HomePageContent";
+import { getCategories } from "@/features/categories/services/getCategories";
 import {
   getPublicSiteContent,
   getSpotlightsFromFirestore,
 } from "@/features/cms/services/getPublicSiteContent";
-import { ROUTES } from "@/lib/constants";
+import { ROUTES, STALE_TIME } from "@/lib/constants";
+import { trimMetaDescription } from "@/lib/html";
 import { getSiteUrl } from "@/lib/site";
 
-const defaultOgImage =
-  "https://sokany-eg.com/wp-content/uploads/2022/08/SOKANY-EG-2png.png";
+export async function generateMetadata(): Promise<Metadata> {
+  const { branding } = await getPublicSiteContent();
+  const site = getSiteUrl();
+  const title = `${branding.siteBrandTitleAr} | أجهزة كهربائية منزلية ومطبخ`;
+  const description = trimMetaDescription(
+    branding.pwaDescription ||
+      "تسوق أجهزة سوكانى الكهربائية بأفضل الأسعار في مصر. أجهزة مطبخ، منزلية، وعناية شخصية من الوكيل الحصري مؤسسة المغربى.",
+  );
+  const ogImage = branding.defaultOgImageUrl;
+  const ogTitle = `${branding.siteBrandTitleAr} | الوكيل الحصري في مصر`;
 
-export const metadata: Metadata = {
-  title: "سوكانى المغربى | أجهزة كهربائية منزلية ومطبخ",
-  description:
-    "تسوق أجهزة سوكانى الكهربائية بأفضل الأسعار في مصر. أجهزة مطبخ، منزلية، وعناية شخصية من الوكيل الحصري مؤسسة المغربى.",
-  keywords: [
-    "سوكانى",
-    "أجهزة كهربائية",
-    "أجهزة مطبخ",
-    "سوكانى مصر",
-    "sokany egypt",
-  ],
-  openGraph: {
-    title: "سوكانى المغربى | الوكيل الحصري في مصر",
-    description: "أفضل أسعار أجهزة سوكانى الكهربائية في مصر",
-    url: getSiteUrl(),
-    siteName: "سوكانى المغربى",
-    locale: "ar_EG",
-    type: "website",
-    images: [{ url: defaultOgImage, width: 1200, height: 630 }],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "سوكانى المغربى",
-    description: "أجهزة سوكانى الكهربائية من الوكيل الحصري",
-    images: [defaultOgImage],
-  },
-  alternates: { canonical: getSiteUrl() },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: { index: true, follow: true },
-  },
-};
+  return {
+    title,
+    description,
+    keywords: [
+      "سوكانى",
+      "أجهزة كهربائية",
+      "أجهزة مطبخ",
+      "سوكانى مصر",
+      "sokany egypt",
+      branding.siteBrandTitleAr,
+    ],
+    openGraph: {
+      title: ogTitle,
+      description: trimMetaDescription(
+        "أفضل أسعار أجهزة سوكانى الكهربائية في مصر",
+      ),
+      url: site,
+      siteName: branding.siteBrandTitleAr,
+      locale: "ar_EG",
+      type: "website",
+      images: [{ url: ogImage, width: 1200, height: 630 }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: branding.siteBrandTitleAr,
+      description,
+      images: [ogImage],
+    },
+    alternates: { canonical: site },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: { index: true, follow: true },
+    },
+  };
+}
 
 const DEFAULT_BOTTOM_PROMO: HomeBottomPromo = {
   eyebrow: "حصرياً",
@@ -55,10 +69,18 @@ const DEFAULT_BOTTOM_PROMO: HomeBottomPromo = {
   ctaLabel: "اكتشف الآن",
 };
 
+const HOME_CATEGORIES_QUERY_KEY = ["categories", { per_page: 100 }] as const;
+
 export default async function Home() {
+  const queryClient = new QueryClient();
   const [content, spotlights] = await Promise.all([
     getPublicSiteContent(),
     getSpotlightsFromFirestore(),
+    queryClient.prefetchQuery({
+      queryKey: [...HOME_CATEGORIES_QUERY_KEY],
+      queryFn: () => getCategories({ per_page: 100 }),
+      staleTime: STALE_TIME.MEDIUM,
+    }),
   ]);
 
   const spotlight = spotlights?.items?.find((i) => i.active);
@@ -82,16 +104,18 @@ export default async function Home() {
   }
 
   return (
-    <HomePageContent
-      heroSlides={content.heroSlides}
-      sectionBanners={content.sectionBanners}
-      flashSaleSectionEnabled={content.promoFlash.enabled}
-      promoFlash={{
-        endsAtIso: content.promoFlash.endsAt,
-        headline: content.promoFlash.headline,
-        subline: content.promoFlash.subline,
-      }}
-      homeBottomPromo={homeBottomPromo}
-    />
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <HomePageContent
+        heroSlides={content.heroSlides}
+        sectionBanners={content.sectionBanners}
+        flashSaleSectionEnabled={content.promoFlash.enabled}
+        promoFlash={{
+          endsAtIso: content.promoFlash.endsAt,
+          headline: content.promoFlash.headline,
+          subline: content.promoFlash.subline,
+        }}
+        homeBottomPromo={homeBottomPromo}
+      />
+    </HydrationBoundary>
   );
 }

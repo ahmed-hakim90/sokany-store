@@ -18,6 +18,45 @@ export type HomeParentCategorySectionsProps = {
   onCartLineQuantityChange: (product: Product, next: number) => void;
 };
 
+/** هيكل تحميل يحجز مساحة أقسام الأب (بانر + شبكة) أثناء انتظار قائمة التصنيفات من الـ API. */
+export function HomeParentCategorySectionsSkeleton({
+  sections = 2,
+  getCartLineQuantity,
+  onCartLineQuantityChange,
+}: Pick<
+  HomeParentCategorySectionsProps,
+  "getCartLineQuantity" | "onCartLineQuantityChange"
+> & { sections?: number }) {
+  return (
+    <div
+      className="space-y-10 sm:space-y-12"
+      aria-busy="true"
+      aria-label="جاري تحميل أقسام التصنيفات"
+    >
+      {Array.from({ length: sections }).map((_, i) => (
+        <div key={i} className="space-y-4">
+          <div className="h-36 w-full animate-shimmer rounded-2xl bg-gradient-to-r from-image-well via-surface-muted to-image-well bg-[length:200%_100%] sm:h-40" />
+          <section className="space-y-3 rounded-2xl">
+            <div className="flex flex-col items-center gap-2 text-center">
+              <div className="h-5 w-40 animate-shimmer rounded bg-border/80 sm:h-6 sm:w-48" />
+              <div className="h-3 w-24 animate-shimmer rounded bg-border/60" />
+            </div>
+            <ProductGrid
+              status="loading"
+              products={[]}
+              getCartLineQuantity={getCartLineQuantity}
+              onCartLineQuantityChange={onCartLineQuantityChange}
+              cardVariant="mobileCompact"
+              cardVariantMd="desktopCatalogWide"
+              gridClassName="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4"
+            />
+          </section>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function HomeParentCategorySections({
   categories,
   sectionBanners = [],

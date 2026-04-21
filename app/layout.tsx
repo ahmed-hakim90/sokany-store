@@ -7,6 +7,7 @@ import { ViewTransitions } from "next-view-transitions";
 import { SiteShell } from "@/components/layout/site-shell";
 import { ViewTransitionRejectionHandler } from "@/components/layout/view-transition-rejection-handler";
 import { OrganizationJsonLd } from "@/components/seo/OrganizationJsonLd";
+import { WebSiteJsonLd } from "@/components/seo/WebSiteJsonLd";
 import { getPublicSiteContent } from "@/features/cms/services/getPublicSiteContent";
 import { QueryProvider } from "@/providers/QueryProvider";
 import { ToastProvider } from "@/providers/ToastProvider";
@@ -43,6 +44,9 @@ async function requestMetadataBase(): Promise<URL> {
 export async function generateMetadata(): Promise<Metadata> {
   const { branding } = await getPublicSiteContent();
   const metadataBase = await requestMetadataBase();
+  const googleVerification =
+    process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION?.trim();
+
   return {
     metadataBase,
     title: {
@@ -50,6 +54,9 @@ export async function generateMetadata(): Promise<Metadata> {
       template: `%s | ${branding.siteBrandTitleAr}`,
     },
     description: branding.pwaDescription,
+    ...(googleVerification
+      ? { verification: { google: googleVerification } }
+      : {}),
     icons: {
       /** أيقونة التبويب — `app/favicon.ico` (ICO حقيقي مُولَّد من شعار الموقع). */
       icon: [
@@ -112,7 +119,9 @@ export default async function RootLayout({
           organizationName={b.organizationName}
           logoUrl={b.organizationLogoUrl}
           telephone={b.supportPhoneDisplay}
+          description={b.pwaDescription}
         />
+        <WebSiteJsonLd name={b.siteBrandTitleAr} description={b.pwaDescription} />
         <ViewTransitions>
           <ViewTransitionRejectionHandler />
           <QueryProvider>

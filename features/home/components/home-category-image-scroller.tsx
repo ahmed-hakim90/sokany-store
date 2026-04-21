@@ -16,12 +16,28 @@ export type HomeCategoryImageScrollerProps = {
   className?: string;
   /** Auto-rotate interval in ms; pass 0 to disable. */
   autoplayMs?: number;
+  /** يعرض بلاطات سيليكتون بنفس مقاس البطاقات (240×120) أثناء انتظار التصنيفات من الـ API. */
+  isLoading?: boolean;
 };
+
+const SKELETON_TILE_COUNT = 6;
+
+function CategoryImageTileSkeleton() {
+  return (
+    <div
+      className="h-[120px] w-[240px] shrink-0 snap-center overflow-hidden rounded-xl bg-image-well shadow-sm ring-1 ring-black/[0.07]"
+      aria-hidden
+    >
+      <div className="h-full w-full animate-shimmer bg-gradient-to-r from-image-well via-surface-muted to-image-well bg-[length:200%_100%]" />
+    </div>
+  );
+}
 
 export function HomeCategoryImageScroller({
   tiles,
   className,
   autoplayMs = 3000,
+  isLoading = false,
 }: HomeCategoryImageScrollerProps) {
   const scrollerRef = useRef<HTMLDivElement | null>(null);
   const indexRef = useRef(0);
@@ -29,7 +45,7 @@ export function HomeCategoryImageScroller({
 
   useEffect(() => {
     const scroller = scrollerRef.current;
-    if (!scroller || tiles.length < 2 || autoplayMs <= 0) return;
+    if (!scroller || isLoading || tiles.length < 2 || autoplayMs <= 0) return;
 
     const reducedMotion =
       typeof window !== "undefined" &&
@@ -79,7 +95,23 @@ export function HomeCategoryImageScroller({
       scroller.removeEventListener("touchend", resume);
       scroller.removeEventListener("scroll", onScroll);
     };
-  }, [tiles.length, autoplayMs]);
+  }, [tiles.length, autoplayMs, isLoading]);
+
+  if (isLoading) {
+    return (
+      <section
+        className={cn("-mx-4 sm:mx-0", className)}
+        aria-busy="true"
+        aria-label="جاري تحميل تصنيفات الصور"
+      >
+        <div className="flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-[calc((100vw-240px)/2)] px-3 pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:px-0">
+          {Array.from({ length: SKELETON_TILE_COUNT }).map((_, index) => (
+            <CategoryImageTileSkeleton key={index} />
+          ))}
+        </div>
+      </section>
+    );
+  }
 
   if (!tiles.length) return null;
 

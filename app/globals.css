@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 @import "../styles/vaul.css";
 ::view-transition-old(root),
 ::view-transition-new(root) {
@@ -179,5 +180,30 @@ body {
   }
   .max-h-mobile-catalog-split {
     max-height: calc(100dvh - 7rem - var(--mobile-commerce-chrome-height));
+  }
+}
+
+/* محتوى ووردبريس/Elementor في صفحات الشروط — يكمّل `prose` للجداول والخرائط */
+@layer components {
+  .legal-wp-prose iframe {
+    width: 100%;
+    max-width: 100%;
+    border-radius: 0.75rem;
+    border: 1px solid color-mix(in srgb, var(--sokany-border) 80%, transparent);
+  }
+  .legal-wp-prose table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+    line-height: 1.6;
+  }
+  .legal-wp-prose :is(th, td) {
+    border: 1px solid var(--sokany-border);
+    padding: 0.5rem 0.75rem;
+    text-align: start;
+  }
+  .legal-wp-prose th {
+    background: color-mix(in srgb, var(--sokany-muted-bg) 65%, white);
+    font-weight: 600;
   }
 }

@@ -38,6 +38,12 @@ export const STALE_TIME = {
 
 export const CONTACT_EMAIL = "support@sokanystore.com";
 
+/** الموقع الرسمي (ووردبريس) — مصدر صفحات الشروط والسياسات ونسخ الاتصال المعتمدة. */
+export const OFFICIAL_SOKANY_SITE_URL = "https://sokany-eg.com";
+
+/** بريد الوكيل الرسمي كما يظهر على الموقع الرسمي (مؤسسة المغربي). */
+export const OFFICIAL_SOKANY_INFO_EMAIL = "info@sokanyelmaghraby.com";
+
 /** Hero «شاهد الفيديو» — set `NEXT_PUBLIC_STORE_HERO_VIDEO_URL` to your channel or clip. */
 export const STORE_HERO_VIDEO_URL =
   process.env.NEXT_PUBLIC_STORE_HERO_VIDEO_URL ??
@@ -55,6 +61,14 @@ export const ROUTES = {
   CHECKOUT: "/checkout",
   ABOUT: "/about",
   CONTACT: "/contact",
+  /** محتوى من ووردبريس الموقع الرسمي (slug: terms-and-conditions). */
+  TERMS: "/terms",
+  /** سياسة الإرجاع — slug: returns. */
+  RETURNS_POLICY: "/returns",
+  /** الصيانة والضمان — slug: warranty-and-maintenance. */
+  WARRANTY: "/warranty",
+  /** سياسة الخصوصية — slug: privcy-policy (إملاء الموقع الأصلي). */
+  PRIVACY: "/privacy",
   /** الفروع ومراكز الصيانة (كان المسار السابق `/service-centers` مع إعادة توجيه 301). */
   SERVICE_CENTERS: "/branches",
   /** الموزعون المعتمدون (تجزئة معتمدة من الوكيل). */

@@ -34,6 +34,11 @@ const FOOTER_INTERNAL_PATHS: readonly string[] = [
   ROUTES.ABOUT,
   ROUTES.SERVICE_CENTERS,
   ROUTES.RETAILERS,
+  ROUTES.CONTACT,
+  ROUTES.TERMS,
+  ROUTES.RETURNS_POLICY,
+  ROUTES.WARRANTY,
+  ROUTES.PRIVACY,
 ];
 
 /** مطابق لـ `primaryNavLinks` + `drawerExtraLinks` في components/Navbar.tsx — روابط درج القائمة على الموبايل. */
@@ -46,6 +51,7 @@ const MOBILE_DRAWER_INTERNAL_PATHS: readonly string[] = [
   ROUTES.CATEGORIES,
   ROUTES.ORDER_TRACKING,
   ROUTES.ABOUT,
+  ROUTES.CONTACT,
   ROUTES.SERVICE_CENTERS,
   ROUTES.RETAILERS,
 ];

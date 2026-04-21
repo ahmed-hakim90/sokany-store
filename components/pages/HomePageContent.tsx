@@ -10,7 +10,10 @@ import {
   HomeHeroBanner,
   type HomeHeroSlide,
 } from "@/features/home/components/home-hero-banner";
-import { HomeParentCategorySections } from "@/features/home/components/home-parent-category-sections";
+import {
+  HomeParentCategorySections,
+  HomeParentCategorySectionsSkeleton,
+} from "@/features/home/components/home-parent-category-sections";
 import { HomePromoCard } from "@/features/home/components/home-promo-card";
 import { HomeTrustStrip } from "@/features/home/components/home-trust-strip";
 import { ProductGrid } from "@/features/products/components/ProductGrid";
@@ -59,9 +62,9 @@ function CheckSealIcon() {
 /*
  * الصفحة الرئيسية (/): عمود واحد داخل Container بمسافات رأسية تتسع تدريجياً (sm → md).
  * التسلسل: هيرو (سكروول أفقي + auto-rotate) → شريط صور التصنيفات
- * (240×120 سكروول أفقي) → عروض سريعة (بانر أزرق + عداد + CTA ثم شبكة on_sale) → شريط ثقة
+ * (240×120 سكروول أفقي؛ سيليكتون أثناء تحميل التصنيفات من الـ API) → عروض سريعة (بانر أزرق + عداد + CTA ثم شبكة on_sale) → شريط ثقة
  * → الأكثر مبيعاً (featured) → وصل حديثاً (orderby تاريخ) → أقسام الأب للتصنيفات
- * → بطاقة ترويجي في الأسفل.
+ * (هيكل تحميل حتى تُحمَّل قائمة التصنيفات ثم المحتوى الفعلي) → بطاقة ترويجي في الأسفل.
  */
 export type HomeBottomPromo = {
   eyebrow?: string;
@@ -132,7 +135,10 @@ export function HomePageContent({
         {heroSlides.length > 0 ? <HomeHeroBanner slides={heroSlides} /> : null}
 
         {/* تحت البانر مباشرة: شريط صور ديناميكي من التصنيفات المتاحة في API */}
-        <HomeCategoryImageScroller tiles={categoryTiles} />
+        <HomeCategoryImageScroller
+          tiles={categoryTiles}
+          isLoading={categories.isPending}
+        />
 
         {/* عروض سريعة: منتجات مخفّضة من WooCommerce + عداد تنازلي */}
         {!flashSaleSectionEnabled ? null : flashSales.isError ? (
@@ -316,7 +322,12 @@ export function HomePageContent({
         ) : null}
 
         {/* أقسام رأسية لكل تصنيف أب: شبكات/سكك داخل نفس العمود عند توفر التصنيفات */}
-        {categories.data && categories.data.length > 0 ? (
+        {categories.isPending ? (
+          <HomeParentCategorySectionsSkeleton
+            getCartLineQuantity={getCartLineQuantity}
+            onCartLineQuantityChange={setProductLineQuantity}
+          />
+        ) : categories.data && categories.data.length > 0 ? (
           <HomeParentCategorySections
             categories={categories.data}
             sectionBanners={sectionBanners}

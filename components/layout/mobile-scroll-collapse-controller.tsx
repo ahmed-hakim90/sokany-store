@@ -6,7 +6,15 @@ import { useMobileChromeCollapsedStore } from "@/components/layout/mobile-chrome
 
 /** عتبة أكبر قليلاً لتقليل التفعيل العرضي عند اهتزاز السكرول. */
 const SCROLL_DOWN_DELTA = 14;
-const NEAR_TOP_PX = 48;
+/** أعلى من هذا الـ scrollY نسمح بإخفاء الكروم (hysteresis — أعلى من عتبة الإظهار). */
+const HIDE_CHROME_MIN_Y = 96;
+/** دون هذا نُظهر الكروم دائمًا؛ أعلى من `NEAR_TOP_PX` السابق لتوسيع نطاق الأمان. */
+const SHOW_CHROME_BELOW_Y = 72;
+/**
+ * بعد إظهار الكروم من السكرول، نتجاهل الإخفاء قليلًا حتى تستقر إعادة قياس
+ * الـ padding / `--mobile-commerce-chrome-height` ولا تُحدث قفزة `delta` كاذبة.
+ */
+const POST_RESET_COOLDOWN_MS = 220;
 
 /**
  * موبايل: يخفي الهيدر وشريط ملخص السلة عند السكرول للأسفل.
@@ -20,6 +28,7 @@ export function MobileScrollCollapseController() {
     (s) => s.hideChromeFromScroll,
   );
   const lastYRef = useRef(0);
+  const hideCooldownUntilRef = useRef(0);
 
   useEffect(() => {
     resetChrome();
@@ -32,15 +41,22 @@ export function MobileScrollCollapseController() {
 
     const onScroll = () => {
       if (!mq.matches) return;
+      const now = performance.now();
       const y = window.scrollY ?? document.documentElement.scrollTop ?? 0;
       const delta = y - lastYRef.current;
       lastYRef.current = y;
 
-      if (y < NEAR_TOP_PX) {
+      if (y < SHOW_CHROME_BELOW_Y) {
         resetChrome();
+        hideCooldownUntilRef.current = now + POST_RESET_COOLDOWN_MS;
         return;
       }
-      if (delta > SCROLL_DOWN_DELTA) {
+
+      if (now < hideCooldownUntilRef.current) {
+        return;
+      }
+
+      if (y >= HIDE_CHROME_MIN_Y && delta > SCROLL_DOWN_DELTA) {
         hideChromeFromScroll();
       }
     };

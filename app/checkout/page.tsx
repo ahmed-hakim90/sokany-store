@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import { Container } from "@/components/Container";
 import { CheckoutForm } from "@/features/checkout/components/CheckoutForm";
+import { SITE_BRAND_TITLE_AR } from "@/lib/constants";
 import { getSiteUrl } from "@/lib/site";
 
-const title = "إتمام الطلب | سوكانى المغربى";
+const title = `إتمام الطلب | ${SITE_BRAND_TITLE_AR}`;
 const description =
   "أكمل بيانات الشحن والدفع (وضع تجريبي) — راجع ملخص الطلب قبل الإرسال.";
 
@@ -14,7 +15,7 @@ export const metadata: Metadata = {
     title,
     description,
     url: `${getSiteUrl()}/checkout`,
-    siteName: "سوكانى المغربى",
+    siteName: SITE_BRAND_TITLE_AR,
     locale: "ar_EG",
     type: "website",
   },

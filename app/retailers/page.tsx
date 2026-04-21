@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import { RetailersPageContent } from "@/components/pages/RetailersPageContent";
 import { getPublicSiteContent } from "@/features/cms/services/getPublicSiteContent";
+import { SITE_BRAND_TITLE_AR } from "@/lib/constants";
 import { getSiteUrl } from "@/lib/site";
 
-const title = "الموزعون المعتمدون | سوكانى المغربى";
+const title = `الموزعون المعتمدون | ${SITE_BRAND_TITLE_AR}`;
 const description =
   "شبكة الموزعين المعتمدين لسوكانى في مصر — خريطة التغطية، محلات معتمدة، وضمان الوكيل والتسعير الرسمي.";
 
@@ -14,7 +15,7 @@ export const metadata: Metadata = {
     title,
     description,
     url: `${getSiteUrl()}/retailers`,
-    siteName: "سوكانى المغربى",
+    siteName: SITE_BRAND_TITLE_AR,
     locale: "ar_EG",
     type: "website",
   },

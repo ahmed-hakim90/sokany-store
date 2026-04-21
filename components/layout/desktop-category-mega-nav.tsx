@@ -2,14 +2,22 @@
 
 /*
  * شريط تصنيفات الديسكتوب (صف ثانٍ تحت اللوجو/البحث) + ميجا مينو عند الـ hover.
- * — الصف: روابط رئيسية يسار/وسط؛ يمين: أيقونات سوشيال + «تواصل معنا» + «خدماتنا» (قائمة منسدلة بالهوفر والنقر).
+ * — الصف: «الرئيسية» ثم أقسام الميجا ثم «العروض» ثم روابط ثابتة (كل التصنيفات، من نحن، الفروع، الموزعون، تتبع الطلب)؛ يمين: سوشيال + «تواصل معنا» + «خدماتنا» (شروط، خصوصية، …).
  * — الميجا: شبكة ثلاثية الأعمدة (فرعية · أولوية تسوق · صورة) أو لوحة عروض بديلة.
  * — الـ lg فقط؛ الموبايل يبقى على الدرج.
  */
 
 import { AnimatePresence, motion } from "framer-motion";
 import { Link } from "next-view-transitions";
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import {
+  Fragment,
+  useCallback,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { AppImage } from "@/components/AppImage";
 import { Container } from "@/components/Container";
 import type { Category } from "@/features/categories/types";
@@ -129,13 +137,19 @@ function pickSpotlightImage(
 export type DesktopCategoryMegaNavProps = {
   categories: Category[] | undefined;
   categoriesLoading: boolean;
+  /** روابط نصية في الصف مباشرة بعد «العروض». */
+  primaryBarExtraLinks?: readonly DesktopMoreLink[];
   moreLinks: readonly DesktopMoreLink[];
   socialLinks: readonly SocialLink[];
 };
 
+const primaryBarExtraLinkClass =
+  "inline-flex items-center rounded-md px-2.5 py-2 text-brand-900/85 transition-colors hover:bg-surface-muted/50 hover:text-brand-950";
+
 export function DesktopCategoryMegaNav({
   categories,
   categoriesLoading,
+  primaryBarExtraLinks = [],
   moreLinks,
   socialLinks,
 }: DesktopCategoryMegaNavProps) {
@@ -396,9 +410,8 @@ export function DesktopCategoryMegaNav({
             const isOpen = openKey === item.key;
             const itemId = `${baseId}-${item.key}`;
 
-            return (
+            const navItem = (
               <div
-                key={item.key}
                 className="relative"
                 onMouseEnter={() => {
                   if (isMega) setOpenKey(item.key);
@@ -427,6 +440,21 @@ export function DesktopCategoryMegaNav({
                   {item.label}
                 </Link>
               </div>
+            );
+
+            return (
+              <Fragment key={item.key}>
+                {navItem}
+                {item.key === "offers"
+                  ? primaryBarExtraLinks.map((l) => (
+                      <div key={l.href} className="relative">
+                        <Link href={l.href} className={primaryBarExtraLinkClass}>
+                          {l.label}
+                        </Link>
+                      </div>
+                    ))
+                  : null}
+              </Fragment>
             );
           })}
         </nav>

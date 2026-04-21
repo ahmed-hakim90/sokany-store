@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { ContactPageContent } from "@/components/pages/ContactPageContent";
+import { SITE_BRAND_TITLE_AR } from "@/lib/constants";
 import { getSiteUrl } from "@/lib/site";
 
-const title = "تواصل معنا | سوكانى المغربى";
-const description =
-  "تواصل مع فريق سوكانى المغربى عبر البريد أو تتبع طلبك — دعم عملاء في أوقات العمل المحددة.";
+const title = `تواصل معنا | ${SITE_BRAND_TITLE_AR}`;
+const description = `تواصل مع فريق ${SITE_BRAND_TITLE_AR} عبر البريد أو تتبع طلبك — دعم عملاء في أوقات العمل المحددة.`;
 
 export const metadata: Metadata = {
   title,
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     title,
     description,
     url: `${getSiteUrl()}/contact`,
-    siteName: "سوكانى المغربى",
+    siteName: SITE_BRAND_TITLE_AR,
     locale: "ar_EG",
     type: "website",
   },

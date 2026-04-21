@@ -56,6 +56,7 @@ export async function generateMetadata({
       card: "summary_large_image",
       title,
       description,
+      ...(thumb ? { images: [thumb.src] } : {}),
     },
     alternates: { canonical: `${site}/products/${product.id}` },
     robots: { index: true, follow: true },

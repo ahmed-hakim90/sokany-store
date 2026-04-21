@@ -11,23 +11,34 @@ import { ROUTES } from "@/lib/constants";
 import { cn, formatPrice } from "@/lib/utils";
 import type { CartItem } from "@/features/cart/types";
 
+export type CartLinesVariant = "default" | "premium";
+
 export function CartDrawerLines({
   items,
   onQuantityChange,
   onRemove,
   listClassName,
+  variant = "default",
 }: {
   items: CartItem[];
   onQuantityChange: (productId: number, quantity: number) => void;
   onRemove: (productId: number) => void;
   listClassName?: string;
+  variant?: CartLinesVariant;
 }) {
   return (
-    <ul className={listClassName ?? "space-y-2.5 pb-3"} role="list">
+    <ul
+      className={
+        listClassName ??
+        cn("pb-3", variant === "premium" ? "space-y-3" : "space-y-2.5")
+      }
+      role="list"
+    >
       {items.map((item) => (
         <CartSheetLine
           key={item.productId}
           item={item}
+          variant={variant}
           onQuantityChange={onQuantityChange}
           onRemove={onRemove}
         />
@@ -39,18 +50,31 @@ export function CartDrawerLines({
 export function CartDrawerPeekFooter({
   onCheckout,
   showFullCartLink,
+  variant = "default",
 }: {
   onCheckout: () => void;
-  /** When true, show a text link to the full cart page under the primary CTA. */
   showFullCartLink?: boolean;
+  variant?: CartLinesVariant;
 }) {
+  const premium = variant === "premium";
   return (
-    <div className="shrink-0 border-t border-border bg-white px-4 pt-3 shadow-[0_-4px_20px_-6px_rgba(15,23,42,0.08)]">
+    <div
+      className={cn(
+        "shrink-0 px-4 pb-4 pt-3",
+        premium
+          ? "rounded-b-[1.35rem] border-t border-slate-200/70 bg-slate-100/40 backdrop-blur-md"
+          : "border-t border-border bg-white shadow-[0_-4px_20px_-6px_rgba(15,23,42,0.08)]",
+      )}
+    >
       <Button
         type="button"
         variant="primary"
         size="lg"
-        className="min-w-0 max-w-none font-bold"
+        className={cn(
+          "min-w-0 max-w-none font-bold",
+          premium &&
+            "rounded-2xl border border-brand-800/15 bg-brand-300 py-3 font-black text-slate-900 shadow-lg shadow-brand-500/20 hover:bg-brand-400/90",
+        )}
         onClick={onCheckout}
       >
         الانتقال للدفع
@@ -73,16 +97,29 @@ const CartSheetLine = memo(function CartSheetLine({
   item,
   onQuantityChange,
   onRemove,
+  variant = "default",
 }: {
   item: CartItem;
   onQuantityChange: (productId: number, quantity: number) => void;
   onRemove: (productId: number) => void;
+  variant?: CartLinesVariant;
 }) {
+  const premium = variant === "premium";
   return (
-    <li className="flex gap-3 rounded-xl border border-border/80 bg-white p-3 shadow-sm">
+    <li
+      className={cn(
+        "flex gap-3 p-3",
+        premium
+          ? "rounded-2xl border border-slate-200/90 bg-white/95 shadow-[0_8px_24px_-12px_rgba(15,23,42,0.2)] ring-1 ring-slate-900/[0.04] backdrop-blur-sm"
+          : "rounded-xl border border-border/80 bg-white shadow-sm",
+      )}
+    >
       <Link
         href={ROUTES.PRODUCT(item.productId)}
-        className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-border bg-image-well"
+        className={cn(
+          "relative h-16 w-16 shrink-0 overflow-hidden rounded-lg border bg-image-well",
+          premium ? "border-slate-200/80" : "border-border",
+        )}
       >
         <AppImage
           src={item.thumbnail}
@@ -96,7 +133,10 @@ const CartSheetLine = memo(function CartSheetLine({
         <div className="flex items-start justify-between gap-2">
           <Link
             href={ROUTES.PRODUCT(item.productId)}
-            className="line-clamp-2 text-start text-sm font-semibold text-foreground hover:text-brand-600"
+            className={cn(
+              "line-clamp-2 text-start text-sm font-semibold hover:text-brand-600",
+              premium ? "text-slate-900" : "text-foreground",
+            )}
           >
             {item.name}
           </Link>
@@ -104,7 +144,10 @@ const CartSheetLine = memo(function CartSheetLine({
             type="button"
             variant="ghost"
             size="sm"
-            className="shrink-0 text-muted-foreground hover:text-red-600"
+            className={cn(
+              "shrink-0 hover:text-red-600",
+              premium ? "text-slate-400 hover:bg-slate-100" : "text-muted-foreground",
+            )}
             aria-label={`إزالة ${item.name}`}
             onClick={() => onRemove(item.productId)}
           >
@@ -112,14 +155,21 @@ const CartSheetLine = memo(function CartSheetLine({
           </IconButton>
         </div>
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <span className="text-sm font-semibold text-brand-900" dir="ltr">
+          <span
+            className={cn(
+              "text-sm font-semibold",
+              premium ? "text-slate-600" : "text-brand-900",
+            )}
+            dir="ltr"
+          >
             {formatPrice(item.price)}
           </span>
           <QtyControl
             value={item.quantity}
             min={1}
             max={999}
-            touchComfortable
+            touchComfortable={!premium}
+            compact={premium}
             onChange={(q) => onQuantityChange(item.productId, q)}
           />
         </div>
@@ -127,7 +177,10 @@ const CartSheetLine = memo(function CartSheetLine({
           <PriceText
             amount={item.price * item.quantity}
             compact
-            className="text-xs text-muted-foreground"
+            className={cn(
+              "text-xs",
+              premium ? "text-slate-500" : "text-muted-foreground",
+            )}
           />
         </div>
       </div>

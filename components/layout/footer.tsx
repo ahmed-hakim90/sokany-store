@@ -30,6 +30,14 @@ const footerLinks = [
   { href: ROUTES.RETAILERS, label: "الموزعون المعتمدون" },
 ] as const;
 
+const footerLegalLinks = [
+  { href: ROUTES.CONTACT, label: "تواصل معنا" },
+  { href: ROUTES.TERMS, label: "الشروط والأحكام" },
+  { href: ROUTES.RETURNS_POLICY, label: "سياسة الاسترجاع والاستبدال" },
+  { href: ROUTES.WARRANTY, label: "الصيانة والضمان" },
+  { href: ROUTES.PRIVACY, label: "سياسة الخصوصية" },
+] as const;
+
 /** أقصى عدد تصنيفات يُعرَض في الفوتر؛ الباقي عبر رابط «كل التصنيفات». */
 const FOOTER_CATEGORY_LIMIT = 8;
 
@@ -111,6 +119,17 @@ export function Footer({
               ))}
             </ul>
           </MobileAccordionSection>
+          <MobileAccordionSection title="معلومات قانونية">
+            <ul className="space-y-2 text-sm text-muted-foreground">
+              {footerLegalLinks.map((l) => (
+                <li key={l.href}>
+                  <Link className="hover:text-brand-900" href={l.href}>
+                    {l.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </MobileAccordionSection>
           <MobileAccordionSection title="خدمة العملاء">
             <div className="space-y-2 text-sm text-muted-foreground">
               <p>
@@ -131,6 +150,16 @@ export function Footer({
             <h3 className="font-display text-lg font-semibold text-brand-950">روابط</h3>
             <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
               {footerLinks.map((l) => (
+                <li key={l.href}>
+                  <Link className="hover:text-brand-900" href={l.href}>
+                    {l.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+            <h4 className="mt-6 font-display text-sm font-semibold text-brand-950">معلومات قانونية</h4>
+            <ul className="mt-2 space-y-2 text-sm text-muted-foreground">
+              {footerLegalLinks.map((l) => (
                 <li key={l.href}>
                   <Link className="hover:text-brand-900" href={l.href}>
                     {l.label}

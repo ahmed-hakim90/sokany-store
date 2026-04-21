@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { CategoriesPageContent } from "@/components/pages/CategoriesPageContent";
+import { SITE_BRAND_TITLE_AR } from "@/lib/constants";
 import { getSiteUrl } from "@/lib/site";
 
-const title = "التصنيفات | سوكانى المغربى";
+const title = `التصنيفات | ${SITE_BRAND_TITLE_AR}`;
 const description =
   "تصفح تصنيفات أجهزة سوكانى: مطبخ، منزلية، عناية شخصية، قهوة، والمزيد.";
 
@@ -14,7 +15,7 @@ export const metadata: Metadata = {
     title,
     description,
     url: `${getSiteUrl()}/categories`,
-    siteName: "سوكانى المغربى",
+    siteName: SITE_BRAND_TITLE_AR,
     locale: "ar_EG",
     type: "website",
   },

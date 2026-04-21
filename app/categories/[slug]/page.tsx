@@ -6,6 +6,7 @@ import { mockCategories } from "@/features/categories/mock";
 import { getSnapshotCategories } from "@/features/data-snapshot/server";
 import { getCategoryBySlugMeta } from "@/features/categories/services/getCategoryBySlugMeta";
 import { trimMetaDescription } from "@/lib/html";
+import { SITE_BRAND_TITLE_AR } from "@/lib/constants";
 import { getSiteUrl } from "@/lib/site";
 
 type PageProps = { params: Promise<{ slug: string }> };
@@ -26,7 +27,7 @@ export async function generateMetadata({
   if (!category) return { title: "تصنيف غير موجود" };
 
   const site = getSiteUrl();
-  const title = `${category.name} | سوكانى المغربى`;
+  const title = `${category.name} | ${SITE_BRAND_TITLE_AR}`;
   const rawDescription = `تصفح كل منتجات ${category.name} من سوكانى. ${category.count} منتج بأفضل الأسعار وضمان أصلي.`;
   const description = trimMetaDescription(rawDescription);
 
@@ -39,7 +40,7 @@ export async function generateMetadata({
       description,
       type: "website",
       url: `${site}/categories/${slug}`,
-      siteName: "سوكانى المغربى",
+      siteName: SITE_BRAND_TITLE_AR,
       locale: "ar_EG",
     },
     alternates: { canonical: `${site}/categories/${slug}` },

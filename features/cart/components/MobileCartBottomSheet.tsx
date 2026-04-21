@@ -1,12 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useState, startTransition } from "react";
+import { motion, useReducedMotion } from "framer-motion";
+import { ArrowLeft } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useTransitionRouter } from "next-view-transitions";
 import { Drawer } from "vaul";
-import { Button } from "@/components/Button";
-import { PriceText } from "@/components/ui/price-text";
 import { useCart } from "@/hooks/useCart";
+import { formatPriceAmountCheckout } from "@/lib/format";
 import { ROUTES } from "@/lib/constants";
 import { cn, formatPrice } from "@/lib/utils";
 import {
@@ -35,6 +36,7 @@ export function MobileCartBottomSheet({
     removeProduct,
   } = useCart();
   const [open, setOpen] = useState(false);
+  const reduceMotion = useReducedMotion();
 
   useEffect(() => {
     if (!showCartSummary || totalItems === 0) {
@@ -64,7 +66,7 @@ export function MobileCartBottomSheet({
   const lineCount = items.length;
   const qtyLabel =
     lineCount > 0
-      ? `${lineCount} صنف · ${totalItems} قطعة`
+      ? `${lineCount} صنف • ${totalItems} قطعة`
       : `${totalItems} قطعة`;
 
   return (
@@ -76,86 +78,115 @@ export function MobileCartBottomSheet({
       dismissible
     >
       {!peekHidden ? (
-        <div className="min-h-[3.25rem] border-b border-border/80 bg-white shadow-[0_-6px_18px_-10px_rgba(15,23,42,0.14)]">
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-2 px-3 py-2.5 sm:flex-nowrap">
+        <div className="px-4 pb-0">
+          <motion.div
+            className="flex min-h-[3.25rem] items-center justify-between gap-3 rounded-3xl border border-white/50 bg-white/80 px-4 py-3 shadow-[0_8px_32px_-10px_rgba(15,23,42,0.14),0_2px_8px_-4px_rgba(15,23,42,0.08)] backdrop-blur-xl backdrop-saturate-150"
+            initial={
+              reduceMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 18 }
+            }
+            animate={{ opacity: 1, y: 0 }}
+            transition={
+              reduceMotion
+                ? { duration: 0 }
+                : { type: "spring", stiffness: 400, damping: 32 }
+            }
+          >
             <Drawer.Trigger asChild disabled={!hasHydrated}>
               <button
                 type="button"
                 className={cn(
-                  "min-w-0 flex-1 basis-[min(100%,11rem)] rounded-md text-start outline-none ring-brand-500/0 transition-[box-shadow] focus-visible:ring-2 focus-visible:ring-brand-500/40 sm:basis-auto",
+                  "flex min-w-0 flex-1 flex-col items-start gap-1 rounded-2xl text-start outline-none ring-brand-500/0 transition-[box-shadow] focus-visible:ring-2 focus-visible:ring-brand-500/40",
                   !hasHydrated && "pointer-events-none opacity-80",
                 )}
                 aria-expanded={open}
                 aria-haspopup="dialog"
                 aria-label={open ? "إغلاق تفاصيل السلة" : "فتح تفاصيل السلة"}
               >
-                <p className="truncate text-xs text-muted-foreground">{qtyLabel}</p>
-                <PriceText
-                  amount={totalPrice}
-                  emphasized
-                  compact
-                  className="block min-w-0 whitespace-nowrap text-brand-950 text-end"
-                />
+                <div
+                  className="flex w-full min-w-0 items-baseline justify-end gap-1.5"
+                  dir="ltr"
+                >
+                  <span className="font-display text-2xl font-black tabular-nums tracking-tight text-brand-950">
+                    {formatPriceAmountCheckout(totalPrice)}
+                  </span>
+                  <span className="translate-y-px text-[0.7rem] font-semibold text-brand-900/65">
+                    ج.م
+                  </span>
+                </div>
+                <p className="w-full truncate text-start text-xs text-muted-foreground">
+                  {qtyLabel}
+                </p>
                 <span className="sr-only">
                   الإجمالي {formatPrice(totalPrice)} — اضغط لعرض تفاصيل السلة
                 </span>
               </button>
             </Drawer.Trigger>
-            <Button
-              variant="primary"
-              size="sm"
-              className="shrink-0 self-center font-bold"
+            <button
               type="button"
+              className={cn(
+                "inline-flex shrink-0 items-center gap-3 rounded-full border border-brand-800/12 bg-brand-300 py-1.5 ps-5 pe-2 text-sm font-black text-brand-950 shadow-md transition-[transform,colors] hover:bg-brand-400/85 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600",
+              )}
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 goCheckout();
               }}
             >
-              الانتقال للدفع
-            </Button>
-          </div>
+              <span className="max-w-[9rem] truncate sm:max-w-none">
+                إلى الدفع
+              </span>
+              <span
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-brand-950 shadow-sm ring-1 ring-black/[0.06]"
+                aria-hidden
+              >
+                <ArrowLeft className="size-5 rtl:rotate-180" />
+              </span>
+            </button>
+          </motion.div>
         </div>
       ) : null}
 
       <Drawer.Portal>
-        <Drawer.Overlay className="fixed inset-0 z-[90] bg-slate-900/50" />
+        <Drawer.Overlay className="fixed inset-0 z-[90] bg-slate-950/55 backdrop-blur-[2px]" />
         <Drawer.Content
           className={cn(
-            "fixed inset-x-0 bottom-0 z-[100] mx-auto flex max-h-[96dvh] min-w-0 max-w-3xl flex-col rounded-t-2xl border border-border/80 bg-page outline-none sm:max-w-4xl md:max-w-5xl",
+            "fixed z-[100] flex max-h-[min(88dvh,56rem)] min-h-0 min-w-0 flex-col overflow-hidden outline-none",
+            "inset-x-4 bottom-5 max-h-[min(88dvh,56rem)] sm:inset-x-6 sm:max-w-xl",
+            "rounded-3xl border border-white/50 bg-white/90 shadow-[0_28px_64px_-18px_rgba(15,23,42,0.45)] backdrop-blur-2xl backdrop-saturate-150",
             "pb-[env(safe-area-inset-bottom)]",
           )}
         >
-          <Drawer.Handle className="mx-auto mt-2.5 h-1.5 w-12 shrink-0 rounded-full bg-border" />
-          <div className="relative shrink-0 px-4 pt-1">
+          <Drawer.Handle className="mx-auto mt-3 h-1.5 w-11 shrink-0 rounded-full bg-slate-300/90" />
+          <div className="relative shrink-0 border-b border-slate-200/60 bg-gradient-to-b from-slate-50/80 to-transparent px-4 pb-2 pt-0.5">
             <button
               type="button"
-              className="absolute end-2 top-0 inline-flex h-10 w-10 items-center justify-center rounded-full text-brand-950 transition-colors hover:bg-surface-muted/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500"
+              className="absolute end-2 top-1 inline-flex h-10 w-10 items-center justify-center rounded-full bg-slate-100/95 text-slate-700 shadow-sm ring-1 ring-slate-900/5 transition-colors hover:bg-slate-200/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-400"
               onClick={() => setOpen(false)}
               aria-label="إغلاق"
             >
               <MobileCartCloseIcon />
             </button>
-            <Drawer.Title className="px-10 pt-1 text-center font-display text-sm font-semibold text-brand-950">
+            <Drawer.Title className="px-10 pt-1 text-center font-display text-base font-bold tracking-tight text-slate-900">
               سلة التسوق
             </Drawer.Title>
           </div>
           <Drawer.Description className="sr-only">
             تعديل الكميات أو إزالة الأصناف، ثم إتمام الطلب من الأسفل.
           </Drawer.Description>
-          <p className="px-4 pb-2 pt-0.5 text-center text-[11px] text-muted-foreground">
+          <p className="px-4 pb-2 pt-1.5 text-center text-[11px] text-slate-500">
             اسحب للأسفل للإغلاق أو زر الإغلاق أعلاه
           </p>
 
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 sm:px-4">
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain bg-slate-100/50 px-3 py-2 sm:px-4">
             <CartDrawerLines
+              variant="premium"
               items={items}
               onQuantityChange={updateProductQuantity}
               onRemove={removeProduct}
             />
           </div>
 
-          <CartDrawerPeekFooter onCheckout={goCheckout} />
+          <CartDrawerPeekFooter variant="premium" onCheckout={goCheckout} />
         </Drawer.Content>
       </Drawer.Portal>
     </Drawer.Root>

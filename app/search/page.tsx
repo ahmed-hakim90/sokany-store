@@ -3,13 +3,14 @@ import { Container } from "@/components/Container";
 import { SearchPageContent } from "@/components/pages/SearchPageContent";
 import { getProductsServer } from "@/features/products/services/getProductsServer";
 import { DEFAULT_PER_PAGE } from "@/lib/constants";
+import { SITE_BRAND_TITLE_AR } from "@/lib/constants";
 import { getSiteUrl } from "@/lib/site";
 import {
   normalizeSearchParamQ,
   resolveSearchPageQuery,
 } from "@/schemas/search";
 
-const titleBase = "بحث المنتجات | سوكانى المغربى";
+const titleBase = `بحث المنتجات | ${SITE_BRAND_TITLE_AR}`;
 const description =
   "ابحث في كتالوج سوكانى: أجهزة مطبخ، عناية شخصية، والمزيد — أسعار بالجنيه وضمان أصلي.";
 
@@ -25,7 +26,7 @@ export async function generateMetadata({
   const q = resolveSearchPageQuery(rawQ);
   const site = getSiteUrl();
   const title =
-    q.length >= 3 ? `«${q}» — نتائج البحث | سوكانى المغربى` : titleBase;
+    q.length >= 3 ? `«${q}» — نتائج البحث | ${SITE_BRAND_TITLE_AR}` : titleBase;
   const ogUrl =
     q.length > 0
       ? `${site}/search?q=${encodeURIComponent(q)}`
@@ -38,12 +39,13 @@ export async function generateMetadata({
       title,
       description,
       url: ogUrl,
-      siteName: "سوكانى المغربى",
+      siteName: SITE_BRAND_TITLE_AR,
       locale: "ar_EG",
       type: "website",
     },
     alternates: { canonical: ogUrl },
-    robots: { index: true, follow: true },
+    /** صفحات نتائج البحث الداخلية رقيقة ومتكررة — لا تُفهرَس لتفادي الازدواجية. */
+    robots: { index: false, follow: true },
   };
 }
 

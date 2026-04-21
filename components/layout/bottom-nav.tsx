@@ -60,7 +60,10 @@ export function BottomNavInner() {
     );
 
   return (
-    <nav aria-label="التنقل السفلي" className="border-t border-border/70 bg-white">
+    <nav
+      aria-label="التنقل السفلي"
+      className="border-t border-white/30 bg-white/55 backdrop-blur-sm"
+    >
       <ul className="mx-auto flex w-full max-w-none items-center justify-between gap-0 px-0 py-1.5 sm:px-0.5">
         {linkItems.map(({ href, label, key, icon: Icon }) => {
           const active =
