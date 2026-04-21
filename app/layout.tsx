@@ -64,7 +64,7 @@ export async function generateMetadata(): Promise<Metadata> {
         { url: branding.icon192, sizes: "192x192", type: "image/png" },
         { url: branding.icon512, sizes: "512x512", type: "image/png" },
       ],
-      apple: branding.icon192,
+      apple: branding.appleTouchIcon,
     },
     openGraph: {
       title: branding.defaultMetadataTitle,

@@ -11,7 +11,8 @@
     "test:e2e": "playwright test",
     "test:e2e:audit": "playwright test tests/sokany_audit.spec.ts",
     "scrape:sokany": "tsx scripts/scrape-sokany-eg.ts",
-    "scrape:sokany:dry": "tsx scripts/scrape-sokany-eg.ts --dry-run"
+    "scrape:sokany:dry": "tsx scripts/scrape-sokany-eg.ts --dry-run",
+    "generate:pwa-icons": "node scripts/generate-pwa-icons.mjs"
   },
   "dependencies": {
     "@next/third-parties": "^16.2.4",

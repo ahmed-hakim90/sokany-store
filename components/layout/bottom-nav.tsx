@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 
 const linkItems = [
   { href: ROUTES.HOME, label: "الرئيسية", key: "home", icon: HomeIcon },
+  { href: ROUTES.SEARCH, label: "بحث", key: "search", icon: SearchIcon },
   {
     href: ROUTES.CATEGORIES,
     label: "الأقسام",
@@ -53,7 +54,7 @@ export function BottomNavInner() {
 
   const tabClass = (active: boolean) =>
     cn(
-      "flex h-14 w-full max-w-[5.5rem] flex-col items-center justify-center gap-1 rounded-2xl border border-transparent px-1 py-1.5 text-xs font-semibold leading-tight transition-colors duration-200",
+      "flex h-14 w-full max-w-[4.85rem] flex-col items-center justify-center gap-1 rounded-2xl border border-transparent px-0.5 py-1.5 text-[11px] font-semibold leading-tight transition-colors duration-200 sm:max-w-[5.25rem] sm:text-xs",
       active
         ? "border-brand-950 bg-brand-950 text-accent"
         : "text-muted-foreground hover:bg-black/[0.03] hover:text-foreground/70",
@@ -62,14 +63,16 @@ export function BottomNavInner() {
   return (
     <nav
       aria-label="التنقل السفلي"
-      className="border-t border-white/30 bg-white/55 backdrop-blur-sm"
+      className="bg-transparent"
     >
       <ul className="mx-auto flex w-full max-w-none items-center justify-between gap-0 px-0 py-1.5 sm:px-0.5">
         {linkItems.map(({ href, label, key, icon: Icon }) => {
           const active =
             key === "home"
               ? pathname === ROUTES.HOME
-              : pathname === href || pathname.startsWith(`${href}/`);
+              : key === "search"
+                ? pathname === ROUTES.SEARCH || pathname.startsWith(`${ROUTES.SEARCH}/`)
+                : pathname === href || pathname.startsWith(`${href}/`);
           const isCart = key === "cart";
 
           return (
@@ -144,6 +147,21 @@ function HomeIcon() {
       aria-hidden
     >
       <path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1z" />
+    </svg>
+  );
+}
+
+function SearchIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className={iconClass}
+      fill="none"
+      stroke="currentColor"
+      aria-hidden
+    >
+      <circle cx="11" cy="11" r="7" />
+      <path d="M20 20l-4-4" strokeLinecap="round" />
     </svg>
   );
 }

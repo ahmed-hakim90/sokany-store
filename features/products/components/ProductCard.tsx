@@ -234,7 +234,10 @@ export function ProductCard({
         variant === "featured" && !priceCompact && "text-lg md:text-xl",
       )}
       compareAtClassName="!text-xs !text-neutral-400 md:!text-xs"
-      className="min-w-0 !flex-col !items-start !gap-0.5 !gap-x-0"
+      className={cn(
+        "min-w-0 !flex-col !gap-0.5 !gap-x-0",
+        showCartQty ? "!items-center" : "!items-start",
+      )}
     />
   );
 
@@ -339,21 +342,23 @@ export function ProductCard({
             </button>
           </div>
 
-          {/* معاينة سريعة — موبايل: زر صغير دائم يسار (المفضلة يمين على الموبايل لتفادي التداخل) */}
-          <div className="absolute bottom-2 left-2 z-[4] flex md:hidden">
-            <button
-              type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                setQuickViewOpen(true);
-              }}
-              className="inline-flex items-center gap-1.5 rounded-full border border-white/25 bg-slate-900/70 px-3 py-1.5 text-[11px] font-bold text-white shadow-lg shadow-slate-900/25 backdrop-blur-md"
-            >
-              <EyeIcon className="h-3.5 w-3.5" />
-              <span>معاينة</span>
-            </button>
-          </div>
+          {/* معاينة سريعة — موبايل: زر على الصورة فقط عندما لا يوجد صف أيقونات أسفل (سلة + مفضلة + معاينة في التذييل) */}
+          {!showCartQty ? (
+            <div className="absolute bottom-2 left-2 z-[4] flex md:hidden">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setQuickViewOpen(true);
+                }}
+                className="inline-flex items-center gap-1.5 rounded-full border border-white/25 bg-slate-900/70 px-3 py-1.5 text-[11px] font-bold text-white shadow-lg shadow-slate-900/25 backdrop-blur-md"
+              >
+                <EyeIcon className="h-3.5 w-3.5" />
+                <span>معاينة</span>
+              </button>
+            </div>
+          ) : null}
         </div>
 
         <div className={cn("relative flex flex-1 flex-col", layout.body)}>
@@ -379,40 +384,65 @@ export function ProductCard({
           </div>
           <div
             className={cn(
-              "mt-auto flex pt-2",
+              "mt-auto pt-2",
               showCartQty
-                ? "items-center justify-between gap-2"
-                : "min-h-[3.25rem] items-end pt-1",
+                ? "flex flex-col gap-2"
+                : "flex min-h-[3.25rem] items-end pt-1",
             )}
           >
-            <div
-              className={cn(
-                "min-h-0 min-w-0 flex-1",
-                "flex justify-start",
-              )}
-            >
-              {priceBlock}
-            </div>
             {showCartQty ? (
-              <div className="flex shrink-0 items-center gap-2">
-                {wishlistSlot}
-                <IconButton
-                  type="button"
-                  variant="accent"
-                  size="md"
-                  disabled={!product.inStock}
-                  aria-label={justAdded ? "تمت الإضافة للسلة" : "أضف للسلة"}
-                  className="h-11 min-h-[44px] min-w-11 w-11 shrink-0 rounded-full shadow-md shadow-brand-500/20 ring-1 ring-black/[0.06] [&_svg]:h-6 [&_svg]:w-6"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    handleAddToCart();
-                  }}
-                >
-                  <CartGlyph added={justAdded} />
-                </IconButton>
+              <>
+                <div className="flex w-full min-w-0 justify-center px-0.5">
+                  {priceBlock}
+                </div>
+                {/*
+                 * RTL: أول عنصر في الصف = يمين الشاشة — السلة؛ نهاية الصف = يسار — المفضلة + معاينة (أيقون فقط).
+                 */}
+                <div className="flex w-full min-w-0 items-center justify-between gap-2">
+                  <IconButton
+                    type="button"
+                    variant="accent"
+                    size="lg"
+                    disabled={!product.inStock}
+                    aria-label={justAdded ? "تمت الإضافة للسلة" : "أضف للسلة"}
+                    className="shrink-0 shadow-md shadow-brand-500/20 ring-1 ring-black/[0.06] [&_svg]:h-6 [&_svg]:w-6"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleAddToCart();
+                    }}
+                  >
+                    <CartGlyph added={justAdded} />
+                  </IconButton>
+                  <div className="flex shrink-0 items-center gap-2">
+                    {wishlistSlot}
+                    <IconButton
+                      type="button"
+                      variant="subtle"
+                      size="lg"
+                      aria-label="معاينة سريعة"
+                      className="border-slate-200/90 bg-white/95 shadow-md shadow-slate-900/10 ring-1 ring-slate-900/[0.05] backdrop-blur-sm hover:bg-white [&_svg]:h-5 [&_svg]:w-5"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setQuickViewOpen(true);
+                      }}
+                    >
+                      <EyeIcon />
+                    </IconButton>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div
+                className={cn(
+                  "min-h-0 min-w-0 flex-1",
+                  "flex justify-start",
+                )}
+              >
+                {priceBlock}
               </div>
-            ) : null}
+            )}
           </div>
         </div>
       </Card>

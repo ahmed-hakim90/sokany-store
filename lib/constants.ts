@@ -9,6 +9,9 @@ export const SITE_BRAND_TITLE_AR =
 /** Compact mobile header wordmark (Latin mark; override via env). */
 export const SITE_WORDMARK =
   process.env.NEXT_PUBLIC_SITE_WORDMARK ?? "SOKANY-Eg";
+/** Latin label for installable PWA (`manifest` name / short_name). Override via env. */
+export const PWA_INSTALL_NAME =
+  process.env.NEXT_PUBLIC_PWA_INSTALL_NAME?.trim() || "Sokany-EG";
 const rawSiteLogoPath = process.env.NEXT_PUBLIC_SITE_LOGO_PATH;
 /** Set `NEXT_PUBLIC_SITE_LOGO_PATH=` (empty) to use the site name instead of a logo image where supported. */
 export const SITE_LOGO_DISABLED =

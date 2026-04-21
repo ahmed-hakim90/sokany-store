@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import { Container } from "@/components/Container";
 import { SearchPageContent } from "@/components/pages/SearchPageContent";
+import { getPublicSiteContent } from "@/features/cms/services/getPublicSiteContent";
 import { getProductsServer } from "@/features/products/services/getProductsServer";
-import { DEFAULT_PER_PAGE } from "@/lib/constants";
 import { SITE_BRAND_TITLE_AR } from "@/lib/constants";
+import { buildProductQueryFromSearchPageSearchParams } from "@/lib/search-page-query";
 import { getSiteUrl } from "@/lib/site";
 import {
   normalizeSearchParamQ,
@@ -15,7 +16,7 @@ const description =
   "ابحث في كتالوج سوكانى: أجهزة مطبخ، عناية شخصية، والمزيد — أسعار بالجنيه وضمان أصلي.";
 
 type PageProps = {
-  searchParams: Promise<{ q?: string | string[] }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
 export async function generateMetadata({
@@ -51,17 +52,11 @@ export async function generateMetadata({
 
 export default async function SearchPage({ searchParams }: PageProps) {
   const sp = await searchParams;
-  const rawQ = normalizeSearchParamQ(sp.q);
-  const q = resolveSearchPageQuery(rawQ);
+  const { searchQuickKeywords } = await getPublicSiteContent();
+  const { query: q, searched, productParams } =
+    buildProductQueryFromSearchPageSearchParams(sp);
 
-  const searched = q.length >= 3;
-  const products = searched
-    ? await getProductsServer({
-        search: q,
-        per_page: DEFAULT_PER_PAGE,
-        page: 1,
-      })
-    : [];
+  const products = searched ? await getProductsServer(productParams) : [];
 
   return (
     <Container className="py-10">
@@ -78,7 +73,12 @@ export default async function SearchPage({ searchParams }: PageProps) {
         ) : null}
       </div>
 
-      <SearchPageContent query={q} searched={searched} products={products} />
+      <SearchPageContent
+        query={q}
+        searched={searched}
+        products={products}
+        quickKeywords={searchQuickKeywords}
+      />
     </Container>
   );
 }

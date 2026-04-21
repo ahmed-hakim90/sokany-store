@@ -84,11 +84,8 @@ export function Footer({
           "max-lg:pb-[calc(120px+env(safe-area-inset-bottom))]",
         )}
       >
-        {/* هذا القسم يعمل على الموبايل */}
-        {/* hidden هذا القسم يعمل على الموبايل */}
-        {/* //اخفاء القسم على الموبايل
-        // #hidden-mobile */}
-        <div className="space-y-0 hidden  md:hidden">
+        {/* موبايل: أكورديونات؛ من md فما فوق: الشبكة الأربعية */}
+        <div className="space-y-0 md:hidden">
           <MobileAccordionSection title="التصنيفات">
             <ul className="space-y-2 text-sm text-muted-foreground">
               {footerCategories.map((c) => (

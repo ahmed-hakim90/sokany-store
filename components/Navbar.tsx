@@ -25,15 +25,6 @@ import { DEFAULT_SEARCH_QUICK_KEYWORDS } from "@/lib/search-quick-keywords";
 import { SOCIAL_LINKS, type SocialLink } from "@/lib/social-links";
 import { cn } from "@/lib/utils";
 
-/** أول صفوف الدرج؛ على الديسكتوب يظهر شريط تصنيفات + ميجا مينو منفصل. */
-const primaryNavLinks = [
-  { href: ROUTES.HOME, label: "الرئيسية" },
-  { href: ROUTES.CATEGORY("home-appliances"), label: "الأجهزة المنزلية" },
-  { href: ROUTES.CATEGORY("kitchen-supplies"), label: "المطبخ" },
-  { href: ROUTES.CATEGORY("personal-care"), label: "العناية الشخصية" },
-  { href: ROUTES.PRODUCTS, label: "العروض" },
-] as const;
-
 /** روابط تظهر في صف الديسكتوب بعد «العروض» (ليست داخل «خدماتنا»). */
 const desktopPrimaryBarExtraLinks = [
   { href: ROUTES.CATEGORIES, label: "كل التصنيفات" },
@@ -52,15 +43,49 @@ const servicesDropdownLinks = [
   { href: ROUTES.PRIVACY, label: "سياسة الخصوصية" },
 ] as const;
 
-const drawerExtraLinks = [
-  ...desktopPrimaryBarExtraLinks,
-  ...servicesDropdownLinks,
+/**
+ * أقسام القائمة الجانبية للموبايل — الترتيب: بحث ← التصنيفات ← روابط سريعة ← أقسام ← عن المتجر ← سياسات (أكورديون) ← تواصل.
+ * شريط الديسكتوب يُعرَّف في `DesktopCategoryMegaNav` و`desktopPrimaryBarExtraLinks` / `servicesDropdownLinks`.
+ */
+const mobileDrawerLinkSections = [
+  {
+    title: "روابط سريعة",
+    links: [
+      { href: ROUTES.HOME, label: "الرئيسية" },
+      { href: ROUTES.CATEGORIES, label: "كل التصنيفات" },
+      { href: ROUTES.PRODUCTS, label: "العروض والمنتجات" },
+    ],
+  },
+  {
+    title: "تسوق حسب القسم",
+    links: [
+      { href: ROUTES.CATEGORY("home-appliances"), label: "الأجهزة المنزلية" },
+      { href: ROUTES.CATEGORY("kitchen-supplies"), label: "المطبخ" },
+      { href: ROUTES.CATEGORY("personal-care"), label: "العناية الشخصية" },
+    ],
+  },
+  {
+    title: "عن سوكاني",
+    links: [
+      { href: ROUTES.ABOUT, label: "من نحن" },
+      { href: ROUTES.SERVICE_CENTERS, label: "الفروع ومراكز الصيانة" },
+      { href: ROUTES.RETAILERS, label: "الموزعون المعتمدون" },
+      { href: ROUTES.ORDER_TRACKING, label: "تتبع الطلب" },
+    ],
+  },
 ] as const;
 
-const drawerLinks = [...primaryNavLinks, ...drawerExtraLinks] as const;
+const mobileDrawerPolicyLinks = [
+  { href: ROUTES.CONTACT, label: "تواصل معنا" },
+  { href: ROUTES.TERMS, label: "الشروط والأحكام" },
+  { href: ROUTES.RETURNS_POLICY, label: "سياسة الاسترجاع والاستبدال" },
+  { href: ROUTES.WARRANTY, label: "الصيانة والضمان" },
+  { href: ROUTES.PRIVACY, label: "سياسة الخصوصية" },
+] as const;
 
+/** أيقونات داخل كبسولة الهيدر الزجاجية — حدود خفيفة تندمج مع الطبقة. */
 const mobileIconTapClass =
-  "inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-brand-900/50 transition-colors hover:bg-surface-muted/45 hover:text-brand-950 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500";
+  "inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/35 bg-white/45 text-brand-900/65 transition-colors hover:bg-white/60 hover:text-brand-950 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500";
 
 export type NavbarProps = {
   /** من CMS أو الافتراضي من الثوابت عند عدم التمرير. */
@@ -84,7 +109,7 @@ function MobileCartLink({
     <Link
       href={ROUTES.CART}
       className={cn(
-        "relative inline-flex h-11 w-11 items-center justify-center rounded-full border border-border/80 bg-white text-brand-950 shadow-sm transition-colors hover:bg-surface-muted/50",
+        "relative inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/40 bg-white/55 text-brand-950 shadow-sm transition-colors hover:bg-white/70",
         className,
       )}
       aria-label="السلة"
@@ -238,7 +263,7 @@ export function Navbar({
   const mobileWishlistButton = (
     <button
       type="button"
-      className="relative inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border/80 bg-white text-brand-950 shadow-sm transition-colors hover:bg-surface-muted/50"
+      className="relative inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/40 bg-white/55 text-brand-950 shadow-sm transition-colors hover:bg-white/70"
       aria-label="المفضلة"
       aria-expanded={desktopWishlistDrawerOpen}
       aria-haspopup="dialog"
@@ -374,7 +399,7 @@ export function Navbar({
         mobileWordmark={mobileWordmark}
         mobileLeading={mobileLeading}
         mobileTrailing={mobileTrailing}
-        mobileToolbarBelow={isCheckout ? undefined : searchWithFilter}
+        mobileToolbarBelow={undefined}
         mobileSecondary={mobileSecondary}
         mobileChromeCollapsed={mobileChromeCollapsed}
       />
@@ -383,7 +408,8 @@ export function Navbar({
           open={open}
           onClose={closeDrawer}
           returnFocusRef={mobileNavDrawerReturnFocusRef}
-          links={drawerLinks}
+          linkSections={mobileDrawerLinkSections}
+          policyLinks={mobileDrawerPolicyLinks}
           categories={categoriesQuery.data}
           categoriesLoading={categoriesQuery.isLoading}
         />

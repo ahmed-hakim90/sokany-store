@@ -55,6 +55,8 @@ export const cmsSiteBrandingSchema = z.object({
   logoDisabled: z.boolean().optional(),
   icon192: z.string().min(1).max(500).optional(),
   icon512: z.string().min(1).max(500).optional(),
+  /** مسار أيقونة Apple (عادة ١٨٠×١٨٠ في `public/`) */
+  appleTouchIcon: z.string().min(1).max(500).optional(),
   pwaName: z.string().min(1).max(120).optional(),
   pwaShortName: z.string().min(1).max(40).optional(),
   pwaDescription: z.string().min(1).max(500).optional(),

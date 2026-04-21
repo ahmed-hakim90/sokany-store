@@ -8,6 +8,7 @@ import { Button } from "@/components/Button";
 import { Container } from "@/components/Container";
 import { cn } from "@/lib/utils";
 import {
+  PWA_INSTALL_NAME,
   SITE_BRAND_TITLE_AR,
   SITE_LOGO_DISABLED,
   SITE_NAME,
@@ -210,6 +211,7 @@ function brandingFromForm(fd: FormData): CmsSiteBranding {
   setIf("logoPath", "logoPath");
   setIf("icon192", "icon192");
   setIf("icon512", "icon512");
+  setIf("appleTouchIcon", "appleTouchIcon");
   setIf("pwaName", "pwaName");
   setIf("pwaShortName", "pwaShortName");
   setIf("pwaDescription", "pwaDescription");
@@ -714,13 +716,20 @@ export function ControlPanel() {
               placeholder="/images/icon-512.png"
               disabled={saving === "site_config"}
             />
+            <ControlImageUrlField
+              name="appleTouchIcon"
+              label="Apple touch icon (مسار، ١٨٠×١٨٠)"
+              defaultValue={site?.branding?.appleTouchIcon ?? ""}
+              placeholder="/apple-touch-icon.png"
+              disabled={saving === "site_config"}
+            />
             <div>
               <label className="text-sm font-medium">اسم تطبيق PWA</label>
               <input
                 name="pwaName"
                 defaultValue={site?.branding?.pwaName ?? ""}
                 className="mt-1 w-full rounded-lg border border-border px-3 py-2"
-                placeholder={SITE_BRAND_TITLE_AR}
+                placeholder={PWA_INSTALL_NAME}
               />
             </div>
             <div>
@@ -729,7 +738,7 @@ export function ControlPanel() {
                 name="pwaShortName"
                 defaultValue={site?.branding?.pwaShortName ?? ""}
                 className="mt-1 w-full rounded-lg border border-border px-3 py-2"
-                placeholder="سوكانى"
+                placeholder={PWA_INSTALL_NAME}
               />
             </div>
             <div className="sm:col-span-2">
@@ -749,7 +758,7 @@ export function ControlPanel() {
                 defaultValue={site?.branding?.themeColor ?? ""}
                 dir="ltr"
                 className="mt-1 w-full rounded-lg border border-border px-3 py-2 font-mono text-sm"
-                placeholder="#0f172a"
+                placeholder="#2F3D4E"
               />
             </div>
             <div>
@@ -759,7 +768,7 @@ export function ControlPanel() {
                 defaultValue={site?.branding?.backgroundColor ?? ""}
                 dir="ltr"
                 className="mt-1 w-full rounded-lg border border-border px-3 py-2 font-mono text-sm"
-                placeholder="#fafafa"
+                placeholder="#2F3D4E"
               />
             </div>
             <div className="sm:col-span-2">

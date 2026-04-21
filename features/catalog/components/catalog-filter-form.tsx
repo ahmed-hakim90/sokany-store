@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useTransitionRouter } from "next-view-transitions";
 import { startTransition } from "react";
 import { Button } from "@/components/Button";
@@ -12,7 +12,11 @@ import {
   PriceRangeFilter,
 } from "@/features/catalog/components/price-range-filter";
 import { useCatalogFilterDrawerOpenStore } from "@/features/catalog/store/useCatalogFilterDrawerOpenStore";
-import { buildProductsCatalogHref } from "@/lib/catalog-products-url";
+import {
+  buildProductsCatalogHref,
+  buildSearchPageCatalogHref,
+} from "@/lib/catalog-products-url";
+import { ROUTES } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 const SORT_OPTIONS = [
@@ -46,6 +50,7 @@ export type CatalogFilterFormProps = {
 
 export function CatalogFilterForm({ resetKey }: CatalogFilterFormProps) {
   const router = useTransitionRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const closeDrawer = useCatalogFilterDrawerOpenStore((s) => s.closeDrawer);
   const categoriesQuery = useCategories();
@@ -82,14 +87,19 @@ export function CatalogFilterForm({ resetKey }: CatalogFilterFormProps) {
     const max_price =
       priceMax > 0 && priceMax < CATALOG_PRICE_DEFAULT_MAX ? priceMax : null;
 
-    const href = buildProductsCatalogHref(searchParams, {
+    const draft = {
       featured,
       categoryId: featured ? null : categoryId,
       min_price,
       max_price,
       orderby,
       order: order === "asc" ? "asc" : "desc",
-    });
+    } as const;
+
+    const href =
+      pathname === ROUTES.SEARCH
+        ? buildSearchPageCatalogHref(searchParams, draft)
+        : buildProductsCatalogHref(searchParams, draft);
 
     startTransition(() => {
       router.push(href, { scroll: false });

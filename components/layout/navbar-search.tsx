@@ -72,6 +72,7 @@ export function NavbarSearch({
   const inputId = `${GLOBAL_PRODUCT_SEARCH_INPUT_ID}-${reactId.replace(/:/g, "")}`;
 
   const isProductsPage = pathname === ROUTES.PRODUCTS;
+  const isSearchPage = pathname === ROUTES.SEARCH;
 
   const [value, setValue] = useState("");
   const [open, setOpen] = useState(false);
@@ -81,6 +82,12 @@ export function NavbarSearch({
     const fromUrl = searchParams.get("search")?.trim() ?? "";
     queueMicrotask(() => setValue(fromUrl));
   }, [isProductsPage, searchParams]);
+
+  useEffect(() => {
+    if (!isSearchPage) return;
+    const fromUrl = searchParams.get("q")?.trim() ?? "";
+    queueMicrotask(() => setValue(fromUrl));
+  }, [isSearchPage, searchParams]);
 
   const debouncedValue = useDebounce(value, 400);
 

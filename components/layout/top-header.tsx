@@ -1,7 +1,13 @@
 "use client";
 
-import { cn } from "@/lib/utils";
 import { MobileTopHeader } from "@/components/layout/mobile-top-header";
+import { stickyChromeBottomShadowLgClass } from "@/components/layout/mobile-commerce-surface";
+import { cn } from "@/lib/utils";
+
+/*
+ * الديسكتوب: شريط علوي أبيض مع شريط تصنيفات اختياري.
+ * الموبايل: الغلاف شفاف؛ الكبسولة الزجاجية داخل `MobileTopHeader` فقط.
+ */
 
 export type TopHeaderProps = {
   logo: React.ReactNode;
@@ -37,7 +43,8 @@ export function TopHeader({
   return (
     <header
       className={cn(
-        "sticky top-0 z-40 max-lg:bg-page/80 max-lg:backdrop-blur-[6px] max-lg:supports-[backdrop-filter]:bg-page/65 lg:border-b lg:border-border lg:bg-white/95 lg:backdrop-blur",
+        "sticky top-0 z-40 max-lg:bg-transparent lg:border-b lg:border-border lg:bg-white/95 lg:backdrop-blur",
+        stickyChromeBottomShadowLgClass,
         className,
       )}
     >
@@ -56,7 +63,7 @@ export function TopHeader({
         />
       </div>
 
-      <div className="mx-auto hidden min-w-0 max-w-none items-center gap-3 px-4 py-2.5 sm:gap-4 sm:px-6 lg:flex lg:gap-5 lg:px-8">
+      <div className="mx-auto hidden min-h-[3.5rem] min-w-0 max-w-none items-center gap-3 px-4 py-2 sm:gap-4 sm:px-6 lg:flex lg:gap-5 lg:px-8">
         <div className="flex min-w-0 shrink-0 items-center gap-2">{logo}</div>
         {center ? (
           <div className="mx-auto min-w-0 w-full max-w-md flex-1 px-2 lg:max-w-2xl xl:max-w-3xl">

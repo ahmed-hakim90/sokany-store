@@ -15,7 +15,7 @@ import {
   HomeParentCategorySectionsSkeleton,
 } from "@/features/home/components/home-parent-category-sections";
 import { HomePromoCard } from "@/features/home/components/home-promo-card";
-import { HomeTrustStrip } from "@/features/home/components/home-trust-strip";
+import { HomeMobileServicesCapsule } from "@/features/home/components/home-mobile-services-capsule";
 import { ProductGrid } from "@/features/products/components/ProductGrid";
 import { ROUTES } from "@/lib/constants";
 import { useCategories } from "@/features/categories/hooks/useCategories";
@@ -23,46 +23,10 @@ import { HomeCategoryImageScroller } from "@/features/home/components/home-categ
 import { HomeFlashSaleCountdownStrip } from "@/features/home/components/home-flash-sale-countdown";
 import { useProducts } from "@/features/products/hooks/useProducts";
 
-function ShieldIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
-      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function HeadsetIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
-      <path d="M3 11a9 9 0 0118 0v1a3 3 0 003 3" strokeLinecap="round" />
-      <path d="M21 15v3a2 2 0 01-2 2h-1v-6M3 15v3a2 2 0 002 2h1v-6" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function TruckIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
-      <path d="M10 17h4V5H2v12h3m8 0h2M6 17v-3M18 9h3l3 3v5h-3M2 17h2" strokeLinecap="round" />
-      <circle cx="7" cy="17" r="2" />
-      <circle cx="17" cy="17" r="2" />
-    </svg>
-  );
-}
-
-function CheckSealIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
-      <path d="M12 3l7 4v5c0 5-3 9-7 11-4-2-7-6-7-11V7l7-4z" strokeLinejoin="round" />
-      <path d="M9 12l2 2 4-4" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
 /*
  * الصفحة الرئيسية (/): عمود واحد داخل Container بمسافات رأسية تتسع تدريجياً (sm → md).
  * التسلسل: هيرو (سكروول أفقي + auto-rotate) → شريط صور التصنيفات
- * (240×120 سكروول أفقي؛ سيليكتون أثناء تحميل التصنيفات من الـ API) → عروض سريعة (بانر أزرق + عداد + CTA ثم شبكة on_sale) → شريط ثقة
+ * (240×120 سكروول أفقي؛ سيليكتون أثناء تحميل التصنيفات من الـ API) → عروض سريعة (بانر أزرق + عداد + CTA ثم شبكة on_sale) → كبسولة خدمات (٤ عناصر في سطر واحد على كل الشاشات)
  * → الأكثر مبيعاً (featured) → وصل حديثاً (orderby تاريخ) → أقسام الأب للتصنيفات
  * (هيكل تحميل حتى تُحمَّل قائمة التصنيفات ثم المحتوى الفعلي) → بطاقة ترويجي في الأسفل.
  */
@@ -183,49 +147,8 @@ export function HomePageContent({
           </section>
         ) : null}
 
-        {/* من lg: صف واحد (٤ أعمدة)؛ من md حتى lg: شبكة ٢×٢؛ مخفية على الجوال */}
-        <HomeTrustStrip
-          className="hidden md:grid"
-          items={[
-            {
-              label: "شحن محلي",
-              description: "شحن مجاني للطلبات فوق ٢٠٠٠ جنية",
-              icon: <ShieldIcon />,
-            },
-            {
-              label: "تقسيط مريح",
-              description: "اقساط مريحه تصل الي ٢٤ شهرا.",
-              icon: <ShieldIcon />,
-            },
-            {
-              label: "عروض جديدة",
-              description: "مرتبطة بصفحة العروض.",
-              icon: <HeadsetIcon />,
-            },
-            {
-              label: "ارجاع خلال ١٤ يوما",
-              description: "استرداد المشتريات خلال ١٤ يوما.",
-              icon: <TruckIcon />,
-            },
-          ]}
-        />
-
-        {/* الجوال فقط: نسخة مختصرة من شريط الثقة؛ تختفي من md */}
-        <HomeTrustStrip
-          className="grid md:hidden"
-          items={[
-            {
-              label: "شحن محلي",
-              description: "شحن مجاني للطلبات فوق ٢٠٠٠ جنية",
-              icon: <ShieldIcon />,
-            },
-            {
-              label: "ارجاع خلال ١٤ يوما",
-              description: "استرداد المشتريات خلال ١٤ يوما.",
-              icon: <TruckIcon />,
-            },
-          ]}
-        />
+        {/* كبسولة خدمات: أربع عناصر في سطر واحد — نفس الشكل على كل الشاشات */}
+        <HomeMobileServicesCapsule />
 
         {/* قسم الأكثر مبيعاً: عنوان وسطي + شبكة منتجات (٢ / ٣ / ٤ أعمدة حسب الشاشة) */}
         <section className="space-y-4" aria-labelledby="home-bestsellers-title">

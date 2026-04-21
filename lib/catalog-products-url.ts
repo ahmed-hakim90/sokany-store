@@ -9,16 +9,10 @@ export type CatalogFilterApplyInput = {
   order: "asc" | "desc";
 };
 
-/**
- * Builds `/products?...` from current query (preserves e.g. `search`, `per_page`)
- * while replacing catalog filter fields.
- */
-export function buildProductsCatalogHref(
-  currentSearchParams: URLSearchParams,
+function applyCatalogFilterDraftToParams(
+  params: URLSearchParams,
   draft: CatalogFilterApplyInput,
-): string {
-  const params = new URLSearchParams(currentSearchParams.toString());
-
+) {
   if (draft.featured) {
     params.set("featured", "true");
     params.delete("category");
@@ -41,7 +35,10 @@ export function buildProductsCatalogHref(
     params.delete("max_price");
   }
 
-  if (draft.orderby && ["date", "popularity", "price", "rating", "title"].includes(draft.orderby)) {
+  if (
+    draft.orderby &&
+    ["date", "popularity", "price", "rating", "title"].includes(draft.orderby)
+  ) {
     params.set("orderby", draft.orderby);
   } else {
     params.set("orderby", "popularity");
@@ -49,7 +46,31 @@ export function buildProductsCatalogHref(
   params.set("order", draft.order === "asc" ? "asc" : "desc");
 
   params.delete("page");
+}
 
+/**
+ * Builds `/products?...` from current query (preserves e.g. `search`, `per_page`)
+ * while replacing catalog filter fields.
+ */
+export function buildProductsCatalogHref(
+  currentSearchParams: URLSearchParams,
+  draft: CatalogFilterApplyInput,
+): string {
+  const params = new URLSearchParams(currentSearchParams.toString());
+  applyCatalogFilterDraftToParams(params, draft);
   const qs = params.toString();
   return qs ? `${ROUTES.PRODUCTS}?${qs}` : ROUTES.PRODUCTS;
+}
+
+/**
+ * Builds `/search?...` — يحافظ على `q` ومعاملات أخرى من الرابط الحالي.
+ */
+export function buildSearchPageCatalogHref(
+  currentSearchParams: URLSearchParams,
+  draft: CatalogFilterApplyInput,
+): string {
+  const params = new URLSearchParams(currentSearchParams.toString());
+  applyCatalogFilterDraftToParams(params, draft);
+  const qs = params.toString();
+  return qs ? `${ROUTES.SEARCH}?${qs}` : ROUTES.SEARCH;
 }

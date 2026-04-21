@@ -41,7 +41,7 @@ const FOOTER_INTERNAL_PATHS: readonly string[] = [
   ROUTES.PRIVACY,
 ];
 
-/** مطابق لـ `primaryNavLinks` + `drawerExtraLinks` في components/Navbar.tsx — روابط درج القائمة على الموبايل. */
+/** مطابق لـ `mobileDrawerLinkSections` + `mobileDrawerPolicyLinks` في components/Navbar.tsx — روابط درج القائمة على الموبايل. */
 const MOBILE_DRAWER_INTERNAL_PATHS: readonly string[] = [
   ROUTES.HOME,
   ROUTES.CATEGORY("home-appliances"),
@@ -54,6 +54,10 @@ const MOBILE_DRAWER_INTERNAL_PATHS: readonly string[] = [
   ROUTES.CONTACT,
   ROUTES.SERVICE_CENTERS,
   ROUTES.RETAILERS,
+  ROUTES.TERMS,
+  ROUTES.RETURNS_POLICY,
+  ROUTES.WARRANTY,
+  ROUTES.PRIVACY,
 ];
 
 const AUDIT_PAGE_PATHS: readonly string[] = [

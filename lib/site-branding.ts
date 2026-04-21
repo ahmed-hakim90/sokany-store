@@ -1,4 +1,5 @@
 import {
+  PWA_INSTALL_NAME,
   SITE_BRAND_TITLE_AR,
   SITE_LOGO_DISABLED,
   SITE_LOGO_PATH,
@@ -19,6 +20,7 @@ export type ResolvedSiteBranding = {
   logoDisabled: boolean;
   icon192: string;
   icon512: string;
+  appleTouchIcon: string;
   pwaName: string;
   pwaShortName: string;
   pwaDescription: string;
@@ -42,12 +44,13 @@ export function resolveSiteBranding(b: CmsSiteBranding | undefined): ResolvedSit
     logoDisabled: b?.logoDisabled ?? SITE_LOGO_DISABLED,
     icon192: b?.icon192 ?? "/images/icon-192.png",
     icon512: b?.icon512 ?? "/images/icon-512.png",
-    pwaName: b?.pwaName ?? SITE_BRAND_TITLE_AR,
-    pwaShortName: b?.pwaShortName ?? "سوكانى",
+    appleTouchIcon: b?.appleTouchIcon ?? "/apple-touch-icon.png",
+    pwaName: b?.pwaName ?? PWA_INSTALL_NAME,
+    pwaShortName: b?.pwaShortName ?? PWA_INSTALL_NAME,
     pwaDescription:
       b?.pwaDescription ?? "متجر أجهزة سوكانى الكهربائية",
-    themeColor: b?.themeColor ?? "#0f172a",
-    backgroundColor: b?.backgroundColor ?? "#fafafa",
+    themeColor: b?.themeColor ?? "#2F3D4E",
+    backgroundColor: b?.backgroundColor ?? "#2F3D4E",
     defaultMetadataTitle: b?.defaultMetadataTitle ?? SITE_BRAND_TITLE_AR,
     defaultOgImageUrl: b?.defaultOgImageUrl ?? DEFAULT_OG_IMAGE_URL,
     organizationName: b?.organizationName ?? SITE_BRAND_TITLE_AR,

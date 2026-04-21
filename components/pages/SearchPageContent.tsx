@@ -2,10 +2,13 @@
 
 import { Link } from "next-view-transitions";
 import { EmptyState } from "@/components/EmptyState";
+import { CatalogFilterDrawerTrigger } from "@/features/catalog/components/CatalogFilterDrawerTrigger";
+import { NavbarSearch } from "@/components/layout/navbar-search";
 import { ProductGrid } from "@/features/products/components/ProductGrid";
 import type { Product } from "@/features/products/types";
 import { useCart } from "@/hooks/useCart";
 import { ROUTES } from "@/lib/constants";
+import { DEFAULT_SEARCH_QUICK_KEYWORDS } from "@/lib/search-quick-keywords";
 import { cn } from "@/lib/utils";
 
 function ReturnToShopLink({ className }: { className?: string }) {
@@ -28,59 +31,67 @@ export type SearchPageContentProps = {
   /** When false, parent skipped Woo because query was too short. */
   searched: boolean;
   products: Product[];
+  /** من CMS — نفس شريط البحث في النافبار. */
+  quickKeywords?: readonly string[];
 };
 
 /*
- * محتوى نتائج البحث: يُستدعى من صفحة البحث بعد جلب المنتجات على الخادم.
- * حالات العرض: (1) لم يُنفَّذ بحث صالح — EmptyState؛ (2) لا نتائج — EmptyState؛ (3) نتائج — شبكة منتجات بعرض المحتوى.
+ * صفحة `/search` (موبايل + ديسكتوب):
+ * - صف بحث + زر فلتر (درج الكتالوج) يعيد بناء الرابط مع `q` والمعاملات.
+ * - أسفله: حالة فارغة أو شبكة نتائج.
  */
 export function SearchPageContent({
   query,
   searched,
   products,
+  quickKeywords = DEFAULT_SEARCH_QUICK_KEYWORDS,
 }: SearchPageContentProps) {
   const { getCartLineQuantity, setProductLineQuantity } = useCart();
 
-  if (!searched) {
-    return (
-      <>
-        {/* لم يُنفَّذ بحث: رسالة في مساحة المحتوى الرئيسية للبحث */}
+  return (
+    <div className="min-w-0 space-y-8">
+      {/*
+        موبايل: البحث والفلتر هنا فقط (أُزيلا من الهيدر العلوي).
+        ديسكتوب: نفس الأدوات في `Navbar` — نخفي هذا الصف لتفادي التكرار.
+      */}
+      <div className="flex min-w-0 w-full items-center gap-2 lg:hidden">
+        <div className="min-w-0 flex-1">
+          <NavbarSearch quickKeywords={quickKeywords} />
+        </div>
+        <CatalogFilterDrawerTrigger />
+      </div>
+
+      {!searched ? (
         <EmptyState
           title="أدخل 3 أحرف على الأقل"
-          description="اكتب كلمة بحث أطول في شريط البحث أعلاه ثم اضغط Enter أو اختر «عرض الكل» لرؤية كل النتائج."
+          description="اكتب في شريط البحث (أعلى الصفحة على الديسكتوب، أو أدناه على الموبايل) ثم اضغط Enter، أو اختر اقتراحاً سريعاً."
           action={<ReturnToShopLink />}
         />
-      </>
-    );
-  }
+      ) : null}
 
-  if (!products.length) {
-    return (
-      <>
-        {/* بحث نُفِّذ لكن لا منتجات: نفس نمط الحالة الفارغة */}
+      {searched && !products.length ? (
         <EmptyState
           title="لا توجد نتائج"
           description={
             query
-              ? `لم نعثر على منتجات تطابق «${query}». جرّب كلمات مختلفة أو ارجع للكتالوج.`
+              ? `لم نعثر على منتجات تطابق «${query}». جرّب كلمات مختلفة أو عدّل التصفية.`
               : "لم نعثر على منتجات لهذا البحث."
           }
           action={<ReturnToShopLink />}
         />
-      </>
-    );
-  }
+      ) : null}
 
-  return (
-    <div className="min-w-0">
-      {/* شبكة نتائج بعرض عمود المحتوى؛ بطاقات كتالوج على كل العروض */}
-      <ProductGrid
-        products={products}
-        getCartLineQuantity={getCartLineQuantity}
-        onCartLineQuantityChange={setProductLineQuantity}
-        cardVariant="desktopCatalog"
-        cardVariantMd="desktopCatalog"
-      />
+      {searched && products.length > 0 ? (
+        <div className="min-w-0">
+          <ProductGrid
+            products={products}
+            getCartLineQuantity={getCartLineQuantity}
+            onCartLineQuantityChange={setProductLineQuantity}
+            cardVariant="desktopCatalog"
+            cardVariantMd="desktopCatalog"
+          />
+        </div>
+      ) : null}
     </div>
   );
 }

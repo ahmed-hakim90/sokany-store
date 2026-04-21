@@ -14,6 +14,7 @@ import {
   CartDrawerLines,
   CartDrawerPeekFooter,
 } from "@/features/cart/components/cart-drawer-body";
+import { mobileCommercePeekSurfaceClass } from "@/components/layout/mobile-commerce-surface";
 
 type MobileCartBottomSheetProps = {
   showCartSummary: boolean;
@@ -80,7 +81,10 @@ export function MobileCartBottomSheet({
       {!peekHidden ? (
         <div className="px-4 pb-0">
           <motion.div
-            className="flex min-h-[3.25rem] items-center justify-between gap-3 rounded-3xl border border-white/50 bg-white/80 px-4 py-3 shadow-[0_8px_32px_-10px_rgba(15,23,42,0.14),0_2px_8px_-4px_rgba(15,23,42,0.08)] backdrop-blur-xl backdrop-saturate-150"
+            className={cn(
+              mobileCommercePeekSurfaceClass,
+              "flex min-h-[3.25rem] items-center justify-between gap-3 px-4 py-3",
+            )}
             initial={
               reduceMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 18 }
             }

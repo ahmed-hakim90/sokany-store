@@ -21,12 +21,18 @@ import { cn } from "@/lib/utils";
 
 export type NavDrawerLink = { href: string; label: string };
 
+export type NavDrawerLinkSection = {
+  title: string;
+  links: readonly NavDrawerLink[];
+};
+
 export type MobileNavDrawerProps = {
   open: boolean;
   onClose: () => void;
   /** Ref to the control that opened the drawer (menu button) for focus restore. */
   returnFocusRef: React.RefObject<HTMLButtonElement | null>;
-  links: readonly NavDrawerLink[];
+  linkSections: readonly NavDrawerLinkSection[];
+  policyLinks: readonly NavDrawerLink[];
   categories: Category[] | undefined;
   categoriesLoading?: boolean;
 };
@@ -51,11 +57,61 @@ const navLinkClass =
 const navLinkActiveClass =
   "bg-brand-500/15 text-brand-900 ring-1 ring-brand-500/40";
 
+function isLinkActive(pathname: string, href: string) {
+  return href === ROUTES.HOME
+    ? pathname === ROUTES.HOME
+    : pathname === href || pathname.startsWith(`${href}/`);
+}
+
+function DrawerLinkSection({
+  title,
+  links,
+  pathname,
+  onNavigate,
+  sectionId,
+}: {
+  title: string;
+  links: readonly NavDrawerLink[];
+  pathname: string;
+  onNavigate: () => void;
+  sectionId: string;
+}) {
+  return (
+    <section
+      className="border-b border-border/80 py-2"
+      aria-labelledby={sectionId}
+    >
+      <h3
+        id={sectionId}
+        className="px-2 pb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+      >
+        {title}
+      </h3>
+      <nav aria-label={title} className="divide-y divide-border/80 rounded-xl border border-border/50 bg-white/50 py-0.5">
+        {links.map((l) => {
+          const active = isLinkActive(pathname, l.href);
+          return (
+            <Link
+              key={l.href}
+              href={l.href}
+              className={cn(navLinkClass, active && navLinkActiveClass)}
+              onClick={onNavigate}
+            >
+              {l.label}
+            </Link>
+          );
+        })}
+      </nav>
+    </section>
+  );
+}
+
 export function MobileNavDrawer({
   open,
   onClose,
   returnFocusRef,
-  links,
+  linkSections,
+  policyLinks,
   categories,
   categoriesLoading,
 }: MobileNavDrawerProps) {
@@ -102,26 +158,31 @@ export function MobileNavDrawer({
   return createPortal(
     <AnimatePresence>
       {open ? (
-        <>
+        <div
+          className="fixed inset-0 z-[140] lg:hidden"
+          role="presentation"
+        >
           <motion.div
             key="mobile-nav-backdrop"
-            className="fixed inset-0 z-[140] bg-slate-900/45 backdrop-blur-[10px] lg:hidden"
-            role="presentation"
+            className="absolute inset-0 bg-slate-900/45 backdrop-blur-[10px]"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: reduceMotion ? 0 : 0.2 }}
             onClick={onClose}
+            aria-hidden
           />
           <FocusTrap
             key="mobile-nav-trap"
             active
             focusTrapOptions={{
-              initialFocus: () => closeRef.current ?? searchRef.current ?? undefined,
+              initialFocus: () =>
+                closeRef.current ?? searchRef.current ?? undefined,
               returnFocusOnDeactivate: true,
               setReturnFocus: () => returnFocusRef.current ?? false,
               escapeDeactivates: false,
-              clickOutsideDeactivates: false,
+              /** بدون هذا، focus-trap يمنع `pointerdown` خارج اللوحة فيُلغى النقر على الخلفية (خاصة على الموبايل). */
+              allowOutsideClick: true,
             }}
           >
             <motion.div
@@ -170,6 +231,7 @@ export function MobileNavDrawer({
                   <CloseGlyph />
                 </IconButton>
               </div>
+
               <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-2 sm:px-5">
                 <div className="border-b border-border/80 pb-3">
                   <Link
@@ -183,29 +245,16 @@ export function MobileNavDrawer({
                   </Link>
                 </div>
 
-                <nav aria-label="الصفحات" className="divide-y divide-border/80 border-b border-border/80 py-1">
-                  {links.map((l) => {
-                    const active =
-                      l.href === ROUTES.HOME
-                        ? pathname === ROUTES.HOME
-                        : pathname === l.href || pathname.startsWith(`${l.href}/`);
-                    return (
-                      <Link
-                        key={l.href}
-                        href={l.href}
-                        className={cn(navLinkClass, active && navLinkActiveClass)}
-                        onClick={onClose}
-                      >
-                        {l.label}
-                      </Link>
-                    );
-                  })}
-                </nav>
-
-                <div className="border-b border-border/80 py-2">
-                  <p className="px-2 pb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                <section
+                  className="border-b border-border/80 py-3"
+                  aria-labelledby="mobile-drawer-categories-heading"
+                >
+                  <h3
+                    id="mobile-drawer-categories-heading"
+                    className="px-2 pb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+                  >
                     التصنيفات
-                  </p>
+                  </h3>
                   {categoriesLoading ? (
                     <div className="space-y-2 px-2 py-2">
                       {Array.from({ length: 4 }).map((_, i) => (
@@ -231,11 +280,50 @@ export function MobileNavDrawer({
                       ))}
                     </div>
                   )}
-                </div>
+                </section>
+
+                {linkSections.map((section, idx) => (
+                  <DrawerLinkSection
+                    key={section.title}
+                    title={section.title}
+                    links={section.links}
+                    pathname={pathname}
+                    onNavigate={onClose}
+                    sectionId={`mobile-drawer-section-${idx}`}
+                  />
+                ))}
+
+                <MobileAccordionSection
+                  title="المساعدة والسياسات"
+                  className="border-b border-border/80"
+                  defaultOpen={false}
+                >
+                  <nav
+                    aria-label="المساعدة والسياسات"
+                    className="divide-y divide-border/80 rounded-xl border border-border/50 bg-white/50 py-0.5"
+                  >
+                    {policyLinks.map((l) => {
+                      const active = isLinkActive(pathname, l.href);
+                      return (
+                        <Link
+                          key={l.href}
+                          href={l.href}
+                          className={cn(
+                            navLinkClass,
+                            active && navLinkActiveClass,
+                          )}
+                          onClick={onClose}
+                        >
+                          {l.label}
+                        </Link>
+                      );
+                    })}
+                  </nav>
+                </MobileAccordionSection>
 
                 <nav
-                  aria-label="خدمة العملاء"
-                  className="divide-y divide-border/80 border-b border-border/80 py-1"
+                  aria-label="تواصل معنا"
+                  className="mt-2 border-b border-border/80 py-2"
                 >
                   <a
                     href={`mailto:${CONTACT_EMAIL}`}
@@ -249,7 +337,7 @@ export function MobileNavDrawer({
                   </p>
                 </nav>
 
-                <div className="mt-3 rounded-xl border border-brand-500/35 bg-brand-500 px-3 py-3 sticky bottom-0">
+                <div className="sticky bottom-0 z-[1] mt-3 rounded-xl border border-brand-500/35 bg-brand-500 px-3 py-3 shadow-[0_-8px_24px_-8px_rgba(15,23,42,0.12)]">
                   <p className="text-sm font-bold text-brand-950">
                     خصم 10% على أول طلب
                   </p>
@@ -263,7 +351,7 @@ export function MobileNavDrawer({
               </div>
             </motion.div>
           </FocusTrap>
-        </>
+        </div>
       ) : null}
     </AnimatePresence>,
     document.body,

@@ -30,7 +30,7 @@ export function SiteShell({
 }: SiteShellProps) {
   return (
     <>
-      <div className="sticky top-0 z-50">
+      <div className="sticky top-0 z-50 pt-[env(safe-area-inset-top)] max-lg:bg-white">
         <TopAnnouncementBar config={topAnnouncementBar} />
         <Suspense fallback={null}>
           <Navbar
@@ -51,7 +51,12 @@ export function SiteShell({
       <Suspense fallback={null}>
         <CatalogFilterDrawer />
       </Suspense>
-      <main className="flex min-h-0 min-w-0 max-w-none flex-1 flex-col bg-page pb-mobile-commerce lg:pb-0">
+      {/*
+        فواصل الهيدر (ليست hr): border-b تحت الإعلان/شريط الموبايل؛ lg:border-b تحت صف الديسكتوب؛
+        border-t فوق شريط التصنيفات (desktopSubheader)؛ على الموبايل border-t فوق السطر الثانوي إن وُجد.
+        أول محتوى بعد الكتلة الثابتة: pt-2 خفيف.
+      */}
+      <main className="flex min-h-0 min-w-0 max-w-none flex-1 flex-col bg-page pb-mobile-commerce lg:pb-0 [&>*:first-child]:pt-2">
         {children}
       </main>
       <FooterGate
