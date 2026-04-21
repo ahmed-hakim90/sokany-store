@@ -4,6 +4,10 @@ import { getToken, onMessage, type Messaging } from "firebase/messaging";
 import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { getFirebaseMessaging } from "@/lib/firebase";
+import {
+  messagingErrorIsInvalidVapid,
+  warnIfVapidKeyLooksInvalidDev,
+} from "@/lib/push-vapid";
 
 const VAPID = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY;
 
@@ -11,11 +15,23 @@ export const SOKANY_PUSH_GRANTED_EVENT = "sokany-push-granted";
 
 async function registerTokenWithServer(messaging: Messaging): Promise<void> {
   if (!VAPID?.trim()) return;
+  warnIfVapidKeyLooksInvalidDev(VAPID);
   const registration = await navigator.serviceWorker.ready;
-  const token = await getToken(messaging, {
-    vapidKey: VAPID,
-    serviceWorkerRegistration: registration,
-  });
+  let token: string;
+  try {
+    token = await getToken(messaging, {
+      vapidKey: VAPID.trim(),
+      serviceWorkerRegistration: registration,
+    });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    if (messagingErrorIsInvalidVapid(msg)) {
+      throw new Error(
+        "مفتاح VAPID غير صالح. انسخ المفتاح العام من Firebase → Project settings → Cloud Messaging → Web Push certificates (نفس مشروع NEXT_PUBLIC_FIREBASE_*).",
+      );
+    }
+    throw e;
+  }
   if (!token) return;
   const res = await fetch("/api/push/subscribe", {
     method: "POST",
@@ -51,8 +67,10 @@ export function useFcmWebPush(enabled: boolean): void {
       if (!messaging || cancelled) return;
       try {
         await registerTokenWithServer(messaging);
-      } catch {
-        /* الخادم قد يكون غير مهيأ */
+      } catch (err) {
+        if (process.env.NODE_ENV === "development") {
+          console.error("[push] registerTokenWithServer:", err);
+        }
       }
       offRef.current = onMessage(messaging, (payload) => {
         const title = payload.notification?.title ?? "إشعار";
@@ -94,6 +112,7 @@ export async function requestWebPushSubscription(): Promise<{ ok: boolean }> {
     toast.error("الإشعارات غير مهيأة على الخادم.");
     return { ok: false };
   }
+  warnIfVapidKeyLooksInvalidDev(VAPID);
   const permission = await Notification.requestPermission();
   if (permission !== "granted") {
     toast.message("لم يُمنح إذن الإشعارات.");

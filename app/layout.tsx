@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { GoogleAnalytics } from "@next/third-parties/google";
+import { headers } from "next/headers";
 import Script from "next/script";
 import { Cairo, Montserrat } from "next/font/google";
 import { ViewTransitions } from "next-view-transitions";
@@ -25,10 +26,25 @@ const montserrat = Montserrat({
   display: "swap",
 });
 
+/** يطابق أصل الصفحة (localhost في التطوير) حتى تُحل `/favicon.ico` ومسارات الأيقونات النسبية بشكل صحيح — وليس دوماً نطاق `NEXT_PUBLIC_SITE_URL`. */
+async function requestMetadataBase(): Promise<URL> {
+  const h = await headers();
+  const host = h.get("x-forwarded-host") ?? h.get("host");
+  if (!host?.trim()) {
+    return new URL(getSiteUrl());
+  }
+  const forwardedProto = h.get("x-forwarded-proto");
+  const proto =
+    forwardedProto?.replace(/:$/, "") ||
+    (process.env.NODE_ENV === "development" ? "http" : "https");
+  return new URL(`${proto}://${host}`);
+}
+
 export async function generateMetadata(): Promise<Metadata> {
   const { branding } = await getPublicSiteContent();
+  const metadataBase = await requestMetadataBase();
   return {
-    metadataBase: new URL(getSiteUrl()),
+    metadataBase,
     title: {
       default: branding.defaultMetadataTitle,
       template: `%s | ${branding.siteBrandTitleAr}`,
