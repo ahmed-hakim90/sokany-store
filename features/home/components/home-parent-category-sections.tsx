@@ -12,15 +12,15 @@ import { cn } from "@/lib/utils";
 
 export type HomeParentCategorySectionsProps = {
   categories: Category[];
-  /** Ordered `/images/banner-section/01.*`, `02.*`, … — index matches parent section order. */
-  sectionBannerImages?: string[];
+  /** ترتيب يطابق أقسام الأب — صورة اختيارية ومسار اختياري لكل قسم. */
+  sectionBanners?: { imageUrl: string; href?: string }[];
   getCartLineQuantity: (productId: number) => number;
   onCartLineQuantityChange: (product: Product, next: number) => void;
 };
 
 export function HomeParentCategorySections({
   categories,
-  sectionBannerImages = [],
+  sectionBanners = [],
   getCartLineQuantity,
   onCartLineQuantityChange,
 }: HomeParentCategorySectionsProps) {
@@ -47,13 +47,16 @@ export function HomeParentCategorySections({
           ...cat,
           image: cat.image ?? q.data?.[0]?.thumbnail ?? "/images/placeholder.png",
         };
-        const sectionBannerSrc = sectionBannerImages[i] ?? null;
+        const banner = sectionBanners[i];
+        const sectionBannerSrc = banner?.imageUrl ?? null;
+        const bannerHref = banner?.href;
 
         return (
           <div key={cat.id} className="space-y-4">
             <HomeCategoryExclusiveBanner
               category={bannerCategory}
               sectionBannerSrc={sectionBannerSrc}
+              bannerHref={bannerHref}
             />
 
             <section

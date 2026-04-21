@@ -20,8 +20,13 @@ import { SearchField } from "@/components/ui/search-field";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useSearchSuggestions } from "@/hooks/useSearchSuggestions";
 import { GLOBAL_PRODUCT_SEARCH_INPUT_ID, ROUTES } from "@/lib/constants";
-import {SEARCH_QUICK_KEYWORDS} from "@/lib/search-quick-keywords";
+import { DEFAULT_SEARCH_QUICK_KEYWORDS } from "@/lib/search-quick-keywords";
 import { cn, formatPrice } from "@/lib/utils";
+
+export type NavbarSearchProps = {
+  /** من CMS أو القيمة الافتراضية من الخادم. */
+  quickKeywords?: readonly string[];
+};
 
 function navigateToSearch(router: ReturnType<typeof useTransitionRouter>, q: string) {
   const trimmed = q.trim();
@@ -53,7 +58,9 @@ function replaceProductsSearch(
   });
 }
 
-export function NavbarSearch() {
+export function NavbarSearch({
+  quickKeywords = DEFAULT_SEARCH_QUICK_KEYWORDS,
+}: NavbarSearchProps = {}) {
   const router = useTransitionRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -195,7 +202,7 @@ inputRef.current?.blur();},
   className="max-h-[min(20rem,50dvh)] divide-y divide-border/60 overflow-y-auto py-1"
   role="list"
 >
-  {SEARCH_QUICK_KEYWORDS.map((kw, index) => (
+  {quickKeywords.map((kw, index) => (
     <li key={`${kw}-${index}`}>
       <button
         type="button"

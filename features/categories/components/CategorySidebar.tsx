@@ -58,6 +58,16 @@ function chipBase(allActiveOrActive: boolean) {
   );
 }
 
+/** شريط أفقي: عرض حسب النص، بدون ضغط لسطرين — يُستخدم مع `variant="rail"` فقط. */
+function railChipBase(allActiveOrActive: boolean) {
+  return cn(
+    "group w-max max-w-none shrink-0 snap-start border px-3 py-2 text-start transition-colors shadow-sm",
+    allActiveOrActive
+      ? "border-brand-950 bg-brand-950 text-accent shadow-sm"
+      : "border-border/80 bg-white/95 hover:bg-black/[0.03]",
+  );
+}
+
 export function CategorySidebar({
   categories,
   activeSlug,
@@ -98,7 +108,7 @@ export function CategorySidebar({
     return (
       <nav
         className={cn(
-          "w-full min-w-0  border border-border/70 bg-white/90 shadow-sm backdrop-blur-sm",
+          "-mx-4 w-[calc(100%+2rem)] min-w-0 border border-border/70 bg-white/90 shadow-sm backdrop-blur-sm",
           className,
         )}
         aria-label="تصفية التصنيفات"
@@ -110,7 +120,7 @@ export function CategorySidebar({
             "snap-x snap-mandatory pb-1",
           )}
         >
-          <ul className="flex flex-nowrap gap-2 px-2 py-2.5">
+          <ul className="flex flex-nowrap gap-2 px-0 py-2.5">
             <li
               className="shrink-0 snap-start"
               data-category-rail-active={allActive ? true : undefined}
@@ -118,14 +128,14 @@ export function CategorySidebar({
               {isProductsMode ? (
                 <Link
                   href={ROUTES.PRODUCTS}
-                  className={cn(chipBase(allActive), "flex flex-col gap-0.5")}
+                  className={cn(railChipBase(allActive), "inline-flex flex-col gap-0")}
                   onMouseEnter={prefetchAllProducts}
                   onFocus={prefetchAllProducts}
                   scroll={false}
                 >
                   <span
                     className={cn(
-                      "line-clamp-2 text-sm leading-snug",
+                      "whitespace-nowrap text-sm leading-snug",
                       allActive ? "font-bold" : "font-medium text-muted-foreground group-hover:text-foreground",
                     )}
                   >
@@ -136,11 +146,11 @@ export function CategorySidebar({
                 <Link
                   href={ROUTES.CATEGORIES}
                   scroll={false}
-                  className={cn(chipBase(allActive), "flex flex-col gap-0.5")}
+                  className={cn(railChipBase(allActive), "inline-flex flex-col gap-0")}
                 >
                   <span
                     className={cn(
-                      "line-clamp-2 text-sm leading-snug",
+                      "whitespace-nowrap text-sm leading-snug",
                       allActive ? "font-bold" : "font-medium text-muted-foreground group-hover:text-foreground",
                     )}
                   >
@@ -166,7 +176,7 @@ export function CategorySidebar({
                   <Link
                     href={href}
                     scroll={false}
-                    className={cn(chipBase(active), "flex flex-col gap-0.5")}
+                    className={cn(railChipBase(active), "inline-flex flex-col gap-0")}
                     onMouseEnter={
                       isProductsMode
                         ? () =>
@@ -190,7 +200,7 @@ export function CategorySidebar({
                   >
                     <span
                       className={cn(
-                        "line-clamp-2 text-sm leading-snug",
+                        "whitespace-nowrap text-sm leading-snug",
                         active
                           ? "font-bold text-current"
                           : "font-medium text-muted-foreground group-hover:text-foreground",
@@ -200,7 +210,7 @@ export function CategorySidebar({
                     </span>
                     <span
                       className={cn(
-                        "text-[10px] leading-tight",
+                        "hidden text-[10px] leading-tight",
                         active ? "text-accent/85" : "text-muted-foreground/85",
                       )}
                     >

@@ -13,10 +13,11 @@ import { useMemo, useState } from "react";
 import { AppImage } from "@/components/AppImage";
 import { Container } from "@/components/Container";
 import {
-  authorizedRetailers,
+  authorizedRetailers as staticAuthorizedRetailers,
   distinctGovernorates,
-  retailersMapHeroSrc,
+  retailersMapHeroSrc as staticRetailersMapHeroSrc,
 } from "@/features/retailers/data";
+import type { AuthorizedRetailer } from "@/features/retailers/data";
 import { CONTACT_EMAIL, WHATSAPP_SUPPORT_URL } from "@/lib/constants";
 import {
   telHrefFromEgyptLocal,
@@ -36,7 +37,7 @@ function retailerTelHref(phone: string): string {
   return `tel:${phone.replace(/\s/g, "")}`;
 }
 
-function mapHrefForRetailer(r: (typeof authorizedRetailers)[number]): string {
+function mapHrefForRetailer(r: AuthorizedRetailer): string {
   if (r.googleMapsUrl) return r.googleMapsUrl;
   return mapsSearchUrl(`${r.name} ${r.location}`);
 }
@@ -49,17 +50,22 @@ const hitBtn =
  * ثم سيكشن شراكة بعرض كامل بخلفية داكنة، ثم قائمة بطاقات مع فلتر محافظة (منسدلة) وشبكة responsive حتى lg:3 أعمدة.
  * سيكشن انضمام أسفل الصفحة بعرض محدود max-w-3xl.
  */
-export function RetailersPageContent() {
-  const governorates = useMemo(
-    () => distinctGovernorates(authorizedRetailers),
-    [],
-  );
+export type RetailersPageContentProps = {
+  retailers?: AuthorizedRetailer[];
+  mapHeroSrc?: string;
+};
+
+export function RetailersPageContent({
+  retailers = staticAuthorizedRetailers,
+  mapHeroSrc = staticRetailersMapHeroSrc,
+}: RetailersPageContentProps) {
+  const governorates = useMemo(() => distinctGovernorates(retailers), [retailers]);
   const [govFilter, setGovFilter] = useState<string>("all");
 
   const filtered = useMemo(() => {
-    if (govFilter === "all") return authorizedRetailers;
-    return authorizedRetailers.filter((r) => r.governorate === govFilter);
-  }, [govFilter]);
+    if (govFilter === "all") return retailers;
+    return retailers.filter((r) => r.governorate === govFilter);
+  }, [govFilter, retailers]);
 
   const joinHref =
     WHATSAPP_SUPPORT_URL.trim() ||
@@ -91,7 +97,7 @@ export function RetailersPageContent() {
             </div>
             <div className="relative aspect-[4/3] overflow-hidden rounded-3xl border border-border/80 bg-muted shadow-lg">
               <AppImage
-                src={retailersMapHeroSrc}
+                src={mapHeroSrc}
                 alt="توزيع الموزعين المعتمدين على خريطة مصر"
                 fill
                 sizes="(min-width: 768px) 50vw, 100vw"

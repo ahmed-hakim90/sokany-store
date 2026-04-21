@@ -138,23 +138,14 @@ export function ProductQuickViewModal({
         aria-labelledby={titleId}
         aria-describedby={excerpt ? descId : undefined}
         className={cn(
-          "relative z-[201] flex max-h-[min(92vh,720px)] w-full max-w-lg flex-col overflow-hidden rounded-t-2xl border border-border/80 bg-white shadow-2xl",
+          "relative z-[201] flex w-full max-w-lg flex-col overflow-hidden rounded-t-2xl border border-border/80 bg-white shadow-2xl",
+          /* موبايل: ارتفاع يعتمد على الشاشة + safe-area؛ لصق من الأسفل */
+          "max-h-[calc(100svh-env(safe-area-inset-bottom,0px))] self-end",
+          "sm:mx-auto sm:max-h-[min(92vh,720px)] sm:self-auto",
           "sm:rounded-2xl",
         )}
       >
-        <div className="flex items-start justify-between gap-2 border-b border-border/60 px-4 py-3">
-          <div className="min-w-0 flex-1">
-            <h2 id={titleId} className="text-base font-bold leading-snug text-neutral-950">
-              {product.name}
-            </h2>
-            <ProductRatingDisplay
-              rating={product.rating}
-              ratingCount={product.ratingCount}
-              size="sm"
-              className="mt-2"
-            />
-            <ProductStatusBadge product={product} className="mt-1.5" />
-          </div>
+        <div className="flex items-center justify-end border-b border-border/60 px-3 py-2 sm:px-4">
           <IconButton
             ref={closeRef}
             type="button"
@@ -169,23 +160,29 @@ export function ProductQuickViewModal({
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
-          <div
-            className={cn(
-              "relative aspect-square w-full touch-none bg-white select-none",
-              slides.length > 1 && "cursor-grab active:cursor-grabbing",
-            )}
-            role="region"
-            aria-roledescription="معرض صور"
-            aria-label={slides.length > 1 ? `صورة ${index + 1} من ${slides.length}` : undefined}
-            {...gallerySwipe}
-          >
-            <AppImage
-              src={slide.src}
-              alt={slide.alt}
-              fill
-              sizes="(max-width: 640px) 100vw, 32rem"
-              className="pointer-events-none object-contain"
-            />
+          <div className="bg-white px-4 pt-2 sm:px-0 sm:pt-0">
+            <div
+              className={cn(
+                "relative w-full touch-none select-none bg-white",
+                /* ارتفاع أقل من المربع الكامل: حد أقصى للارتفاع + نسبة أوسع */
+                "aspect-[4/3] max-h-[min(34vh,220px)] sm:aspect-square sm:max-h-[min(48vh,340px)]",
+                slides.length > 1 && "cursor-grab active:cursor-grabbing",
+              )}
+              role="region"
+              aria-roledescription="معرض صور"
+              aria-label={slides.length > 1 ? `صورة ${index + 1} من ${slides.length}` : undefined}
+              {...gallerySwipe}
+            >
+              <div className="absolute inset-0 p-2 sm:p-0">
+                <AppImage
+                  src={slide.src}
+                  alt={slide.alt}
+                  fill
+                  sizes="(max-width: 640px) 100vw, 32rem"
+                  className="pointer-events-none object-contain object-center"
+                />
+              </div>
+            </div>
           </div>
 
           {slides.length > 1 ? (
@@ -215,6 +212,19 @@ export function ProductQuickViewModal({
               ))}
             </div>
           ) : null}
+
+          <div className="border-b border-border/60 px-4 py-3">
+            <h2 id={titleId} className="text-base font-bold leading-snug text-neutral-950">
+              {product.name}
+            </h2>
+            <ProductRatingDisplay
+              rating={product.rating}
+              ratingCount={product.ratingCount}
+              size="sm"
+              className="mt-2"
+            />
+            <ProductStatusBadge product={product} className="mt-1.5" />
+          </div>
 
           <div className="space-y-3 px-4 py-4">
             <div className="rounded-xl bg-surface-muted/50 px-3 py-3 ring-1 ring-border/50">

@@ -27,13 +27,16 @@ apiClient.interceptors.response.use(
       const url = error.config?.url ?? "";
       if (
         url.includes("/auth/login") ||
+        url.includes("/auth/firebase") ||
         url.includes("/auth/register") ||
         url.includes("/auth/logout")
       ) {
         return Promise.reject(error);
       }
       useAuthStore.getState().clearAuth();
-      window.location.assign(ROUTES.LOGIN);
+      if (window.location.pathname !== ROUTES.LOGIN) {
+        window.location.assign(ROUTES.LOGIN);
+      }
     }
     return Promise.reject(error);
   },

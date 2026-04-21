@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { BranchesPageContent } from "@/components/pages/BranchesPageContent";
+import { getPublicSiteContent } from "@/features/cms/services/getPublicSiteContent";
 import { getSiteUrl } from "@/lib/site";
 
 const title = "الفروع ومراكز الصيانة | سوكانى المغربى";
@@ -21,6 +22,7 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
 };
 
-export default function BranchesPage() {
-  return <BranchesPageContent />;
+export default async function BranchesPage() {
+  const content = await getPublicSiteContent();
+  return <BranchesPageContent branchesData={content.branches} />;
 }

@@ -1,24 +1,34 @@
 import { getSiteUrl } from "@/lib/site";
-import { SOCIAL_LINKS } from "@/lib/social-links";
 
-export function OrganizationJsonLd() {
+export type OrganizationJsonLdProps = {
+  /** روابط السوشيال — نفس مصدر الفوتر (CMS أو الافتراضي). */
+  sameAs: string[];
+  organizationName: string;
+  logoUrl: string;
+  telephone: string;
+};
+
+export function OrganizationJsonLd({
+  sameAs,
+  organizationName,
+  logoUrl,
+  telephone,
+}: OrganizationJsonLdProps) {
   const site = getSiteUrl();
-  const phone =
-    process.env.NEXT_PUBLIC_SUPPORT_PHONE?.trim() || "+20-xxx-xxx-xxxx";
 
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Organization",
-    name: "سوكانى المغربى",
+    name: organizationName,
     url: site,
-    logo: "https://sokany-eg.com/wp-content/uploads/2022/08/SOKANY-EG-2png.png",
+    logo: logoUrl,
     contactPoint: {
       "@type": "ContactPoint",
-      telephone: phone,
+      telephone,
       contactType: "customer service",
       availableLanguage: "Arabic",
     },
-    sameAs: SOCIAL_LINKS.map((s) => s.href),
+    sameAs,
   };
 
   return (

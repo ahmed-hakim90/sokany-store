@@ -3,7 +3,6 @@
 import { FormField } from "@/components/ui/form-field";
 import { Card } from "@/components/ui/card";
 import { CheckoutSectionChip } from "@/features/checkout/components/checkout-section-chip";
-import { CheckoutShippingMethodCards } from "@/features/checkout/components/checkout-shipping-method-cards";
 import type { CheckoutFormData } from "@/features/checkout/types";
 import { cn } from "@/lib/utils";
 
@@ -11,7 +10,6 @@ export type CheckoutShippingFormProps = {
   values: CheckoutFormData;
   errors: Partial<Record<keyof CheckoutFormData, string>>;
   onChange: (key: keyof CheckoutFormData, value: string) => void;
-  onShippingMethodChange: (value: CheckoutFormData["shippingMethod"]) => void;
 };
 
 function FieldSep() {
@@ -22,7 +20,6 @@ export function CheckoutShippingForm({
   values,
   errors,
   onChange,
-  onShippingMethodChange,
 }: CheckoutShippingFormProps) {
   return (
     <Card
@@ -33,14 +30,14 @@ export function CheckoutShippingForm({
     >
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="font-display text-lg font-semibold tracking-tight text-brand-950">
-          تفاصيل الشحن
+          بيانات العميل والتوصيل
         </h2>
         <CheckoutSectionChip>مطلوب</CheckoutSectionChip>
       </div>
 
       <div className="mt-4 space-y-4">
         <div>
-          <p className="mb-3 text-xs font-medium text-muted-foreground">بيانات التواصل</p>
+          <p className="mb-3 text-xs font-medium text-muted-foreground">بيانات العميل</p>
           <div className="space-y-3">
             <FormField
               label="الاسم الأول"
@@ -49,6 +46,7 @@ export function CheckoutShippingForm({
               value={values.contactFirstName}
               onChange={(e) => onChange("contactFirstName", e.target.value)}
               error={errors.contactFirstName}
+              autoComplete="given-name"
               required
             />
             <FormField
@@ -58,6 +56,7 @@ export function CheckoutShippingForm({
               value={values.contactLastName}
               onChange={(e) => onChange("contactLastName", e.target.value)}
               error={errors.contactLastName}
+              autoComplete="family-name"
               required
             />
             <FormField
@@ -68,16 +67,20 @@ export function CheckoutShippingForm({
               value={values.contactEmail}
               onChange={(e) => onChange("contactEmail", e.target.value)}
               error={errors.contactEmail}
+              helperText="للتواصل وإرسال تحديثات الطلب"
+              autoComplete="email"
               required
             />
             <FormField
-              label="رقم الهاتف"
+              label="رقم الجوال"
               id="contactPhone"
               name="contactPhone"
               inputMode="tel"
+              placeholder="مثال: 01xxxxxxxxx"
               value={values.contactPhone}
               onChange={(e) => onChange("contactPhone", e.target.value)}
               error={errors.contactPhone}
+              autoComplete="tel"
               required
             />
           </div>
@@ -86,77 +89,90 @@ export function CheckoutShippingForm({
         <FieldSep />
 
         <div>
-          <p className="mb-3 text-xs font-medium text-muted-foreground">عنوان الشحن</p>
+          <p className="mb-3 text-xs font-medium text-muted-foreground">عنوان التوصيل</p>
           <div className="space-y-3">
             <FormField
-              label="الاسم الأول (الشحن)"
+              label="الاسم الأول (مستلم الطلب)"
               id="shippingFirstName"
               name="shippingFirstName"
               value={values.shippingFirstName}
               onChange={(e) => onChange("shippingFirstName", e.target.value)}
               error={errors.shippingFirstName}
+              autoComplete="shipping given-name"
               required
             />
             <FormField
-              label="اسم العائلة (الشحن)"
+              label="اسم العائلة (مستلم الطلب)"
               id="shippingLastName"
               name="shippingLastName"
               value={values.shippingLastName}
               onChange={(e) => onChange("shippingLastName", e.target.value)}
               error={errors.shippingLastName}
+              autoComplete="shipping family-name"
               required
             />
             <FormField
-              label="عنوان الشحن — السطر 1"
+              label="العنوان بالتفصيل"
               id="shippingAddress1"
               name="shippingAddress1"
+              placeholder="الشارع، المنطقة، رقم العقار…"
               value={values.shippingAddress1}
               onChange={(e) => onChange("shippingAddress1", e.target.value)}
               error={errors.shippingAddress1}
+              autoComplete="shipping address-line1"
               required
             />
             <FormField
-              label="عنوان الشحن — السطر 2 (اختياري)"
+              label="شقة / دور / علامة مميزة (اختياري)"
               id="shippingAddress2"
               name="shippingAddress2"
+              placeholder="شقة، دور، علامة قريبة من العنوان…"
               value={values.shippingAddress2}
               onChange={(e) => onChange("shippingAddress2", e.target.value)}
               error={errors.shippingAddress2}
+              autoComplete="shipping address-line2"
             />
             <FormField
-              label="المدينة"
+              label="المدينة / القرية"
               id="shippingCity"
               name="shippingCity"
               value={values.shippingCity}
               onChange={(e) => onChange("shippingCity", e.target.value)}
               error={errors.shippingCity}
+              autoComplete="address-level2"
               required
             />
             <FormField
-              label="المحافظة / المنطقة"
+              label="المحافظة"
               id="shippingState"
               name="shippingState"
               value={values.shippingState}
               onChange={(e) => onChange("shippingState", e.target.value)}
               error={errors.shippingState}
+              autoComplete="address-level1"
               required
             />
             <FormField
               label="الرمز البريدي"
               id="shippingPostcode"
               name="shippingPostcode"
+              placeholder="مثال: 12511 — أو - إن لم يُستخدم"
               value={values.shippingPostcode}
               onChange={(e) => onChange("shippingPostcode", e.target.value)}
               error={errors.shippingPostcode}
+              autoComplete="postal-code"
               required
             />
             <FormField
-              label="رمز الدولة"
+              label="الدولة"
               id="shippingCountry"
               name="shippingCountry"
+              placeholder="EG"
+              helperText="رمز الدولة (مصر: EG)"
               value={values.shippingCountry}
               onChange={(e) => onChange("shippingCountry", e.target.value)}
               error={errors.shippingCountry}
+              autoComplete="country"
               required
             />
           </div>
@@ -164,12 +180,9 @@ export function CheckoutShippingForm({
 
         <FieldSep />
 
-        <CheckoutShippingMethodCards
-          embedded
-          value={values.shippingMethod}
-          onChange={onShippingMethodChange}
-          error={errors.shippingMethod}
-        />
+        <div className="rounded-xl border border-border/60 bg-surface-muted/40 px-3 py-2.5 text-center text-xs text-muted-foreground">
+          الشحن بسعر ثابت على الطلب — لا حاجة لاختيار طريقة توصيل إضافية.
+        </div>
       </div>
     </Card>
   );

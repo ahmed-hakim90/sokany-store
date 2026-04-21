@@ -1,4 +1,5 @@
-export const SEARCH_QUICK_KEYWORDS = [
+/** قيم افتراضية عند غياب `searchQuickKeywords` في Firestore `site_config`. */
+export const DEFAULT_SEARCH_QUICK_KEYWORDS = [
   "الأجهزة المنزلية",
   "المطبخ",
   "العناية الشخصية",
@@ -13,8 +14,7 @@ export const SEARCH_QUICK_KEYWORDS = [
   "مكنسة",
   "ميكروويف",
   "كبه",
-"عجان",
-"محضر طعام",
-"خلاط"
-
-] as const;
+  "عجان",
+  "محضر طعام",
+  "خلاط",
+];

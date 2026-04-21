@@ -13,21 +13,18 @@ import { MobileStoreHotline } from "@/components/layout/mobile-store-hotline";
 import { NavbarSearch } from "@/components/layout/navbar-search";
 import { CatalogFilterDrawerTrigger } from "@/features/catalog/components/CatalogFilterDrawerTrigger";
 import { useMobileChromeCollapsedStore } from "@/components/layout/mobile-chrome-collapsed-store";
+import { DesktopCategoryMegaNav } from "@/components/layout/desktop-category-mega-nav";
 import { TopHeader } from "@/components/layout/top-header";
 import { useCategories } from "@/features/categories/hooks/useCategories";
 import { useCartDrawerOpenStore } from "@/features/cart/store/useCartDrawerOpenStore";
 import { useWishlistDrawerOpenStore } from "@/features/wishlist/store/useWishlistDrawerOpenStore";
 import { useCart } from "@/hooks/useCart";
 import { useWishlist } from "@/hooks/useWishlist";
-import {
-  ROUTES,
-  SITE_LOGO_DISABLED,
-  SITE_LOGO_PATH,
-  SITE_NAME,
-} from "@/lib/constants";
+import { ROUTES, SITE_LOGO_DISABLED, SITE_LOGO_PATH, SITE_NAME } from "@/lib/constants";
+import { DEFAULT_SEARCH_QUICK_KEYWORDS } from "@/lib/search-quick-keywords";
 import { cn } from "@/lib/utils";
 
-/** Primary strip (desktop) + top of drawer — matches storefront reference. */
+/** أول صفوف الدرج؛ على الديسكتوب يظهر شريط تصنيفات + ميجا مينو منفصل. */
 const primaryNavLinks = [
   { href: ROUTES.HOME, label: "الرئيسية" },
   { href: ROUTES.CATEGORY("home-appliances"), label: "الأجهزة المنزلية" },
@@ -48,6 +45,15 @@ const drawerLinks = [...primaryNavLinks, ...drawerExtraLinks] as const;
 
 const mobileIconTapClass =
   "inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-brand-900/50 transition-colors hover:bg-surface-muted/45 hover:text-brand-950 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500";
+
+export type NavbarProps = {
+  /** من CMS أو الافتراضي من الثوابت عند عدم التمرير. */
+  siteName?: string;
+  logoPath?: string;
+  logoDisabled?: boolean;
+  /** من `getPublicSiteContent` — عند عدم التمرير تُستخدم القائمة الافتراضية من الكود. */
+  searchQuickKeywords?: readonly string[];
+};
 
 function MobileCartLink({
   totalItems,
@@ -86,13 +92,18 @@ function MobileCartLink({
   );
 }
 
-export function Navbar() {
+export function Navbar({
+  siteName = SITE_NAME,
+  logoPath = SITE_LOGO_PATH,
+  logoDisabled = SITE_LOGO_DISABLED,
+  searchQuickKeywords = DEFAULT_SEARCH_QUICK_KEYWORDS,
+}: NavbarProps = {}) {
   const pathname = usePathname();
   const open = useMobileNavDrawerOpenStore((s) => s.open);
   const closeDrawer = useMobileNavDrawerOpenStore((s) => s.closeDrawer);
   const { totalItems } = useCart();
   const { totalCount: wishlistCount } = useWishlist();
-  const categoriesQuery = useCategories();
+  const categoriesQuery = useCategories({ per_page: 100 });
   const openDesktopCartDrawer = useCartDrawerOpenStore((s) => s.openDrawer);
   const closeDesktopCartDrawer = useCartDrawerOpenStore((s) => s.closeDrawer);
   const desktopCartDrawerOpen = useCartDrawerOpenStore((s) => s.open);
@@ -117,7 +128,7 @@ export function Navbar() {
     pathname.startsWith(`${ROUTES.RETAILERS}/`);
 
   const [logoLoadFailed, setLogoLoadFailed] = useState(false);
-  const showHeaderWordmarkText = SITE_LOGO_DISABLED || logoLoadFailed;
+  const showHeaderWordmarkText = logoDisabled || logoLoadFailed;
   const headerBrandTextClass =
     "truncate font-display text-base font-semibold tracking-tight text-brand-950 sm:text-lg";
 
@@ -125,12 +136,12 @@ export function Navbar() {
   const logo = (
     <Link href={ROUTES.HOME} className="flex min-w-0 items-center gap-2.5">
       {showHeaderWordmarkText ? (
-        <span className={cn(headerBrandTextClass, "max-w-[11rem]")}>{SITE_NAME}</span>
+        <span className={cn(headerBrandTextClass, "max-w-[11rem]")}>{siteName}</span>
       ) : (
         <div className="relative h-14 w-32 overflow-hidden sm:h-[3.75rem] sm:w-36">
           <AppImage
-            src={SITE_LOGO_PATH}
-            alt={SITE_NAME}
+            src={logoPath}
+            alt={siteName}
             fill
             sizes="100%"
             className="object-contain"
@@ -142,19 +153,14 @@ export function Navbar() {
     </Link>
   );
 
-  const desktopNav = (
-    <>
-      {primaryNavLinks.map((l) => (
-        <Link
-          key={l.href}
-          href={l.href}
-          className="text-muted-foreground transition-colors hover:text-brand-950"
-        >
-          {l.label}
-        </Link>
-      ))}
-    </>
-  );
+  const desktopSubheader =
+    !isCheckout ? (
+      <DesktopCategoryMegaNav
+        categories={categoriesQuery.data}
+        categoriesLoading={categoriesQuery.isLoading}
+        moreLinks={drawerExtraLinks}
+      />
+    ) : null;
 
   const trailing = (
     <div className="hidden items-center gap-2 lg:flex">
@@ -246,7 +252,7 @@ export function Navbar() {
 
   const mobileWordmark = isCheckout ? (
     <span className="block truncate text-center font-display text-[0.9375rem] font-semibold tracking-tight text-brand-950 sm:text-base">
-      {SITE_NAME}
+      {siteName}
     </span>
   ) : isAbout ? (
     <Link
@@ -261,25 +267,20 @@ export function Navbar() {
             "text-center text-[0.9375rem] sm:text-base",
           )}
         >
-          {SITE_NAME}
+          {siteName}
         </span>
       ) : (
-        <>
-          <div className="relative h-14 w-32 overflow-hidden sm:h-14 sm:w-36">
-            <AppImage
-              src={SITE_LOGO_PATH}
-              alt={SITE_NAME}
-              fill
-              sizes="100%"
-              className="object-contain"
-              usePlaceholderOnError={false}
-              onLoadError={() => setLogoLoadFailed(true)}
-            />
-          </div>
-          <span className="truncate font-display text-[0.8125rem] font-semibold leading-tight text-brand-950 sm:text-[0.875rem]">
-            {SITE_NAME}
-          </span>
-        </>
+        <div className="relative mx-auto h-14 w-32 max-w-full overflow-hidden sm:h-14 sm:w-36">
+          <AppImage
+            src={logoPath}
+            alt={siteName}
+            fill
+            sizes="(max-width: 640px) 128px, 144px"
+            className="object-contain"
+            usePlaceholderOnError={false}
+            onLoadError={() => setLogoLoadFailed(true)}
+          />
+        </div>
       )}
     </Link>
   ) : (
@@ -295,13 +296,13 @@ export function Navbar() {
             "text-center text-[0.9375rem] sm:text-base",
           )}
         >
-          {SITE_NAME}
+          {siteName}
         </span>
       ) : (
         <div className="relative mx-auto h-14 w-32 max-w-full overflow-hidden sm:h-14 sm:w-32">
           <AppImage
-            src={SITE_LOGO_PATH}
-            alt={SITE_NAME}
+            src={logoPath}
+            alt={siteName}
             fill
             sizes="(max-width: 640px) 128px, 144px"
             className="object-contain"
@@ -322,7 +323,7 @@ export function Navbar() {
   const searchWithFilter = (
     <div className="flex min-w-0 w-full items-center gap-2">
       <div className="min-w-0 flex-1">
-        <NavbarSearch />
+        <NavbarSearch quickKeywords={searchQuickKeywords} />
       </div>
       <CatalogFilterDrawerTrigger />
     </div>
@@ -347,7 +348,7 @@ export function Navbar() {
       <TopHeader
         logo={logo}
         center={searchWithFilter}
-        desktopNav={desktopNav}
+        desktopSubheader={desktopSubheader}
         trailing={trailing}
         mobileWordmark={mobileWordmark}
         mobileLeading={mobileLeading}

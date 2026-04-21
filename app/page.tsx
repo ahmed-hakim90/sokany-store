@@ -1,7 +1,13 @@
 import type { Metadata } from "next";
-import { HomePageContent } from "@/components/pages/HomePageContent";
-import { getBannerSectionOrderedImages } from "@/features/home/services/getBannerSectionOrderedImages";
-import { getHeroSlides } from "@/features/home/services/getHeroSlides";
+import {
+  HomePageContent,
+  type HomeBottomPromo,
+} from "@/components/pages/HomePageContent";
+import {
+  getPublicSiteContent,
+  getSpotlightsFromFirestore,
+} from "@/features/cms/services/getPublicSiteContent";
+import { ROUTES } from "@/lib/constants";
 import { getSiteUrl } from "@/lib/site";
 
 const defaultOgImage =
@@ -41,12 +47,51 @@ export const metadata: Metadata = {
   },
 };
 
+const DEFAULT_BOTTOM_PROMO: HomeBottomPromo = {
+  eyebrow: "حصرياً",
+  title: "مجموعة تحضير القهوة",
+  subtitle: "عروض لفترة محدودة على ماكينات القهوة والمطاحن — وفر حتى 40٪.",
+  href: ROUTES.CATEGORY("coffee-maker"),
+  ctaLabel: "اكتشف الآن",
+};
+
 export default async function Home() {
-  const [heroSlides, sectionBannerImages] = await Promise.all([
-    getHeroSlides(),
-    getBannerSectionOrderedImages(),
+  const [content, spotlights] = await Promise.all([
+    getPublicSiteContent(),
+    getSpotlightsFromFirestore(),
   ]);
+
+  const spotlight = spotlights?.items?.find((i) => i.active);
+  let homeBottomPromo: HomeBottomPromo = DEFAULT_BOTTOM_PROMO;
+  if (spotlight) {
+    const href =
+      spotlight.href?.trim() ||
+      (spotlight.type === "product" && spotlight.productId != null
+        ? ROUTES.PRODUCT(spotlight.productId)
+        : spotlight.type === "branch"
+          ? ROUTES.SERVICE_CENTERS
+          : DEFAULT_BOTTOM_PROMO.href);
+    homeBottomPromo = {
+      eyebrow: spotlight.title ? "مميز" : DEFAULT_BOTTOM_PROMO.eyebrow,
+      title: spotlight.title ?? DEFAULT_BOTTOM_PROMO.title,
+      subtitle: spotlight.subtitle ?? DEFAULT_BOTTOM_PROMO.subtitle,
+      href,
+      ctaLabel: spotlight.ctaLabel ?? "اكتشف الآن",
+      imageSrc: spotlight.imageUrl,
+    };
+  }
+
   return (
-    <HomePageContent heroSlides={heroSlides} sectionBannerImages={sectionBannerImages} />
+    <HomePageContent
+      heroSlides={content.heroSlides}
+      sectionBanners={content.sectionBanners}
+      flashSaleSectionEnabled={content.promoFlash.enabled}
+      promoFlash={{
+        endsAtIso: content.promoFlash.endsAt,
+        headline: content.promoFlash.headline,
+        subline: content.promoFlash.subline,
+      }}
+      homeBottomPromo={homeBottomPromo}
+    />
   );
 }

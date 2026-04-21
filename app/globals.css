@@ -144,11 +144,29 @@ body {
   }
 }
 
+/** شريط إعلان علوي — تمرير أفقي لمحتوى مكرر (٥٠٪ عرض المسار). */
+@keyframes storefront-marquee {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
 /*
  * Utilities that reference CSS variables — keep them here instead of Tailwind arbitrary
  * values like `[var(--x)]`, which Tailwind v4 can mis-parse as `var(-x)` and break the build.
  */
 @layer utilities {
+  .animate-storefront-marquee {
+    animation: storefront-marquee 45s linear infinite;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .animate-storefront-marquee {
+      animation: none;
+    }
+  }
   .pb-mobile-commerce {
     padding-bottom: var(--mobile-commerce-chrome-height, 12rem);
   }

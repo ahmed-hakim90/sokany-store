@@ -1,6 +1,6 @@
 "use client";
 
-import { useReducedMotion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "next-view-transitions";
@@ -231,7 +231,7 @@ export function ProductCard({
         variant === "featured" && !priceCompact && "text-lg md:text-xl",
       )}
       compareAtClassName="!text-xs !text-neutral-400 md:!text-xs"
-      className="min-w-0 max-w-[calc(100%-3rem)] !flex-col !items-start !gap-0.5 !gap-x-0"
+      className="min-w-0 !flex-col !items-start !gap-0.5 !gap-x-0"
     />
   );
 
@@ -247,14 +247,39 @@ export function ProductCard({
       >
         <div className="relative aspect-square overflow-hidden bg-white">
           <div ref={imageFlyRef} className="absolute inset-0 z-0">
-            <AppImage
-              src={activeSlide.src}
-              alt={activeSlide.alt}
-              fill
-              sizes={imageSizes}
-              priority={imagePriority}
-              className="object-contain object-center"
-            />
+            {reduceMotion ? (
+              <AppImage
+                src={activeSlide.src}
+                alt={activeSlide.alt}
+                fill
+                sizes={imageSizes}
+                priority={imagePriority}
+                className="object-contain object-center"
+              />
+            ) : (
+              <AnimatePresence initial={false} mode="sync">
+                <motion.div
+                  key={`${product.id}-${activeSlide.key}`}
+                  className="absolute inset-0"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{
+                    duration: 0.32,
+                    ease: [0.4, 0, 0.2, 1],
+                  }}
+                >
+                  <AppImage
+                    src={activeSlide.src}
+                    alt={activeSlide.alt}
+                    fill
+                    sizes={imageSizes}
+                    priority={imagePriority}
+                    className="object-contain object-center"
+                  />
+                </motion.div>
+              </AnimatePresence>
+            )}
           </div>
           {multiImage ? (
             <div
@@ -285,8 +310,11 @@ export function ProductCard({
               −{saleDiscount}%
             </span>
           ) : null}
-          {wishlistSlot ? (
-            <div className="absolute bottom-2 left-2 z-[4]">{wishlistSlot}</div>
+          {/* المفضلة على الصورة فقط عندما لا يظهر زر السلة في أسفل الكارت */}
+          {wishlistSlot && !showCartQty ? (
+            <div className="absolute bottom-2 z-[4] left-auto right-2 md:left-2 md:right-auto">
+              {wishlistSlot}
+            </div>
           ) : null}
 
           {/* معاينة سريعة — ديسكتوب: يظهر مع الـ hover؛ باقي المساحة تبقى قابلة للنقر للانتقال لصفحة المنتج */}
@@ -305,8 +333,8 @@ export function ProductCard({
             </button>
           </div>
 
-          {/* معاينة سريعة — موبايل: زر صغير دائم */}
-          <div className="absolute bottom-2 left-1/2 z-[4] flex -translate-x-1/2 md:hidden">
+          {/* معاينة سريعة — موبايل: زر صغير دائم يسار (المفضلة يمين على الموبايل لتفادي التداخل) */}
+          <div className="absolute bottom-2 left-2 z-[4] flex md:hidden">
             <button
               type="button"
               onClick={(e) => {
@@ -338,27 +366,37 @@ export function ProductCard({
           <ProductStatusBadge product={product} className="mt-1" />
           <div
             className={cn(
-              "mt-auto flex min-h-[3.25rem] items-end pt-1",
-              showCartQty ? "justify-between gap-2 pe-1" : "",
+              "mt-auto flex pt-1",
+              showCartQty
+                ? cn(
+                    "items-center justify-between gap-2 pe-1",
+                    wishlistSlot ? "min-h-[4.75rem]" : "min-h-[3.25rem]",
+                  )
+                : "min-h-[3.25rem] items-end",
             )}
           >
-            <div className="min-w-0 flex-1 pb-1">{priceBlock}</div>
+            <div className="min-w-0 min-h-0 flex-1">{priceBlock}</div>
             {showCartQty ? (
-              <IconButton
-                type="button"
-                variant="accent"
-                size="md"
-                disabled={!product.inStock}
-                aria-label={justAdded ? "تمت الإضافة للسلة" : "أضف للسلة"}
-                className="h-11 min-h-[44px] min-w-14 w-14 shrink-0 shadow-sm [&_svg]:h-6 [&_svg]:w-6"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  handleAddToCart();
-                }}
-              >
-                <CartGlyph added={justAdded} />
-              </IconButton>
+              <div className="flex shrink-0 flex-col items-center gap-1.5">
+                {wishlistSlot ? (
+                  <div className="flex w-14 justify-center">{wishlistSlot}</div>
+                ) : null}
+                <IconButton
+                  type="button"
+                  variant="accent"
+                  size="md"
+                  disabled={!product.inStock}
+                  aria-label={justAdded ? "تمت الإضافة للسلة" : "أضف للسلة"}
+                  className="h-11 min-h-[44px] min-w-14 w-14 shrink-0 rounded-lg shadow-sm [&_svg]:h-6 [&_svg]:w-6"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleAddToCart();
+                  }}
+                >
+                  <CartGlyph added={justAdded} />
+                </IconButton>
+              </div>
             ) : null}
           </div>
         </div>
@@ -426,7 +464,7 @@ function CartGlyph({ added }: { added?: boolean }) {
 }
 
 /**
- * زر المفضلة فوق صورة الكارت + منطق إطلاق قلوب طائرة (انظر wishlist-heart-burst.tsx).
+ * زر المفضلة على الكارت (فوق الصورة أو فوق «أضف للسلة» حسب التمرير) + منطق إطلاق قلوب طائرة (wishlist-heart-burst.tsx).
  */
 export function ProductCardWishlistIconButton({
   pressed,

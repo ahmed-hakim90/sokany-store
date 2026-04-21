@@ -169,6 +169,14 @@ export const createOrderPayloadSchema = z.object({
   set_paid: z.boolean().optional(),
   /** WooCommerce customer id — links the order to the registered shopper. */
   customer_id: z.number().int().positive().optional(),
+  meta_data: z
+    .array(
+      z.object({
+        key: z.string(),
+        value: z.union([z.string(), z.number(), z.boolean()]),
+      }),
+    )
+    .optional(),
 });
 
 export const wpReviewSchema = z.object({

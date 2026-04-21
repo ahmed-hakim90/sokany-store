@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { RetailersPageContent } from "@/components/pages/RetailersPageContent";
+import { getPublicSiteContent } from "@/features/cms/services/getPublicSiteContent";
 import { getSiteUrl } from "@/lib/site";
 
 const title = "الموزعون المعتمدون | سوكانى المغربى";
@@ -21,6 +22,12 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
 };
 
-export default function RetailersPage() {
-  return <RetailersPageContent />;
+export default async function RetailersPage() {
+  const content = await getPublicSiteContent();
+  return (
+    <RetailersPageContent
+      retailers={content.retailers.list}
+      mapHeroSrc={content.retailers.mapHeroSrc}
+    />
+  );
 }

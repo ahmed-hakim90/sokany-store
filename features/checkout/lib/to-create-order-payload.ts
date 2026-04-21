@@ -30,7 +30,7 @@ export function shippingMethodTitleFor(values: CheckoutFormData): string | undef
 export function toCreateOrderPayload(
   values: CheckoutFormData,
   items: CartItem[],
-  options?: { customerId?: number },
+  options?: { customerId?: number; firebaseUid?: string },
 ): CreateOrderPayload {
   const shipping = {
     first_name: values.shippingFirstName,
@@ -68,5 +68,10 @@ export function toCreateOrderPayload(
     customer_note: values.customerNote,
     set_paid: false,
     ...(options?.customerId ? { customer_id: options.customerId } : {}),
+    ...(options?.firebaseUid
+      ? {
+          meta_data: [{ key: "firebase_uid", value: options.firebaseUid }],
+        }
+      : {}),
   };
 }

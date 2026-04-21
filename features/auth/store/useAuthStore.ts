@@ -1,7 +1,7 @@
 "use client";
 
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { createJSONStorage, persist } from "zustand/middleware";
 import { AUTH_TOKEN_KEY } from "@/lib/constants";
 import type { AuthState, AuthUser } from "@/features/auth/types";
 
@@ -20,10 +20,21 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: AUTH_TOKEN_KEY,
-      onRehydrateStorage: () => (state) => {
-        if (state?.token) {
-          state.isAuthenticated = true;
-        }
+      storage: createJSONStorage(() => localStorage),
+      partialize: (state) => ({
+        token: state.token,
+        user: state.user,
+      }),
+      merge: (persisted, current) => {
+        const p = persisted as Partial<Pick<AuthState, "token" | "user">> | undefined;
+        const token = p?.token ?? null;
+        const user = p?.user ?? null;
+        return {
+          ...current,
+          token,
+          user,
+          isAuthenticated: Boolean(token),
+        };
       },
     },
   ),

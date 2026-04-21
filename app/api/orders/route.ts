@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createWooClient } from "@/lib/create-woo-client";
 import { getSessionFromRequest } from "@/lib/auth-request";
+import { listWooOrdersForSession } from "@/lib/list-woo-orders-for-session";
 
 export async function GET(request: NextRequest) {
   const session = await getSessionFromRequest(request);
@@ -10,23 +11,12 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const woo = createWooClient();
-    const customers = await woo.get("/customers", {
-      params: { email: session.email, per_page: 1 },
-    });
-    const customerId = Array.isArray(customers.data)
-      ? (customers.data as { id: number }[])[0]?.id
-      : undefined;
-    if (!customerId) {
-      return NextResponse.json([], { status: 200 });
-    }
     const params = Object.fromEntries(searchParams.entries());
-    const response = await woo.get("/orders", {
-      params: { ...params, customer: customerId },
-    });
-    return NextResponse.json(response.data, {
+    const data = await listWooOrdersForSession(woo, session, params);
+    return NextResponse.json(data, {
       headers: {
-        "X-WP-Total": String(response.headers["x-wp-total"] ?? "0"),
-        "X-WP-TotalPages": String(response.headers["x-wp-totalpages"] ?? "1"),
+        "X-WP-Total": String(data.length),
+        "X-WP-TotalPages": "1",
       },
     });
   } catch {

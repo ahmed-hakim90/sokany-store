@@ -23,6 +23,10 @@ type HomeFlashSaleCountdownStripProps = {
   className?: string;
   /** يطابق `aria-labelledby` على الـ section الأب (عنوان القسم المرئي داخل البانر). */
   titleId?: string;
+  /** نهاية العد التنازلي — ISO 8601؛ عند الغياب يُستخدم نهاية يوم التقويم الحالي. */
+  endsAtIso?: string | null;
+  headline?: string;
+  subline?: string;
 };
 
 /*
@@ -32,20 +36,30 @@ type HomeFlashSaleCountdownStripProps = {
 export function HomeFlashSaleCountdownStrip({
   className,
   titleId = "home-flash-sales-title",
+  endsAtIso,
+  headline = "ينتهي اليوم",
+  subline = "خصومات لفترة محدودة — تنتهي مع نهاية يوم اليوم.",
 }: HomeFlashSaleCountdownStripProps) {
   const [msLeft, setMsLeft] = useState<number | null>(null);
 
   useEffect(() => {
     const tick = () => {
       const now = Date.now();
-      const end = new Date(now);
-      end.setHours(24, 0, 0, 0);
-      setMsLeft(Math.max(0, end.getTime() - now));
+      let endMs: number;
+      if (endsAtIso) {
+        const parsed = Date.parse(endsAtIso);
+        endMs = Number.isFinite(parsed) ? parsed : now;
+      } else {
+        const end = new Date(now);
+        end.setHours(24, 0, 0, 0);
+        endMs = end.getTime();
+      }
+      setMsLeft(Math.max(0, endMs - now));
     };
     tick();
     const id = window.setInterval(tick, 1000);
     return () => window.clearInterval(id);
-  }, []);
+  }, [endsAtIso]);
 
   const parts = useMemo(
     () => (msLeft === null ? null : splitHms(msLeft)),
@@ -88,11 +102,9 @@ export function HomeFlashSaleCountdownStrip({
           عروض سريعة
         </h2>
         <p className="text-3xl font-extrabold tracking-tight text-white md:text-4xl">
-          ينتهي اليوم
+          {headline}
         </p>
-        <p className="max-w-md text-sm font-medium text-blue-100">
-          خصومات لفترة محدودة — تنتهي مع نهاية يوم اليوم.
-        </p>
+        <p className="max-w-md text-sm font-medium text-blue-100">{subline}</p>
       </div>
 
       <div

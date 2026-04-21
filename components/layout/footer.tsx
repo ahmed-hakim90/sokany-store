@@ -14,7 +14,7 @@ import {
   SITE_LOGO_PATH,
   SITE_NAME,
 } from "@/lib/constants";
-import { SOCIAL_LINKS } from "@/lib/social-links";
+import type { SocialLink } from "@/lib/social-links";
 import { cn } from "@/lib/utils";
 
 const footerLinks = [
@@ -32,7 +32,19 @@ const footerLinks = [
 /** أقصى عدد تصنيفات يُعرَض في الفوتر؛ الباقي عبر رابط «كل التصنيفات». */
 const FOOTER_CATEGORY_LIMIT = 8;
 
-export function Footer() {
+export type FooterProps = {
+  socialLinks: SocialLink[];
+  siteName?: string;
+  logoPath?: string;
+  logoDisabled?: boolean;
+};
+
+export function Footer({
+  socialLinks,
+  siteName = SITE_NAME,
+  logoPath = SITE_LOGO_PATH,
+  logoDisabled = SITE_LOGO_DISABLED,
+}: FooterProps) {
   const year = new Date().getFullYear();
   const categoriesQuery = useCategories();
   const categoryList =
@@ -158,7 +170,7 @@ export function Footer() {
 
         <div className="flex flex-col items-center gap-4 border-t border-border/80  mt-4 pt-4 sm:mt-8 sm:pt-6 ">
           <div className="flex flex-wrap items-center justify-center gap-4">
-            {SOCIAL_LINKS.map((s) => (
+            {socialLinks.map((s) => (
               <a
                 key={s.key}
                 href={s.href}
@@ -167,13 +179,7 @@ export function Footer() {
                 className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border/80 bg-white text-brand-800 shadow-sm transition-colors hover:bg-surface-muted/80 hover:text-brand-950"
                 aria-label={s.label}
               >
-                {s.key === "facebook" ? (
-                  <FacebookGlyph className="h-4 w-4" />
-                ) : s.key === "instagram" ? (
-                  <InstagramGlyph className="h-4 w-4" />
-                ) : (
-                  <YoutubeGlyph className="h-4 w-4" />
-                )}
+                <SocialGlyph socialKey={s.key} className="h-4 w-4" />
               </a>
             ))}
             <a
@@ -185,14 +191,14 @@ export function Footer() {
             </a>
           </div>
           <div className="flex flex-col items-center gap-2 text-center">
-            {SITE_LOGO_DISABLED ? (
+            {logoDisabled ? (
               <p className="font-display text-sm font-semibold text-brand-950 sm:text-base">
-                {SITE_NAME}
+                {siteName}
               </p>
             ) : (
               <div className="relative h-12 w-28 overflow-hidden sm:h-14 sm:w-32">
                 <AppImage
-                  src={SITE_LOGO_PATH}
+                  src={logoPath}
                   alt=""
                   fill
                   sizes="100%"
@@ -202,7 +208,7 @@ export function Footer() {
             )}
             {/* <p className="font-display text-xs font-semibold text-brand-950">{SITE_NAME}</p> */}
             <p className="text-xs text-muted-foreground">
-              © {year} {SITE_NAME}. جميع الحقوق محفوظة.
+              © {year} {siteName}. جميع الحقوق محفوظة.
             </p>
           </div>
         </div>
@@ -258,6 +264,30 @@ function FooterNewsletter({ embedded }: { embedded?: boolean }) {
         </form>
       )}
     </div>
+  );
+}
+
+function SocialGlyph({
+  socialKey,
+  className,
+}: {
+  socialKey: string;
+  className?: string;
+}) {
+  const k = socialKey.toLowerCase();
+  if (k === "facebook") return <FacebookGlyph className={className} />;
+  if (k === "instagram") return <InstagramGlyph className={className} />;
+  if (k === "youtube") return <YoutubeGlyph className={className} />;
+  return <ExternalGlyph className={className} />;
+}
+
+function ExternalGlyph({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden>
+      <path d="M14 3h7v7" strokeLinecap="round" />
+      <path d="M10 14 21 3" strokeLinecap="round" />
+      <path d="M21 14v6a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h6" strokeLinecap="round" />
+    </svg>
   );
 }
 

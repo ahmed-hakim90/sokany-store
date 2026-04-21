@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 export type PaymentOptionCardProps = {
@@ -7,6 +8,8 @@ export type PaymentOptionCardProps = {
   description: string;
   selected: boolean;
   onSelect: () => void;
+  /** e.g. Visa / مدى strip for card option */
+  extra?: ReactNode;
 };
 
 export function PaymentOptionCard({
@@ -14,6 +17,7 @@ export function PaymentOptionCard({
   description,
   selected,
   onSelect,
+  extra,
 }: PaymentOptionCardProps) {
   return (
     <button
@@ -30,6 +34,7 @@ export function PaymentOptionCard({
     >
       <span className="block text-sm font-semibold text-brand-950">{title}</span>
       <span className="mt-1 block text-[11px] leading-snug text-muted-foreground">{description}</span>
+      {extra ? <div className="pointer-events-none">{extra}</div> : null}
     </button>
   );
 }

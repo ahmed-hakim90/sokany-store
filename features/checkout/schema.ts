@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { normalizeEgyptPhoneToE164 } from "@/lib/phone";
 
 export const checkoutSchema = z
   .object({
@@ -16,7 +17,7 @@ export const checkoutSchema = z
     shippingCountry: z.string().min(2, "Required"),
     shippingMethod: z.enum(["flat_rate", "local_pickup", "free_shipping"]),
     paymentMethod: z.enum(["cod", "card"]),
-    customerNote: z.string(),
+    customerNote: z.string().max(500, "الملاحظة لا تتجاوز 500 حرفاً"),
     createAccount: z.boolean(),
     accountPassword: z.string(),
   })
@@ -26,6 +27,15 @@ export const checkoutSchema = z
         code: z.ZodIssueCode.custom,
         message: "كلمة السر يجب ألا تقل عن 8 أحرف",
         path: ["accountPassword"],
+      });
+    }
+  })
+  .superRefine((data, ctx) => {
+    if (!normalizeEgyptPhoneToE164(data.contactPhone)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "رقم موبايل مصري غير صالح (مثال: 01xxxxxxxxx أو +201xxxxxxxxx)",
+        path: ["contactPhone"],
       });
     }
   });

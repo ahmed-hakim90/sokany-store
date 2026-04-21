@@ -7,7 +7,8 @@ import {
   Wrench,
 } from "lucide-react";
 import { Container } from "@/components/Container";
-import { branchesData } from "@/features/branches/data";
+import { branchesData as staticBranchesData } from "@/features/branches/data";
+import type { PublicBranchesData } from "@/features/cms/services/getPublicSiteContent";
 import {
   telHrefFromEgyptLocal,
   waMeUrlFromEgyptLocal,
@@ -26,7 +27,14 @@ const hitBtn =
  * فروع البيع (إطار أزرق + شارة) ومراكز الصيانة (بطاقات محايدة + أزرار واتساب/اتصال/خريطة بعرض كامل على الجوال).
  * من md: المحاذاة والمسافات كما في باقي الصفحات الثابتة.
  */
-export function BranchesPageContent() {
+export type BranchesPageContentProps = {
+  /** من Firestore عند التوفر، وإلا البيانات الثابتة. */
+  branchesData?: PublicBranchesData;
+};
+
+export function BranchesPageContent({
+  branchesData = staticBranchesData,
+}: BranchesPageContentProps) {
   return (
     <div className="min-w-0 flex-1 bg-page pb-20 pt-2 md:pt-4">
       <div className="border-b border-border/80 bg-white py-8 text-center md:py-10">

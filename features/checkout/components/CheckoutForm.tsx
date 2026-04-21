@@ -11,13 +11,15 @@ import { CheckoutShippingForm } from "@/features/checkout/components/CheckoutShi
 import { CheckoutSummary } from "@/features/checkout/components/CheckoutSummary";
 import { OrderSuccessCelebration } from "@/features/checkout/components/order-success-celebration";
 import { CheckoutSupportFooter } from "@/features/checkout/components/checkout-support-footer";
-import { CheckoutRegister } from "@/features/checkout/components/checkout-register";
+import { CheckoutOtpModal } from "@/features/checkout/components/checkout-otp-modal";
 import { useCheckoutForm } from "@/features/checkout/hooks/useCheckoutForm";
 
 /*
  * نموذج إتمام الطلب: على الجوال عمود واحد — الملخص أولاً (order-1) ثم حقول الشحن والدفع (order-2).
  * من lg: صف أفقي بعرض أقصى أوسع — عمود النموذج يتمدد، عمود الملخص max-width مع sticky عند التمرير.
  * بعد نجاح الطلب: `OrderSuccessCelebration` (شكر + قلوب) فوق الطبقة z-[200].
+ * التحقق بالهاتف: تفتح نافذة OTP (z-[220]) مع reCAPTCHA مدمج داخلها ثم يُرسل SMS بعد اكتمال التحقق.
+ * الشحن بسعر ثابت دون اختيار طرق توصيل؛ لا يُعرض إنشاء حساب Woo اختياري (الهوية عبر Firebase + المتجر).
  */
 export function CheckoutForm() {
   const {
@@ -30,12 +32,21 @@ export function CheckoutForm() {
     shippingMethodTitle,
     cartEmpty,
     isSubmitting,
+    loadingOverlayVisible,
     orderSuccessOpen,
     dismissOrderSuccess,
+    otpModalOpen,
+    otpSessionKey,
+    otpPhoneE164,
+    otpSending,
+    startOtpSms,
+    otpError,
+    otpIsVerifying,
+    phoneHint,
+    confirmOtpAndPlaceOrder,
+    dismissOtpModal,
     update,
-    updateShippingMethod,
     updatePaymentMethod,
-    setCreateAccount,
     submitOrder,
   } = useCheckoutForm();
 
@@ -60,19 +71,12 @@ export function CheckoutForm() {
         values={values}
         errors={errors}
         onChange={update}
-        onShippingMethodChange={updateShippingMethod}
       />
       <CheckoutPaymentForm
         values={values}
         errors={errors}
         onPaymentMethodChange={updatePaymentMethod}
         onCustomerNoteChange={(v) => update("customerNote", v)}
-      />
-      <CheckoutRegister
-        values={values}
-        errors={errors}
-        onCreateAccountChange={setCreateAccount}
-        onPasswordChange={(v) => update("accountPassword", v)}
       />
       <CheckoutCouponRow />
       <CheckoutLegalNote />
@@ -93,8 +97,21 @@ export function CheckoutForm() {
 
   return (
     <>
+      <CheckoutOtpModal
+        key={otpSessionKey}
+        open={otpModalOpen}
+        otpSessionKey={otpSessionKey}
+        phoneHint={phoneHint}
+        phoneE164={otpPhoneE164}
+        isSending={otpSending}
+        error={otpError}
+        isVerifying={otpIsVerifying}
+        onClose={dismissOtpModal}
+        onMountSendSms={startOtpSms}
+        onSubmitCode={(code) => void confirmOtpAndPlaceOrder(code)}
+      />
       <OrderSuccessCelebration open={orderSuccessOpen} onDismiss={dismissOrderSuccess} />
-      <CheckoutLoadingOverlay visible={isSubmitting} />
+      <CheckoutLoadingOverlay visible={loadingOverlayVisible} />
       {/* حاوية مركزية: ضيقة على الجوال/تابلت، تتسع وتتحول لصف من عمودين من lg */}
       <div
         className="mx-auto flex min-w-0 max-w-none flex-col gap-3 pb-10 sm:max-w-xl md:max-w-2xl lg:max-w-6xl lg:flex-row lg:items-start lg:gap-10"

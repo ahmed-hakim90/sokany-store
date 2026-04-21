@@ -1,8 +1,9 @@
 "use client";
 
-import { useId } from "react";
+import { useId, type ReactNode } from "react";
 import { Card } from "@/components/ui/card";
 import { CheckoutSectionChip } from "@/features/checkout/components/checkout-section-chip";
+import { PaymentBrandStrip } from "@/features/checkout/components/payment-brand-icons";
 import { PaymentOptionCard } from "@/features/checkout/components/payment-option-card";
 import { inputSurfaceClass } from "@/lib/ui-input";
 import { cn } from "@/lib/utils";
@@ -19,16 +20,19 @@ const PAYMENT_OPTIONS: {
   value: CheckoutFormData["paymentMethod"];
   title: string;
   description: string;
+  extra?: ReactNode;
 }[] = [
   {
     value: "cod",
     title: "الدفع عند الاستلام",
-    description: "ادفع نقداً عند استلام الطلب.",
+    description: "ادفع نقداً أو ببطاقة عند استلام الطلب من المندوب.",
   },
   {
     value: "card",
-    title: "بطاقة بنكية",
-    description: "تجريبي — لا يتم خصم أي مبلغ حالياً.",
+    title: "بطاقة بنكية أو محفظة",
+    description:
+      "بطاقات مدى أو ميزة، أو محافظ إلكترونية مصرية على الجوال — حسب تفعيل بوابة الدفع في المتجر.",
+    extra: <PaymentBrandStrip />,
   },
 ];
 
@@ -62,6 +66,7 @@ export function CheckoutPaymentForm({
             key={opt.value}
             title={opt.title}
             description={opt.description}
+            extra={opt.extra}
             selected={values.paymentMethod === opt.value}
             onSelect={() => onPaymentMethodChange(opt.value)}
           />
@@ -74,16 +79,29 @@ export function CheckoutPaymentForm({
       ) : null}
 
       <div className="border-t border-border/70 pt-3">
-        <label htmlFor={noteId} className="text-start text-xs font-medium text-muted-foreground">
-          ملاحظات الطلب (اختياري)
-        </label>
+        <div className="flex flex-wrap items-end justify-between gap-2">
+          <label htmlFor={noteId} className="text-start text-xs font-medium text-muted-foreground">
+            ملاحظات على الطلب (اختياري)
+          </label>
+          <span className="text-[11px] text-muted-foreground tabular-nums" aria-live="polite">
+            {values.customerNote.length}/500
+          </span>
+        </div>
+        <p className="mt-1 text-start text-[11px] leading-relaxed text-muted-foreground">
+          تعليمات التوصيل، مواعيد الاتصال، أو أي طلب خاص بالطلبية.
+        </p>
         <textarea
           id={noteId}
           name="customerNote"
-          rows={2}
+          rows={4}
+          maxLength={500}
+          placeholder="مثال: الاتصال قبل التوصيل بساعة — الطابق الثالث…"
           value={values.customerNote}
           onChange={(e) => onCustomerNoteChange(e.target.value)}
-          className={cn(inputSurfaceClass({ invalid: invalidNote }), "mt-1.5 min-h-[72px] resize-none")}
+          className={cn(
+            inputSurfaceClass({ invalid: invalidNote }),
+            "mt-2 min-h-[108px] w-full resize-y text-sm leading-relaxed",
+          )}
           aria-invalid={invalidNote}
         />
         {errors.customerNote ? (

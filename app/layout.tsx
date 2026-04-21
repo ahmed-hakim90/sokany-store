@@ -6,6 +6,7 @@ import { ViewTransitions } from "next-view-transitions";
 import { SiteShell } from "@/components/layout/site-shell";
 import { ViewTransitionRejectionHandler } from "@/components/layout/view-transition-rejection-handler";
 import { OrganizationJsonLd } from "@/components/seo/OrganizationJsonLd";
+import { getPublicSiteContent } from "@/features/cms/services/getPublicSiteContent";
 import { QueryProvider } from "@/providers/QueryProvider";
 import { ToastProvider } from "@/providers/ToastProvider";
 import { CLARITY_PROJECT_ID, GA_MEASUREMENT_ID } from "@/lib/constants";
@@ -24,23 +25,54 @@ const montserrat = Montserrat({
   display: "swap",
 });
 
-export const metadata: Metadata = {
-  metadataBase: new URL(getSiteUrl()),
-  title: "سوكانى المغربى",
-  icons: {
-    icon: [
-      { url: "/images/icon-192.png", sizes: "192x192", type: "image/png" },
-      { url: "/images/icon-512.png", sizes: "512x512", type: "image/png" },
-    ],
-    apple: "/images/icon-192.png",
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { branding } = await getPublicSiteContent();
+  return {
+    metadataBase: new URL(getSiteUrl()),
+    title: {
+      default: branding.defaultMetadataTitle,
+      template: `%s | ${branding.siteBrandTitleAr}`,
+    },
+    description: branding.pwaDescription,
+    icons: {
+      icon: [
+        { url: branding.icon192, sizes: "192x192", type: "image/png" },
+        { url: branding.icon512, sizes: "512x512", type: "image/png" },
+      ],
+      apple: branding.icon192,
+    },
+    openGraph: {
+      title: branding.defaultMetadataTitle,
+      description: branding.pwaDescription,
+      siteName: branding.siteBrandTitleAr,
+      locale: "ar_EG",
+      type: "website",
+      images: [
+        {
+          url: branding.defaultOgImageUrl,
+          width: 1200,
+          height: 630,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: branding.defaultMetadataTitle,
+      description: branding.pwaDescription,
+      images: [branding.defaultOgImageUrl],
+    },
+  };
+}
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const siteChrome = await getPublicSiteContent();
+  const sameAsHrefs = siteChrome.socialLinks.map((s) => s.href);
+  const b = siteChrome.branding;
+
   return (
     <html
       lang="ar"
@@ -57,12 +89,24 @@ export default function RootLayout({
             })(window, document, "clarity", "script", "${CLARITY_PROJECT_ID}");`}
           </Script>
         ) : null}
-        <OrganizationJsonLd />
+        <OrganizationJsonLd
+          sameAs={sameAsHrefs}
+          organizationName={b.organizationName}
+          logoUrl={b.organizationLogoUrl}
+          telephone={b.supportPhoneDisplay}
+        />
         <ViewTransitions>
           <ViewTransitionRejectionHandler />
           <QueryProvider>
             <ToastProvider />
-            <SiteShell>{children}</SiteShell>
+            <SiteShell
+              topAnnouncementBar={siteChrome.topAnnouncementBar}
+              socialLinks={siteChrome.socialLinks}
+              branding={b}
+              searchQuickKeywords={siteChrome.searchQuickKeywords}
+            >
+              {children}
+            </SiteShell>
           </QueryProvider>
         </ViewTransitions>
         {GA_MEASUREMENT_ID ? (

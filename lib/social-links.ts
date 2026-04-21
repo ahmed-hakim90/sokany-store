@@ -1,5 +1,12 @@
+/** روابط السوشيال الافتراضية — تُستبدل بمحتوى CMS عند تعبئته. */
+export type SocialLink = {
+  key: string;
+  href: string;
+  label: string;
+};
+
 /** Same destinations as OrganizationJsonLd `sameAs` + primary contact. */
-export const SOCIAL_LINKS = [
+export const SOCIAL_LINKS: readonly SocialLink[] = [
   {
     key: "facebook",
     href: "https://www.facebook.com/SokanyElmaghraby",

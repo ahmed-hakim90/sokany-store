@@ -11,14 +11,21 @@ export type HomeCategoryExclusiveBannerProps = {
   category: Category;
   /** Optional override from `public/images/banner-section/{slug}.*` (server map). */
   sectionBannerSrc?: string | null;
+  /** مسار اختياري من لوحة التحكم — يجعل البانر قابلاً للنقر بالكامل. */
+  bannerHref?: string;
   /** Badge label (e.g. «حصرياً»). */
   badgeText?: string;
   className?: string;
 };
 
+function isExternalUrl(href: string): boolean {
+  return href.startsWith("http://") || href.startsWith("https://");
+}
+
 export function HomeCategoryExclusiveBanner({
   category,
   sectionBannerSrc = null,
+  bannerHref,
   badgeText = "حصرياً",
   className,
 }: HomeCategoryExclusiveBannerProps) {
@@ -72,21 +79,70 @@ export function HomeCategoryExclusiveBanner({
           </Link>
         </div> */}
 
-        <div className="relative min-h-[12rem] flex-1 md:min-h-0 md:block">
-          <AppImage
-            src={imageSrc}
-            alt={hasRealBannerImage ? category.name : ""}
-            fill
-          
-            sizes="(max-width: 767px) 100vw, (max-width: 1280px) 45vw, 520px"
-            className={cn(
-              "object-cover object-center cover-center",
-              !hasRealBannerImage && "opacity-40",
-            )}
-          />
-          {/* <div className="absolute inset-0 bg-gradient-to-l from-black via-black/35 to-transparent" /> */}
-        </div>
+        <BannerImageBlock
+          imageSrc={imageSrc}
+          imageAlt={hasRealBannerImage ? category.name : ""}
+          dimmed={!hasRealBannerImage}
+          bannerHref={bannerHref}
+        />
       </div>
     </section>
+  );
+}
+
+function BannerImageBlock({
+  imageSrc,
+  imageAlt,
+  dimmed,
+  bannerHref,
+}: {
+  imageSrc: string;
+  imageAlt: string;
+  dimmed: boolean;
+  bannerHref?: string;
+}) {
+  const inner = (
+    <AppImage
+      src={imageSrc}
+      alt={imageAlt}
+      fill
+      sizes="(max-width: 767px) 100vw, (max-width: 1280px) 45vw, 520px"
+      className={cn(
+        "object-cover object-center cover-center",
+        dimmed && "opacity-40",
+      )}
+    />
+  );
+
+  const shellClass = "relative min-h-[12rem] flex-1 md:min-h-0 md:block";
+
+  if (!bannerHref?.trim()) {
+    return <div className={shellClass}>{inner}</div>;
+  }
+
+  const href = bannerHref.trim();
+  if (isExternalUrl(href)) {
+    return (
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={cn(shellClass, "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/80")}
+      >
+        {inner}
+      </a>
+    );
+  }
+
+  return (
+    <Link
+      href={href}
+      className={cn(
+        shellClass,
+        "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/80",
+      )}
+    >
+      {inner}
+    </Link>
   );
 }

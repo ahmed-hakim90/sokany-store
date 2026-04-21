@@ -63,16 +63,46 @@ function CheckSealIcon() {
  * → الأكثر مبيعاً (featured) → وصل حديثاً (orderby تاريخ) → أقسام الأب للتصنيفات
  * → بطاقة ترويجي في الأسفل.
  */
+export type HomeBottomPromo = {
+  eyebrow?: string;
+  title: string;
+  subtitle: string;
+  href: string;
+  ctaLabel: string;
+  imageSrc?: string;
+};
+
 export type HomePageContentProps = {
-  /** Hero slides resolved on the server from `public/images/hero/`. */
+  /** Hero من الملفات أو من Firestore. */
   heroSlides?: HomeHeroSlide[];
-  /** Ordered banner URLs from `public/images/banner-section/` (`01.*`, `02.*`, …) for «حصرياً». */
-  sectionBannerImages?: string[];
+  /** بانرات أقسام الأب — ترتيب يطابق الفهرس. */
+  sectionBanners?: { imageUrl: string; href?: string }[];
+  /** إخفاء قسم «عروض سريعة» بالكامل (عداد + شبكة المنتجات المخفّضة). */
+  flashSaleSectionEnabled?: boolean;
+  /** إعدادات العداد والنصوص من لوحة التحكم. */
+  promoFlash?: {
+    endsAtIso?: string | null;
+    headline?: string;
+    subline?: string;
+  };
+  /** بطاقة الترويج أسفل الصفحة — افتراضي ثابت أو من spotlight في Firestore. */
+  homeBottomPromo?: HomeBottomPromo;
+};
+
+const DEFAULT_BOTTOM_PROMO: HomeBottomPromo = {
+  eyebrow: "حصرياً",
+  title: "مجموعة تحضير القهوة",
+  subtitle: "عروض لفترة محدودة على ماكينات القهوة والمطاحن — وفر حتى 40٪.",
+  href: ROUTES.CATEGORY("coffee-maker"),
+  ctaLabel: "اكتشف الآن",
 };
 
 export function HomePageContent({
   heroSlides = [],
-  sectionBannerImages = [],
+  sectionBanners = [],
+  flashSaleSectionEnabled = true,
+  promoFlash,
+  homeBottomPromo = DEFAULT_BOTTOM_PROMO,
 }: HomePageContentProps) {
   const router = useTransitionRouter();
   const featured = useProducts({ featured: true, per_page: 8 });
@@ -105,14 +135,19 @@ export function HomePageContent({
         <HomeCategoryImageScroller tiles={categoryTiles} />
 
         {/* عروض سريعة: منتجات مخفّضة من WooCommerce + عداد تنازلي */}
-        {flashSales.isError ? (
+        {!flashSaleSectionEnabled ? null : flashSales.isError ? (
           <ErrorState
             message={flashSales.error.message}
             onRetry={() => void flashSales.refetch()}
           />
         ) : flashSales.isPending || (flashSales.data?.length ?? 0) > 0 ? (
           <section className="space-y-4" aria-labelledby="home-flash-sales-title">
-            <HomeFlashSaleCountdownStrip className="w-full" />
+            <HomeFlashSaleCountdownStrip
+              className="w-full"
+              endsAtIso={promoFlash?.endsAtIso}
+              headline={promoFlash?.headline}
+              subline={promoFlash?.subline}
+            />
             <ProductGrid
               status={
                 flashSales.isPending
@@ -271,7 +306,7 @@ export function HomePageContent({
         {categories.data && categories.data.length > 0 ? (
           <HomeParentCategorySections
             categories={categories.data}
-            sectionBannerImages={sectionBannerImages}
+            sectionBanners={sectionBanners}
             getCartLineQuantity={getCartLineQuantity}
             onCartLineQuantityChange={setProductLineQuantity}
           />
@@ -279,11 +314,12 @@ export function HomePageContent({
 
         {/* أسفل الصفحة: بطاقة ترويج كاملة العرض داخل الحاوية */}
         <HomePromoCard
-          eyebrow="حصرياً"
-          title="مجموعة تحضير القهوة"
-          subtitle="عروض لفترة محدودة على ماكينات القهوة والمطاحن — وفر حتى 40٪."
-          href={ROUTES.CATEGORY("coffee-maker")}
-          ctaLabel="اكتشف الآن"
+          eyebrow={homeBottomPromo.eyebrow}
+          title={homeBottomPromo.title}
+          subtitle={homeBottomPromo.subtitle}
+          href={homeBottomPromo.href}
+          ctaLabel={homeBottomPromo.ctaLabel}
+          imageSrc={homeBottomPromo.imageSrc}
         />
       </Container>
     </div>

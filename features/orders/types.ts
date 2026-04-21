@@ -83,6 +83,7 @@ export type WCOrder = {
   payment_method: string;
   payment_method_title: string;
   customer_note: string;
+  meta_data?: Array<{ key: string; value: string | number | boolean }>;
 };
 
 export type CreateOrderPayload = {
@@ -122,4 +123,6 @@ export type CreateOrderPayload = {
   customer_note: string;
   set_paid?: boolean;
   customer_id?: number;
+  /** WooCommerce order meta — e.g. link storefront Firebase user to the order. */
+  meta_data?: Array<{ key: string; value: string | number | boolean }>;
 };

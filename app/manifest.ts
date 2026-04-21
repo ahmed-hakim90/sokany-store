@@ -1,29 +1,32 @@
 import type { MetadataRoute } from "next";
-import { getSiteUrl } from "@/lib/site";
+import { getPublicSiteContent } from "@/features/cms/services/getPublicSiteContent";
 
-export default function manifest(): MetadataRoute.Manifest {
-  const site = getSiteUrl();
+export default async function manifest(): Promise<MetadataRoute.Manifest> {
+  const { branding } = await getPublicSiteContent();
   return {
-    name: "سوكانى المغربى",
-    short_name: "سوكانى",
-    description: "أجهزة سوكانى الكهربائية من الوكيل الحصري",
+    name: branding.pwaName,
+    short_name: branding.pwaShortName,
+    description: branding.pwaDescription,
     start_url: "/",
+    scope: "/",
     display: "standalone",
-    background_color: "#ffffff",
-    theme_color: "#ec7123",
-    icons: [
-      {
-        src: `${site}/images/icon-192.png`,
-        sizes: "192x192",
-        type: "image/png",
-      },
-      {
-        src: `${site}/images/icon-512.png`,
-        sizes: "512x512",
-        type: "image/png",
-      },
-    ],
+    background_color: branding.backgroundColor,
+    theme_color: branding.themeColor,
     lang: "ar",
     dir: "rtl",
+    icons: [
+      {
+        src: branding.icon192,
+        sizes: "192x192",
+        type: "image/png",
+        purpose: "any",
+      },
+      {
+        src: branding.icon512,
+        sizes: "512x512",
+        type: "image/png",
+        purpose: "any",
+      },
+    ],
   };
 }

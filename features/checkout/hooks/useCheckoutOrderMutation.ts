@@ -16,6 +16,8 @@ import { createOrderPayloadSchema } from "@/schemas/wordpress";
 export type CheckoutOrderMutationInput = {
   values: CheckoutFormData;
   items: CartItem[];
+  /** Set after Firebase Phone Auth + Firestore `storefront_customers/{uid}` write. */
+  firebaseUid?: string;
 };
 
 export class CheckoutOrderMutationError extends Error {
@@ -58,7 +60,7 @@ function checkoutFieldErrors(
 export function useCheckoutOrderMutation() {
   return useMutation({
     mutationKey: ["checkout", "createOrder"],
-    mutationFn: async ({ values, items }: CheckoutOrderMutationInput) => {
+    mutationFn: async ({ values, items, firebaseUid }: CheckoutOrderMutationInput) => {
       if (items.length === 0) {
         throw new CheckoutOrderMutationError({
           kind: "empty_cart",
@@ -103,7 +105,10 @@ export function useCheckoutOrderMutation() {
         }
       }
 
-      const rawPayload = toCreateOrderPayload(data, items, { customerId });
+      const rawPayload = toCreateOrderPayload(data, items, {
+        customerId,
+        firebaseUid,
+      });
       const payloadParsed = createOrderPayloadSchema.safeParse(rawPayload);
       if (!payloadParsed.success) {
         throw new CheckoutOrderMutationError({
