@@ -12,15 +12,25 @@ import { useFcmWebPush } from "@/features/push/useFcmWebPush";
 export function PwaEngagementStack() {
   const pathname = usePathname();
   const storefront = !pathname?.startsWith("/control");
-  useFcmWebPush(storefront);
+  const swEnabled = process.env.NEXT_PUBLIC_ENABLE_SW === "true";
+  useFcmWebPush(storefront && swEnabled);
 
   useEffect(() => {
     if (!storefront) return;
     if (typeof window === "undefined" || !("serviceWorker" in navigator)) return;
+    if (!swEnabled) {
+      navigator.serviceWorker
+        .getRegistrations()
+        .then((regs) => Promise.all(regs.map((r) => r.unregister())))
+        .catch(() => {
+          /* ignore */
+        });
+      return;
+    }
     navigator.serviceWorker.register("/sw.js").catch(() => {
       /* ignore */
     });
-  }, [storefront]);
+  }, [storefront, swEnabled]);
 
   if (!storefront) return null;
 

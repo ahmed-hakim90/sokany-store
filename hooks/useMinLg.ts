@@ -4,13 +4,18 @@ import { useSyncExternalStore } from "react";
 
 function subscribeMinLg(onChange: () => void) {
   if (typeof window === "undefined") return () => {};
+  if (typeof window.matchMedia !== "function") return () => {};
   const mq = window.matchMedia("(min-width: 1024px)");
   mq.addEventListener("change", onChange);
   return () => mq.removeEventListener("change", onChange);
 }
 
 function getMinLgSnapshot() {
-  return typeof window !== "undefined" && window.matchMedia("(min-width: 1024px)").matches;
+  return (
+    typeof window !== "undefined" &&
+    typeof window.matchMedia === "function" &&
+    window.matchMedia("(min-width: 1024px)").matches
+  );
 }
 
 function getMinLgServerSnapshot() {

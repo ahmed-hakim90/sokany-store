@@ -7,19 +7,25 @@ import { requestWebPushSubscription } from "@/features/push/useFcmWebPush";
 const STORAGE_KEY = "sokany-push-consent-dismissed";
 
 export function WebPushConsentBanner() {
+  const swEnabled = process.env.NEXT_PUBLIC_ENABLE_SW === "true";
   const vapidConfigured = Boolean(process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY?.trim());
   const [hydrated, setHydrated] = useState(false);
   const [dismissed, setDismissed] = useState(false);
   const [pending, setPending] = useState(false);
+  const [permission, setPermission] = useState<NotificationPermission>("default");
 
   useEffect(() => {
-    setDismissed(localStorage.getItem(STORAGE_KEY) === "1");
+    if (typeof window === "undefined") return;
+    setDismissed(window.localStorage.getItem(STORAGE_KEY) === "1");
+    if ("Notification" in window) {
+      setPermission(window.Notification.permission);
+    }
     setHydrated(true);
   }, []);
 
-  const permission = typeof window !== "undefined" ? Notification.permission : "default";
   const show =
     hydrated &&
+    swEnabled &&
     vapidConfigured &&
     !dismissed &&
     permission === "default" &&

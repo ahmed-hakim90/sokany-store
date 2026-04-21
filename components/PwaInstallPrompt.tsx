@@ -29,7 +29,8 @@ export function PwaInstallPrompt() {
       const ua = window.navigator.userAgent.toLowerCase();
       const isIos = /iphone|ipad|ipod/.test(ua);
       const isStandalone =
-        window.matchMedia("(display-mode: standalone)").matches ||
+        (typeof window.matchMedia === "function" &&
+          window.matchMedia("(display-mode: standalone)").matches) ||
         (window.navigator as unknown as { standalone?: boolean }).standalone === true;
       if (isIos && !isStandalone) {
         setIosHint(true);

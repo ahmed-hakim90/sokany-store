@@ -12,6 +12,7 @@ const SELECTOR: Record<CartFlyTarget, string> = {
 
 function resolveTargetKind(): CartFlyTarget {
   if (typeof window === "undefined") return "mobile";
+  if (typeof window.matchMedia !== "function") return "mobile";
   return window.matchMedia("(min-width: 1024px)").matches ? "desktop" : "mobile";
 }
 

@@ -35,6 +35,7 @@ export function MobileScrollCollapseController() {
   }, [pathname, resetChrome]);
 
   useEffect(() => {
+    if (typeof window.matchMedia !== "function") return;
     const mq = window.matchMedia("(max-width: 1023px)");
     lastYRef.current =
       window.scrollY ?? document.documentElement.scrollTop ?? 0;
