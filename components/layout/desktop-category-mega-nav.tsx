@@ -2,7 +2,7 @@
 
 /*
  * شريط تصنيفات الديسكتوب (صف ثانٍ تحت اللوجو/البحث) + ميجا مينو عند الـ hover.
- * — الصف العلوي للروابط: الرئيسية، الأقسام الثلاثة، العروض (أحمر)، وزر «خدماتنا».
+ * — الصف: روابط رئيسية يسار/وسط؛ يمين: أيقونات سوشيال + «تواصل معنا» + «خدماتنا» (قائمة منسدلة بالهوفر والنقر).
  * — الميجا: شبكة ثلاثية الأعمدة (فرعية · أولوية تسوق · صورة) أو لوحة عروض بديلة.
  * — الـ lg فقط؛ الموبايل يبقى على الدرج.
  */
@@ -13,7 +13,9 @@ import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react"
 import { AppImage } from "@/components/AppImage";
 import { Container } from "@/components/Container";
 import type { Category } from "@/features/categories/types";
+import { SocialGlyph } from "@/components/layout/social-glyph";
 import { ROUTES } from "@/lib/constants";
+import type { SocialLink } from "@/lib/social-links";
 import { cn } from "@/lib/utils";
 
 const MEGA_LINK_LIMIT = 12;
@@ -128,12 +130,14 @@ export type DesktopCategoryMegaNavProps = {
   categories: Category[] | undefined;
   categoriesLoading: boolean;
   moreLinks: readonly DesktopMoreLink[];
+  socialLinks: readonly SocialLink[];
 };
 
 export function DesktopCategoryMegaNav({
   categories,
   categoriesLoading,
   moreLinks,
+  socialLinks,
 }: DesktopCategoryMegaNavProps) {
   const baseId = useId();
   const [openKey, setOpenKey] = useState<string | null>(null);
@@ -427,38 +431,68 @@ export function DesktopCategoryMegaNav({
           })}
         </nav>
 
-        <div className="relative shrink-0 py-1.5" ref={moreRef}>
-          <button
-            type="button"
-            className={cn(
-              "inline-flex items-center gap-1 rounded-md px-2.5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-surface-muted/50 hover:text-brand-950",
-              moreOpen && "bg-surface-muted/45 text-brand-950",
-            )}
-            aria-expanded={moreOpen}
-            aria-haspopup="menu"
-            onClick={() => setMoreOpen((v) => !v)}
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+          <div
+            className="flex items-center gap-0.5"
+            aria-label="وسائل التواصل الاجتماعي"
           >
-            خدماتنا
-            <ChevronDownGlyph className="h-4 w-4 opacity-70" />
-          </button>
-          {moreOpen ? (
-            <div
-              role="menu"
-              className="absolute end-0 top-full z-[60] mt-1 min-w-[12rem] rounded-xl border border-border/80 bg-white py-1.5 shadow-lg"
+            {socialLinks.map((s) => (
+              <a
+                key={s.key}
+                href={s.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border/70 bg-white text-brand-800 shadow-sm transition-colors hover:bg-surface-muted/80 hover:text-brand-950"
+                aria-label={s.label}
+              >
+                <SocialGlyph socialKey={s.key} className="h-3.5 w-3.5" />
+              </a>
+            ))}
+          </div>
+          <Link
+            href={ROUTES.CONTACT}
+            className="whitespace-nowrap rounded-md px-2 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-surface-muted/50 hover:text-brand-950"
+          >
+            تواصل معنا
+          </Link>
+          <div
+            ref={moreRef}
+            className="relative py-1.5"
+            onMouseEnter={() => setMoreOpen(true)}
+            onMouseLeave={() => setMoreOpen(false)}
+          >
+            <button
+              type="button"
+              className={cn(
+                "inline-flex items-center gap-1 rounded-md px-2.5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-surface-muted/50 hover:text-brand-950",
+                moreOpen && "bg-surface-muted/45 text-brand-950",
+              )}
+              aria-expanded={moreOpen}
+              aria-haspopup="menu"
+              onClick={() => setMoreOpen((v) => !v)}
             >
-              {moreLinks.map((l) => (
-                <Link
-                  key={l.href}
-                  role="menuitem"
-                  href={l.href}
-                  className="block px-4 py-2 text-sm text-foreground hover:bg-surface-muted/60"
-                  onClick={() => setMoreOpen(false)}
-                >
-                  {l.label}
-                </Link>
-              ))}
-            </div>
-          ) : null}
+              خدماتنا
+              <ChevronDownGlyph className="h-4 w-4 opacity-70" />
+            </button>
+            {moreOpen ? (
+              <div
+                role="menu"
+                className="absolute end-0 top-full z-[60] mt-1 min-w-[12rem] rounded-xl border border-border/80 bg-white py-1.5 shadow-lg"
+              >
+                {moreLinks.map((l) => (
+                  <Link
+                    key={l.href}
+                    role="menuitem"
+                    href={l.href}
+                    className="block px-4 py-2 text-sm text-foreground hover:bg-surface-muted/60"
+                    onClick={() => setMoreOpen(false)}
+                  >
+                    {l.label}
+                  </Link>
+                ))}
+              </div>
+            ) : null}
+          </div>
         </div>
       </div>
 

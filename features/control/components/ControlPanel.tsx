@@ -35,6 +35,7 @@ import {
 } from "@/schemas/cms";
 import {
   AnnouncementBarForm,
+  ControlImageUrlField,
   HeroSlidesForm,
   RetailersForm,
   SectionBannersForm,
@@ -683,16 +684,14 @@ export function ControlPanel() {
                 className="mt-1 w-full rounded-lg border border-border px-3 py-2"
               />
             </div>
-            <div className="sm:col-span-2">
-              <label className="text-sm font-medium">مسار شعار الصورة (public أو URL)</label>
-              <input
-                name="logoPath"
-                defaultValue={site?.branding?.logoPath ?? ""}
-                dir="ltr"
-                className="mt-1 w-full rounded-lg border border-border px-3 py-2 font-mono text-sm"
-                placeholder="/images/logo.png"
-              />
-            </div>
+            <ControlImageUrlField
+              className="sm:col-span-2"
+              name="logoPath"
+              label="مسار شعار الصورة (public أو URL)"
+              defaultValue={site?.branding?.logoPath ?? ""}
+              placeholder="/images/logo.png"
+              disabled={saving === "site_config"}
+            />
             <label className="flex items-center gap-2 sm:col-span-2">
               <input
                 type="checkbox"
@@ -701,26 +700,20 @@ export function ControlPanel() {
               />
               <span>إخفاء صورة الشعار وعرض الاسم نصًا (مثل تعطيل NEXT_PUBLIC_SITE_LOGO_PATH)</span>
             </label>
-            <div>
-              <label className="text-sm font-medium">أيقونة ١٩٢ (مسار)</label>
-              <input
-                name="icon192"
-                defaultValue={site?.branding?.icon192 ?? ""}
-                dir="ltr"
-                className="mt-1 w-full rounded-lg border border-border px-3 py-2 font-mono text-sm"
-                placeholder="/images/icon-192.png"
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium">أيقونة ٥١٢ (مسار)</label>
-              <input
-                name="icon512"
-                defaultValue={site?.branding?.icon512 ?? ""}
-                dir="ltr"
-                className="mt-1 w-full rounded-lg border border-border px-3 py-2 font-mono text-sm"
-                placeholder="/images/icon-512.png"
-              />
-            </div>
+            <ControlImageUrlField
+              name="icon192"
+              label="أيقونة ١٩٢ (مسار)"
+              defaultValue={site?.branding?.icon192 ?? ""}
+              placeholder="/images/icon-192.png"
+              disabled={saving === "site_config"}
+            />
+            <ControlImageUrlField
+              name="icon512"
+              label="أيقونة ٥١٢ (مسار)"
+              defaultValue={site?.branding?.icon512 ?? ""}
+              placeholder="/images/icon-512.png"
+              disabled={saving === "site_config"}
+            />
             <div>
               <label className="text-sm font-medium">اسم تطبيق PWA</label>
               <input
@@ -778,15 +771,13 @@ export function ControlPanel() {
                 placeholder={SITE_BRAND_TITLE_AR}
               />
             </div>
-            <div className="sm:col-span-2">
-              <label className="text-sm font-medium">صورة OG الافتراضية (URL)</label>
-              <input
-                name="defaultOgImageUrl"
-                defaultValue={site?.branding?.defaultOgImageUrl ?? ""}
-                dir="ltr"
-                className="mt-1 w-full rounded-lg border border-border px-3 py-2 font-mono text-sm"
-              />
-            </div>
+            <ControlImageUrlField
+              className="sm:col-span-2"
+              name="defaultOgImageUrl"
+              label="صورة OG الافتراضية (URL)"
+              defaultValue={site?.branding?.defaultOgImageUrl ?? ""}
+              disabled={saving === "site_config"}
+            />
             <div>
               <label className="text-sm font-medium">اسم المنظمة (JSON-LD)</label>
               <input
@@ -796,15 +787,12 @@ export function ControlPanel() {
                 placeholder={SITE_BRAND_TITLE_AR}
               />
             </div>
-            <div>
-              <label className="text-sm font-medium">شعار المنظمة (JSON-LD)</label>
-              <input
-                name="organizationLogoUrl"
-                defaultValue={site?.branding?.organizationLogoUrl ?? ""}
-                dir="ltr"
-                className="mt-1 w-full rounded-lg border border-border px-3 py-2 font-mono text-sm"
-              />
-            </div>
+            <ControlImageUrlField
+              name="organizationLogoUrl"
+              label="شعار المنظمة (JSON-LD)"
+              defaultValue={site?.branding?.organizationLogoUrl ?? ""}
+              disabled={saving === "site_config"}
+            />
             <div className="sm:col-span-2">
               <label className="text-sm font-medium">هاتف الدعم (للعرض و JSON-LD)</label>
               <input
@@ -884,8 +872,8 @@ export function ControlPanel() {
         <section className="space-y-3 rounded-2xl border border-border bg-white p-5 shadow-sm">
           <h2 className="font-display text-lg font-bold">رفع صورة</h2>
           <p className="text-sm text-muted-foreground">
-            يمكنك أيضًا الرفع مباشرة من تبويبات الهيرو والبانرات والموزعين. هنا للحصول على رابط
-            عام تنسخه لأي حقل.
+            الأساس: ارفع من نفس التبويب الذي يحتوي الحقل (الهيرو، الهوية، البانرات، الموزعون، إلخ).
+            هذا القسم اختياري إذا احتجت رابطًا عامًا للنسخ السريع دون فتح تبويب آخر.
           </p>
           <input
             type="file"

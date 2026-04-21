@@ -2,6 +2,7 @@ import { type FirebaseApp, getApps, initializeApp } from "firebase/app";
 import { getAnalytics, isSupported, type Analytics } from "firebase/analytics";
 import { getAuth, type Auth } from "firebase/auth";
 import { getFirestore, type Firestore } from "firebase/firestore";
+import type { Messaging } from "firebase/messaging";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -46,6 +47,24 @@ export function getFirebaseFirestore(): Firestore {
     firestoreSingleton = getFirestore(getFirebaseApp());
   }
   return firestoreSingleton;
+}
+
+let messagingSingleton: Messaging | null = null;
+let messagingUnsupported: boolean | null = null;
+
+/** Cloud Messaging (ويب) — يُستخدم مع VAPID و Service Worker. إن لم تكن المنصة تدعمها يُعاد `null`. */
+export async function getFirebaseMessaging(): Promise<Messaging | null> {
+  assertClient();
+  if (messagingUnsupported === true) return null;
+  const { isSupported, getMessaging } = await import("firebase/messaging");
+  if (!(await isSupported())) {
+    messagingUnsupported = true;
+    return null;
+  }
+  if (!messagingSingleton) {
+    messagingSingleton = getMessaging(getFirebaseApp());
+  }
+  return messagingSingleton;
 }
 
 /** Call once from a client tree when GA4 measurement ID is set. Safe no-op if unsupported. */

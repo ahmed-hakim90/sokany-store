@@ -35,7 +35,9 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     description: branding.pwaDescription,
     icons: {
+      /** `app/favicon.ico` — يُعرَّف صراحةً حتى لا تستبدله أيقونات PNG فقط في التبويب */
       icon: [
+        { url: "/favicon.ico", type: "image/x-icon", sizes: "any" },
         { url: branding.icon192, sizes: "192x192", type: "image/png" },
         { url: branding.icon512, sizes: "512x512", type: "image/png" },
       ],

@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { PwaInstallPrompt } from "@/components/PwaInstallPrompt";
+import { PwaEngagementStack } from "@/components/PwaEngagementStack";
 import { FooterGate } from "@/components/layout/footer-gate";
 import { MobileCommerceChrome } from "@/components/layout/mobile-commerce-chrome";
 import { MobileScrollCollapseController } from "@/components/layout/mobile-scroll-collapse-controller";
@@ -37,6 +37,7 @@ export function SiteShell({
             logoPath={branding.logoPath}
             logoDisabled={branding.logoDisabled}
             searchQuickKeywords={searchQuickKeywords}
+            socialLinks={socialLinks}
           />
         </Suspense>
       </div>
@@ -60,7 +61,7 @@ export function SiteShell({
       />
       <MobileScrollCollapseController />
       <MobileCommerceChrome />
-      <PwaInstallPrompt />
+      <PwaEngagementStack />
     </>
   );
 }

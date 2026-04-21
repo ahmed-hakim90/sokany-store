@@ -30,6 +30,9 @@ function siteImagePatterns(): NonNullable<
 }
 
 const nextConfig: NextConfig = {
+  async rewrites() {
+    return [{ source: "/sw.js", destination: "/api/pwa-sw" }];
+  },
   async redirects() {
     return [
       {

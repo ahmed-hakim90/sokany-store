@@ -54,6 +54,7 @@ export const ROUTES = {
   CART: "/cart",
   CHECKOUT: "/checkout",
   ABOUT: "/about",
+  CONTACT: "/contact",
   /** الفروع ومراكز الصيانة (كان المسار السابق `/service-centers` مع إعادة توجيه 301). */
   SERVICE_CENTERS: "/branches",
   /** الموزعون المعتمدون (تجزئة معتمدة من الوكيل). */

@@ -34,6 +34,101 @@ export async function uploadControlImage(file: File): Promise<string> {
   return j.url.trim();
 }
 
+/** حقل رابط صورة لنماذج `FormData`: نص + رفع يملأ القيمة + `hidden` بنفس `name` للإرسال. */
+export function ControlImageUrlField({
+  name,
+  label,
+  defaultValue = "",
+  placeholder,
+  disabled,
+  className,
+}: {
+  name: string;
+  label: string;
+  defaultValue?: string;
+  placeholder?: string;
+  disabled?: boolean;
+  className?: string;
+}) {
+  const [value, setValue] = useState(defaultValue);
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setValue(defaultValue);
+  }, [defaultValue]);
+
+  async function onFile(file: File | undefined) {
+    if (!file) return;
+    setUploading(true);
+    try {
+      const url = await uploadControlImage(file);
+      setValue(url);
+      toast.success("تم رفع الصورة");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "فشل الرفع");
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  const trimmed = value.trim();
+  const showPreview = trimmed.length > 0;
+
+  return (
+    <div className={className}>
+      <label className="text-sm font-medium">{label}</label>
+      <input type="hidden" name={name} value={value} />
+      <div className="mt-1 flex flex-col gap-2 sm:flex-row sm:items-start sm:gap-2">
+        <input
+          type="text"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          dir="ltr"
+          disabled={disabled}
+          placeholder={placeholder}
+          autoComplete="off"
+          className="min-w-0 flex-1 rounded-lg border border-border px-3 py-2 font-mono text-sm"
+        />
+        <input
+          ref={fileRef}
+          type="file"
+          accept={ACCEPT_IMAGES}
+          className="sr-only"
+          tabIndex={-1}
+          disabled={disabled || uploading}
+          onChange={(e) => {
+            void onFile(e.target.files?.[0]);
+            e.target.value = "";
+          }}
+        />
+        <Button
+          type="button"
+          variant="secondary"
+          size="sm"
+          className="shrink-0"
+          disabled={disabled || uploading}
+          onClick={() => fileRef.current?.click()}
+        >
+          {uploading ? "جاري الرفع…" : "اختيار ملف"}
+        </Button>
+      </div>
+      {showPreview ? (
+        <div className="mt-2 max-h-36 max-w-md overflow-hidden rounded-lg border border-border bg-surface-muted/40 p-1">
+          <AppImage
+            src={trimmed}
+            alt=""
+            width={400}
+            height={160}
+            className="mx-auto h-auto max-h-32 w-full object-contain"
+            sizes="(max-width: 28rem) 100vw, 28rem"
+          />
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 type AnnRow = { text: string; href: string };
 
 export function AnnouncementBarForm({

@@ -177,23 +177,28 @@ export function HomePageContent({
           </section>
         ) : null}
 
-        {/* من md فما فوق: ثلاثية ثقة بعرض الشبكة؛ مخفية على الجوال */}
+        {/* من lg: صف واحد (٤ أعمدة)؛ من md حتى lg: شبكة ٢×٢؛ مخفية على الجوال */}
         <HomeTrustStrip
           className="hidden md:grid"
           items={[
             {
-              label: "ضمان حقيقي عامين",
-              description: "تسوق بثقة مع ضمان معتمد على الأجهزة المختارة.",
+              label: "شحن محلي",
+              description: "شحن مجاني للطلبات فوق ٢٠٠٠ جنية",
               icon: <ShieldIcon />,
             },
             {
-              label: "خدمة ما بعد البيع",
-              description: "دعم فني ومراكز خدمة متاحة عند الحاجة.",
+              label: "تقسيط مريح",
+              description: "اقساط مريحه تصل الي ٢٤ شهرا.",
+              icon: <ShieldIcon />,
+            },
+            {
+              label: "عروض جديدة",
+              description: "مرتبطة بصفحة العروض.",
               icon: <HeadsetIcon />,
             },
             {
-              label: "توصيل آمن وسريع",
-              description: "شحن موثوق لأنحاء مصر.",
+              label: "ارجاع خلال ١٤ يوما",
+              description: "استرداد المشتريات خلال ١٤ يوما.",
               icon: <TruckIcon />,
             },
           ]}
@@ -203,8 +208,16 @@ export function HomePageContent({
         <HomeTrustStrip
           className="grid md:hidden"
           items={[
-            { label: "ضمان معتمد", icon: <ShieldIcon /> },
-            { label: "منتجات أصلية", icon: <CheckSealIcon /> },
+            {
+              label: "شحن محلي",
+              description: "شحن مجاني للطلبات فوق ٢٠٠٠ جنية",
+              icon: <ShieldIcon />,
+            },
+            {
+              label: "ارجاع خلال ١٤ يوما",
+              description: "استرداد المشتريات خلال ١٤ يوما.",
+              icon: <TruckIcon />,
+            },
           ]}
         />
 

@@ -22,6 +22,7 @@ import { useCart } from "@/hooks/useCart";
 import { useWishlist } from "@/hooks/useWishlist";
 import { ROUTES, SITE_LOGO_DISABLED, SITE_LOGO_PATH, SITE_NAME } from "@/lib/constants";
 import { DEFAULT_SEARCH_QUICK_KEYWORDS } from "@/lib/search-quick-keywords";
+import { SOCIAL_LINKS, type SocialLink } from "@/lib/social-links";
 import { cn } from "@/lib/utils";
 
 /** أول صفوف الدرج؛ على الديسكتوب يظهر شريط تصنيفات + ميجا مينو منفصل. */
@@ -53,6 +54,8 @@ export type NavbarProps = {
   logoDisabled?: boolean;
   /** من `getPublicSiteContent` — عند عدم التمرير تُستخدم القائمة الافتراضية من الكود. */
   searchQuickKeywords?: readonly string[];
+  /** روابط السوشيال للشريط الديسكتوب — من CMS أو الافتراضي. */
+  socialLinks?: readonly SocialLink[];
 };
 
 function MobileCartLink({
@@ -97,6 +100,7 @@ export function Navbar({
   logoPath = SITE_LOGO_PATH,
   logoDisabled = SITE_LOGO_DISABLED,
   searchQuickKeywords = DEFAULT_SEARCH_QUICK_KEYWORDS,
+  socialLinks = SOCIAL_LINKS,
 }: NavbarProps = {}) {
   const pathname = usePathname();
   const open = useMobileNavDrawerOpenStore((s) => s.open);
@@ -159,6 +163,7 @@ export function Navbar({
         categories={categoriesQuery.data}
         categoriesLoading={categoriesQuery.isLoading}
         moreLinks={drawerExtraLinks}
+        socialLinks={socialLinks}
       />
     ) : null;
 
