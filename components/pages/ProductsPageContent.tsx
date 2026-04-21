@@ -23,8 +23,6 @@ export function ProductsPageContent() {
     const frame = window.requestAnimationFrame(() => {
       focusProductSearchHeaderInput();
     });
-    const { pathname, search } = window.location;
-    window.history.replaceState(null, "", `${pathname}${search}`);
     return () => window.cancelAnimationFrame(frame);
   }, []);
 

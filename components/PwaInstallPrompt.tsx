@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/Button";
+import { isClientRedirectSafeguardEnabled } from "@/lib/client-redirect-safeguard";
 
 type BeforeInstallPromptEvent = Event & {
   prompt: () => Promise<void>;
@@ -9,8 +10,8 @@ type BeforeInstallPromptEvent = Event & {
 };
 
 /**
- * بطاقة تثبيت PWA (Chrome/Edge/Android). على iOS Safari يُظهر تلميح «إضافة للشاشة الرئيسية».
- * التموضع الثابت يُدار من `PwaEngagementStack`.
+ * تثبيت PWA عبر `beforeinstallprompt` فقط. تلميح iOS (userAgent) يظهر فقط مع `?redirect=1`.
+ * التموضع: `PwaEngagementStack`.
  */
 export function PwaInstallPrompt() {
   const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null);
@@ -24,13 +25,15 @@ export function PwaInstallPrompt() {
     };
     window.addEventListener("beforeinstallprompt", handler);
 
-    const ua = window.navigator.userAgent.toLowerCase();
-    const isIos = /iphone|ipad|ipod/.test(ua);
-    const isStandalone =
-      window.matchMedia("(display-mode: standalone)").matches ||
-      (window.navigator as unknown as { standalone?: boolean }).standalone === true;
-    if (isIos && !isStandalone) {
-      setIosHint(true);
+    if (isClientRedirectSafeguardEnabled()) {
+      const ua = window.navigator.userAgent.toLowerCase();
+      const isIos = /iphone|ipad|ipod/.test(ua);
+      const isStandalone =
+        window.matchMedia("(display-mode: standalone)").matches ||
+        (window.navigator as unknown as { standalone?: boolean }).standalone === true;
+      if (isIos && !isStandalone) {
+        setIosHint(true);
+      }
     }
 
     return () => window.removeEventListener("beforeinstallprompt", handler);
