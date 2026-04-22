@@ -94,7 +94,7 @@ export function BottomNavInner() {
                   {isCart && totalItems > 0 ? (
                     <span
                       className={cn(
-                        "absolute -end-0.5 -top-0.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-brand-500 px-0.5 text-[8px] font-bold leading-none text-black ring-2",
+                        "absolute-end-0.5 -top-0.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-brand-500 px-0.5 text-[8px] font-bold leading-none text-black ring-2",
                         active ? "ring-brand-950" : "ring-white",
                       )}
                     >

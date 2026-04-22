@@ -21,7 +21,29 @@ const AUTH_CODE_AR: Record<string, string> = {
   "quota-exceeded": "تم تجاوز حد الاستخدام. حاول لاحقاً.",
 };
 
-export function mapFirebaseAuthLikeError(error: unknown): string {
+type FirebaseAuthErrorContext = {
+  origin?: string | null;
+  authDomain?: string | null;
+};
+
+function getInvalidAppCredentialHint(context?: FirebaseAuthErrorContext): string {
+  const origin = context?.origin?.trim();
+  const authDomain = context?.authDomain?.trim();
+  if (!origin) {
+    return "تعذر التحقق من التطبيق. راجع إعدادات Firebase والمفتاح والنطاقات المعتمدة.";
+  }
+  const originHost = origin.replace(/^https?:\/\//, "");
+  const authDomainHint = authDomain ? `\`${authDomain}\`` : "قيمة NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN";
+  return (
+    "تعذر التحقق من التطبيق. تأكد من إضافة هذا النطاق في Firebase Authentication → Settings → Authorized domains: " +
+    `\`${originHost}\`، وتطابق إعداد ${authDomainHint} مع نفس مشروع NEXT_PUBLIC_FIREBASE_PROJECT_ID.`
+  );
+}
+
+export function mapFirebaseAuthLikeError(
+  error: unknown,
+  context?: FirebaseAuthErrorContext,
+): string {
   const fallback = "حدث خطأ أثناء التحقق. حاول مرة أخرى.";
 
   if (error && typeof error === "object" && "code" in error) {
@@ -29,6 +51,9 @@ export function mapFirebaseAuthLikeError(error: unknown): string {
       /^auth\//,
       "",
     );
+    if (code === "invalid-app-credential") {
+      return getInvalidAppCredentialHint(context);
+    }
     if (code === "permission-denied") {
       return "لا صلاحية لحفظ بيانات العميل. راجع قواعد Firestore لمسار storefront_customers.";
     }
@@ -46,6 +71,9 @@ export function mapFirebaseAuthLikeError(error: unknown): string {
   const authMatch = raw.match(/\(auth\/([a-z0-9-]+)\)/i);
   if (authMatch?.[1]) {
     const key = authMatch[1].toLowerCase();
+    if (key === "invalid-app-credential") {
+      return getInvalidAppCredentialHint(context);
+    }
     if (AUTH_CODE_AR[key]) return AUTH_CODE_AR[key];
   }
 

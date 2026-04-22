@@ -7,7 +7,7 @@ import {
   RecaptchaVerifier,
   signInWithPhoneNumber,
 } from "firebase/auth";
-import { getFirebaseAuth } from "@/lib/firebase";
+import { getFirebaseAuth, prepareFirebasePhoneAuth } from "@/lib/firebase";
 import { mapFirebaseAuthLikeError } from "@/lib/firebase-auth-errors";
 
 function clearRecaptchaMountElement(containerId: string): void {
@@ -16,6 +16,13 @@ function clearRecaptchaMountElement(containerId: string): void {
   if (el) {
     el.replaceChildren();
   }
+}
+
+function getFirebaseAuthCode(error: unknown): string | null {
+  if (error && typeof error === "object" && "code" in error) {
+    return String((error as { code: string }).code).replace(/^auth\//, "");
+  }
+  return null;
 }
 
 export type UseFirebasePhoneOtpResult = {
@@ -55,8 +62,11 @@ export function useFirebasePhoneOtp(recaptchaContainerId: string): UseFirebasePh
       setError(null);
       setIsSending(true);
       lastPhoneE164Ref.current = phoneE164;
+      let diagnostics: { origin: string; authDomain: string | null } | null =
+        null;
       try {
         const auth = getFirebaseAuth();
+        diagnostics = prepareFirebasePhoneAuth(auth);
         try {
           verifierRef.current?.clear();
         } catch {
@@ -69,15 +79,41 @@ export function useFirebasePhoneOtp(recaptchaContainerId: string): UseFirebasePh
         });
 
         verifierRef.current = new RecaptchaVerifier(auth, recaptchaContainerId, {
-          size: "compact",
+          size: "invisible",
+          hl: "ar",
         });
-        confirmationRef.current = await signInWithPhoneNumber(
-          auth,
-          phoneE164,
-          verifierRef.current,
-        );
+        await verifierRef.current.render();
+        try {
+          confirmationRef.current = await signInWithPhoneNumber(
+            auth,
+            phoneE164,
+            verifierRef.current,
+          );
+        } catch (firstError) {
+          const firstCode = getFirebaseAuthCode(firstError);
+          if (firstCode !== "captcha-check-failed") throw firstError;
+          // reCAPTCHA token may expire/become stale quickly on some browsers; recreate once.
+          try {
+            verifierRef.current?.clear();
+          } catch {
+            /* ignore */
+          }
+          verifierRef.current = new RecaptchaVerifier(auth, recaptchaContainerId, {
+            size: "invisible",
+            hl: "ar",
+          });
+          await verifierRef.current.render();
+          confirmationRef.current = await signInWithPhoneNumber(
+            auth,
+            phoneE164,
+            verifierRef.current,
+          );
+        }
       } catch (e) {
-        const msg = mapFirebaseAuthLikeError(e);
+        const msg = mapFirebaseAuthLikeError(e, {
+          origin: diagnostics?.origin ?? null,
+          authDomain: diagnostics?.authDomain ?? null,
+        });
         setError(msg);
         try {
           verifierRef.current?.clear();

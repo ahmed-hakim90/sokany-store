@@ -41,6 +41,17 @@ export function getFirebaseAuth(): Auth {
   return authSingleton;
 }
 
+export function prepareFirebasePhoneAuth(auth: Auth): {
+  origin: string;
+  authDomain: string | null;
+} {
+  assertClient();
+  auth.useDeviceLanguage();
+  const origin = window.location.origin;
+  const authDomain = firebaseConfig.authDomain?.trim() || null;
+  return { origin, authDomain };
+}
+
 let firestoreSingleton: Firestore | null = null;
 export function getFirebaseFirestore(): Firestore {
   if (!firestoreSingleton) {
