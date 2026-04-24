@@ -46,6 +46,8 @@ export async function generateMetadata(): Promise<Metadata> {
 
   return {
     metadataBase,
+    /** شريط النظام/المتصفح (Chrome أندرويد وغيره) — يلتزم بـ `branding.themeColor` من الـ CMS */
+    themeColor: branding.themeColor,
     title: {
       default: branding.defaultMetadataTitle,
       template: `%s | ${branding.siteBrandTitleAr}`,

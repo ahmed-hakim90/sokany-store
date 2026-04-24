@@ -33,7 +33,7 @@ import {
  * الصفحة الرئيسية (/): عمود واحد داخل Container بمسافات رأسية تتسع تدريجياً (sm → md).
  * التسلسل: هيرو (سكروول أفقي + auto-rotate) → شريط صور التصنيفات
  * (٢٤٠×١٢٠: وو ‎+‎ إخفاء بلا صورة؛ مع «التحكم» = لائحة المسار فقط) → عروض سريعة (بانر أزرق + عداد + CTA ثم شبكة on_sale) → كبسولة خدمات (٤ عناصر في سطر واحد على كل الشاشات)
- * → الأكثر مبيعاً (كل المتجر ‎+‎ ‎`orderby: popularity`‎) → وصل حديثاً → أقسام الأب → بطاقة ترويجي.
+ * → بطاقة ترويج «حصرياً» (افتراضي أو spotlight) → الأكثر مبيعاً (كل المتجر ‎+‎ ‎`orderby: popularity`‎) → وصل حديثاً → أقسام الأب.
  */
 export type HomeBottomPromo = {
   eyebrow?: string;
@@ -57,7 +57,7 @@ export type HomePageContentProps = {
     headline?: string;
     subline?: string;
   };
-  /** بطاقة الترويج أسفل الصفحة — افتراضي ثابت أو من spotlight في Firestore. */
+  /** بطاقة الترويج بعد كبسولة الخدمات — افتراضي ثابت أو من spotlight في Firestore. */
   homeBottomPromo?: HomeBottomPromo;
   /**
    * عند التفعيل: الشريح يُبنى من ترتيب البلاطات (مسار `/categories/...`) — يُعاد
@@ -163,6 +163,16 @@ export function HomePageContent({
 
         {/* كبسولة خدمات: أربع عناصر في سطر واحد — نفس الشكل على كل الشاشات */}
         <HomeMobileServicesCapsule />
+
+        {/* بعد المميزات: بطاقة ترويج كاملة العرض (حصرياً) — باقي أقسام الصفحة تليها */}
+        <HomePromoCard
+          eyebrow={homeBottomPromo.eyebrow}
+          title={homeBottomPromo.title}
+          subtitle={homeBottomPromo.subtitle}
+          href={homeBottomPromo.href}
+          ctaLabel={homeBottomPromo.ctaLabel}
+          imageSrc={homeBottomPromo.imageSrc}
+        />
 
         {/* قسم الأكثر مبيعاً: عنوان وسطي + شبكة منتجات (٢ / ٣ / ٤ أعمدة حسب الشاشة) */}
         <section className="space-y-4" aria-labelledby="home-bestsellers-title">
@@ -275,16 +285,6 @@ export function HomePageContent({
             onCartLineQuantityChange={setProductLineQuantity}
           />
         ) : null}
-
-        {/* أسفل الصفحة: بطاقة ترويج كاملة العرض داخل الحاوية */}
-        <HomePromoCard
-          eyebrow={homeBottomPromo.eyebrow}
-          title={homeBottomPromo.title}
-          subtitle={homeBottomPromo.subtitle}
-          href={homeBottomPromo.href}
-          ctaLabel={homeBottomPromo.ctaLabel}
-          imageSrc={homeBottomPromo.imageSrc}
-        />
       </Container>
     </div>
   );

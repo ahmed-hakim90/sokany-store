@@ -7,7 +7,7 @@ export type HomePromoCardProps = {
   subtitle: string;
   href: string;
   ctaLabel: string;
-  /** Small label above the title (e.g. «حصرياً»). */
+  /** Small label above the title (e.g. «حصرياً») — يُستعمل في `aria-label` فقط (النص داخل الصورة). */
   eyebrow?: string;
   imageSrc?: string;
   imageAlt?: string;
@@ -24,50 +24,31 @@ export function HomePromoCard({
   imageAlt = "",
   className,
 }: HomePromoCardProps) {
+  const a11yLabel =
+    imageAlt?.trim() ||
+    [eyebrow, title, subtitle, ctaLabel].filter(Boolean).join(". ");
+
   return (
-    <section
-      className={cn(
-        "relative isolate overflow-hidden rounded-2xl border border-brand-900/50 bg-brand-950 shadow-lg",
-        className,
-      )}
-    >
-      <div className="absolute inset-0 -z-10 md:hidden">
-        <AppImage src={imageSrc} alt="" fill sizes="100vw" className="object-cover opacity-30" />
-        <div className="absolute inset-0 bg-gradient-to-b from-brand-950 via-brand-950/95 to-brand-950" />
-      </div>
-
-      <div className="flex flex-col md:min-h-[15rem] md:flex-row md:items-stretch">
-        <div className="relative z-10 flex flex-1 flex-col justify-center gap-2 px-5 py-7 sm:px-8 md:max-w-[52%] md:py-9 lg:px-10">
-          {eyebrow ? (
-            <span className="text-[11px] font-bold uppercase tracking-wide text-brand-400 sm:text-xs">
-              {eyebrow}
-            </span>
-          ) : null}
-          <h2 className="font-display text-xl font-bold leading-snug text-white sm:text-2xl md:text-3xl">
-            {title}
-          </h2>
-          <p className="max-w-xl text-pretty text-xs leading-relaxed text-white/80 sm:text-sm md:text-base">
-            {subtitle}
-          </p>
-          <Link
-            href={href}
-            className="mt-1 inline-flex w-fit text-sm font-bold text-brand-400 underline decoration-brand-400 decoration-2 underline-offset-[5px] transition-colors hover:text-brand-300 hover:decoration-brand-300"
-          >
-            {ctaLabel}
-          </Link>
-        </div>
-
-        <div className="relative hidden min-h-0 flex-1 md:block">
+    <div className={cn("w-full", className)}>
+      {/*
+        كل الشاشات: بانر صورة فقط (النص في أصل التصميم) — بلا شريط داكن.
+        `aria-label` على الرابط يلخّص النصوص لقارئات الشاشة.
+      */}
+      <Link
+        href={href}
+        className="relative block w-full overflow-hidden rounded-2xl border border-black/10 shadow-md"
+        aria-label={a11yLabel}
+      >
+        <div className="relative aspect-[2/1] w-full min-h-[10.5rem] sm:min-h-[12rem] md:min-h-[14rem]">
           <AppImage
             src={imageSrc}
-            alt={imageAlt}
+            alt=""
             fill
-            sizes="(max-width: 1280px) 45vw, 520px"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1100px"
             className="object-cover object-center"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-brand-950 via-brand-950/25 to-transparent" />
         </div>
-      </div>
-    </section>
+      </Link>
+    </div>
   );
 }

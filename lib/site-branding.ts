@@ -49,7 +49,8 @@ export function resolveSiteBranding(b: CmsSiteBranding | undefined): ResolvedSit
     pwaShortName: b?.pwaShortName ?? PWA_INSTALL_NAME,
     pwaDescription:
       b?.pwaDescription ?? "متجر أجهزة سوكانى الكهربائية",
-    themeColor: b?.themeColor ?? "#2F3D4E",
+    /** يطابق لون البراند الأساسي `brand-500` / `--color-brand-500` في `app/globals.css` */
+    themeColor: b?.themeColor ?? "#daff00",
     backgroundColor: b?.backgroundColor ?? "#2F3D4E",
     defaultMetadataTitle: b?.defaultMetadataTitle ?? SITE_BRAND_TITLE_AR,
     defaultOgImageUrl: b?.defaultOgImageUrl ?? DEFAULT_OG_IMAGE_URL,

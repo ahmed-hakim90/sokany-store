@@ -23,7 +23,7 @@ export type MobileTopHeaderProps = {
 };
 
 const whiteShellHPad =
-  "pl-[max(0.75rem,env(safe-area-inset-left,0px))] pr-[max(0.75rem,env(safe-area-inset-right,0px))]";
+  "pl-[max(1rem,env(safe-area-inset-left,0px))] pr-[max(1rem,env(safe-area-inset-right,0px))]";
 
 /*
  * موبايل (< lg): `safe-area-inset-top` على `SiteShell`، وهامش أفقي مع safe-area.
