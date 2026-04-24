@@ -4,7 +4,8 @@ import { cn } from "@/lib/utils";
 export function inputSurfaceClass(opts?: { compact?: boolean; invalid?: boolean }) {
   return cn(
     " rounded-md border border-border bg-white text-foreground transition-[box-shadow,border-color]",
-    "px-3 text-sm outline-none",
+    /* 16px+ on small viewports — iOS Safari otherwise auto-zooms focused inputs with smaller text */
+    "px-3 text-base outline-none lg:text-sm",
     opts?.compact ? "py-1.5" : "py-2",
     "placeholder:text-muted-foreground/80",
     "focus-visible:border-brand-900 focus-visible:ring-2 focus-visible:ring-brand-500/35",

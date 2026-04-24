@@ -100,7 +100,7 @@ export function CheckoutPaymentForm({
           onChange={(e) => onCustomerNoteChange(e.target.value)}
           className={cn(
             inputSurfaceClass({ invalid: invalidNote }),
-            "mt-2 min-h-[108px] w-full resize-y text-sm leading-relaxed",
+            "mt-2 min-h-[108px] w-full resize-y text-base leading-relaxed lg:text-sm",
           )}
           aria-invalid={invalidNote}
         />
