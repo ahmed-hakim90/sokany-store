@@ -841,7 +841,9 @@ function applyMockProductFilters(
   params?: MockProductFilter,
   source: WCProduct[] = mockProducts,
 ): WCProduct[] {
-  let results = [...source];
+  let results = [...source].filter(
+    (p) => p.stock_status !== "outofstock",
+  );
 
   if (params?.category) {
     results = results.filter((p) =>

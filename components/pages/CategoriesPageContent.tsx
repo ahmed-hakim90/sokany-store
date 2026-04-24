@@ -11,6 +11,7 @@ import { ROUTES } from "@/lib/constants";
 import { CatalogPagination } from "@/features/catalog/components/CatalogPagination";
 import { useProducts } from "@/features/products/hooks/useProducts";
 import { ProductGrid } from "@/features/products/components/ProductGrid";
+import { ProductSkeleton } from "@/features/products/components/ProductSkeleton";
 import type { Product } from "@/features/products/types";
 
 function CategoriesIntro() {
@@ -101,6 +102,25 @@ function AvailableProductsSection({
         </>
       )}
     </section>
+  );
+}
+
+/** Prerender (Suspense) fallback — matches main layout while client shell hydrates. */
+export function CategoriesPageLoadingFallback() {
+  return (
+    <>
+      <div className="hidden lg:block">
+        <div className="h-8 w-40 max-w-full animate-shimmer rounded bg-brand-100" />
+        <div className="mt-1 h-4 w-2/3 max-w-md animate-shimmer rounded bg-zinc-100" />
+      </div>
+      <div className="mt-0 lg:mt-8">
+        <div className="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <ProductSkeleton key={i} />
+          ))}
+        </div>
+      </div>
+    </>
   );
 }
 

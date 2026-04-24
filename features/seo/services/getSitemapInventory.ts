@@ -10,6 +10,7 @@ import {
 } from "@/features/data-snapshot/server";
 import { USE_MOCK } from "@/lib/constants";
 import { createWooClient } from "@/lib/create-woo-client";
+import { isWcProductOutOfStockOnly } from "@/lib/woo-storefront-availability";
 import { wpCategoriesSchema, wpProductsSchema } from "@/schemas/wordpress";
 
 const PER_PAGE = 100;
@@ -29,7 +30,11 @@ const fetchSitemapFromWoo = unstable_cache(
       });
       const batch = wpProductsSchema.parse(res.data);
       if (batch.length === 0) break;
-      for (const p of batch) productIds.push(p.id);
+      for (const p of batch) {
+        if (!isWcProductOutOfStockOnly(p)) {
+          productIds.push(p.id);
+        }
+      }
       if (batch.length < PER_PAGE) break;
     }
 
@@ -68,7 +73,9 @@ export async function getSitemapInventory(): Promise<{
 
   if (USE_MOCK) {
     return {
-      productIds: fallbackProducts.map((p) => p.id),
+      productIds: fallbackProducts
+        .filter((p) => !isWcProductOutOfStockOnly(p))
+        .map((p) => p.id),
       categorySlugs: Array.from(
         new Set(fallbackCategories.map((c) => c.slug).filter(Boolean)),
       ),
@@ -82,7 +89,9 @@ export async function getSitemapInventory(): Promise<{
       return { productIds: [], categorySlugs: [] };
     }
     return {
-      productIds: fallbackProducts.map((p) => p.id),
+      productIds: fallbackProducts
+        .filter((p) => !isWcProductOutOfStockOnly(p))
+        .map((p) => p.id),
       categorySlugs: Array.from(
         new Set(fallbackCategories.map((c) => c.slug).filter(Boolean)),
       ),

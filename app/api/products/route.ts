@@ -8,6 +8,7 @@ import {
 import { mockCategories } from "@/features/categories/mock";
 import { USE_MOCK } from "@/lib/constants";
 import { wooBff502Response } from "@/lib/woo-bff-catch-payload";
+import { filterWcProductsExcludingOutOfStock } from "@/lib/woo-storefront-availability";
 import type { WCCategory } from "@/features/categories/types";
 import type { WCProduct } from "@/features/products/types";
 
@@ -53,7 +54,12 @@ export async function GET(request: NextRequest) {
     const woo = await createWooClient();
     const params = Object.fromEntries(searchParams.entries());
     const response = await woo.get("/products", { params });
-    return NextResponse.json(response.data, {
+    const payload = response.data;
+    // Drop ‎`outofstock`‎ only — ‎`onbackorder`‎ stays (matches ‎`mapProduct` ‎`inStock`‎).
+    const data = Array.isArray(payload)
+      ? filterWcProductsExcludingOutOfStock(payload)
+      : payload;
+    return NextResponse.json(data, {
       headers: {
         "X-WP-Total": String(response.headers["x-wp-total"] ?? "0"),
         "X-WP-TotalPages": String(response.headers["x-wp-totalpages"] ?? "1"),
@@ -119,6 +125,8 @@ export async function GET(request: NextRequest) {
         );
       }
     }
+
+    all = filterWcProductsExcludingOutOfStock(all);
 
     const start = (page - 1) * per_page;
     const data = all.slice(start, start + per_page);

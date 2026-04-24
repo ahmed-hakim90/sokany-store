@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
-import { CategorySlugPageContent } from "@/components/pages/CategorySlugPageContent";
+import {
+  CategorySlugPageContent,
+  CategorySlugPageLoadingFallback,
+} from "@/components/pages/CategorySlugPageContent";
 import { BreadcrumbJsonLd } from "@/components/seo/BreadcrumbJsonLd";
 import { mockCategories } from "@/features/categories/mock";
 import { getSnapshotCategories } from "@/features/data-snapshot/server";
@@ -62,7 +66,9 @@ export default async function CategoryPage({ params }: PageProps) {
           { name: category.name },
         ]}
       />
-      <CategorySlugPageContent slug={slug} />
+      <Suspense fallback={<CategorySlugPageLoadingFallback />}>
+        <CategorySlugPageContent slug={slug} />
+      </Suspense>
     </>
   );
 }

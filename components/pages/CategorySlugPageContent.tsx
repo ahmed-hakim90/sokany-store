@@ -114,6 +114,20 @@ function CategorySlugProductsSection({
   );
 }
 
+/** Skeleton for prerender (Suspense) and the categories list loading state. */
+export function CategorySlugPageLoadingFallback() {
+  return (
+    <div className="space-y-8">
+      <div className="hidden h-10 w-1/3 max-w-xs animate-shimmer rounded bg-brand-100 lg:block" />
+      <div className="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4">
+        {Array.from({ length: 8 }).map((_, i) => (
+          <ProductSkeleton key={i} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /*
  * محتوى صفحة تصنيف (/categories/[slug]): يُلفّه layout المشترك بشريط التصنيفات.
  * العنوان التحريري يظهر من lg؛ الشبكة تحتها على كل العرض.
@@ -159,16 +173,7 @@ export function CategorySlugPageContent({ slug }: { slug: string }) {
   const { getCartLineQuantity, setProductLineQuantity } = useCart();
 
   if (categoriesNav.isPending) {
-    return (
-      <div className="space-y-8">
-        <div className="hidden h-10 w-1/3 max-w-xs animate-shimmer rounded bg-brand-100 lg:block" />
-        <div className="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <ProductSkeleton key={i} />
-          ))}
-        </div>
-      </div>
-    );
+    return <CategorySlugPageLoadingFallback />;
   }
 
   if (categoriesNav.isError) {

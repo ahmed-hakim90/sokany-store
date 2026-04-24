@@ -1,11 +1,13 @@
 "use client";
 
 import { FocusTrap } from "focus-trap-react";
+import { useLayoutEffect, useRef } from "react";
 import {
   TransformComponent,
   TransformWrapper,
   useControls,
 } from "react-zoom-pan-pinch";
+import { toAbsoluteSiteUrl } from "@/lib/site";
 
 type ProductGalleryLightboxProps = {
   open: boolean;
@@ -24,12 +26,28 @@ export function ProductGalleryLightbox({
 }: ProductGalleryLightboxProps) {
   if (!open || typeof document === "undefined") return null;
 
+  const lightboxImageSrc = toAbsoluteSiteUrl(activeSrc);
+
+  /**
+   * نفس الضغطة تفتح من صورة المنتج: بعد الرسم يكون «إغلاق» الخلفية فوق مكان المؤشر
+   * فيلتقط mouseup/click فيُغلق فوراً. ref يتفعّل بعد 250ms حتى تُتاح إغلاق الخلفية.
+   */
+  const backdropCloseArmedRef = useRef(false);
+  useLayoutEffect(() => {
+    backdropCloseArmedRef.current = false;
+    const id = window.setTimeout(() => {
+      backdropCloseArmedRef.current = true;
+    }, 250);
+    return () => window.clearTimeout(id);
+  }, [activeSrc]);
+
   return (
     <FocusTrap
       active
       focusTrapOptions={{
         escapeDeactivates: true,
-        clickOutsideDeactivates: true,
+        // يمنع إغلاق من ضغطة الفتح نفسها أثناء أول 250ms
+        clickOutsideDeactivates: () => backdropCloseArmedRef.current,
         onDeactivate: onClose,
         /** يسمح بتمرير العجلة/اللمس داخل منطقة الزوم دون احتجاز من الـ trap */
         preventScroll: false,
@@ -45,7 +63,9 @@ export function ProductGalleryLightbox({
           type="button"
           className="absolute inset-0 z-0 cursor-default"
           aria-label="إغلاق معاينة الصورة"
-          onClick={onClose}
+          onClick={() => {
+            if (backdropCloseArmedRef.current) onClose();
+          }}
         />
         <div className="relative z-10 flex min-h-0 flex-1 flex-col pointer-events-none">
           <div className="flex items-center justify-between gap-2 px-3 pt-[max(0.75rem,env(safe-area-inset-top))] pb-2 pointer-events-auto sm:px-4">
@@ -94,7 +114,7 @@ export function ProductGalleryLightbox({
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element -- zoom/pan يحتاج img عادي */}
                     <img
-                      src={activeSrc}
+                      src={lightboxImageSrc}
                       alt={productName}
                       className="max-h-full max-w-full object-contain select-none"
                       draggable={false}
@@ -103,7 +123,7 @@ export function ProductGalleryLightbox({
 
                   <div className="pointer-events-auto absolute inset-x-0 top-2 z-20 flex flex-wrap items-center justify-center gap-2 px-1">
                     <LightboxZoomChrome
-                      imageSrc={activeSrc}
+                      imageSrc={lightboxImageSrc}
                       downloadLabel={productName}
                     />
                   </div>

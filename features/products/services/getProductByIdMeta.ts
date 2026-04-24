@@ -5,6 +5,7 @@ import { mapProduct } from "@/features/products/adapters";
 import { mockProducts } from "@/features/products/mock";
 import { getSnapshotProducts } from "@/features/data-snapshot/server";
 import { wpProductSchema } from "@/schemas/wordpress";
+import { isWcProductOutOfStockOnly } from "@/lib/woo-storefront-availability";
 import type { Product } from "@/features/products/types";
 
 export async function getProductByIdMeta(
@@ -13,17 +14,25 @@ export async function getProductByIdMeta(
   const fallbackProducts = getSnapshotProducts() ?? mockProducts;
   if (USE_MOCK) {
     const raw = fallbackProducts.find((p) => p.id === id);
-    return raw ? mapProduct(wpProductSchema.parse(raw)) : null;
+    if (!raw) return null;
+    if (isWcProductOutOfStockOnly(raw)) return null;
+    return mapProduct(wpProductSchema.parse(raw));
   }
   try {
     const woo = await createWooClient();
     const res = await woo.get(`/products/${id}`);
-    return mapProduct(wpProductSchema.parse(res.data));
+    const raw = wpProductSchema.parse(res.data);
+    if (isWcProductOutOfStockOnly(raw)) {
+      return null;
+    }
+    return mapProduct(raw);
   } catch {
     if (!USE_MOCK) {
       return null;
     }
     const raw = fallbackProducts.find((p) => p.id === id);
-    return raw ? mapProduct(wpProductSchema.parse(raw)) : null;
+    if (!raw) return null;
+    if (isWcProductOutOfStockOnly(raw)) return null;
+    return mapProduct(wpProductSchema.parse(raw));
   }
 }

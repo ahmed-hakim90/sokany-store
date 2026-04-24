@@ -5,9 +5,10 @@ import { createWooClient } from "@/lib/create-woo-client";
 import { WOO_CACHE_TAG_PRODUCTS } from "@/lib/woocommerce-cache-tags";
 import { wpProductsSchema } from "@/schemas/wordpress";
 import type { ProductQueryParams } from "@/types";
+import { filterWcProductsExcludingOutOfStock } from "@/lib/woo-storefront-availability";
 import { mapProducts } from "../adapters";
 import { filterMockProducts } from "../mock";
-import type { Product } from "../types";
+import type { Product, WCProduct } from "../types";
 
 const fetchWooProductsForServer = unstable_cache(
   async (paramsKey: string) => {
@@ -18,9 +19,10 @@ const fetchWooProductsForServer = unstable_cache(
     const response = await woo.get("/products", {
       params: (params ?? {}) as Record<string, string | number | boolean | undefined>,
     });
-    return response.data;
+    const raw = response.data as WCProduct[];
+    return filterWcProductsExcludingOutOfStock(raw);
   },
-  ["woo-server-products-raw-v1"],
+  ["woo-server-products-raw-v2-instock-list"],
   { revalidate: 120, tags: [WOO_CACHE_TAG_PRODUCTS] },
 );
 

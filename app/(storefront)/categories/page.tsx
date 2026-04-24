@@ -1,5 +1,9 @@
 import type { Metadata } from "next";
-import { CategoriesPageContent } from "@/components/pages/CategoriesPageContent";
+import { Suspense } from "react";
+import {
+  CategoriesPageContent,
+  CategoriesPageLoadingFallback,
+} from "@/components/pages/CategoriesPageContent";
 import { SITE_BRAND_TITLE_AR } from "@/lib/constants";
 import { getSiteUrl } from "@/lib/site";
 
@@ -24,5 +28,9 @@ export const metadata: Metadata = {
 };
 
 export default function CategoriesIndexPage() {
-  return <CategoriesPageContent />;
+  return (
+    <Suspense fallback={<CategoriesPageLoadingFallback />}>
+      <CategoriesPageContent />
+    </Suspense>
+  );
 }
