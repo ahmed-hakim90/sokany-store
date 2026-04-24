@@ -15,7 +15,6 @@ import { CatalogFilterDrawerTrigger } from "@/features/catalog/components/Catalo
 import { useMobileChromeCollapsedStore } from "@/components/layout/mobile-chrome-collapsed-store";
 import { DesktopCategoryMegaNav } from "@/components/layout/desktop-category-mega-nav";
 import { TopHeader } from "@/components/layout/top-header";
-import { HeaderCategoryIconStrip } from "@/features/categories/components/HeaderCategoryIconStrip";
 import { useCategories } from "@/features/categories/hooks/useCategories";
 import { useCartDrawerOpenStore } from "@/features/cart/store/useCartDrawerOpenStore";
 import { useWishlistDrawerOpenStore } from "@/features/wishlist/store/useWishlistDrawerOpenStore";
@@ -25,10 +24,6 @@ import { ROUTES, SITE_LOGO_DISABLED, SITE_LOGO_PATH, SITE_NAME } from "@/lib/con
 import { DEFAULT_SEARCH_QUICK_KEYWORDS } from "@/lib/search-quick-keywords";
 import { SOCIAL_LINKS, type SocialLink } from "@/lib/social-links";
 import { cn } from "@/lib/utils";
-import {
-  CMS_DEFAULT_HEADER_CATEGORY_STRIP,
-  type CmsHeaderCategoryStrip,
-} from "@/schemas/cms";
 
 /** روابط تظهر في صف الديسكتوب بعد «العروض» (ليست داخل «خدماتنا»). */
 const desktopPrimaryBarExtraLinks = [
@@ -101,8 +96,6 @@ export type NavbarProps = {
   searchQuickKeywords?: readonly string[];
   /** روابط السوشيال للشريط الديسكتوب — من CMS أو الافتراضي. */
   socialLinks?: readonly SocialLink[];
-  /** دوائر أيقونات تحت الهيدر — من `getPublicSiteContent`. */
-  headerCategoryStrip?: CmsHeaderCategoryStrip;
 };
 
 function MobileCartLink({
@@ -148,7 +141,6 @@ export function Navbar({
   logoDisabled = SITE_LOGO_DISABLED,
   searchQuickKeywords = DEFAULT_SEARCH_QUICK_KEYWORDS,
   socialLinks = SOCIAL_LINKS,
-  headerCategoryStrip = CMS_DEFAULT_HEADER_CATEGORY_STRIP,
 }: NavbarProps = {}) {
   const pathname = usePathname();
   const open = useMobileNavDrawerOpenStore((s) => s.open);
@@ -166,10 +158,9 @@ export function Navbar({
   const openDesktopWishlistDrawer = useWishlistDrawerOpenStore((s) => s.openDrawer);
   const closeDesktopWishlistDrawer = useWishlistDrawerOpenStore((s) => s.closeDrawer);
   const desktopWishlistDrawerOpen = useWishlistDrawerOpenStore((s) => s.open);
-  const mobileChromeCollapsed = useMobileChromeCollapsedStore(
+  const mobileTopRowHidden = useMobileChromeCollapsedStore(
     (s) => s.headerHidden,
   );
-
   const isCheckout = pathname === ROUTES.CHECKOUT;
   const isAbout = pathname === ROUTES.ABOUT;
 
@@ -211,16 +202,13 @@ export function Navbar({
 
   const desktopSubheader =
     !isCheckout ? (
-      <>
-        <HeaderCategoryIconStrip config={headerCategoryStrip} variant="default" />
-        <DesktopCategoryMegaNav
-          categories={navCategories}
-          categoriesLoading={categoriesQuery.isLoading}
-          primaryBarExtraLinks={desktopPrimaryBarExtraLinks}
-          moreLinks={servicesDropdownLinks}
-          socialLinks={socialLinks}
-        />
-      </>
+      <DesktopCategoryMegaNav
+        categories={navCategories}
+        categoriesLoading={categoriesQuery.isLoading}
+        primaryBarExtraLinks={desktopPrimaryBarExtraLinks}
+        moreLinks={servicesDropdownLinks}
+        socialLinks={socialLinks}
+      />
     ) : null;
 
   const trailing = (
@@ -311,11 +299,7 @@ export function Navbar({
     <MobileStoreHotline />
   );
 
-  const mobileWordmark = isCheckout ? (
-    <span className="block truncate text-center font-display text-[0.9375rem] font-semibold tracking-tight text-brand-950 sm:text-base">
-      {siteName}
-    </span>
-  ) : isAbout ? (
+  const mobileWordmark = isAbout ? (
     <Link
       href={ROUTES.HOME}
       className="flex min-w-0 flex-col items-center gap-1"
@@ -391,18 +375,15 @@ export function Navbar({
   );
 
   const mobileSecondary =
-    pathname === ROUTES.HOME ? (
-      <span className="flex flex-wrap items-center justify-center gap-x-4 gap-y-0.5">
-        {/* <span className="whitespace-nowrap">ضمان عام</span> */}
-        {/* <span className="whitespace-nowrap">شحن لكل مصر</span> */}
-      </span>
-    ) : isServiceCenters ? (
-      <span className="whitespace-normal">اعثر على أقرب مركز خدمة</span>
-    ) : isRetailers ? (
-      <span className="whitespace-normal">موزعون معتمدون من الوكيل</span>
-    ) : isAbout ? (
-      <span className="whitespace-normal">جودة أصلية · تجربة واضحة</span>
-    ) : undefined;
+    pathname === ROUTES.HOME
+      ? undefined
+      : isServiceCenters ? (
+          <span className="whitespace-normal">اعثر على أقرب مركز خدمة</span>
+        ) : isRetailers ? (
+          <span className="whitespace-normal">موزعون معتمدون من الوكيل</span>
+        ) : isAbout ? (
+          <span className="whitespace-normal">جودة أصلية · تجربة واضحة</span>
+        ) : undefined;
 
   return (
     <>
@@ -416,14 +397,11 @@ export function Navbar({
         mobileTrailing={mobileTrailing}
         mobileToolbarBelow={
           !isCheckout ? (
-            <HeaderCategoryIconStrip
-              config={headerCategoryStrip}
-              variant="toolbar"
-            />
+            <div className="flex w-full min-w-0 flex-col gap-2 pt-1.5">{searchWithFilter}</div>
           ) : undefined
         }
         mobileSecondary={mobileSecondary}
-        mobileChromeCollapsed={mobileChromeCollapsed}
+        mobileTopRowCollapsed={!isCheckout && mobileTopRowHidden}
       />
       {!isCheckout ? (
         <MobileNavDrawer

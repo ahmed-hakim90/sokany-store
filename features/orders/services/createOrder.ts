@@ -63,7 +63,16 @@ export async function createOrder(data: CreateOrderPayload): Promise<Order> {
       throw new Error(fromApi);
     }
     if (e instanceof ZodError) {
-      throw new Error("تعذر معالجة ردّ المتجر بعد إنشاء الطلب. راجع سجلات الخادم.");
+      if (process.env.NODE_ENV === "development") {
+        console.error(
+          "[createOrder] Zod parse failed for WooCommerce order response",
+          e.flatten(),
+          e.issues,
+        );
+      }
+      throw new Error(
+        "تعذر قراءة بيانات الطلب المُرجَعة من المتجر بعد إنشائه (شكل الرد غير متوقع).",
+      );
     }
     throw e instanceof Error ? e : new Error("تعذر إكمال الطلب.");
   }

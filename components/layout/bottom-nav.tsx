@@ -14,7 +14,6 @@ import { cn } from "@/lib/utils";
 
 const linkItems = [
   { href: ROUTES.HOME, label: "الرئيسية", key: "home", icon: HomeIcon },
-  { href: ROUTES.SEARCH, label: "بحث", key: "search", icon: SearchIcon },
   {
     href: ROUTES.CATEGORIES,
     label: "الأقسام",
@@ -78,9 +77,7 @@ export function BottomNavInner() {
           const active =
             key === "home"
               ? pathname === ROUTES.HOME
-              : key === "search"
-                ? pathname === ROUTES.SEARCH || pathname.startsWith(`${ROUTES.SEARCH}/`)
-                : pathname === href || pathname.startsWith(`${href}/`);
+              : pathname === href || pathname.startsWith(`${href}/`);
           const isCart = key === "cart";
 
           return (
@@ -159,21 +156,6 @@ function HomeIcon() {
       aria-hidden
     >
       <path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1z" />
-    </svg>
-  );
-}
-
-function SearchIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      className={iconClass}
-      fill="none"
-      stroke="currentColor"
-      aria-hidden
-    >
-      <circle cx="11" cy="11" r="7" />
-      <path d="M20 20l-4-4" strokeLinecap="round" />
     </svg>
   );
 }

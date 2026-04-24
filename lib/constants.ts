@@ -29,10 +29,13 @@ export const PRODUCT_CARD_SHOW_SALES_COUNT =
   process.env.NEXT_PUBLIC_PRODUCT_CARD_SHOW_SALES_COUNT !== "false";
 /** لا تُعرض أرقام المبيعات على الكارت عندما يكون العدد أصغر من هذه القيمة. */
 export const PRODUCT_CARD_MIN_SALES_TO_DISPLAY = 50;
+/** زر/نافذة «معاينة سريعة» من كارت المنتج. الافتراضي: مخفي — فعّل بـ ‎`NEXT_PUBLIC_PRODUCT_CARD_SHOW_QUICK_VIEW=true`‎. */
+export const PRODUCT_CARD_SHOW_QUICK_VIEW =
+  process.env.NEXT_PUBLIC_PRODUCT_CARD_SHOW_QUICK_VIEW === "true";
 export const CART_STORAGE_KEY = "woo_cart";
-/** Minimum cart subtotal (EGP) for free shipping messaging on cart — override via env. */
+/** Minimum cart subtotal (EGP) for the “free shipping” progress message on /cart. `0` = always show free shipping, no bar. */
 export const FREE_SHIPPING_THRESHOLD_EGP = Number(
-  process.env.NEXT_PUBLIC_FREE_SHIPPING_THRESHOLD_EGP ?? 500,
+  process.env.NEXT_PUBLIC_FREE_SHIPPING_THRESHOLD_EGP ?? 0,
 );
 export const WISHLIST_STORAGE_KEY = "woo_wishlist";
 /** مسودة بيانات إتمام الطلب (بدون كلمة السر) ليُكمل العميل لاحقاً. */
@@ -92,6 +95,8 @@ export const ROUTES = {
   REGISTER: "/register",
   /** طلبات العميل المسجّل (يتطلب جلسة). */
   MY_ORDERS: "/my-orders",
+  /** منتجات مكتملة الطلب مؤهّلة للتقييم (يتطلب جلسة). */
+  MY_REVIEWS: "/my-reviews",
 } as const;
 
 /** رابط دردشة واتساب لخدمة العملاء (مثل `https://wa.me/201xxxxxxxxxx`). يُضبط عبر البيئة لصفحة التتبع. */

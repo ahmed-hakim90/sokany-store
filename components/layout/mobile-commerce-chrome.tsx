@@ -55,6 +55,7 @@ export function MobileCommerceChrome() {
   return (
     <div
       ref={rootRef}
+      data-mobile-commerce-chrome
       className="pointer-events-none fixed inset-x-0 bottom-0 z-50 pb-[env(safe-area-inset-bottom)] lg:hidden"
     >
       <div

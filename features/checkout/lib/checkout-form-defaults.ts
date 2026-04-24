@@ -13,7 +13,7 @@ export const defaultCheckoutFormValues: CheckoutFormData = {
   shippingState: "",
   shippingPostcode: "",
   shippingCountry: "EG",
-  shippingMethod: "flat_rate",
+  shippingMethod: "free_shipping",
   paymentMethod: "cod",
   customerNote: "",
   createAccount: false,

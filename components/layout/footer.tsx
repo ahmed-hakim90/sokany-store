@@ -24,6 +24,7 @@ const footerLinks = [
   { href: ROUTES.CART, label: "السلة" },
   { href: ROUTES.CHECKOUT, label: "إتمام الطلب" },
   { href: ROUTES.MY_ORDERS, label: "طلباتي" },
+  { href: ROUTES.MY_REVIEWS, label: "تقييماتي" },
   { href: ROUTES.ORDER_TRACKING, label: "تتبع الطلب" },
   { href: ROUTES.ABOUT, label: "من نحن" },
   { href: ROUTES.SERVICE_CENTERS, label: "مراكز الخدمة" },
@@ -41,6 +42,8 @@ const footerLegalLinks = [
 /** أقصى عدد تصنيفات يُعرَض في الفوتر؛ الباقي عبر رابط «كل التصنيفات». */
 const FOOTER_CATEGORY_LIMIT = 8;
 
+const FOOTER_DEV_CREDIT_HREF = "https://hakimo-cv.vercel.app/hakimo" as const;
+
 export type FooterProps = {
   socialLinks: SocialLink[];
   siteName?: string;
@@ -51,6 +54,7 @@ export type FooterProps = {
 export function Footer({
   socialLinks,
   siteName = SITE_NAME,
+
   logoPath = SITE_LOGO_PATH,
   logoDisabled = SITE_LOGO_DISABLED,
 }: FooterProps) {
@@ -236,6 +240,33 @@ export function Footer({
             {/* <p className="font-display text-xs font-semibold text-brand-950">{SITE_NAME}</p> */}
             <p className="text-xs text-muted-foreground">
               © {year} {siteName}. جميع الحقوق محفوظة.
+            </p>
+            <p className="text-xs text-muted-foreground">
+              <a
+                href={FOOTER_DEV_CREDIT_HREF}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline-offset-2 transition-colors hover:text-brand-900 hover:underline"
+                aria-label="صُنع بِحُبٍ — hakimo"
+              >
+                <span
+                  className="inline-flex flex-row items-baseline justify-center gap-1.5"
+                  dir="rtl"
+                >
+                  <span>صُنع بـ</span>
+                  <span aria-hidden>❤</span>
+                  <span className="text-muted-foreground/50" aria-hidden>
+                    ·
+                  </span>
+                  <span
+                    className="font-display text-[0.72rem] font-semibold leading-none tracking-tight text-brand-900/90 sm:text-[0.8rem]"
+                    dir="ltr"
+                    lang="en"
+                  >
+                    hakimo
+                  </span>
+                </span>
+              </a>
             </p>
           </div>
         </div>

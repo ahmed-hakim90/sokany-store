@@ -18,6 +18,12 @@ html {
   overflow-x: clip;
 }
 
+/* معاينة المنتج (portaled): تخفّي شريط «ملخص السلة» + الـ bottom nav عن الشاشة حتى لا يظهرا فوق/من تحت الـ dim */
+html[data-storefront-modal] [data-mobile-commerce-chrome] {
+  visibility: hidden;
+  pointer-events: none;
+}
+
 :root {
   /* True white for cards / inputs */
   --background: #ffffff;

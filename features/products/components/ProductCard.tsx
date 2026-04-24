@@ -10,7 +10,11 @@ import { IconButton } from "@/components/ui/icon-button";
 import { PriceText } from "@/components/ui/price-text";
 import { cn } from "@/lib/utils";
 import { usePointerSwipe } from "@/hooks/usePointerSwipe";
-import { PRODUCT_CARD_SHOW_SALES_COUNT, ROUTES } from "@/lib/constants";
+import {
+  PRODUCT_CARD_SHOW_QUICK_VIEW,
+  PRODUCT_CARD_SHOW_SALES_COUNT,
+  ROUTES,
+} from "@/lib/constants";
 import { getProductCardSalesCountText } from "@/features/products/lib/product-card-sales-count";
 import { playCartFlyAnimation } from "@/lib/cart-fly-animation";
 import { usePrefetchProduct } from "@/features/products/hooks/usePrefetchProduct";
@@ -75,24 +79,25 @@ const variantLayout: Record<
   ProductCardVariant,
   { card: string; body: string; title: string }
 > = {
+  /* بدون ‎overflow-hidden‎ على الـcard — لئلا يُقصّ ظل/حلقة أزرار التذييل (المعاينة) على موبايل. القصّ للصور فقط على مربع الصورة. */
   mobileCompact: {
-    card: "overflow-hidden p-0",
-    body: "gap-1.5 p-2.5 sm:p-3",
+    card: "p-0 min-w-0",
+    body: "gap-1.5 px-3 py-2.5 sm:px-3.5 sm:py-3",
     title:
       "line-clamp-2 min-h-[2.5rem] text-xs font-bold leading-snug text-slate-900",
   },
   desktopCatalog: {
-    card: "overflow-hidden p-0",
+    card: "p-0 min-w-0",
     body: "gap-2 p-3 sm:p-3.5",
     title: "line-clamp-2 min-h-[2.75rem] text-sm font-bold leading-snug text-neutral-950",
   },
   desktopCatalogWide: {
-    card: "overflow-hidden p-0",
+    card: "p-0 min-w-0",
     body: "gap-2 p-3 sm:p-3.5",
     title: "line-clamp-2 min-h-[2.75rem] text-sm font-bold leading-snug text-neutral-950",
   },
   featured: {
-    card: "overflow-hidden p-0",
+    card: "p-0 min-w-0",
     body: "gap-2 p-3 sm:gap-2 sm:p-4",
     title: "line-clamp-2 min-h-[3rem] text-sm font-bold leading-snug text-neutral-950 sm:text-base",
   },
@@ -169,16 +174,41 @@ export function ProductCard({
     onTap: navigateToProduct,
   });
 
-  /** تبديل تلقائي للصور في الكارت — يُوقف مع «تقليل الحركة» وعند إخفاء التبويب. */
-  useEffect(() => {
-    if (!multiImage || reduceMotion) return;
-    const intervalMs = 5000;
-    const id = window.setInterval(() => {
-      if (document.visibilityState !== "visible") return;
-      goImgNext();
-    }, intervalMs);
-    return () => window.clearInterval(id);
-  }, [multiImage, reduceMotion, goImgNext]);
+  /**
+   * ديسكتوب: اختيار الصورة بموضع الماوس أفقياً أثناء الهوفر.
+   * لا يُطبَّق أثناء الضغط والسحب (يُرجَع لـ ‎usePointerSwipe‎).
+   * عند مغادرة المنطقة نُرجع للصورة الأولى.
+   */
+  const updateImageIndexFromCardPointerX = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      if (e.pointerType !== "mouse" || !multiImage) return;
+      if (e.buttons !== 0) return;
+      const { left, width } = e.currentTarget.getBoundingClientRect();
+      if (width <= 0) return;
+      const t = (e.clientX - left) / width;
+      const n = cardSlides.length;
+      const i = Math.min(
+        n - 1,
+        Math.max(0, Math.floor(Math.min(1, Math.max(0, t)) * n)),
+      );
+      setImageIndex((prev) => (prev === i ? prev : i));
+    },
+    [multiImage, cardSlides.length],
+  );
+
+  const onCardImagePointerEnter = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      void prefetchProduct(product.id);
+      if (e.pointerType === "mouse" && multiImage) {
+        updateImageIndexFromCardPointerX(e);
+      }
+    },
+    [prefetchProduct, product.id, multiImage, updateImageIndexFromCardPointerX],
+  );
+
+  const onCardImagePointerLeave = useCallback(() => {
+    if (multiImage) setImageIndex(0);
+  }, [multiImage]);
 
   useEffect(() => {
     return () => {
@@ -259,7 +289,12 @@ export function ProductCard({
           className,
         )}
       >
-        <div className="relative aspect-square overflow-hidden bg-white">
+        <div
+          className={cn(
+            "relative aspect-square overflow-hidden bg-white",
+            variant === "mobileCompact" ? "rounded-t-2xl" : "rounded-t-xl",
+          )}
+        >
           <div ref={imageFlyRef} className="absolute inset-0 z-0">
             {reduceMotion ? (
               <AppImage
@@ -299,7 +334,9 @@ export function ProductCard({
             <div
               className="absolute inset-0 z-[1] touch-none select-none"
               aria-hidden
-              onPointerEnter={handlePrefetch}
+              onPointerEnter={onCardImagePointerEnter}
+              onPointerMove={updateImageIndexFromCardPointerX}
+              onPointerLeave={onCardImagePointerLeave}
               {...cardImageSwipe}
             />
           ) : (
@@ -331,42 +368,52 @@ export function ProductCard({
             </div>
           ) : null}
 
-          {/* معاينة سريعة — ديسكتوب: يظهر مع الـ hover؛ باقي المساحة تبقى قابلة للنقر للانتقال لصفحة المنتج */}
-          <div className="pointer-events-none absolute inset-0 z-[2] hidden bg-gradient-to-t from-black/45 via-black/10 to-transparent opacity-0 transition-opacity duration-200 md:flex md:flex-col md:items-center md:justify-center md:group-hover/card:opacity-100">
-            <button
-              type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                setQuickViewOpen(true);
-              }}
-              className="pointer-events-auto inline-flex items-center gap-2 rounded-full border border-white/40 bg-white/95 px-4 py-2 text-xs font-bold text-neutral-900 shadow-lg backdrop-blur-sm transition hover:bg-white"
-            >
-              <EyeIcon />
-              <span>معاينة سريعة</span>
-            </button>
-          </div>
+          {PRODUCT_CARD_SHOW_QUICK_VIEW ? (
+            <>
+              {/* معاينة سريعة — ديسكتوب: يظهر مع الـ hover */}
+              <div className="pointer-events-none absolute inset-0 z-[2] hidden bg-gradient-to-t from-black/45 via-black/10 to-transparent opacity-0 transition-opacity duration-200 md:flex md:flex-col md:items-center md:justify-center md:group-hover/card:opacity-100">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setQuickViewOpen(true);
+                  }}
+                  className="pointer-events-auto inline-flex items-center gap-2 rounded-full border border-white/40 bg-white/95 px-4 py-2 text-xs font-bold text-neutral-900 shadow-lg backdrop-blur-sm transition hover:bg-white"
+                >
+                  <EyeIcon />
+                  <span>معاينة سريعة</span>
+                </button>
+              </div>
 
-          {/* معاينة سريعة — موبايل: زر على الصورة فقط عندما لا يوجد صف أيقونات أسفل (سلة + مفضلة + معاينة في التذييل) */}
-          {!showCartQty ? (
-            <div className="absolute bottom-2 left-2 z-[4] flex md:hidden">
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setQuickViewOpen(true);
-                }}
-                className="inline-flex items-center gap-1.5 rounded-full border border-white/25 bg-slate-900/70 px-3 py-1.5 text-[11px] font-bold text-white shadow-lg shadow-slate-900/25 backdrop-blur-md"
-              >
-                <EyeIcon className="h-3.5 w-3.5" />
-                <span>معاينة</span>
-              </button>
-            </div>
+              {/* معاينة سريعة — موبايل: زر على الصورة عندما لا يوجد سلة+مفضلة في التذييل */}
+              {!showCartQty ? (
+                <div className="absolute bottom-2 left-2 z-[4] flex md:hidden">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setQuickViewOpen(true);
+                    }}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-white/25 bg-slate-900/70 px-3 py-1.5 text-[11px] font-bold text-white shadow-lg shadow-slate-900/25 backdrop-blur-md"
+                  >
+                    <EyeIcon className="h-3.5 w-3.5" />
+                    <span>معاينة</span>
+                  </button>
+                </div>
+              ) : null}
+            </>
           ) : null}
         </div>
 
-        <div className={cn("relative flex flex-1 flex-col", layout.body)}>
+        <div
+          className={cn(
+            "relative flex min-w-0 flex-1 flex-col bg-white",
+            layout.body,
+            variant === "mobileCompact" ? "rounded-b-2xl" : "rounded-b-xl",
+          )}
+        >
           {!product.inStock ? (
             <span className="text-[10px] font-semibold text-muted-foreground sm:text-[11px]">
               غير متوفر حالياً
@@ -413,44 +460,54 @@ export function ProductCard({
                   {priceBlock}
                 </div>
                 {/*
-                 * RTL: أول عنصر في الصف = يمين الشاشة — السلة؛ نهاية الصف = يسار — المفضلة + معاينة (أيقون فقط).
+                 * صف واحد: «أضف» + مفضلة (ومعاينة اختياري بـ ‎PRODUCT_CARD_SHOW_QUICK_VIEW‎).
                  */}
-                <div className="flex w-full min-w-0 items-center justify-between gap-2">
+                <div className="grid w-full min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-1 sm:gap-2">
                   <button
                     type="button"
                     disabled={!product.inStock}
                     aria-label={justAdded ? "تمت الإضافة للسلة" : "أضف للسلة"}
-                    className="inline-flex min-h-[44px] min-w-0 shrink-0 flex-row items-center gap-1.5 rounded-2xl bg-brand-500 px-2.5 py-1.5 text-black ring-1 ring-black/[0.06] transition-shadow transition-colors [box-shadow:0_2px_4px_-1px_rgba(15,23,42,0.12),0_8px_20px_-6px_rgba(0,0,0,0.2),0_0_0_1px_rgba(0,0,0,0.06),0_20px_36px_-10px_rgba(218,255,0,0.45),inset_0_1px_0_0_rgba(255,255,255,0.35)] hover:bg-brand-400 hover:[box-shadow:0_2px_4px_-1px_rgba(15,23,42,0.1),0_10px_24px_-6px_rgba(0,0,0,0.22),0_0_0_1px_rgba(0,0,0,0.05),0_24px_44px_-8px_rgba(218,255,0,0.55),inset_0_1px_0_0_rgba(255,255,255,0.4)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 disabled:pointer-events-none disabled:opacity-50"
+                    className="relative inline-flex h-11 min-h-[44px] w-full min-w-0 max-w-full items-center justify-center rounded-2xl bg-brand-500 px-2.5 py-1.5 text-black ring-1 ring-black/[0.06] transition-shadow transition-colors [box-shadow:0_2px_4px_-1px_rgba(15,23,42,0.12),0_8px_20px_-6px_rgba(0,0,0,0.2),0_0_0_1px_rgba(0,0,0,0.06),0_20px_36px_-10px_rgba(218,255,0,0.45),inset_0_1px_0_0_rgba(255,255,255,0.35)] hover:bg-brand-400 hover:[box-shadow:0_2px_4px_-1px_rgba(15,23,42,0.1),0_10px_24px_-6px_rgba(0,0,0,0.22),0_0_0_1px_rgba(0,0,0,0.05),0_24px_44px_-8px_rgba(218,255,0,0.55),inset_0_1px_0_0_rgba(255,255,255,0.4)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 disabled:pointer-events-none disabled:opacity-50 sm:px-3"
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
                       handleAddToCart();
                     }}
                   >
-                    <CartGlyph added={justAdded} iconClass="h-5 w-5" />
                     <span
-                      className="whitespace-nowrap text-[10px] font-bold leading-tight"
+                      className="relative z-10 text-center text-xs font-bold leading-snug sm:text-sm"
                       aria-hidden
                     >
                       أضف للسلة
                     </span>
-                  </button>
-                  <div className="flex shrink-0 items-center gap-2">
-                    {wishlistSlot}
-                    <IconButton
-                      type="button"
-                      variant="subtle"
-                      size="lg"
-                      aria-label="معاينة سريعة"
-                      className="border-slate-200/90 bg-white/95 shadow-md shadow-slate-900/10 ring-1 ring-slate-900/[0.05] backdrop-blur-sm hover:bg-white [&_svg]:h-5 [&_svg]:w-5"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setQuickViewOpen(true);
-                      }}
+                    <span
+                      className="absolute start-2 top-1/2 z-0 -translate-y-1/2 sm:start-2.5"
+                      aria-hidden
                     >
-                      <EyeIcon />
-                    </IconButton>
+                      <CartGlyph
+                        added={justAdded}
+                        iconClass="h-5 w-5 shrink-0 sm:h-6 sm:w-6"
+                      />
+                    </span>
+                  </button>
+                  <div className="flex min-w-0 shrink-0 items-center justify-end gap-1.5 sm:gap-2">
+                    {wishlistSlot}
+                    {PRODUCT_CARD_SHOW_QUICK_VIEW ? (
+                      <IconButton
+                        type="button"
+                        variant="subtle"
+                        size="md"
+                        aria-label="معاينة سريعة"
+                        className="border-slate-200/90 bg-white/95 shadow-md shadow-slate-900/10 ring-1 ring-slate-900/[0.05] backdrop-blur-sm hover:bg-white"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setQuickViewOpen(true);
+                        }}
+                      >
+                        <EyeIcon />
+                      </IconButton>
+                    ) : null}
                   </div>
                 </div>
               </>
@@ -468,17 +525,19 @@ export function ProductCard({
         </div>
       </Card>
 
-      <ProductQuickViewModal
-        product={product}
-        open={quickViewOpen}
-        onOpenChange={setQuickViewOpen}
-        compareAt={compareAt}
-        onAddToCart={() => {
-          handleAddToCart();
-        }}
-        addToCartDisabled={!product.inStock}
-        justAdded={justAdded}
-      />
+      {PRODUCT_CARD_SHOW_QUICK_VIEW ? (
+        <ProductQuickViewModal
+          product={product}
+          open={quickViewOpen}
+          onOpenChange={setQuickViewOpen}
+          compareAt={compareAt}
+          onAddToCart={() => {
+            handleAddToCart();
+          }}
+          addToCartDisabled={!product.inStock}
+          justAdded={justAdded}
+        />
+      ) : null}
     </>
   );
 }
@@ -591,7 +650,7 @@ export function ProductCardWishlistIconButton({
         ref={buttonRef}
         type="button"
         variant="subtle"
-        size="sm"
+        size="md"
         aria-label={pressed ? labels.remove : labels.add}
         aria-pressed={pressed}
         onClick={(e) => {
@@ -600,7 +659,7 @@ export function ProductCardWishlistIconButton({
           spawnBurst(); // أولاً التأثير البصري…
           onPress?.(); // …ثم منطق المفضلة في الأب (تبديل الحالة).
         }}
-        className="h-11 w-11 shrink-0 rounded-full border border-slate-200/90 bg-white/95 shadow-md shadow-slate-900/10 ring-1 ring-slate-900/[0.05] backdrop-blur-sm hover:bg-white"
+        className="shrink-0 rounded-full border border-slate-200/90 bg-white/95 shadow-md shadow-slate-900/10 ring-1 ring-slate-900/[0.05] backdrop-blur-sm hover:bg-white"
       >
         <HeartIcon filled={pressed} />
       </IconButton>

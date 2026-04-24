@@ -12,6 +12,8 @@ export type OrderStatus =
 export type OrderItem = {
   id: number;
   productId: number;
+  /** ‎0‎ أو غائب = منتج بسيط أو السطر بلا متغير؛ وإلا يساوي ‎`id`‎ صفحة تفاصيل نفس الـ Variation. */
+  variationId?: number;
   name: string;
   quantity: number;
   price: number;
@@ -47,6 +49,7 @@ export type Order = {
 export type WCOrderLineItem = {
   id: number;
   product_id: number;
+  variation_id?: number;
   name: string;
   quantity: number;
   price: string;

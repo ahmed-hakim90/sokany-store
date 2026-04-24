@@ -5,7 +5,7 @@ import { stickyChromeBottomShadowLgClass } from "@/components/layout/mobile-comm
 import { cn } from "@/lib/utils";
 
 /*
- * الديسكتوب: شريط علوي أبيض مع شريط تصنيفات اختياري.
+ * الديسكتوب: شريط علوي أبيض وصف ميجا للتصنيفات. شريط أيقونات الاختصارات يُعرض من `StorefrontHeaderCategoryStrip` تحت الـ sticky.
  * الموبايل: الغلاف شفاف؛ الكبسولة الزجاجية داخل `MobileTopHeader` فقط.
  */
 
@@ -13,7 +13,7 @@ export type TopHeaderProps = {
   logo: React.ReactNode;
   /** e.g. search — optional center slot */
   center?: React.ReactNode;
-  /** Full-width row below the top bar (e.g. category strip + mega menu) — `lg` and up only. */
+  /** Full-width row below the top bar (e.g. desktop mega menu) — `lg` and up only. */
   desktopSubheader?: React.ReactNode;
   /** Desktop header trailing (e.g. cart) */
   trailing: React.ReactNode;
@@ -22,8 +22,10 @@ export type TopHeaderProps = {
   mobileTrailing: React.ReactNode;
   mobileToolbarBelow?: React.ReactNode;
   mobileSecondary?: React.ReactNode;
-  /** عند true على الموبايل يُطوى الهيدر العلوي (سكرول للأسفل). */
-  mobileChromeCollapsed?: boolean;
+  /**
+   * موبايل: `true` يطوي صف الشعار فقط عند سكرول الإخفاء؛ صف البحث يبقى (`toolbarBelow`).
+   */
+  mobileTopRowCollapsed?: boolean;
   className?: string;
 };
 
@@ -37,7 +39,7 @@ export function TopHeader({
   mobileTrailing,
   mobileToolbarBelow,
   mobileSecondary,
-  mobileChromeCollapsed = false,
+  mobileTopRowCollapsed = false,
   className,
 }: TopHeaderProps) {
   return (
@@ -48,17 +50,13 @@ export function TopHeader({
         className,
       )}
     >
-      <div
-        className={cn(
-          "lg:hidden overflow-hidden transition-[max-height] duration-300 ease-out motion-reduce:transition-none",
-          mobileChromeCollapsed ? "pointer-events-none max-h-0" : "max-h-[100dvh]",
-        )}
-      >
+      <div className="lg:hidden">
         <MobileTopHeader
           wordmark={mobileWordmark}
           leading={mobileLeading}
           trailing={mobileTrailing}
           toolbarBelow={mobileToolbarBelow}
+          topRowHidden={Boolean(mobileToolbarBelow) && mobileTopRowCollapsed}
           secondary={mobileSecondary}
         />
       </div>

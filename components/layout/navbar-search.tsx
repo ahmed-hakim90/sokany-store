@@ -16,6 +16,10 @@ import {
   useState,
 } from "react";
 import { AppImage } from "@/components/AppImage";
+import {
+  headerProductSearchFieldGlassClass,
+  headerProductSearchPanelGlassClass,
+} from "@/components/layout/mobile-commerce-surface";
 import { SearchField } from "@/components/ui/search-field";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useSearchSuggestions } from "@/hooks/useSearchSuggestions";
@@ -177,7 +181,10 @@ inputRef.current?.blur();},
             goSearch();
           }
         }}  
-        className="min-w-0 max-w-none border-zinc-200/90 bg-white shadow-sm h-9 sm:h-10 lg:h-12"
+        className={cn(
+          "min-w-0 max-w-none h-9 sm:h-10 lg:h-12",
+          headerProductSearchFieldGlassClass,
+        )}
         compact
         leading={
           <svg
@@ -199,14 +206,17 @@ inputRef.current?.blur();},
           id={keywordPanelId}
           role="region"
           aria-label="بحث سريع"
-          className="absolute start-0 end-0 top-[calc(100%+0.35rem)] z-50 overflow-hidden rounded-lg border border-border bg-white shadow-lg"
+          className={cn(
+            "absolute start-0 end-0 top-[calc(100%+0.35rem)] z-50",
+            headerProductSearchPanelGlassClass,
+          )}
           onMouseDown={(e) => e.preventDefault()}
         >
        <p className="px-3 pt-3 text-xs font-medium text-muted-foreground">
   الكلمات المفتاحية المقترحة
 </p>
 <ul
-  className="max-h-[min(20rem,50dvh)] divide-y divide-border/60 overflow-y-auto py-1"
+  className="max-h-[min(20rem,50dvh)] divide-y divide-slate-200/50 overflow-y-auto py-1"
   role="list"
 >
   {quickKeywords.map((kw, index) => (
@@ -230,7 +240,10 @@ inputRef.current?.blur();},
             <div
               id={listboxId}
               role="listbox"
-              className="absolute start-0 end-0 top-[calc(100%+0.35rem)] z-50 overflow-hidden rounded-lg border border-border bg-white shadow-lg"
+              className={cn(
+                "absolute start-0 end-0 top-[calc(100%+0.35rem)] z-50",
+                headerProductSearchPanelGlassClass,
+              )}
               onMouseDown={(e) => e.preventDefault()}
             >
               {loading ? (
@@ -258,7 +271,7 @@ inputRef.current?.blur();},
               لا توجد نتائج مطابقة
             </div>
           ) : (
-            <ul className="max-h-[min(22rem,60dvh)] divide-y divide-border/60 overflow-y-auto py-1">
+            <ul className="max-h-[min(22rem,60dvh)] divide-y divide-slate-200/50 overflow-y-auto py-1">
               {suggestions.data.map((product) => (
                 <li key={product.id} role="presentation">
                   <Link
@@ -295,7 +308,7 @@ inputRef.current?.blur();},
             </ul>
           )}
 
-          <div className="border-t border-border/80 p-2">
+          <div className="border-t border-slate-200/50 p-2">
             <button
               type="button"
               className="min-w-0 max-w-none rounded-md py-2 text-center text-sm font-medium text-brand-900 hover:bg-surface-muted/80"

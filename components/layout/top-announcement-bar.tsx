@@ -4,7 +4,7 @@ import { Link } from "next-view-transitions";
 import type { ComponentProps } from "react";
 import { useEffect, useMemo, useState } from "react";
 import {
-  stickyAnnouncementBottomShadowWhenHeaderHiddenClass,
+  stickyAnnouncementBottomShadowWhenTopRowHiddenClass,
 } from "@/components/layout/mobile-commerce-surface";
 import { useMobileChromeCollapsedStore } from "@/components/layout/mobile-chrome-collapsed-store";
 import type { CmsTopAnnouncementBar } from "@/schemas/cms";
@@ -27,15 +27,15 @@ const announcementTextClass =
 function AnnouncementChrome({
   children,
   className,
-  headerCollapsedMobile,
+  topRowHiddenMobile,
   ...rest
-}: ComponentProps<"div"> & { headerCollapsedMobile?: boolean }) {
+}: ComponentProps<"div"> & { topRowHiddenMobile?: boolean }) {
   return (
     <div className="w-full">
       <div
         className={cn(
           "overflow-hidden border-b border-border/60 bg-white px-3 py-1.5",
-          headerCollapsedMobile && stickyAnnouncementBottomShadowWhenHeaderHiddenClass,
+          topRowHiddenMobile && stickyAnnouncementBottomShadowWhenTopRowHiddenClass,
           className,
         )}
         {...rest}
@@ -84,15 +84,15 @@ function ItemLine({
 
 function MarqueeRow({
   items,
-  headerCollapsedMobile,
+  topRowHiddenMobile,
 }: {
   items: { text: string; href?: string }[];
-  headerCollapsedMobile: boolean;
+  topRowHiddenMobile: boolean;
 }) {
   const loop = useMemo(() => [...items, ...items], [items]);
   return (
     <AnnouncementChrome
-      headerCollapsedMobile={headerCollapsedMobile}
+      topRowHiddenMobile={topRowHiddenMobile}
       className="min-h-10 py-1.5"
     >
       <div className="w-full overflow-hidden" dir="ltr">
@@ -109,11 +109,11 @@ function MarqueeRow({
 function CarouselRow({
   items,
   intervalSec,
-  headerCollapsedMobile,
+  topRowHiddenMobile,
 }: {
   items: { text: string; href?: string }[];
   intervalSec: number;
-  headerCollapsedMobile: boolean;
+  topRowHiddenMobile: boolean;
 }) {
   const [i, setI] = useState(0);
   useEffect(() => {
@@ -129,7 +129,7 @@ function CarouselRow({
 
   return (
     <AnnouncementChrome
-      headerCollapsedMobile={headerCollapsedMobile}
+      topRowHiddenMobile={topRowHiddenMobile}
       className="flex min-h-10 items-center justify-center py-1.5"
       aria-live="polite"
     >
@@ -139,7 +139,7 @@ function CarouselRow({
 }
 
 export function TopAnnouncementBar({ config }: TopAnnouncementBarProps) {
-  const headerCollapsedMobile = useMobileChromeCollapsedStore(
+  const topRowHiddenMobile = useMobileChromeCollapsedStore(
     (s) => s.headerHidden,
   );
   const items = config.items;
@@ -148,7 +148,7 @@ export function TopAnnouncementBar({ config }: TopAnnouncementBarProps) {
   if (items.length === 1) {
     return (
       <AnnouncementChrome
-        headerCollapsedMobile={headerCollapsedMobile}
+        topRowHiddenMobile={topRowHiddenMobile}
         className="flex min-h-10 items-center justify-center py-1.5"
       >
         <ItemLine text={items[0].text} href={items[0].href} />
@@ -161,12 +161,12 @@ export function TopAnnouncementBar({ config }: TopAnnouncementBarProps) {
       <CarouselRow
         items={items}
         intervalSec={config.carouselIntervalSec ?? 8}
-        headerCollapsedMobile={headerCollapsedMobile}
+        topRowHiddenMobile={topRowHiddenMobile}
       />
     );
   }
 
   return (
-    <MarqueeRow items={items} headerCollapsedMobile={headerCollapsedMobile} />
+    <MarqueeRow items={items} topRowHiddenMobile={topRowHiddenMobile} />
   );
 }

@@ -1,25 +1,36 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { ZodError } from "zod";
+import { isAxiosError } from "axios";
 import { Button } from "@/components/Button";
 import { FormField } from "@/components/ui/form-field";
 import { useCreateReview } from "@/features/reviews/hooks/useCreateReview";
 import { ReviewStarRating } from "@/features/reviews/components/review-star-rating";
+import { useAuthStore } from "@/features/auth/store/useAuthStore";
 import { cn } from "@/lib/utils";
 import { inputSurfaceClass } from "@/lib/ui-input";
 
-const initial = {
-  reviewer: "",
-  reviewerEmail: "",
-  review: "",
-  rating: 5,
-};
+const baseFields = { review: "", rating: 5 };
 
 export function ProductReviewForm({ productId }: { productId: number }) {
-  const [fields, setFields] = useState(initial);
+  const user = useAuthStore((s) => s.user);
+  const [fields, setFields] = useState(() => ({
+    ...baseFields,
+    reviewer: user?.displayName?.trim() ?? "",
+    reviewerEmail: user?.email?.trim() ?? "",
+  }));
   const createReview = useCreateReview(productId);
+
+  useEffect(() => {
+    if (!user) return;
+    setFields((p) => ({
+      ...p,
+      reviewer: user.displayName?.trim() || p.reviewer,
+      reviewerEmail: user.email?.trim() || p.reviewerEmail,
+    }));
+  }, [user]);
 
   const submit = () => {
     createReview.mutate(
@@ -32,13 +43,20 @@ export function ProductReviewForm({ productId }: { productId: number }) {
       },
       {
         onSuccess: () => {
-          setFields(initial);
+          setFields((p) => ({ ...baseFields, reviewer: p.reviewer, reviewerEmail: p.reviewerEmail }));
           toast.success("شكراً، تم إرسال تقييمك.");
         },
         onError: (error) => {
           if (error instanceof ZodError) {
             toast.error(error.issues[0]?.message ?? "تحقق من الحقول.");
             return;
+          }
+          if (isAxiosError(error) && error.response?.status === 403) {
+            const code = (error.response.data as { error?: string })?.error;
+            if (code === "REVIEW_NOT_ELIGIBLE") {
+              toast.error("لا تتوفر صلاحية إضافة التقييم لهذا المنتج.");
+              return;
+            }
           }
           toast.error("تعذر إرسال التقييم. حاول مرة أخرى.");
         },
@@ -54,6 +72,7 @@ export function ProductReviewForm({ productId }: { productId: number }) {
           label="الاسم"
           value={fields.reviewer}
           onChange={(e) => setFields((p) => ({ ...p, reviewer: e.target.value }))}
+          readOnly={Boolean(user?.displayName?.trim())}
           autoComplete="name"
         />
         <FormField
@@ -61,6 +80,7 @@ export function ProductReviewForm({ productId }: { productId: number }) {
           type="email"
           value={fields.reviewerEmail}
           onChange={(e) => setFields((p) => ({ ...p, reviewerEmail: e.target.value }))}
+          readOnly={Boolean(user?.email?.trim())}
           autoComplete="email"
         />
       </div>

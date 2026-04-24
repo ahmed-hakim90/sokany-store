@@ -107,6 +107,17 @@ export function ProductQuickViewModal({
     };
   }, [open]);
 
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+    const root = document.documentElement;
+    root.setAttribute("data-storefront-modal", "");
+    return () => {
+      root.removeAttribute("data-storefront-modal");
+    };
+  }, [open]);
+
   const gallerySwipe = usePointerSwipe({
     enabled: slides.length > 1,
     onSwipeNext: goNext,
@@ -123,12 +134,12 @@ export function ProductQuickViewModal({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[200] flex items-end justify-center p-0 sm:items-center sm:p-4"
+      className="fixed inset-0 z-[2500] flex items-end justify-center p-0 sm:items-center sm:p-4"
       role="presentation"
     >
       <button
         type="button"
-        className="absolute inset-0 bg-black/50 backdrop-blur-[2px]"
+        className="absolute inset-0 z-0 bg-black/55 backdrop-blur-[2px] sm:bg-black/50"
         aria-label="إغلاق النافذة"
         onClick={() => onOpenChange(false)}
       />
@@ -138,7 +149,7 @@ export function ProductQuickViewModal({
         aria-labelledby={titleId}
         aria-describedby={excerpt ? descId : undefined}
         className={cn(
-          "relative z-[201] flex w-full max-w-lg flex-col overflow-hidden rounded-t-2xl border border-border/80 bg-white shadow-2xl",
+          "relative z-[1] flex w-full max-w-md flex-col overflow-hidden rounded-t-2xl border border-border/80 bg-white shadow-2xl",
           /* موبايل: ارتفاع يعتمد على الشاشة + safe-area؛ لصق من الأسفل */
           "max-h-[calc(100svh-env(safe-area-inset-bottom,0px))] self-end",
           "sm:mx-auto sm:max-h-[min(92vh,720px)] sm:self-auto",
@@ -261,14 +272,22 @@ export function ProductQuickViewModal({
             disabled={addToCartDisabled}
             onClick={onAddToCart}
             className={cn(
-              "inline-flex min-h-[44px] flex-1 items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-extrabold transition-colors sm:flex-none sm:min-w-[10rem]",
+              "relative inline-flex min-h-[44px] flex-1 items-center justify-center rounded-xl px-4 py-2.5 text-xs font-extrabold leading-snug transition-colors sm:flex-none sm:min-w-[10rem] sm:px-5 sm:text-sm",
               addToCartDisabled
                 ? "cursor-not-allowed bg-muted text-muted-foreground"
                 : "bg-brand-500 text-black hover:bg-brand-400",
             )}
+            aria-label={justAdded ? "تمت الإضافة للسلة" : "أضف للسلة"}
           >
-            <CartIcon />
-            <span>{justAdded ? "تمت الإضافة" : "أضف للسلة"}</span>
+            <span className="relative z-10 text-center">
+              {justAdded ? "تمت الإضافة" : "أضف للسلة"}
+            </span>
+            <span
+              className="absolute start-2 top-1/2 z-0 -translate-y-1/2 sm:start-2.5"
+              aria-hidden
+            >
+              <CartIcon className="h-5 w-5 sm:h-6 sm:w-6" />
+            </span>
           </button>
         </div>
       </div>
@@ -290,9 +309,9 @@ function CloseIcon() {
   );
 }
 
-function CartIcon() {
+function CartIcon({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4 shrink-0" aria-hidden>
+    <svg viewBox="0 0 24 24" fill="none" className={cn("shrink-0", className)} aria-hidden>
       <path
         d="M3 4h2.2c.5 0 .93.33 1.06.81l.54 2.02m0 0L8 12h9.5a1 1 0 00.97-.76l1.2-4.8a.75.75 0 00-.73-.94H6.8z"
         stroke="currentColor"

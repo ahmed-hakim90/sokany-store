@@ -19,7 +19,7 @@ export function getCartShippingUi(subtotal: number): {
 } {
   const threshold = FREE_SHIPPING_THRESHOLD_EGP;
   if (!Number.isFinite(threshold) || threshold <= 0) {
-    return { shippingLabel: "يُحسب عند الطلب", progress: null };
+    return { shippingLabel: "شحن مجاني", progress: null };
   }
 
   if (subtotal >= threshold) {

@@ -53,6 +53,11 @@ export function useCreateReview(productId: number) {
     },
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: reviewQueryKey(productId) });
+      void queryClient.invalidateQueries({
+        queryKey: ["review-eligibility", productId],
+      });
+      void queryClient.invalidateQueries({ queryKey: ["my-orders", "for-reviews"] });
+      void queryClient.invalidateQueries({ queryKey: ["reviews", "mine-check"] });
     },
   });
 }

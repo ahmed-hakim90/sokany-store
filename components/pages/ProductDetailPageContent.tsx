@@ -16,11 +16,13 @@ import { ProductCarouselRow } from "@/features/products/components/product-carou
 import { ProductSkeleton } from "@/features/products/components/ProductSkeleton";
 import { ProductReviewForm } from "@/features/reviews/components/ProductReviewForm";
 import { ProductReviewsList } from "@/features/reviews/components/product-reviews-list";
+import { useReviewEligibility } from "@/features/reviews/hooks/useReviewEligibility";
+import { useAuthSession } from "@/hooks/useAuthSession";
 
 /*
  * صفحة تفاصيل المنتج (/products/[id]): عمود واحد داخل Container (حواف أفقية فقط).
  * كتلة المنتج (معرض + معلومات/شراء) بعرض كامل داخل الحاوية؛ شريط «أضف للسلة» ثابت عند التمرير بعد كتلة الشراء.
- * التقييمات: على الشاشة الضيقة (أقل من md) سلايد ببطاقة مركزية وتقليب؛ من md فما فوق قائمة عمودية. «منتجات ذات صلة» (كاروسيل أفقي، كروت أوسع فيظهر عدد أقل في نفس العرض) داخل max-w-7xl؛ lg يبقى نفس الحدود من Container.
+ * التقييمات: نموذج «أضف تقييماً» يظهر فقط لمسجّل اشترى نفس ‎`id`‎ بطلب ‎`completed`‎ (بدون تكرار)؛ باقي المسجّلين/الزوّار يرون القائمة إن وُجدت. على الشاشة الضيقة (أقل من md) سلايد؛ من ‎`md`‎ فما فوق قائمة. «ذات صلة» داخل ‎`max-w-7xl`‎.
  */
 export function ProductDetailPageContent({ id }: { id: number }) {
   const router = useTransitionRouter();
@@ -34,6 +36,16 @@ export function ProductDetailPageContent({ id }: { id: number }) {
   } = useProductDetailPage(id);
 
   const { hasHydrated, getCartLineQuantity, setProductLineQuantity } = useCart();
+  const { isAuthenticated } = useAuthSession();
+  const reviewElig = useReviewEligibility(
+    productQuery.data?.id ?? id,
+  );
+  const canShowReviewForm =
+    productQuery.isSuccess &&
+    productQuery.data &&
+    reviewElig.isReady &&
+    !reviewElig.isError &&
+    reviewElig.data?.canReview;
 
   const addProductToCart = useCallback(
     (product: Product, quantity: number) => {
@@ -89,7 +101,43 @@ export function ProductDetailPageContent({ id }: { id: number }) {
               <h2 className="font-display text-lg font-bold tracking-tight sm:text-xl">
                 التقييمات
               </h2>
-              <ProductReviewForm productId={productQuery.data.id} />
+              {isAuthenticated && !reviewElig.isReady && !reviewElig.isError && (
+                <p className="mt-3 text-sm text-zinc-600" aria-live="polite">
+                  جاري التحقق من إمكانية إضافة تقييم…
+                </p>
+              )}
+              {isAuthenticated && reviewElig.isError && (
+                <p className="mt-3 text-sm text-red-800" role="alert">
+                  تعذر التحقق من صلاحية التقييم. حدّث الصفحة لاحقاً.
+                </p>
+              )}
+              {isAuthenticated && reviewElig.isReady && reviewElig.data?.alreadyReviewed && (
+                <p className="mt-3 text-sm text-zinc-700" role="status">
+                  لقد سجّلت تقييماً مسبقاً لهذا المنتج. شكراً لمشاركتك.
+                </p>
+              )}
+              {isAuthenticated && reviewElig.isReady && reviewElig.data && !reviewElig.data.alreadyReviewed && !reviewElig.data.canReview && (
+                <p className="mt-3 rounded-xl border border-amber-100/80 bg-amber-50/50 px-3 py-2 text-sm text-amber-950" role="status">
+                  تظهر لك أداة إضافة التقييم عند اكتمال طلب يتضمّن هذا المنتج. تستطيع متابعة المنتجات المؤهّلة من
+                  {" "}
+                  <Link
+                    className="font-semibold text-brand-800 underline-offset-2 hover:underline"
+                    href={ROUTES.MY_REVIEWS}
+                  >
+                    تقييماتي
+                  </Link>
+                  .
+                </p>
+              )}
+              {!isAuthenticated && (
+                <p className="mt-3 text-sm text-zinc-700" role="status">
+                
+                  {" "}
+                </p>
+              )}
+              {canShowReviewForm && (
+                <ProductReviewForm productId={productQuery.data.id} />
+              )}
               <div className="mt-4">
                 {reviewsQuery.isPending ? (
                   <div className="space-y-0" aria-label="جاري تحميل التقييمات" aria-busy>
@@ -132,8 +180,12 @@ export function ProductDetailPageContent({ id }: { id: number }) {
                   />
                 ) : !reviewsQuery.data || reviewsQuery.data.length === 0 ? (
                   <EmptyState
-                    title="لا توجد تقييمات بعد"
-                    description="كن أول من يشارك تجربته."
+                    title="لا توجد تقييمات من العملاء بعد"
+                    description={
+                      canShowReviewForm
+                        ? "بعد إرسالك، سيظهر تقييمك في هذه القائمة."
+                        : "يُعرض هنا رأي العملاء الذين أتموا شراءً لهذا المنتج."
+                    }
                   />
                 ) : (
                   <ProductReviewsList

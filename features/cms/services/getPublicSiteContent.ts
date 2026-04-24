@@ -57,7 +57,7 @@ export type PublicSiteContent = {
   retailers: { list: AuthorizedRetailer[]; mapHeroSrc: string };
   /** كلمات البحث السريعة في الهيدر — من CMS أو `DEFAULT_SEARCH_QUICK_KEYWORDS`. */
   searchQuickKeywords: string[];
-  /** دوائر أيقونات تحت الهيدر — من `site_config.headerCategoryStrip`. */
+  /** دوائر اختصارات التصنيفات — من `site_config.headerCategoryStrip`؛ تُعرض في `StorefrontHeaderCategoryStrip` تحت الـ sticky وليس داخل `Navbar`. */
   headerCategoryStrip: CmsHeaderCategoryStrip;
   /**
    * ‎`site_config.homeCategoryScroller`‎: مع ‎`enabled` وقائمة غير فارغة يُبنى الشريح

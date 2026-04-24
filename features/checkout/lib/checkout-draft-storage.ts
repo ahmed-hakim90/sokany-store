@@ -28,6 +28,8 @@ function mergeFromDraft(parsed: z.infer<typeof draftSchema>): CheckoutFormData {
     ...parsed,
     /* لا نعيد تخزين/تحميل كلمة السر — يُدخلها العميل من جديد عند اختيار «إنشاء حساب» */
     accountPassword: "",
+    /* طريقة الشحن في الطلب مُوحّدة (مجاني) — مسودات قديمة قد تضم flat_rate */
+    shippingMethod: "free_shipping",
   };
 }
 

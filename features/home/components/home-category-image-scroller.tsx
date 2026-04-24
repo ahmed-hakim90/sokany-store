@@ -114,9 +114,9 @@ export function HomeCategoryImageScroller({
   }
 
   if (!tiles.length) return null;
-
+// الاقسام المخفية من الكود الاساسي للموقع
   return (
-    <section className={cn("-mx-4 sm:mx-0", className)}>
+    <section className={cn("-mx-4 sm:mx-0 hidden", className)}>
       <div
         ref={scrollerRef}
         className="flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-[calc((100vw-240px)/2)] px-3 pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:px-0"

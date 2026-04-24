@@ -106,13 +106,19 @@ export const ProductDetailInfoColumn = forwardRef<
           <Button
             size="lg"
             className={cn(
-              "h-12  border-0 bg-gradient-to-b from-brand-400 to-brand-500 text-base font-bold text-black shadow-md hover:from-brand-300 hover:to-brand-400 sm:flex-1",
+              "relative h-12 gap-0 border-0 bg-gradient-to-b from-brand-400 to-brand-500 text-base font-bold text-black shadow-md hover:from-brand-300 hover:to-brand-400 sm:flex-1",
             )}
             disabled={!product.inStock || !canInteractCart}
             onClick={onAddToCart}
+            aria-label="أضف إلى السلة"
           >
-            <CartIcon className="h-5 w-5" />
-            أضف إلى السلة
+            <span className="relative z-10 text-center">أضف إلى السلة</span>
+            <span
+              className="absolute start-3 top-1/2 z-0 -translate-y-1/2 sm:start-4"
+              aria-hidden
+            >
+              <CartIcon className="h-6 w-6" />
+            </span>
           </Button>
           {onBuyNow ? (
             <Button

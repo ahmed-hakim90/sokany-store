@@ -1,30 +1,23 @@
 import type { CartItem } from "@/features/cart/types";
-import { SHIPPING_METHOD_OPTIONS } from "@/features/checkout/shipping-method-options";
 import type { CheckoutFormData } from "@/features/checkout/types";
 import type { CreateOrderPayload } from "@/features/orders/types";
-
-const SHIPPING_METHOD_LABELS: Record<CheckoutFormData["shippingMethod"], string> = {
-  flat_rate: "سعر شحن ثابت",
-  local_pickup: "استلام من الفرع",
-  free_shipping: "شحن مجاني",
-};
 
 const PAYMENT_METHOD_LABELS: Record<CheckoutFormData["paymentMethod"], string> = {
   cod: "الدفع عند الاستلام",
   card: "بطاقة (تجريبي)",
 };
 
-function shippingFeeFor(method: CheckoutFormData["shippingMethod"]): number {
-  if (method === "flat_rate") return 49;
+/** Shown in checkout/cart; Woo order line for storefront — no user-selectable method. */
+export const CHECKOUT_SHIPPING_DISPLAY_LABEL = "شحن مجاني";
+
+const CHECKOUT_WOO_SHIPPING = {
+  method_id: "free_shipping" as const,
+  method_title: CHECKOUT_SHIPPING_DISPLAY_LABEL,
+  total: "0",
+};
+
+export function shippingFeeForMethod(_method: CheckoutFormData["shippingMethod"]): number {
   return 0;
-}
-
-export function shippingFeeForMethod(method: CheckoutFormData["shippingMethod"]): number {
-  return shippingFeeFor(method);
-}
-
-export function shippingMethodTitleFor(values: CheckoutFormData): string | undefined {
-  return SHIPPING_METHOD_OPTIONS.find((o) => o.value === values.shippingMethod)?.title;
 }
 
 export function toCreateOrderPayload(
@@ -56,13 +49,7 @@ export function toCreateOrderPayload(
       product_id: item.productId,
       quantity: item.quantity,
     })),
-    shipping_lines: [
-      {
-        method_id: values.shippingMethod,
-        method_title: SHIPPING_METHOD_LABELS[values.shippingMethod],
-        total: String(shippingFeeFor(values.shippingMethod)),
-      },
-    ],
+    shipping_lines: [CHECKOUT_WOO_SHIPPING],
     payment_method: values.paymentMethod,
     payment_method_title: PAYMENT_METHOD_LABELS[values.paymentMethod],
     customer_note: values.customerNote,

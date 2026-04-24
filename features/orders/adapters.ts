@@ -58,6 +58,7 @@ function mapLineItems(items: WCOrder["line_items"]): OrderItem[] {
   return items.map((li) => ({
     id: li.id,
     productId: li.product_id,
+    variationId: li.variation_id && li.variation_id > 0 ? li.variation_id : undefined,
     name: li.name,
     quantity: li.quantity,
     price: parsePrice(li.price),

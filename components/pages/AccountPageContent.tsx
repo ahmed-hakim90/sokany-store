@@ -7,7 +7,7 @@ import { useAuthSession } from "@/hooks/useAuthSession";
 
 /*
  * صفحة الحساب (/account): عمود واحد داخل Container؛ حالات التحميل والضيف والمسجّل.
- * عند تسجيل الدخول: شبكة من ثلاث بطاقات من md (md:grid-cols-3) لأقسام الطلبات/الملف/العناوين.
+ * عند تسجيل الدخول: شبكة لأقسام الطلبات/التقييمات/الملف/العناوين (من ‎`md`‎: أعمدة متجاوبة).
  */
 export function AccountPageContent() {
   const { hasHydrated, isAuthenticated } = useAuthSession();
@@ -56,7 +56,7 @@ export function AccountPageContent() {
       </p>
 
       {/* من md: ثلاث أعمدة متساوية لبطاقات الأقسام؛ تحت md عمود واحد متتابع */}
-      <div className="mt-8 grid gap-6 md:grid-cols-3">
+      <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         <section className="rounded-lg border border-brand-100 bg-white p-6 shadow-sm">
           <h2 className="font-display text-lg font-semibold">الطلبات</h2>
           <p className="mt-2 text-sm text-zinc-600">
@@ -67,6 +67,18 @@ export function AccountPageContent() {
             className="mt-4 inline-flex text-sm font-semibold text-brand-800 underline-offset-4 hover:underline"
           >
             عرض طلباتي
+          </Link>
+        </section>
+        <section className="rounded-lg border border-brand-100 bg-white p-6 shadow-sm">
+          <h2 className="font-display text-lg font-semibold">تقييماتي</h2>
+          <p className="mt-2 text-sm text-zinc-600">
+            المنتجات من طلباتك المكتملة التي يمكنك إضافة تقييم لها.
+          </p>
+          <Link
+            href={ROUTES.MY_REVIEWS}
+            className="mt-4 inline-flex text-sm font-semibold text-brand-800 underline-offset-4 hover:underline"
+          >
+            فتح تقييماتي
           </Link>
         </section>
         <section className="rounded-lg border border-brand-100 bg-white p-6 shadow-sm">

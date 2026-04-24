@@ -50,6 +50,7 @@ export function revalidateAfterWooCommerceWebhook(
   if (t.startsWith("order.")) {
     revalidatePath(ROUTES.ORDER_TRACKING);
     revalidatePath(ROUTES.MY_ORDERS);
+  revalidatePath(ROUTES.MY_REVIEWS);
     revalidatePath(ROUTES.ACCOUNT);
     revalidatePath("/");
     return;

@@ -60,7 +60,7 @@ export function ProductDetailStickyCart({
         <Button
           type="button"
           size="lg"
-          className="h-11 shrink-0 border-0 bg-gradient-to-b from-brand-400 to-brand-500 px-4 text-sm font-bold text-black shadow-md hover:from-brand-300 hover:to-brand-400 sm:px-5"
+          className="h-11 shrink-0 gap-0 border-0 bg-gradient-to-b from-brand-400 to-brand-500 px-4 text-base font-bold text-black shadow-md hover:from-brand-300 hover:to-brand-400 sm:px-5"
           disabled={!canInteractCart}
           onClick={onAddToCart}
         >

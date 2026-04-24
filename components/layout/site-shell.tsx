@@ -5,6 +5,7 @@ import { MobileCommerceChrome } from "@/components/layout/mobile-commerce-chrome
 import { MobileScrollCollapseController } from "@/components/layout/mobile-scroll-collapse-controller";
 import { MobileFloatingActions } from "@/components/layout/mobile-floating-actions";
 import { TopAnnouncementBar } from "@/components/layout/top-announcement-bar";
+import { StorefrontHeaderCategoryStrip } from "@/components/layout/storefront-header-category-strip";
 import { Navbar } from "@/components/Navbar";
 import { DesktopCartDrawer } from "@/features/cart/components/DesktopCartDrawer";
 import { CatalogFilterDrawer } from "@/features/catalog/components/CatalogFilterDrawer";
@@ -41,10 +42,10 @@ export function SiteShell({
             logoDisabled={branding.logoDisabled}
             searchQuickKeywords={searchQuickKeywords}
             socialLinks={socialLinks}
-            headerCategoryStrip={headerCategoryStrip}
           />
         </Suspense>
       </div>
+      <StorefrontHeaderCategoryStrip config={headerCategoryStrip} />
       <Suspense fallback={null}>
         <DesktopCartDrawer />
       </Suspense>
@@ -55,9 +56,9 @@ export function SiteShell({
         <CatalogFilterDrawer />
       </Suspense>
       {/*
-        فواصل الهيدر (ليست hr): border-b تحت الإعلان/شريط الموبايل؛ lg:border-b تحت صف الديسكتوب؛
-        border-t فوق شريط التصنيفات (desktopSubheader)؛ على الموبايل border-t فوق السطر الثانوي إن وُجد.
-        أول محتوى بعد الكتلة الثابتة: pt-2 خفيف.
+        فواصل الهيدر: border-b تحت الإعلان/الصف الأبيض على الديسكتوب؛ شريط اختصارات التصنيفات
+        (StorefrontHeaderCategoryStrip) مباشرة تحت الـ sticky وقبل <main> — ليس داخل TopHeader.
+        أول محتوى بعد الكتلة: pt-2 خفيف على أول طفل لـ main.
       */}
       <main className="flex min-h-0 min-w-0 max-w-none flex-1 flex-col bg-page pb-mobile-commerce lg:pb-0 [&>*:first-child]:pt-2">
         {children}

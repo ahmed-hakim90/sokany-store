@@ -181,7 +181,7 @@ export function CheckoutShippingForm({
         <FieldSep />
 
         <div className="rounded-xl border border-border/60 bg-surface-muted/40 px-3 py-2.5 text-center text-xs text-muted-foreground">
-          الشحن بسعر ثابت على الطلب — لا حاجة لاختيار طريقة توصيل إضافية.
+          الشحن مجاني — لا حاجة لاختيار طريقة توصيل إضافية.
         </div>
       </div>
     </Card>

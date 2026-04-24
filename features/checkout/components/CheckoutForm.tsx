@@ -19,7 +19,7 @@ import { useCheckoutForm } from "@/features/checkout/hooks/useCheckoutForm";
  * من lg: صف أفقي بعرض أقصى أوسع — عمود النموذج يتمدد، عمود الملخص max-width مع sticky عند التمرير.
  * بعد نجاح الطلب: `OrderSuccessCelebration` (شكر + قلوب) فوق الطبقة z-[200].
  * التحقق بالهاتف (OTP): فقط لمسار «إنشاء حساب»/ربط الحساب — ليس لطلب الضيف.
- * الشحن بسعر ثابت دون اختيار طرق توصيل؛ لا يُعرض إنشاء حساب Woo اختياري (الهوية عبر Firebase + المتجر).
+ * الشحن مجاني دون اختيار طرق توصيل؛ لا يُعرض إنشاء حساب Woo اختياري (الهوية عبر Firebase + المتجر).
  */
 export function CheckoutForm() {
   const {

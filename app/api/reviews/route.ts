@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import axios from "axios";
 import { createWooClient } from "@/lib/create-woo-client";
 import { getSessionFromRequest } from "@/lib/auth-request";
+import { createReviewPayloadSchema } from "@/schemas/wordpress";
+import { getReviewEligibility } from "@/lib/review-purchase-eligibility";
 
 /** Map storefront query params to WooCommerce REST `/products/reviews` (list uses `product`, not `product_id`). */
 function toWooReviewListParams(
@@ -63,10 +65,35 @@ export async function POST(request: NextRequest) {
   if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+  let parsed: ReturnType<typeof createReviewPayloadSchema.parse>;
   try {
-    const body: unknown = await request.json();
+    const raw: unknown = await request.json();
+    parsed = createReviewPayloadSchema.parse(raw);
+  } catch {
+    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+  }
+  try {
     const woo = await createWooClient();
-    const response = await woo.post("/products/reviews", body);
+    const eligibility = await getReviewEligibility(woo, session, parsed.product_id);
+    if (!eligibility.canReview) {
+      return NextResponse.json(
+        {
+          error: "REVIEW_NOT_ELIGIBLE",
+          mustLogin: eligibility.mustLogin,
+          alreadyReviewed: eligibility.alreadyReviewed,
+        },
+        { status: 403 },
+      );
+    }
+    const displayName = session.displayName?.trim() || session.nicename;
+    const secured = {
+      product_id: parsed.product_id,
+      review: parsed.review,
+      rating: parsed.rating,
+      reviewer: displayName,
+      reviewer_email: session.email.trim().toLowerCase(),
+    };
+    const response = await woo.post("/products/reviews", secured);
     return NextResponse.json(response.data, { status: 201 });
   } catch (error) {
     if (process.env.NODE_ENV === "development") {

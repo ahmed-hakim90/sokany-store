@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { ZodError } from "zod";
 import { toast } from "sonner";
 import { useCart } from "@/hooks/useCart";
@@ -17,8 +17,8 @@ import {
 } from "@/features/checkout/lib/checkout-draft-storage";
 import { defaultCheckoutFormValues } from "@/features/checkout/lib/checkout-form-defaults";
 import {
+  CHECKOUT_SHIPPING_DISPLAY_LABEL,
   shippingFeeForMethod,
-  shippingMethodTitleFor,
 } from "@/features/checkout/lib/to-create-order-payload";
 import type { CheckoutFormData } from "@/features/checkout/types";
 import { normalizeEgyptPhoneToE164 } from "@/lib/phone";
@@ -80,7 +80,7 @@ export function useCheckoutForm() {
 
   const shippingFee = shippingFeeForMethod(values.shippingMethod);
   const orderTotal = totalPrice + shippingFee;
-  const shippingMethodTitle = useMemo(() => shippingMethodTitleFor(values), [values]);
+  const shippingMethodTitle = CHECKOUT_SHIPPING_DISPLAY_LABEL;
   const cartEmpty = items.length === 0;
 
   const update = (key: keyof CheckoutFormData, value: string) => {
