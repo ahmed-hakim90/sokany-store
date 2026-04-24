@@ -44,6 +44,7 @@ export function HomePromoCard({
             src={imageSrc}
             alt=""
             fill
+            priority
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1100px"
             className="object-cover object-center"
           />

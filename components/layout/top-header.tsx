@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 
 /*
  * الديسكتوب: شريط علوي أبيض وصف ميجا للتصنيفات. شريط أيقونات الاختصارات يُعرض من `StorefrontHeaderCategoryStrip` تحت الـ sticky.
- * الموبايل: الغلاف شفاف؛ الكبسولة الزجاجية داخل `MobileTopHeader` فقط.
+ * الموبايل: داخل ‎`lg:hidden` بلا ‎`bg`‎؛ السطح الليكويد داخل ‎`MobileTopHeader` فقط.
  */
 
 export type TopHeaderProps = {
@@ -50,7 +50,7 @@ export function TopHeader({
         className,
       )}
     >
-      <div className="lg:hidden">
+      <div className="lg:hidden w-full min-w-0">
         <MobileTopHeader
           wordmark={mobileWordmark}
           leading={mobileLeading}

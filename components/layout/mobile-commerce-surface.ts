@@ -2,7 +2,7 @@ import { cn } from "@/lib/utils";
 
 /**
  * طبقة الزجاج المشتركة مع الشريط السفلي (`MobileCommerceChrome`) وملخص السلة.
- * عند تغيير المظهر، حدّث الاستخدامات في `mobile-commerce-chrome.tsx` و`mobile-top-header.tsx` معاً.
+ * عند تغيير المظهر، حدّث الاستخدامات في ‎`mobile-commerce-chrome.tsx`‎ و‎`mobile-top-header.tsx`‎ و‎`mobile-hero-lime-atmosphere.tsx`‎ عند الحاجة.
  */
 export const mobileCommerceGlassSurfaceClass =
   "overflow-hidden rounded-3xl border border-white/50 bg-white/90 shadow-[0_28px_64px_-18px_rgba(15,23,42,0.45)] backdrop-blur-2xl backdrop-saturate-150";
@@ -10,6 +10,27 @@ export const mobileCommerceGlassSurfaceClass =
 /** سطح أخف — شريط peek السلة (`MobileCartBottomSheet`) وشريط الإعلان (`TopAnnouncementBar`). */
 export const mobileCommercePeekSurfaceClass =
   "rounded-3xl border border-white/50 bg-white/80 shadow-[0_8px_32px_-10px_rgba(15,23,42,0.14),0_2px_8px_-4px_rgba(15,23,42,0.08)] backdrop-blur-xl backdrop-saturate-150";
+
+/**
+ * هيدر موبايل — نفس مزيج الليكويد جلاس مع ‎`mobileCommercePeekSurfaceClass` (‎`MobileCartBottomSheet`‎)؛
+ * ‎`rounded-b` فقط (حواف أعلى مربّعة). ‎`MobileTopHeader`‎ (عرض كامل؛ غلاف ‎`SiteShell` بلا ‎`bg`‎).
+ */
+export const mobileTopHeaderGlassSurfaceClass = cn(
+  "overflow-hidden rounded-b-3xl border border-white/50",
+  "bg-white/80",
+  "shadow-[0_8px_32px_-10px_rgba(15,23,42,0.14),0_2px_8px_-4px_rgba(15,23,42,0.08),0_4px_16px_-4px_rgba(15,23,42,0.1)]",
+  "backdrop-blur-2xl backdrop-saturate-150",
+  "transition-colors duration-300 ease-out motion-reduce:transition-none",
+);
+
+/** وضع طي صف الشعار (ليمون) — ليكويد فوق ‎`brand-500`‎. */
+export const mobileTopHeaderGlassSurfaceCollapsedClass = cn(
+  "overflow-hidden rounded-b-3xl border border-white/35",
+  "bg-brand-500/60",
+  "shadow-[0_8px_32px_-10px_rgba(15,23,42,0.18),0_2px_8px_-4px_rgba(0,0,0,0.1),0_4px_18px_-4px_rgba(15,23,42,0.12)]",
+  "backdrop-blur-2xl backdrop-saturate-150",
+  "transition-colors duration-300 ease-out motion-reduce:transition-none",
+);
 
 /**
  * حقل بحث المنتجات في الهيدر — نفس مكوّنات الليكويد جلاس كـ `MobileCartBottomSheet`، بظل أنسب للارتفاع الضعيف.

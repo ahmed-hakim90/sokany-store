@@ -31,7 +31,8 @@ import {
 
 /*
  * الصفحة الرئيسية (/): عمود واحد داخل Container بمسافات رأسية تتسع تدريجياً (sm → md).
- * التسلسل: هيرو (سكروول أفقي + auto-rotate) → (اختياري من ‎`site_config.homeCategoryScroller.sectionVisible`‎) شريط
+ * ‎`max-lg`‎: أثناء ‎`HomePageContent` بلا ‎`bg` تظهر ‎`MobileHeroLimeAtmosphere` (خلف ‎`main`‎) لوناً خلف
+ * بانر الهيرو/الهوامس. التسلسل: هيرو (سكروول أفقي + auto-rotate) → (اختياري من ‎`site_config.homeCategoryScroller.sectionVisible`‎) شريط
  * صور التصنيفات (٢٤٠×١٢٠ من وو) → عروض سريعة (بانر أزرق + عداد + CTA ثم شبكة on_sale) → كبسولة خدمات
  * (٤ عناصر في سطر واحد على كل الشاشات) → بطاقة ترويج «حصرياً» (افتراضي أو spotlight) → الأكثر مبيعاً
  * (كل المتجر ‎+‎ ‎`orderby: popularity`‎) → وصل حديثاً → أقسام الأب.
@@ -110,7 +111,7 @@ export function HomePageContent({
   );
 
   return (
-    <div className="animate-fade-in bg-page">
+    <div className="animate-fade-in bg-page max-lg:!bg-transparent">
       <Container className="space-y-5 pb-8  sm:space-y-6 sm:pb-10">
         {/* أعلى الصفحة: شرائح هيرو ديناميكية تُقرأ من /public/images/hero */}
         {heroSlides.length > 0 ? <HomeHeroBanner slides={heroSlides} /> : null}

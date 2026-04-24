@@ -87,6 +87,45 @@ body {
   font-family: var(--font-sans);
 }
 
+/* شريط تمرير الصفحة — ليم/فلوري متوافق مع هوية سُكَاني */
+html {
+  scrollbar-color: var(--sokany-accent) var(--sokany-muted-bg);
+}
+html::-webkit-scrollbar {
+  width: 0.5rem;
+  height: 0.5rem;
+  /* لون الخلفية ثابت لمسار الشريط (لا يُزال بصرياً عند مرور/هوفر الإبهام) */
+  background: var(--sokany-muted-bg);
+}
+html::-webkit-scrollbar-track {
+  background: var(--sokany-muted-bg);
+  border-radius: 9999px;
+}
+/* إبقاء المسار ظاهراً عند مرور/تفاعل واجهة الصفحة (WebKit — لا نربط :hover بـ ::-webkit-scrollbar:… لأن مُحسّنات CSS ترفض ذلك) */
+html:hover::-webkit-scrollbar-track {
+  background: var(--sokany-muted-bg);
+}
+html::-webkit-scrollbar-thumb {
+  background: var(--sokany-accent);
+  border-radius: 9999px;
+  /* فصل الإبهام عن المسار بدل border بنفس لون المسار — يتجنب وميض/اختفاء الخلفية */
+  box-shadow: 0 0 0 2px var(--sokany-muted-bg) inset;
+  background-clip: padding-box;
+  border: none;
+}
+/* حد أدنى لمسطحة الإبهام: عمودي = ارتفاع، أفقي = عرض */
+html::-webkit-scrollbar-thumb:vertical {
+  min-height: 2.5rem;
+}
+html::-webkit-scrollbar-thumb:horizontal {
+  min-width: 2.5rem;
+}
+html::-webkit-scrollbar-thumb:hover {
+  /* لون صلب: يتفادى مشاكل color-mix/الشفافية في WebKit */
+  background: var(--color-brand-600, #c4e600);
+  box-shadow: 0 0 0 2px var(--sokany-muted-bg) inset;
+}
+
 @keyframes fade-in {
   from {
     opacity: 0;

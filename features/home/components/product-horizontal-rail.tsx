@@ -15,7 +15,7 @@ const railScrollBase =
 
 /** Hidden scrollbar on small screens; thin scrollbar on md+ for desktop affordance. */
 const railScrollScrollbar =
-  "max-md:[-ms-overflow-style:none] max-md:[scrollbar-width:none] max-md:[&::-webkit-scrollbar]:hidden md:[scrollbar-width:thin] md:[scrollbar-color:rgba(15,23,42,0.35)_transparent] md:[&::-webkit-scrollbar]:h-2 md:[&::-webkit-scrollbar-track]:rounded-full md:[&::-webkit-scrollbar-thumb]:rounded-full md:[&::-webkit-scrollbar-thumb]:bg-black/25";
+  "max-md:[-ms-overflow-style:none] max-md:[scrollbar-width:none] max-md:[&::-webkit-scrollbar]:hidden md:[scrollbar-width:thin] md:[scrollbar-color:var(--sokany-accent)_var(--sokany-muted-bg)] md:[&::-webkit-scrollbar]:h-2 md:[&::-webkit-scrollbar-track]:rounded-full md:[&::-webkit-scrollbar-track]:bg-[var(--sokany-muted-bg)] md:[&::-webkit-scrollbar-thumb]:rounded-full md:[&::-webkit-scrollbar-thumb]:bg-[var(--sokany-accent)]";
 
 const railScrollClass = cn(railScrollBase, railScrollScrollbar);
 

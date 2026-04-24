@@ -1,24 +1,38 @@
 # مقاسات الصور للمصمم (Sokany Store)
 
-مرجع موحّد لتصدير الصور ورفعها في الأماكن الصحيحة. الصور تُعرض غالباً بـ `object-cover` داخل إطار ثابت؛ أي جزء زائد يُقصّ — ركّز العنصر المهم في **المنتصف** أو ضمن **منطقة آمنة** في الوسط.
+مرجع موحّد لتصدير الصور ورفعها في الأماكن الصحيحة. **ليس** كل مكوّن يسلّك الصور بنفس الأسلوب: بانرات وخلفيات تُركّز على `object-cover` (ملء الإطار مع قص محتمل)؛ **صور المنتج داخل البطاقات** تُعرض `object-contain` حتى يظهر المنتج **كاملاً** قدر الإمكان (مع هامش فاتح/غامق إذا اختلفت نسبة الصورة عن المربع).
+
+## سلوك العرض: قص vs صورة كاملة
+
+| الأسلوب | ماذا يحدث في الواجهة | أين نستخدمه عادة |
+|---------|------------------------|------------------|
+| **`object-cover`** | تملأ الإطار كله؛ **جزء من الصورة قد يُقص** مع الحفاظ على النسبة. | هيرو، بانرات، سيكشنات ديكور، Bento، شريط التصنيفات، ميجا-ناف… |
+| **`object-contain`** | **تظهر الصورة كاملة** داخل الإطار؛ إن لم تناسب النسبة تظهر **هوامش** (أعلى/أسفل أو جوانب) على خلفية المكوّن. | **بطاقة المنتج** في الكتالوج/الرئيسية؛ **نافذة تكبير (lightbox)** للمعرض. |
+
+- **`AppImage`**: الافتراضي `object-cover`، ويُلغى القص عند تمرير `className` فيها `object-contain` (مثل [`features/products/components/ProductCard.tsx`](../features/products/components/ProductCard.tsx)).
+- **مصادِر متراكبة (بانر + نص):** غالباً خلفية `cover` مع شفافية/طبقة نص — المحتوى التسويقي يبقى في **منطقة آمنة** في الوسط حتى يتحمّل القص في الشاشات المختلفة.
 
 | الاستخدام | المصدر / المسار | المقاس أو النسبة الموصى بها | ملاحظات |
 |-----------|-----------------|------------------------------|---------|
-| شرائح الهيرو (الصفحة الرئيسية) | `public/images/hero/` — انظر [`public/images/hero/README.md`](../public/images/hero/README.md) | **330×540** بكسل (أو **660×1080** لـ Retina)؛ نسبة تقريبية **11∶18** | العرض المعروض للبطاقة ~**300px** وارتفاع حتى **400px** أو **70dvh** (الأصغر). صيغة: WebP أو JPG، جودة **80–90%**. الكود: [`features/home/components/home-hero-banner.tsx`](../features/home/components/home-hero-banner.tsx). |
-| بانر «حصرياً» لكل قسم أب (ترتيب بالرقم) | `public/images/banner-section/` — التسمية: [`public/images/banner-section/README.md`](../public/images/banner-section/README.md) | عرض كامل تقريباً؛ ارتفاع مرجعي **≥ 224px** (`min-h` ≈ 14rem)؛ للتصدير الآمن: **عرض 1200–1600px** × ارتفاع **450–600px** (أفقي) | على الجوال الخلفية **100vw**؛ على الشاشات الأوسع يُحمَّل عرض منطقي حتى ~**520px** في جانب الصورة. `object-cover`. الكود: [`features/home/components/home-category-exclusive-banner.tsx`](../features/home/components/home-category-exclusive-banner.tsx). يمكن ربط نفس الصور من لوحة التحكم (CMS) بنفس الترتيب. |
-| شريط صور التصنيفات (سكروول تحت الهيرو) | صور التصنيف من WooCommerce (أو placeholder) | **240×120** بكسل (**2∶1**)؛ للـ Retina: **480×240** | بطاقات ثابتة في الواجهة. الكود: [`features/home/components/home-category-image-scroller.tsx`](../features/home/components/home-category-image-scroller.tsx). |
-| سيكشن صورة قسم عريضة (`HomeCategoryImageSection`) | صورة التصنيف من الـ API | **2∶1** — مثال تصدير: **896×448** (1×) أو **1792×896** (2×) | `sizes` حتى **896px** عرضاً. الكود: [`features/home/components/home-category-image-section.tsx`](../features/home/components/home-category-image-section.tsx). |
-| بطاقة ترويج أسفل الصفحة (نص + صورة) | من إعدادات الصفحة / `imageSrc` في `HomePromoCard` | أفقي؛ ارتفاع منطقي **≥ 240px** (`md:min-h-[15rem]`); تصدير ~**1040×600** أو أوسع بنفس النسبة | على الجوال: خلفية **100vw**؛ على الديسكتوب جانب الصورة حتى ~**520px** عرضاً. الكود: [`features/home/components/home-promo-card.tsx`](../features/home/components/home-promo-card.tsx). |
-| شبكة Bento للتصنيفات (ديسكتوب) | صور التصنيف من WooCommerce | لا مقاس بكسل واحد؛ خلايا متعددة الأحجام — صورة **مربعة أو أفقية** بمساحة آمنة وسطية | `object-cover` مع `sizes` تقريباً **50vw** / **28vw**. الكود: [`features/home/components/home-category-bento.tsx`](../features/home/components/home-category-bento.tsx). |
+| شرائح الهيرو (الصفحة الرئيسية) | `public/images/hero/` — انظر [`public/images/hero/README.md`](../public/images/hero/README.md) | **330×540** بكسل (أو **660×1080** لـ Retina)؛ نسبة تقريبية **11∶18** | العرض المعروض للبطاقة ~**300px** وارتفاع حتى **400px** أو **70dvh** (الأصغر). `object-cover`. WebP أو JPG، جودة **80–90%**. [`features/home/components/home-hero-banner.tsx`](../features/home/components/home-hero-banner.tsx). |
+| بانر «حصرياً» لكل قسم أب (ترتيب بالرقم) | `public/images/banner-section/` — [`public/images/banner-section/README.md`](../public/images/banner-section/README.md) | عرض كامل تقريباً؛ ارتفاع مرجعي **≥ 224px** (`min-h` ≈ 14rem)؛ تصدير: **1200–1600px** × **450–600px** (أفقي) | `object-cover`؛ جوانب/خلفية 100vw على الجوال، وعرض ~**520px** على ديسكتوب. [`home-category-exclusive-banner.tsx`](../features/home/components/home-category-exclusive-banner.tsx). |
+| شريط صور التصنيفات (سكروول تحت الهيرو) | صور التصنيف من WooCommerce (أو placeholder) | **240×120** (**2∶1**)؛ Retina: **480×240** | `object-cover` في المكوّن. [`home-category-image-scroller.tsx`](../features/home/components/home-category-image-scroller.tsx). |
+| سيكشن صورة قسم عريضة (`HomeCategoryImageSection`) | من الـ API | **2∶1** — مثال: **896×448** (1×) أو **1792×896** (2×) | `object-cover`؛ `sizes` حتى ~**896px**. [`home-category-image-section.tsx`](../features/home/components/home-category-image-section.tsx). |
+| بطاقة ترويج أسفل الصفحة (نص + صورة) | `imageSrc` في `HomePromoCard` / إعدادات | أفقي؛ **≥ 240px** ارتفاع منطقي (`md:min-h-[15rem]`); تصدير **~1040×600** أو نفس النسبة | `object-cover`. [`home-promo-card.tsx`](../features/home/components/home-promo-card.tsx). |
+| شبكة Bento للتصنيفات (ديسكتوب) | WooCommerce | خلايا أحجام متعدّدة — **مربع أو أفقي** مع **منطقة آمنة وسطية** | `object-cover` + `sizes` ≈ **50vw** / **28vw**. [`home-category-bento.tsx`](../features/home/components/home-category-bento.tsx). |
+| **بطاقة منتج (الشبكات في الهوم/الكتالوج/…)** | صور المنتج من Woo | إطار **مربع** في الواجهة؛ **لا يُقص** المنتج: **`object-contain`**. | استخدم صور **مربعة** أو **خلفية بيضاء/نظيفة** لئلا يشوه الهامش. [`ProductCard.tsx`](../features/products/components/ProductCard.tsx). |
+| **معرض صفحة المنتج** (صورة رئيسية + مصغّرات) | Woo | **مربع** للرئيسي؛ `object-cover` (افتراضي `AppImage`)；التكبير الكامل: **`object-contain`**. | عرض المنتج كاملاً في [lightbox](../features/products/components/product-gallery-lightbox.tsx)؛ راجع أيضاً [`ProductGallery.tsx`](../features/products/components/ProductGallery.tsx). |
 
 ## صور التصنيف في WooCommerce
 
-صورة التصنيف الواحدة قد تُستخدم في أكثر من مكان (بانر القسم، Bento، الشريط، إلخ). الأفضل:
+نفس الملف قد يُستعمل في **أكثر من مكان** (بانر، Bento، شريط…). الأفضل:
 
-- دقة كافية (**عرض ≥ 1200px** للصور الأفقية أو **مربع ≥ 1000×1000** إن أمكن).
-- محتوى مهم في **منتصف** الإطار لتقليل ضرر القصّ عند النِسَب المختلفة.
+- دقة كافية: **عرض ≥ 1200px** (أفقي) أو **مربع ≥ 1000×1000** إن أمكن.
+- للأماكن التي تستخدم **`object-cover`**: مهم **منتصف** الإطار.
+- **صور المنتج للعرض في البطاقات** (`object-contain`): الأفضل خلفية موحّدة أو اقتصاص من المصمم في **مربع** لأقل هامش في الواجهة.
 
 ## رموز سريعة
 
-- **`object-cover`**: تغطية كاملة للإطار مع قصّ الزوائد.
+- **`object-cover`**: تغطية كاملة للإطار مع **قصّ** الزوائد.
+- **`object-contain`**: إظهار **كامل** الصورة داخل الإطار (قد يظهر هامش).
 - **Retina / 2×**: ضعف أبعاد التصدير عند الحاجة لشاشات عالية الكثافة.

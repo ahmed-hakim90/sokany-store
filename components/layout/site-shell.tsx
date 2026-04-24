@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { PwaEngagementStack } from "@/components/PwaEngagementStack";
 import { FooterGate } from "@/components/layout/footer-gate";
 import { MobileCommerceChrome } from "@/components/layout/mobile-commerce-chrome";
+import { MobileHeroLimeAtmosphere } from "@/components/layout/mobile-hero-lime-atmosphere";
 import { MobileScrollCollapseController } from "@/components/layout/mobile-scroll-collapse-controller";
 import { MobileFloatingActions } from "@/components/layout/mobile-floating-actions";
 import { TopAnnouncementBar } from "@/components/layout/top-announcement-bar";
@@ -33,7 +34,8 @@ export function SiteShell({
 }: SiteShellProps) {
   return (
     <>
-      <div className="sticky top-0 z-50 pt-[env(safe-area-inset-top)] max-lg:bg-white">
+      <MobileHeroLimeAtmosphere />
+      <div className="sticky top-0 z-50 pt-[env(safe-area-inset-top)] max-lg:bg-transparent">
         <TopAnnouncementBar config={topAnnouncementBar} />
         <Suspense fallback={null}>
           <Navbar
@@ -56,11 +58,13 @@ export function SiteShell({
         <CatalogFilterDrawer />
       </Suspense>
       {/*
+        ‎`MobileHeroLimeAtmosphere`‎: ‎`z-0` ليكون **خلف** ‎`main`‎ (‎`max-lg:z-1`‎)؛ ‎`main`‎ موبايل ‎`bg`‎ شفاف
+        حتى تظهر الهالة **خلف** المحتوى (مثل بانر الرئيسية). موبايل: هالة تتناقص مع السكرول/طي الشعار.
         فواصل الهيدر: border-b تحت الإعلان/الصف الأبيض على الديسكتوب؛ شريط اختصارات التصنيفات
         (StorefrontHeaderCategoryStrip) مباشرة تحت الـ sticky وقبل <main> — ليس داخل TopHeader.
         أول محتوى بعد الكتلة: pt-2 خفيف على أول طفل لـ main.
       */}
-      <main className="flex min-h-0 min-w-0 max-w-none flex-1 flex-col bg-page pb-mobile-commerce lg:pb-0 [&>*:first-child]:pt-2">
+      <main className="flex min-h-0 min-w-0 max-w-none flex-1 flex-col max-lg:relative max-lg:z-[1] max-lg:!bg-transparent bg-page pb-mobile-commerce lg:pb-0 [&>*:first-child]:pt-2">
         {children}
       </main>
       <FooterGate
