@@ -112,6 +112,8 @@ const registry: Record<string, React.ComponentType<{ className?: string }>> = {
   "spare-parts": IconSpareParts,
 };
 
+export { CATEGORY_ICON_SLUGS, type CategoryIconSlug } from "@/lib/category-icon-slugs";
+
 export type CategoryIconProps = {
   slug: string;
   className?: string;

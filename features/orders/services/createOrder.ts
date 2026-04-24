@@ -34,6 +34,7 @@ function buildMockOrder(data: CreateOrderPayload): WCOrder {
     payment_method: data.payment_method,
     payment_method_title: data.payment_method_title,
     customer_note: data.customer_note,
+    meta_data: data.meta_data?.map((e) => ({ key: e.key, value: e.value })) ?? [],
   };
 }
 

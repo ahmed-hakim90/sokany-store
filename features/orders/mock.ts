@@ -52,6 +52,7 @@ export const mockOrders: WCOrder[] = [
     payment_method: "cod",
     payment_method_title: "Cash on delivery",
     customer_note: "",
+    meta_data: [],
   },
   {
     id: 9002,
@@ -78,6 +79,7 @@ export const mockOrders: WCOrder[] = [
     payment_method: "cod",
     payment_method_title: "Cash on delivery",
     customer_note: "اتصلوا قبل التوصيل",
+    meta_data: [],
   },
   {
     id: 9003,
@@ -104,5 +106,6 @@ export const mockOrders: WCOrder[] = [
     payment_method: "cod",
     payment_method_title: "Cash on delivery",
     customer_note: "",
+    meta_data: [],
   },
 ];

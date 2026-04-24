@@ -18,6 +18,18 @@ function clearRecaptchaMountElement(containerId: string): void {
   }
 }
 
+function createRecaptchaMountNode(containerId: string): HTMLElement {
+  const container = document.getElementById(containerId);
+  if (!container) {
+    throw new Error("تعذر تهيئة reCAPTCHA. حدّث الصفحة وحاول مرة أخرى.");
+  }
+  container.replaceChildren();
+  const mount = document.createElement("div");
+  mount.id = `${containerId}-widget-${crypto.randomUUID()}`;
+  container.appendChild(mount);
+  return mount;
+}
+
 function getFirebaseAuthCode(error: unknown): string | null {
   if (error && typeof error === "object" && "code" in error) {
     return String((error as { code: string }).code).replace(/^auth\//, "");
@@ -73,13 +85,13 @@ export function useFirebasePhoneOtp(recaptchaContainerId: string): UseFirebasePh
           /* ignore */
         }
         verifierRef.current = null;
-        clearRecaptchaMountElement(recaptchaContainerId);
+        const recaptchaMount = createRecaptchaMountNode(recaptchaContainerId);
         await new Promise<void>((resolve) => {
           requestAnimationFrame(() => resolve());
         });
 
-        verifierRef.current = new RecaptchaVerifier(auth, recaptchaContainerId, {
-          size: "invisible",
+        verifierRef.current = new RecaptchaVerifier(auth, recaptchaMount, {
+          size: "compact",
           hl: "ar",
         });
         await verifierRef.current.render();
@@ -98,8 +110,9 @@ export function useFirebasePhoneOtp(recaptchaContainerId: string): UseFirebasePh
           } catch {
             /* ignore */
           }
-          verifierRef.current = new RecaptchaVerifier(auth, recaptchaContainerId, {
-            size: "invisible",
+          const retryMount = createRecaptchaMountNode(recaptchaContainerId);
+          verifierRef.current = new RecaptchaVerifier(auth, retryMount, {
+            size: "compact",
             hl: "ar",
           });
           await verifierRef.current.render();

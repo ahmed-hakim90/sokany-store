@@ -12,15 +12,13 @@ import { Toaster } from "sonner";
 import type { ToastClassnames } from "sonner";
 import { cn } from "@/lib/utils";
 
-/** تحت الهيدر الثابت (إعلان + شريط علوي) — لا تتداخل مع الـ sticky في `SiteShell`. */
-const TOAST_TOP_DESKTOP =
-  "calc(env(safe-area-inset-top, 0px) + 5rem)";
-const TOAST_TOP_MOBILE =
-  "calc(env(safe-area-inset-top, 0px) + 6.25rem)";
+/** فوق شريط التنقل/السلة — يُضبط ارتفاع الكروم في `MobileCommerceChrome`. */
+const MOBILE_TOAST_BOTTOM =
+  "calc(env(safe-area-inset-bottom, 0px) + var(--mobile-commerce-chrome-height, 5rem) + 0.75rem)";
 
 const toastClassNames = {
   toast: cn(
-    "!gap-3 !rounded-3xl !border !p-4 !shadow-[0_20px_48px_-16px_rgba(15,23,42,0.28),0_4px_12px_-4px_rgba(15,23,42,0.1)]",
+    "!gap-3 !rounded-3xl !border !border-white/50 !p-4 !shadow-[0_20px_48px_-16px_rgba(15,23,42,0.28),0_4px_12px_-4px_rgba(15,23,42,0.1)]",
     "!bg-white/90 !backdrop-blur-2xl !backdrop-saturate-150",
     "!text-slate-900",
   ),
@@ -46,13 +44,13 @@ export function ToastProvider() {
   return (
     <Toaster
       dir="rtl"
-      position="top-center"
+      position="bottom-center"
       richColors={false}
       closeButton
       duration={4000}
       gap={10}
-      offset={{ top: TOAST_TOP_DESKTOP }}
-      mobileOffset={{ top: TOAST_TOP_MOBILE }}
+      offset={{ bottom: "1.5rem" }}
+      mobileOffset={{ bottom: MOBILE_TOAST_BOTTOM }}
       toastOptions={{
         classNames: toastClassNames,
       }}

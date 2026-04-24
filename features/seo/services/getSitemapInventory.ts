@@ -1,5 +1,7 @@
 import "server-only";
 
+import { unstable_cache } from "next/cache";
+import { WOO_CACHE_TAG_PRODUCTS, WOO_CACHE_TAG_SITEMAP } from "@/lib/woocommerce-cache-tags";
 import { mockCategories } from "@/features/categories/mock";
 import { mockProducts } from "@/features/products/mock";
 import {
@@ -14,28 +16,12 @@ const PER_PAGE = 100;
 /** Safety cap — adjust if the catalog grows beyond ~50k published products. */
 const MAX_PRODUCT_PAGES = 500;
 
-/**
- * Product IDs and category slugs for `app/sitemap.ts`.
- * Uses WooCommerce when live; falls back to snapshot JSON or hand mocks.
- */
-export async function getSitemapInventory(): Promise<{
-  productIds: number[];
-  categorySlugs: string[];
-}> {
-  const fallbackProducts = getSnapshotProducts() ?? mockProducts;
-  const fallbackCategories = getSnapshotCategories() ?? mockCategories;
-
-  if (USE_MOCK) {
-    return {
-      productIds: fallbackProducts.map((p) => p.id),
-      categorySlugs: Array.from(
-        new Set(fallbackCategories.map((c) => c.slug).filter(Boolean)),
-      ),
-    };
-  }
-
-  try {
-    const woo = createWooClient();
+const fetchSitemapFromWoo = unstable_cache(
+  async (): Promise<{
+    productIds: number[];
+    categorySlugs: string[];
+  }> => {
+    const woo = await createWooClient();
     const productIds: number[] = [];
     for (let page = 1; page <= MAX_PRODUCT_PAGES; page += 1) {
       const res = await woo.get("/products", {
@@ -64,7 +50,37 @@ export async function getSitemapInventory(): Promise<{
       productIds,
       categorySlugs: Array.from(new Set(categorySlugs)),
     };
+  },
+  ["woo-sitemap-inventory-v1"],
+  { revalidate: 600, tags: [WOO_CACHE_TAG_SITEMAP, WOO_CACHE_TAG_PRODUCTS] },
+);
+
+/**
+ * Product IDs and category slugs for `app/sitemap.ts`.
+ * Uses WooCommerce when live; falls back to snapshot JSON or hand mocks.
+ */
+export async function getSitemapInventory(): Promise<{
+  productIds: number[];
+  categorySlugs: string[];
+}> {
+  const fallbackProducts = getSnapshotProducts() ?? mockProducts;
+  const fallbackCategories = getSnapshotCategories() ?? mockCategories;
+
+  if (USE_MOCK) {
+    return {
+      productIds: fallbackProducts.map((p) => p.id),
+      categorySlugs: Array.from(
+        new Set(fallbackCategories.map((c) => c.slug).filter(Boolean)),
+      ),
+    };
+  }
+
+  try {
+    return await fetchSitemapFromWoo();
   } catch {
+    if (!USE_MOCK) {
+      return { productIds: [], categorySlugs: [] };
+    }
     return {
       productIds: fallbackProducts.map((p) => p.id),
       categorySlugs: Array.from(

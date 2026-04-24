@@ -4,9 +4,14 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { AppImage } from "@/components/AppImage";
 import { Button } from "@/components/Button";
+import { CATEGORY_ICON_SLUGS, type CategoryIconSlug } from "@/lib/category-icon-slugs";
+import { ROUTES } from "@/lib/constants";
+import { HEADER_NAV_ROUTE_CHOICES, HEADER_NAV_ROUTE_CUSTOM } from "@/lib/header-nav-route-choices";
 import { SOCIAL_ICON_PRESETS, isKnownSocialIconKey } from "@/lib/social-icon-presets";
 import { SOCIAL_LINKS, type SocialLink } from "@/lib/social-links";
 import type {
+  CmsHeaderCategoryStrip,
+  CmsHomeCategoryScroller,
   CmsHomeHeroDoc,
   CmsRetailersDoc,
   CmsSectionBannersDoc,
@@ -14,6 +19,8 @@ import type {
   CmsTopAnnouncementBar,
 } from "@/schemas/cms";
 import {
+  cmsHeaderCategoryStripSchema,
+  cmsHomeCategoryScrollerSchema,
   cmsRetailersDocSchema,
   cmsSectionBannersDocSchema,
   cmsSocialLinkSchema,
@@ -24,15 +31,31 @@ import { z } from "zod";
 
 const ACCEPT_IMAGES = "image/jpeg,image/png,image/webp,image/gif,image/avif";
 
-export async function uploadControlImage(file: File): Promise<string> {
+export async function uploadControlImageToStorage(
+  file: File,
+  options?: { replacePath?: string; storageSubfolder?: string },
+): Promise<{ url: string; path: string }> {
   const form = new FormData();
   form.set("file", file);
   form.set("filename", file.name);
+  const r = options?.replacePath?.trim();
+  if (r) {
+    form.set("replacePath", r);
+  }
+  const sub = options?.storageSubfolder?.trim();
+  if (sub) {
+    form.set("subfolder", sub);
+  }
   const res = await fetch("/api/control/upload", { method: "POST", body: form });
-  const j = (await res.json()) as { url?: string; error?: string };
+  const j = (await res.json()) as { url?: string; path?: string; error?: string };
   if (!res.ok) throw new Error(j.error ?? "رفع فاشل");
-  if (!j.url?.trim()) throw new Error("لم يُرجع الخادم رابطًا للصورة");
-  return j.url.trim();
+  if (!j.url?.trim()) throw new Error("لم يُرجع الخادم رابطًا للعنوان العام");
+  return { url: j.url.trim(), path: (j.path ?? "").trim() || "cms/unknown" };
+}
+
+export async function uploadControlImage(file: File): Promise<string> {
+  const { url } = await uploadControlImageToStorage(file);
+  return url;
 }
 
 /** حقل رابط صورة لنماذج `FormData`: نص + رفع يملأ القيمة + `hidden` بنفس `name` للإرسال. */
@@ -1306,6 +1329,481 @@ export function HeroSlidesForm({
       <Button type="button" disabled={disabled} onClick={handleSave}>
         {disabled ? "جاري الحفظ…" : "حفظ شرائح الهيرو"}
       </Button>
+    </section>
+  );
+}
+
+const HEADER_ICON_LABELS: Record<CategoryIconSlug, string> = {
+  "kitchen-supplies": "مطبخ",
+  "home-appliances": "أجهزة منزلية",
+  "personal-care": "عناية شخصية",
+  "cloth-iron": "مكاوي",
+  "coffee-maker": "قهوة",
+  "spare-parts": "قطع غيار",
+};
+
+export function HeaderCategoryStripForm({
+  initial,
+  disabled,
+  onSave,
+}: {
+  initial: CmsHeaderCategoryStrip;
+  disabled: boolean;
+  onSave: (doc: CmsHeaderCategoryStrip) => void;
+}) {
+  const [enabled, setEnabled] = useState(initial.enabled);
+  const [items, setItems] = useState(initial.items);
+
+  useEffect(() => {
+    setEnabled(initial.enabled);
+    setItems(initial.items);
+  }, [initial]);
+
+  function presetForHref(href: string): string {
+    return HEADER_NAV_ROUTE_CHOICES.some((c) => c.value === href)
+      ? href
+      : HEADER_NAV_ROUTE_CUSTOM;
+  }
+
+  function updateItem(
+    index: number,
+    patch: Partial<{ href: string; iconKey: CategoryIconSlug; label: string }>,
+  ) {
+    setItems((prev) => {
+      const next = [...prev];
+      const cur = next[index];
+      if (!cur) return prev;
+      const label: string | undefined =
+        patch.label !== undefined
+          ? patch.label.trim() || undefined
+          : cur.label;
+      next[index] = {
+        href: (patch.href ?? cur.href).trim(),
+        iconKey: (patch.iconKey ?? cur.iconKey) as CategoryIconSlug,
+        ...(label ? { label } : {}),
+      };
+      return next;
+    });
+  }
+
+  function handleSave() {
+    const doc: CmsHeaderCategoryStrip = {
+      enabled,
+      items: items.map((it) => ({
+        href: it.href.trim(),
+        iconKey: it.iconKey,
+        label: it.label?.trim() ? it.label.trim() : undefined,
+      })),
+    };
+    const parsed = cmsHeaderCategoryStripSchema.safeParse(doc);
+    if (!parsed.success) {
+      toast.error(parsed.error.issues.map((i) => i.message).join(" — "));
+      return;
+    }
+    onSave(parsed.data);
+  }
+
+  return (
+    <section className="space-y-4 rounded-2xl border border-border bg-white p-5 shadow-sm">
+      <div>
+        <h2 className="font-display text-lg font-bold">شريط أيقونات التصنيفات</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          دوائر بأيقونات فقط تحت شريط الهيدر (موبايل وديسكتوب). يُفعّل ويُعرّف من هنا ويُحفظ في
+          Firestore.
+        </p>
+      </div>
+
+      <label className="flex items-center gap-2">
+        <input
+          type="checkbox"
+          checked={enabled}
+          disabled={disabled}
+          onChange={(e) => setEnabled(e.target.checked)}
+        />
+        <span className="text-sm font-medium">إظهار الشريط</span>
+      </label>
+
+      <ul className="space-y-3">
+        {items.map((item, i) => {
+          const preset = presetForHref(item.href);
+          return (
+            <li
+              key={i}
+              className="grid gap-2 rounded-xl border border-border/80 bg-surface-muted/20 p-3 sm:grid-cols-[1fr_1fr_minmax(0,1fr)_auto]"
+            >
+              <div>
+                <label className="text-xs font-medium text-muted-foreground">المسار</label>
+                <select
+                  className="mt-1 w-full rounded-lg border border-border px-2 py-2 text-sm"
+                  disabled={disabled}
+                  value={preset}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    if (v === HEADER_NAV_ROUTE_CUSTOM) {
+                      updateItem(i, { href: item.href || "/" });
+                    } else {
+                      updateItem(i, { href: v });
+                    }
+                  }}
+                >
+                  {HEADER_NAV_ROUTE_CHOICES.map((c) => (
+                    <option key={c.value} value={c.value}>
+                      {c.label}
+                    </option>
+                  ))}
+                  <option value={HEADER_NAV_ROUTE_CUSTOM}>— مسار مخصص (لصق يدوي) —</option>
+                </select>
+                {preset === HEADER_NAV_ROUTE_CUSTOM ? (
+                  <input
+                    type="text"
+                    className="mt-2 w-full rounded-lg border border-border px-2 py-2 font-mono text-sm"
+                    dir="ltr"
+                    disabled={disabled}
+                    value={item.href}
+                    placeholder="/categories/…"
+                    onChange={(e) => updateItem(i, { href: e.target.value })}
+                  />
+                ) : null}
+              </div>
+              <div>
+                <label className="text-xs font-medium text-muted-foreground">الأيقونة</label>
+                <select
+                  className="mt-1 w-full rounded-lg border border-border px-2 py-2 text-sm"
+                  disabled={disabled}
+                  value={item.iconKey}
+                  onChange={(e) =>
+                    updateItem(i, { iconKey: e.target.value as CategoryIconSlug })
+                  }
+                >
+                  {CATEGORY_ICON_SLUGS.map((slug) => (
+                    <option key={slug} value={slug}>
+                      {HEADER_ICON_LABELS[slug]}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="sm:col-span-1">
+                <label className="text-xs font-medium text-muted-foreground">
+                  وصف لقارئ الشاشة (اختياري)
+                </label>
+                <input
+                  type="text"
+                  className="mt-1 w-full rounded-lg border border-border px-2 py-2 text-sm"
+                  disabled={disabled}
+                  value={item.label ?? ""}
+                  placeholder="مثال: الانتقال إلى المطبخ"
+                  onChange={(e) => updateItem(i, { label: e.target.value })}
+                />
+              </div>
+              <div className="flex items-end justify-end">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  disabled={disabled}
+                  onClick={() => setItems((prev) => prev.filter((_, j) => j !== i))}
+                >
+                  حذف
+                </Button>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+
+      <div className="flex flex-wrap gap-2">
+        <Button
+          type="button"
+          variant="secondary"
+          disabled={disabled}
+          onClick={() =>
+            setItems((prev) => [
+              ...prev,
+              {
+                href: ROUTES.CATEGORIES,
+                iconKey: CATEGORY_ICON_SLUGS[0]!,
+                label: undefined,
+              },
+            ])
+          }
+        >
+          + إضافة أيقونة
+        </Button>
+        <Button type="button" disabled={disabled} onClick={() => void handleSave()}>
+          {disabled ? "جاري الحفظ…" : "حفظ شريط الأيقونات"}
+        </Button>
+      </div>
+    </section>
+  );
+}
+
+function HomeCategoryScrollerImageRow({
+  imageUrl,
+  onImageUrlChange,
+  disabled,
+}: {
+  imageUrl: string;
+  onImageUrlChange: (url: string) => void;
+  disabled: boolean;
+}) {
+  const [local, setLocal] = useState(imageUrl);
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setLocal(imageUrl);
+  }, [imageUrl]);
+
+  async function onFile(file: File | undefined) {
+    if (!file) return;
+    setUploading(true);
+    try {
+      const url = await uploadControlImage(file);
+      setLocal(url);
+      onImageUrlChange(url);
+      toast.success("تم رفع الصورة");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "فشل الرفع");
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  const trimmed = local.trim();
+  return (
+    <div>
+      <label className="text-xs font-medium text-muted-foreground">صورة البلاطة (URL)</label>
+      <div className="mt-1 flex flex-col gap-2 sm:flex-row sm:items-start sm:gap-2">
+        <input
+          type="text"
+          value={local}
+          onChange={(e) => {
+            setLocal(e.target.value);
+            onImageUrlChange(e.target.value);
+          }}
+          dir="ltr"
+          disabled={disabled}
+          placeholder="https://…"
+          autoComplete="off"
+          className="min-w-0 flex-1 rounded-lg border border-border px-3 py-2 font-mono text-sm"
+        />
+        <input
+          ref={fileRef}
+          type="file"
+          accept={ACCEPT_IMAGES}
+          className="sr-only"
+          tabIndex={-1}
+          disabled={disabled || uploading}
+          onChange={(e) => {
+            void onFile(e.target.files?.[0]);
+            e.target.value = "";
+          }}
+        />
+        <Button
+          type="button"
+          variant="secondary"
+          size="sm"
+          className="shrink-0"
+          disabled={disabled || uploading}
+          onClick={() => fileRef.current?.click()}
+        >
+          {uploading ? "جاري الرفع…" : "اختيار ملف"}
+        </Button>
+      </div>
+      {trimmed ? (
+        <div className="mt-2 max-h-24 max-w-[240px] overflow-hidden rounded-lg border border-border bg-surface-muted/40 p-0.5">
+          <AppImage
+            src={trimmed}
+            alt=""
+            width={240}
+            height={120}
+            className="h-[60px] w-full object-cover"
+            sizes="240px"
+          />
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+export function HomeCategoryScrollerForm({
+  initial,
+  disabled,
+  onSave,
+}: {
+  initial: CmsHomeCategoryScroller;
+  disabled: boolean;
+  onSave: (doc: CmsHomeCategoryScroller) => void;
+}) {
+  const [enabled, setEnabled] = useState(initial.enabled);
+  const [items, setItems] = useState(initial.items);
+
+  useEffect(() => {
+    setEnabled(initial.enabled);
+    setItems(initial.items);
+  }, [initial]);
+
+  function presetForHref(href: string): string {
+    return HEADER_NAV_ROUTE_CHOICES.some((c) => c.value === href)
+      ? href
+      : HEADER_NAV_ROUTE_CUSTOM;
+  }
+
+  function updateItem(
+    index: number,
+    patch: Partial<{ imageUrl: string; href: string; imageAlt: string }>,
+  ) {
+    setItems((prev) => {
+      const next = [...prev];
+      const cur = next[index];
+      if (!cur) return prev;
+      const imageAlt: string | undefined =
+        patch.imageAlt !== undefined
+          ? patch.imageAlt.trim() || undefined
+          : cur.imageAlt;
+      next[index] = {
+        imageUrl: (patch.imageUrl ?? cur.imageUrl).trim(),
+        href: (patch.href ?? cur.href).trim(),
+        ...(imageAlt ? { imageAlt } : {}),
+      };
+      return next;
+    });
+  }
+
+  function handleSave() {
+    const doc: CmsHomeCategoryScroller = {
+      enabled,
+      items: items.map((it) => ({
+        imageUrl: it.imageUrl.trim(),
+        href: it.href.trim(),
+        imageAlt: it.imageAlt?.trim() ? it.imageAlt.trim() : undefined,
+      })),
+    };
+    const parsed = cmsHomeCategoryScrollerSchema.safeParse(doc);
+    if (!parsed.success) {
+      toast.error(parsed.error.issues.map((i) => i.message).join(" — "));
+      return;
+    }
+    onSave(parsed.data);
+  }
+
+  return (
+    <section className="space-y-4 rounded-2xl border border-border bg-white p-5 shadow-sm">
+      <div>
+        <h2 className="font-display text-lg font-bold">سكroller صور تحت بانر الهيرو</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          عند التفعيل يستبدل الشريط الأفقي (٢٤٠×١٢٠) الافتراضي المبني من Woo ببلاطات: صورة + مسار. عند
+          إيقاف التشغيل يُعرض مرة أخرى من Woo كما سابقاً.
+        </p>
+      </div>
+
+      <label className="flex items-center gap-2">
+        <input
+          type="checkbox"
+          checked={enabled}
+          disabled={disabled}
+          onChange={(e) => setEnabled(e.target.checked)}
+        />
+        <span className="text-sm font-medium">استخدام صور ومسارات لوحة التحكم بدل Woo</span>
+      </label>
+
+      <ul className="space-y-4">
+        {items.map((item, i) => {
+          const preset = presetForHref(item.href);
+          return (
+            <li
+              key={i}
+              className="grid gap-3 rounded-xl border border-border/80 bg-surface-muted/20 p-3 lg:grid-cols-2"
+            >
+              <HomeCategoryScrollerImageRow
+                imageUrl={item.imageUrl}
+                disabled={disabled}
+                onImageUrlChange={(url) => updateItem(i, { imageUrl: url })}
+              />
+              <div className="space-y-2">
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground">المسار</label>
+                  <select
+                    className="mt-1 w-full rounded-lg border border-border px-2 py-2 text-sm"
+                    disabled={disabled}
+                    value={preset}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      if (v === HEADER_NAV_ROUTE_CUSTOM) {
+                        updateItem(i, { href: item.href || "/" });
+                      } else {
+                        updateItem(i, { href: v });
+                      }
+                    }}
+                  >
+                    {HEADER_NAV_ROUTE_CHOICES.map((c) => (
+                      <option key={c.value} value={c.value}>
+                        {c.label}
+                      </option>
+                    ))}
+                    <option value={HEADER_NAV_ROUTE_CUSTOM}>— مسار مخصص (لصق يدوي) —</option>
+                  </select>
+                  {preset === HEADER_NAV_ROUTE_CUSTOM ? (
+                    <input
+                      type="text"
+                      className="mt-2 w-full rounded-lg border border-border px-2 py-2 font-mono text-sm"
+                      dir="ltr"
+                      disabled={disabled}
+                      value={item.href}
+                      placeholder="/categories/…"
+                      onChange={(e) => updateItem(i, { href: e.target.value })}
+                    />
+                  ) : null}
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground">نص بديل (alt) اختياري</label>
+                  <input
+                    type="text"
+                    className="mt-1 w-full rounded-lg border border-border px-2 py-2 text-sm"
+                    disabled={disabled}
+                    value={item.imageAlt ?? ""}
+                    onChange={(e) => updateItem(i, { imageAlt: e.target.value })}
+                    placeholder="وصف قصير للصورة"
+                  />
+                </div>
+                <div className="flex justify-end">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    disabled={disabled}
+                    onClick={() => setItems((prev) => prev.filter((_, j) => j !== i))}
+                  >
+                    حذف
+                  </Button>
+                </div>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+
+      <div className="flex flex-wrap gap-2">
+        <Button
+          type="button"
+          variant="secondary"
+          disabled={disabled}
+          onClick={() =>
+            setItems((prev) => [
+              ...prev,
+              {
+                imageUrl: "",
+                href: ROUTES.CATEGORIES,
+              },
+            ])
+          }
+        >
+          + إضافة بلاطة
+        </Button>
+        <Button type="button" disabled={disabled} onClick={() => void handleSave()}>
+          {disabled ? "جاري الحفظ…" : "حفظ سكroller التصنيفات"}
+        </Button>
+      </div>
     </section>
   );
 }

@@ -6,10 +6,15 @@ export const metadata: Metadata = {
 };
 
 /*
- * غلاف مسارات /control: بدون شريط متجر كامل — المحتوى يحدد العرض داخل الصفحات.
+ * غلاف /control: خلفية مسطّحة، سلسلة flex بارتفاع الشاشة حتى يلتقط /control (لوحة) flex-1 و min-h-0
+ * (نمط غلاف تطبيق: Stripe-like).
  */
 export default function ControlLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  return <div className="min-h-screen bg-page">{children}</div>;
+  return (
+    <div className="flex min-h-dvh w-full min-h-0 flex-col bg-[#f6f9fc]">
+      {children}
+    </div>
+  );
 }

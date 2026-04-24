@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { CATEGORY_ICON_SLUGS } from "@/lib/category-icon-slugs";
 
 /** Promo strip on home — countdown until `endsAt` (ISO). */
 export const cmsPromoFlashSchema = z.object({
@@ -78,12 +79,110 @@ export const cmsSearchQuickKeywordsSchema = z
   .max(40)
   .optional();
 
+const cmsHeaderCategoryIconKeySchema = z.enum(
+  CATEGORY_ICON_SLUGS as unknown as [string, ...string[]],
+);
+
+/** شريط دوائر (أيقونات فقط) تحت شريط الهيدر — يُدار من لوحة التحكم. */
+export const cmsHeaderCategoryStripItemSchema = z.object({
+  /** مسار داخلي يبدأ بـ `/` (مثال: `/categories/coffee-maker`). */
+  href: z
+    .string()
+    .min(1)
+    .max(500)
+    .refine(
+      (h) => h.startsWith("/") && !h.startsWith("//") && !h.includes(".."),
+      "مسار داخلي صالح",
+    ),
+  /** يطابق مفاتيح `CategoryIcon` في `category-icon-registry`. */
+  iconKey: cmsHeaderCategoryIconKeySchema,
+  /** وصف قصير لقارئ الشاشة (اختياري). */
+  label: z.string().min(1).max(80).optional(),
+});
+
+export type CmsHeaderCategoryStripItem = z.infer<typeof cmsHeaderCategoryStripItemSchema>;
+
+export const cmsHeaderCategoryStripSchema = z.object({
+  enabled: z.boolean(),
+  items: z.array(cmsHeaderCategoryStripItemSchema).max(20),
+});
+
+export type CmsHeaderCategoryStrip = z.infer<typeof cmsHeaderCategoryStripSchema>;
+
+export const CMS_DEFAULT_HEADER_CATEGORY_STRIP: CmsHeaderCategoryStrip = {
+  enabled: false,
+  items: [],
+};
+
+const internalPathRefine = (h: string) =>
+  h.startsWith("/") && !h.startsWith("//") && !h.includes("..");
+
+/** بلاطات سكroller الصور تحت بانر الهيرو (بديل عن Woo) — `site_config.homeCategoryScroller`. */
+export const cmsHomeCategoryScrollerItemSchema = z.object({
+  imageUrl: z.string().min(1).max(800),
+  href: z
+    .string()
+    .min(1)
+    .max(500)
+    .refine(internalPathRefine, "مسار داخلي صالح"),
+  imageAlt: z.string().min(1).max(200).optional(),
+});
+
+export type CmsHomeCategoryScrollerItem = z.infer<typeof cmsHomeCategoryScrollerItemSchema>;
+
+export const cmsHomeCategoryScrollerSchema = z.object({
+  enabled: z.boolean(),
+  items: z.array(cmsHomeCategoryScrollerItemSchema).max(24),
+});
+
+export type CmsHomeCategoryScroller = z.infer<typeof cmsHomeCategoryScrollerSchema>;
+
+export const CMS_DEFAULT_HOME_CATEGORY_SCROLLER: CmsHomeCategoryScroller = {
+  enabled: false,
+  items: [],
+};
+
+/**
+ * `site_config` عبر `safeParse` — `headerCategoryStrip` / `homeCategoryScroller` يُتحققان لاحقاً
+ * بـ schemata منفصلة حتى لا تفسد قيمة قديمة باقي الحقول.
+ */
+/**
+ * تكاملات **علنية** فقط. المفاتيح السرية (Woo consumer، أسرار الويبهوك) → `.env` / Vercel وليس Firestore.
+ * يُستخرج `publicReadBaseUrl` و`externalDataWebhookUrl` لـ `getPublicSiteContent`.
+ * `adminNote` لا يُمرَّر للواجهة العامة — يظهر فقط في لوحة التحكم.
+ */
+export const cmsStorefrontIntegrationsSchema = z.object({
+  /**
+   * أصل ووردبرس/وُوكومرس (مثال: ‎`https://shop.example.com`‎) — اختياري.
+   * عند التعيين يُستخدم **بدل** ‎`WC_BASE_URL`‎ لطلبات REST من السيرفر. المفاتيح ‎`WC_CONSUMER_*`‎ تبقى في البيئة.
+   */
+  wooBaseUrl: z.string().url().max(500).optional(),
+  /**
+   * نطاق واجهة نيكست العلنية (مثال: ‎`https://app.example.com`‎) اختياري.
+   * عند التعيين يُبنى منه رابط ‎`POST`‎ لويبهوك وو والبيانات الخارجي (بدل ‎`NEXT_PUBLIC_SITE_URL` / ‎`VERCEL_URL`‎).
+   */
+  publicStorefrontBaseUrl: z.string().url().max(500).optional(),
+  publicReadBaseUrl: z.string().url().max(500).optional(),
+  /**
+   * رابط HTTPS كامل لـ `POST` ويب هوك البيانات الخارجي (HMAC) — للعرض والنسخ في `/control/woo-api` فقط.
+   * ليس بديل `EXTERNAL_DATA_WEBHOOK_SECRET` في env.
+   */
+  externalDataWebhookUrl: z.string().url().max(500).optional(),
+  adminNote: z.string().max(2000).optional(),
+});
+
+export type CmsStorefrontIntegrations = z.infer<typeof cmsStorefrontIntegrationsSchema>;
+
 export const cmsSiteConfigDocSchema = z.object({
   promoFlash: cmsPromoFlashSchema,
   topAnnouncementBar: cmsTopAnnouncementBarSchema.optional(),
   socialLinks: z.array(cmsSocialLinkSchema).max(12).optional(),
   branding: cmsSiteBrandingSchema.optional(),
   searchQuickKeywords: cmsSearchQuickKeywordsSchema,
+  headerCategoryStrip: z.any().optional(),
+  homeCategoryScroller: z.any().optional(),
+  /** عناوين وقراءة عامة مدارة من `/control` — بلا أسرار. */
+  storefrontIntegrations: cmsStorefrontIntegrationsSchema.optional(),
   updatedAt: z.unknown().optional(),
 });
 

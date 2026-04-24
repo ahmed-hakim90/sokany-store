@@ -43,6 +43,7 @@ export function CatalogFilterDrawer() {
       open={open}
       onOpenChange={onOpenChange}
       modal
+      direction="left"
       dismissible
       shouldScaleBackground={false}
     >
@@ -51,18 +52,20 @@ export function CatalogFilterDrawer() {
         <Drawer.Content
           id="catalog-filter-drawer-panel"
           className={cn(
-            "fixed inset-x-0 bottom-0 z-[100] mx-auto flex max-h-[92dvh] min-w-0 max-w-lg flex-col rounded-t-2xl border border-border/80 bg-page outline-none",
-            "pb-[env(safe-area-inset-bottom)]",
+            "fixed left-0 top-0 z-[100] flex h-dvh min-h-0 w-[min(20rem,92vw)] max-w-lg flex-col border-s border-y border-border/80 bg-page shadow-2xl outline-none",
+            "max-h-[100dvh] sm:w-[22rem] sm:max-w-md",
+            "pt-[max(0.5rem,env(safe-area-inset-top))] pb-[max(0.5rem,env(safe-area-inset-bottom))]",
           )}
         >
-          <Drawer.Handle className="mx-auto mt-2.5 h-1.5 w-12 shrink-0 rounded-full bg-border" />
-          <Drawer.Title className="px-4 pt-2 text-center font-display text-base font-semibold text-brand-950">
-            تصفية المنتجات
-          </Drawer.Title>
+          <div className="shrink-0 border-b border-border/80 px-2 pb-2 pt-1">
+            <Drawer.Title className="px-2 py-1 text-center font-display text-base font-semibold text-brand-950">
+              تصفية المنتجات
+            </Drawer.Title>
+          </div>
           <Drawer.Description className="sr-only">
             اختر التصنيف والسعر والترتيب ثم اعرض نتائج الكتالوج.
           </Drawer.Description>
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-4 pb-2 pt-4">
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-4 pb-2 pt-2">
             <Suspense fallback={<CatalogFilterFormFallback />}>
               <CatalogFilterForm resetKey={resetKey} />
             </Suspense>

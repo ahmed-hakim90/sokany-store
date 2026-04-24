@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { Link } from "next-view-transitions";
 import { Container } from "@/components/Container";
 import { EmptyState } from "@/components/EmptyState";
@@ -9,8 +9,8 @@ import { useCart } from "@/hooks/useCart";
 import { useProductsCatalog } from "@/hooks/useProductsCatalog";
 import { ROUTES } from "@/lib/constants";
 import { focusProductSearchHeaderInput } from "@/lib/product-search-header";
+import { CatalogPagination } from "@/features/catalog/components/CatalogPagination";
 import { ProductGrid } from "@/features/products/components/ProductGrid";
-import { CatalogPromoTile } from "@/features/catalog/components/catalog-promo-tile";
 
 /*
  * صفحة الكتالوج (/products):
@@ -26,7 +26,7 @@ export function ProductsPageContent() {
     return () => window.cancelAnimationFrame(frame);
   }, []);
 
-  const { productsQuery, searchParams } = useProductsCatalog();
+  const { productsQuery, searchParams, catalogParams } = useProductsCatalog();
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -34,42 +34,65 @@ export function ProductsPageContent() {
 
   const { getCartLineQuantity, setProductLineQuantity } = useCart();
 
+  const getPageHref = useCallback(
+    (page: number) => {
+      const sp = new URLSearchParams(searchParams.toString());
+      if (page <= 1) sp.delete("page");
+      else sp.set("page", String(page));
+      const q = sp.toString();
+      return q ? `${ROUTES.PRODUCTS}?${q}` : ROUTES.PRODUCTS;
+    },
+    [searchParams],
+  );
+
+  const pagedItems = productsQuery.data?.items ?? [];
+  const totalPages = productsQuery.data?.totalPages ?? 1;
+  const currentCatalogPage = catalogParams.page ?? 1;
+
   const catalogGrid = productsQuery.isError ? (
     <ErrorState
       message={productsQuery.error.message}
       onRetry={() => void productsQuery.refetch()}
     />
   ) : (
-    <ProductGrid
-      status={
-        productsQuery.isPending
-          ? "loading"
-          : !productsQuery.data?.length
-            ? "empty"
-            : "ready"
-      }
-      products={productsQuery.data ?? []}
-      getCartLineQuantity={getCartLineQuantity}
-      onCartLineQuantityChange={setProductLineQuantity}
-      cardVariant="mobileCompact"
-      cardVariantMd="desktopCatalogWide"
-      leadingSlot={<CatalogPromoTile />}
-      gridClassName="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4"
-      empty={
-        <EmptyState
-          title="لا توجد منتجات"
-          description="جرّب بحثاً آخر أو اضبط التصفية من أيقونة الفلتر بجانب البحث."
-          action={
-            <Link
-              href={ROUTES.PRODUCTS}
-              className="inline-flex h-10 items-center justify-center rounded-md border border-border bg-white px-4 text-sm font-medium text-foreground hover:bg-surface-muted"
-            >
-              إعادة التعيين
-            </Link>
-          }
+    <>
+      <ProductGrid
+        status={
+          productsQuery.isPending
+            ? "loading"
+            : !pagedItems.length
+              ? "empty"
+              : "ready"
+        }
+        products={pagedItems}
+        getCartLineQuantity={getCartLineQuantity}
+        onCartLineQuantityChange={setProductLineQuantity}
+        cardVariant="mobileCompact"
+        cardVariantMd="desktopCatalogWide"
+        gridClassName="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4"
+        empty={
+          <EmptyState
+            title="لا توجد منتجات"
+            description="جرّب بحثاً آخر أو اضبط التصفية من أيقونة الفلتر بجانب البحث."
+            action={
+              <Link
+                href={ROUTES.PRODUCTS}
+                className="inline-flex h-10 items-center justify-center rounded-md border border-border bg-white px-4 text-sm font-medium text-foreground hover:bg-surface-muted"
+              >
+                إعادة التعيين
+              </Link>
+            }
+          />
+        }
+      />
+      {!productsQuery.isPending && !productsQuery.isError && pagedItems.length > 0 ? (
+        <CatalogPagination
+          currentPage={currentCatalogPage}
+          totalPages={totalPages}
+          getHref={getPageHref}
         />
-      }
-    />
+      ) : null}
+    </>
   );
 
   return (

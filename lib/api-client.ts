@@ -25,11 +25,21 @@ apiClient.interceptors.response.use(
   (error: AxiosError) => {
     if (error.response?.status === 401 && typeof window !== "undefined") {
       const url = error.config?.url ?? "";
+      const method = (error.config?.method ?? "get").toLowerCase();
       if (
         url.includes("/auth/login") ||
         url.includes("/auth/firebase") ||
         url.includes("/auth/register") ||
         url.includes("/auth/logout")
+      ) {
+        return Promise.reject(error);
+      }
+      // Public GETs proxied to Woo can return 401 (bad/readonly keys, endpoint policy). That is not a storefront session expiry.
+      if (
+        method === "get" &&
+        (url === "reviews" ||
+          url.startsWith("reviews?") ||
+          url.includes("/reviews"))
       ) {
         return Promise.reject(error);
       }

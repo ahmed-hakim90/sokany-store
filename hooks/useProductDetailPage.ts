@@ -9,6 +9,7 @@ import { useProducts } from "@/features/products/hooks/useProducts";
 import { useReviews } from "@/features/reviews/hooks/useReviews";
 import type { Product } from "@/features/products/types";
 import type { ProductSpecItem } from "@/features/products/components/ProductSpecsList";
+import { appendWooExcessToProductSpecs } from "@/features/products/lib/woo-excess-to-specs";
 
 function buildProductSpecs(product: Product): ProductSpecItem[] {
   const fromAttributes = product.attributes
@@ -70,14 +71,17 @@ export function useProductDetailPage(id: number) {
   });
 
   const relatedProducts = useMemo(() => {
-    const products = relatedQuery.data ?? [];
+    const products = relatedQuery.data?.items ?? [];
     return products.filter((product) => product.id !== id).slice(0, 8);
   }, [relatedQuery.data, id]);
 
-  const specs = useMemo(
-    () => (productQuery.data ? buildProductSpecs(productQuery.data) : []),
-    [productQuery.data],
-  );
+  const specs = useMemo(() => {
+    if (!productQuery.data) {
+      return [];
+    }
+    const base = buildProductSpecs(productQuery.data);
+    return appendWooExcessToProductSpecs(productQuery.data, base);
+  }, [productQuery.data]);
 
   return {
     productQuery,

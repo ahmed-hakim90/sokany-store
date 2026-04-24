@@ -5,13 +5,24 @@ import {
   verifyControlSessionToken,
 } from "@/lib/control-session";
 
+function withRequestId(res: NextResponse, id: string): NextResponse {
+  res.headers.set("X-Sokany-Request-Id", id);
+  return res;
+}
+
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const id = globalThis.crypto.randomUUID();
+
+  if (pathname.startsWith("/api/")) {
+    return withRequestId(NextResponse.next(), id);
+  }
+
   if (!pathname.startsWith("/control")) {
     return NextResponse.next();
   }
   if (pathname === "/control/login") {
-    return NextResponse.next();
+    return withRequestId(NextResponse.next(), id);
   }
 
   const token = request.cookies.get(CONTROL_SESSION_COOKIE_NAME)?.value;
@@ -20,7 +31,7 @@ export async function proxy(request: NextRequest) {
   }
   try {
     await verifyControlSessionToken(token);
-    return NextResponse.next();
+    return withRequestId(NextResponse.next(), id);
   } catch {
     const res = NextResponse.redirect(new URL("/control/login", request.url));
     res.cookies.delete(CONTROL_SESSION_COOKIE_NAME);
@@ -29,5 +40,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/control", "/control/:path*"],
+  matcher: ["/api/:path*", "/control", "/control/:path*"],
 };

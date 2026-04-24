@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { useTransitionRouter } from "next-view-transitions";
 import { Button } from "@/components/Button";
 import { Container } from "@/components/Container";
@@ -22,11 +23,15 @@ import { useCategories } from "@/features/categories/hooks/useCategories";
 import { HomeCategoryImageScroller } from "@/features/home/components/home-category-image-scroller";
 import { HomeFlashSaleCountdownStrip } from "@/features/home/components/home-flash-sale-countdown";
 import { useProducts } from "@/features/products/hooks/useProducts";
+import {
+  CMS_DEFAULT_HOME_CATEGORY_SCROLLER,
+  type CmsHomeCategoryScroller,
+} from "@/schemas/cms";
 
 /*
  * الصفحة الرئيسية (/): عمود واحد داخل Container بمسافات رأسية تتسع تدريجياً (sm → md).
  * التسلسل: هيرو (سكروول أفقي + auto-rotate) → شريط صور التصنيفات
- * (240×120 سكروول أفقي؛ سيليكتون أثناء تحميل التصنيفات من الـ API) → عروض سريعة (بانر أزرق + عداد + CTA ثم شبكة on_sale) → كبسولة خدمات (٤ عناصر في سطر واحد على كل الشاشات)
+ * (٢٤٠×١٢٠: Woo أو `homeCategoryScroller` من CMS) → عروض سريعة (بانر أزرق + عداد + CTA ثم شبكة on_sale) → كبسولة خدمات (٤ عناصر في سطر واحد على كل الشاشات)
  * → الأكثر مبيعاً (featured) → وصل حديثاً (orderby تاريخ) → أقسام الأب للتصنيفات
  * (هيكل تحميل حتى تُحمَّل قائمة التصنيفات ثم المحتوى الفعلي) → بطاقة ترويجي في الأسفل.
  */
@@ -54,6 +59,8 @@ export type HomePageContentProps = {
   };
   /** بطاقة الترويج أسفل الصفحة — افتراضي ثابت أو من spotlight في Firestore. */
   homeBottomPromo?: HomeBottomPromo;
+  /** سكroller الصور تحت بانر الهيرو — من `site_config`، أو Woo عند التعطيل/الفارغ. */
+  homeCategoryScroller?: CmsHomeCategoryScroller;
 };
 
 const DEFAULT_BOTTOM_PROMO: HomeBottomPromo = {
@@ -70,6 +77,7 @@ export function HomePageContent({
   flashSaleSectionEnabled = true,
   promoFlash,
   homeBottomPromo = DEFAULT_BOTTOM_PROMO,
+  homeCategoryScroller = CMS_DEFAULT_HOME_CATEGORY_SCROLLER,
 }: HomePageContentProps) {
   const router = useTransitionRouter();
   const featured = useProducts({ featured: true, per_page: 8 });
@@ -86,11 +94,29 @@ export function HomePageContent({
   });
   const categories = useCategories({ per_page: 100 });
   const { getCartLineQuantity, setProductLineQuantity } = useCart();
-  const categoryTiles = (categories.data ?? []).map((category) => ({
-    imageSrc: category.image ?? "/images/placeholder.png",
-    imageAlt: category.name,
-    href: ROUTES.CATEGORY(category.slug),
-  }));
+  const categoryTiles = useMemo(() => {
+    if (
+      homeCategoryScroller.enabled &&
+      homeCategoryScroller.items.length > 0
+    ) {
+      return homeCategoryScroller.items.map((it) => ({
+        imageSrc: it.imageUrl,
+        imageAlt: it.imageAlt,
+        href: it.href,
+      }));
+    }
+    return (categories.data ?? []).map((category) => ({
+      imageSrc: category.image ?? "/images/placeholder.png",
+      imageAlt: category.name,
+      href: ROUTES.CATEGORY(category.slug),
+    }));
+  }, [homeCategoryScroller, categories.data]);
+
+  const homeCategoryScrollerLoading = !(
+    homeCategoryScroller.enabled && homeCategoryScroller.items.length > 0
+  )
+    ? categories.isPending
+    : false;
 
   return (
     <div className="animate-fade-in bg-page">
@@ -101,7 +127,7 @@ export function HomePageContent({
         {/* تحت البانر مباشرة: شريط صور ديناميكي من التصنيفات المتاحة في API */}
         <HomeCategoryImageScroller
           tiles={categoryTiles}
-          isLoading={categories.isPending}
+          isLoading={homeCategoryScrollerLoading}
         />
 
         {/* عروض سريعة: منتجات مخفّضة من WooCommerce + عداد تنازلي */}
@@ -110,7 +136,7 @@ export function HomePageContent({
             message={flashSales.error.message}
             onRetry={() => void flashSales.refetch()}
           />
-        ) : flashSales.isPending || (flashSales.data?.length ?? 0) > 0 ? (
+        ) : flashSales.isPending || (flashSales.data?.items.length ?? 0) > 0 ? (
           <section className="space-y-4" aria-labelledby="home-flash-sales-title">
             <HomeFlashSaleCountdownStrip
               className="w-full"
@@ -122,11 +148,11 @@ export function HomePageContent({
               status={
                 flashSales.isPending
                   ? "loading"
-                  : !flashSales.data?.length
+                  : !flashSales.data?.items.length
                     ? "empty"
                     : "ready"
               }
-              products={flashSales.data ?? []}
+              products={flashSales.data?.items ?? []}
               getCartLineQuantity={getCartLineQuantity}
               onCartLineQuantityChange={setProductLineQuantity}
               cardVariant="mobileCompact"
@@ -174,11 +200,11 @@ export function HomePageContent({
               status={
                 featured.isPending
                   ? "loading"
-                  : !featured.data?.length
+                  : !featured.data?.items.length
                     ? "empty"
                     : "ready"
               }
-              products={featured.data ?? []}
+              products={featured.data?.items ?? []}
               getCartLineQuantity={getCartLineQuantity}
               onCartLineQuantityChange={setProductLineQuantity}
               cardVariant="mobileCompact"
@@ -205,7 +231,7 @@ export function HomePageContent({
             message={newArrivals.error.message}
             onRetry={() => void newArrivals.refetch()}
           />
-        ) : newArrivals.isPending || (newArrivals.data?.length ?? 0) > 0 ? (
+        ) : newArrivals.isPending || (newArrivals.data?.items.length ?? 0) > 0 ? (
           <section className="space-y-4" aria-labelledby="home-new-arrivals-title">
             <div className="flex flex-col items-center gap-2 text-center">
               <h2
@@ -219,11 +245,11 @@ export function HomePageContent({
               status={
                 newArrivals.isPending
                   ? "loading"
-                  : !newArrivals.data?.length
+                  : !newArrivals.data?.items.length
                     ? "empty"
                     : "ready"
               }
-              products={newArrivals.data ?? []}
+              products={newArrivals.data?.items ?? []}
               getCartLineQuantity={getCartLineQuantity}
               onCartLineQuantityChange={setProductLineQuantity}
               cardVariant="mobileCompact"

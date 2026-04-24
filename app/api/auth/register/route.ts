@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
     lastName,
   };
   try {
-    const woo = createWooClient();
+    const woo = await createWooClient();
     const res = await woo.post<{ id: number }>("/customers", {
       email: payload.email,
       username: payload.username,

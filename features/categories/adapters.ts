@@ -1,6 +1,10 @@
 import { stripHtml } from "@/lib/utils";
 import { toAbsoluteSiteUrl } from "@/lib/site";
 import type { Category, WCCategory } from "@/features/categories/types";
+import {
+  WOO_V3_CATEGORY_SCHEMA_KEYS,
+  pickWooExcess,
+} from "@/lib/woo-passthrough-keys";
 
 function normalizeCategoryImageSrc(src: string): string {
   const trimmed = src.trim();
@@ -18,6 +22,7 @@ export function mapCategory(raw: WCCategory): Category {
     image: raw.image?.src ? normalizeCategoryImageSrc(raw.image.src) : null,
     count: raw.count,
     parentId: raw.parent,
+    wooExcess: pickWooExcess(raw as object, WOO_V3_CATEGORY_SCHEMA_KEYS),
   };
 }
 

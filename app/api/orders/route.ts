@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
   }
   try {
     const { searchParams } = new URL(request.url);
-    const woo = createWooClient();
+    const woo = await createWooClient();
     const params = Object.fromEntries(searchParams.entries());
     const data = await listWooOrdersForSession(woo, session, params);
     return NextResponse.json(data, {
@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body: unknown = await request.json();
-    const woo = createWooClient();
+    const woo = await createWooClient();
     const response = await woo.post("/orders", body);
     return NextResponse.json(response.data, { status: 201 });
   } catch {

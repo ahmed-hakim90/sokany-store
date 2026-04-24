@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
+import { useSearchParams } from "next/navigation";
 import { Link } from "next-view-transitions";
 import { useTransitionRouter } from "next-view-transitions";
 import { Button } from "@/components/Button";
@@ -10,7 +11,7 @@ import { useCart } from "@/hooks/useCart";
 import { ROUTES } from "@/lib/constants";
 import { useCategories } from "@/features/categories/hooks/useCategories";
 import { useProducts } from "@/features/products/hooks/useProducts";
-import { CatalogPromoTile } from "@/features/catalog/components/catalog-promo-tile";
+import { CatalogPagination } from "@/features/catalog/components/CatalogPagination";
 import { ProductGrid } from "@/features/products/components/ProductGrid";
 import { ProductSkeleton } from "@/features/products/components/ProductSkeleton";
 import type { Product } from "@/features/products/types";
@@ -47,17 +48,23 @@ function CategorySlugProductsSection({
   getCartLineQuantity,
   onCartLineQuantityChange,
   router,
+  categorySlug,
+  page,
 }: {
   productsQuery: ReturnType<typeof useProducts>;
   getCartLineQuantity: (productId: number) => number;
   onCartLineQuantityChange: (product: Product, next: number) => void;
   router: ReturnType<typeof useTransitionRouter>;
+  categorySlug: string;
+  page: number;
 }) {
+  const items = productsQuery.data?.items;
   const showRefreshSkeleton =
     productsQuery.isFetching &&
     !productsQuery.isPending &&
     !productsQuery.isError &&
-    Boolean(productsQuery.data?.length);
+    Boolean(items?.length);
+  const totalPages = productsQuery.data?.totalPages ?? 1;
 
   return productsQuery.isError ? (
     <ErrorState
@@ -70,16 +77,15 @@ function CategorySlugProductsSection({
         status={
           productsQuery.isPending || showRefreshSkeleton
             ? "loading"
-            : !productsQuery.data?.length
+            : !items?.length
               ? "empty"
               : "ready"
         }
-        products={productsQuery.data ?? []}
+        products={items ?? []}
         getCartLineQuantity={getCartLineQuantity}
         onCartLineQuantityChange={onCartLineQuantityChange}
         cardVariant="mobileCompact"
         cardVariantMd="desktopCatalogWide"
-        leadingSlot={<CatalogPromoTile />}
         gridClassName="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4"
         empty={
           <EmptyState
@@ -93,6 +99,17 @@ function CategorySlugProductsSection({
           />
         }
       />
+      {!productsQuery.isPending && !productsQuery.isError && items && items.length > 0 ? (
+        <CatalogPagination
+          currentPage={page}
+          totalPages={totalPages}
+          getHref={(p) =>
+            p <= 1
+              ? ROUTES.CATEGORY(categorySlug)
+              : `${ROUTES.CATEGORY(categorySlug)}?page=${p}`
+          }
+        />
+      ) : null}
     </div>
   );
 }
@@ -103,7 +120,18 @@ function CategorySlugProductsSection({
  */
 export function CategorySlugPageContent({ slug }: { slug: string }) {
   const router = useTransitionRouter();
-  const categoriesNav = useCategories();
+  const searchParams = useSearchParams();
+  const page = useMemo(
+    () => Math.max(1, parseInt(searchParams.get("page") ?? "1", 10) || 1),
+    [searchParams],
+  );
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    window.scrollTo(0, 0);
+  }, [slug, page]);
+
+  const categoriesNav = useCategories({ per_page: 100 });
   const navCategories = categoriesNav.data;
   const activeCategory = useMemo(
     () => navCategories?.find((category) => category.slug === slug) ?? null,
@@ -114,14 +142,19 @@ export function CategorySlugPageContent({ slug }: { slug: string }) {
   const productParams = useMemo(
     () =>
       categoryId
-        ? { category: categoryId, per_page: 12, page: 1 }
+        ? {
+            category: categoryId,
+            per_page: 12,
+            page,
+            include_children: true,
+          }
         : undefined,
-    [categoryId],
+    [categoryId, page],
   );
 
   const productsQuery = useProducts(productParams, {
     enabled: Boolean(categoryId),
-    keepPreviousData: true,
+    keepPreviousData: false,
   });
   const { getCartLineQuantity, setProductLineQuantity } = useCart();
 
@@ -178,6 +211,8 @@ export function CategorySlugPageContent({ slug }: { slug: string }) {
           getCartLineQuantity={getCartLineQuantity}
           onCartLineQuantityChange={setProductLineQuantity}
           router={router}
+          categorySlug={slug}
+          page={page}
         />
       </div>
     </>

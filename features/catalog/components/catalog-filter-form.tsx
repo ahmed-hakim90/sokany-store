@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useTransitionRouter } from "next-view-transitions";
 import { startTransition } from "react";
@@ -53,7 +53,7 @@ export function CatalogFilterForm({ resetKey }: CatalogFilterFormProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const closeDrawer = useCatalogFilterDrawerOpenStore((s) => s.closeDrawer);
-  const categoriesQuery = useCategories();
+  const categoriesQuery = useCategories({ per_page: 100 });
 
   const [featured, setFeatured] = useState(false);
   const [categoryId, setCategoryId] = useState<number | null>(null);
@@ -107,7 +107,10 @@ export function CatalogFilterForm({ resetKey }: CatalogFilterFormProps) {
     });
   };
 
-  const categories = categoriesQuery.data ?? [];
+  const categories = useMemo(
+    () => (categoriesQuery.data ?? []).filter((c) => c.count > 0),
+    [categoriesQuery.data],
+  );
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-6">

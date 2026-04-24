@@ -1,10 +1,29 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/Button";
 import { requestWebPushSubscription } from "@/features/push/useFcmWebPush";
 
-const STORAGE_KEY = "sokany-push-consent-dismissed";
+/** تخزين مؤقّت للجلسة فقط: يظهر البانر مجددًا عند زيارة جديدة (تبويب/جلسة) إن لم يُفعّل الإشعار. */
+const SESSION_DISMISS_KEY = "sokany-push-consent-dismissed";
+
+function readSessionDismissed(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    return window.sessionStorage.getItem(SESSION_DISMISS_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function writeSessionDismissed(): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.sessionStorage.setItem(SESSION_DISMISS_KEY, "1");
+  } catch {
+    /* private mode or quota */
+  }
+}
 
 export function WebPushConsentBanner() {
   const swEnabled = process.env.NEXT_PUBLIC_ENABLE_SW === "true";
@@ -14,21 +33,48 @@ export function WebPushConsentBanner() {
   const [pending, setPending] = useState(false);
   const [permission, setPermission] = useState<NotificationPermission>("default");
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    setDismissed(window.localStorage.getItem(STORAGE_KEY) === "1");
-    if ("Notification" in window) {
+  const syncPermission = useCallback(() => {
+    if (typeof window !== "undefined" && "Notification" in window) {
       setPermission(window.Notification.permission);
     }
-    setHydrated(true);
   }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (cancelled) return;
+      setDismissed(readSessionDismissed());
+      syncPermission();
+      setHydrated(true);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [syncPermission]);
+
+  useEffect(() => {
+    if (typeof document === "undefined" || typeof window === "undefined") return;
+    const onVisible = () => {
+      if (document.visibilityState === "visible") syncPermission();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", onVisible);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", onVisible);
+    };
+  }, [syncPermission]);
+
+  const showRelevantState =
+    permission === "default" || permission === "denied";
 
   const show =
     hydrated &&
     swEnabled &&
     vapidConfigured &&
     !dismissed &&
-    permission === "default" &&
+    showRelevantState &&
     typeof window !== "undefined" &&
     "Notification" in window;
 
@@ -40,33 +86,73 @@ export function WebPushConsentBanner() {
       role="dialog"
       aria-label="تفعيل الإشعارات"
     >
-      <p className="text-sm font-medium text-brand-950">
-        فعّل الإشعارات لتصلك عروض سوكانى وتنبيهات الطلب على هاتفك.
-      </p>
-      <div className="mt-3 flex flex-wrap gap-2">
-        <Button
-          type="button"
-          size="sm"
-          disabled={pending}
-          onClick={() => {
-            setPending(true);
-            void requestWebPushSubscription().finally(() => setPending(false));
-          }}
-        >
-          {pending ? "جاري…" : "تفعيل الإشعارات"}
-        </Button>
-        <Button
-          type="button"
-          size="sm"
-          variant="ghost"
-          onClick={() => {
-            localStorage.setItem(STORAGE_KEY, "1");
-            setDismissed(true);
-          }}
-        >
-          ليس الآن
-        </Button>
-      </div>
+      {permission === "default" ? (
+        <>
+          <p className="text-sm font-medium text-brand-950">
+            فعّل الإشعارات لتصلك عروض سوكانى وتنبيهات الطلب على هاتفك.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Button
+              type="button"
+              size="sm"
+              disabled={pending}
+              onClick={() => {
+                setPending(true);
+                void requestWebPushSubscription()
+                  .then(() => syncPermission())
+                  .finally(() => setPending(false));
+              }}
+            >
+              {pending ? "جاري…" : "تفعيل الإشعارات"}
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              onClick={() => {
+                writeSessionDismissed();
+                setDismissed(true);
+              }}
+            >
+              ليس الآن
+            </Button>
+          </div>
+        </>
+      ) : (
+        <>
+          <p className="text-sm font-medium text-brand-950">
+            تم رفض إشعارات الموقع سابقًا. فعّل «الإشعارات» لسوكانى من إعدادات
+            المتصفح: اضغط أيقونة القفل أو (i) بجانب شريط العنوان، ثم اختر
+            «السماح» للإشعارات. بعدها يمكنك الضغط أدناه.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Button
+              type="button"
+              size="sm"
+              disabled={pending}
+              onClick={() => {
+                setPending(true);
+                void requestWebPushSubscription()
+                  .then(() => syncPermission())
+                  .finally(() => setPending(false));
+              }}
+            >
+              {pending ? "جاري…" : "تفعيل الإشعارات"}
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              onClick={() => {
+                writeSessionDismissed();
+                setDismissed(true);
+              }}
+            >
+              ليس الآن
+            </Button>
+          </div>
+        </>
+      )}
     </div>
   );
 }

@@ -16,10 +16,13 @@ export async function getProductByIdMeta(
     return raw ? mapProduct(wpProductSchema.parse(raw)) : null;
   }
   try {
-    const woo = createWooClient();
+    const woo = await createWooClient();
     const res = await woo.get(`/products/${id}`);
     return mapProduct(wpProductSchema.parse(res.data));
   } catch {
+    if (!USE_MOCK) {
+      return null;
+    }
     const raw = fallbackProducts.find((p) => p.id === id);
     return raw ? mapProduct(wpProductSchema.parse(raw)) : null;
   }

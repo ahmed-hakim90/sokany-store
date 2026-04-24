@@ -4,10 +4,7 @@ import { headers } from "next/headers";
 import Script from "next/script";
 import { Cairo, Montserrat } from "next/font/google";
 import { ViewTransitions } from "next-view-transitions";
-import { SiteShell } from "@/components/layout/site-shell";
 import { ViewTransitionRejectionHandler } from "@/components/layout/view-transition-rejection-handler";
-import { OrganizationJsonLd } from "@/components/seo/OrganizationJsonLd";
-import { WebSiteJsonLd } from "@/components/seo/WebSiteJsonLd";
 import { getPublicSiteContent } from "@/features/cms/services/getPublicSiteContent";
 import { QueryProvider } from "@/providers/QueryProvider";
 import { ToastProvider } from "@/providers/ToastProvider";
@@ -94,10 +91,6 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const siteChrome = await getPublicSiteContent();
-  const sameAsHrefs = siteChrome.socialLinks.map((s) => s.href);
-  const b = siteChrome.branding;
-
   return (
     <html
       lang="ar"
@@ -114,26 +107,11 @@ export default async function RootLayout({
             })(window, document, "clarity", "script", "${CLARITY_PROJECT_ID}");`}
           </Script>
         ) : null}
-        <OrganizationJsonLd
-          sameAs={sameAsHrefs}
-          organizationName={b.organizationName}
-          logoUrl={b.organizationLogoUrl}
-          telephone={b.supportPhoneDisplay}
-          description={b.pwaDescription}
-        />
-        <WebSiteJsonLd name={b.siteBrandTitleAr} description={b.pwaDescription} />
         <ViewTransitions>
           <ViewTransitionRejectionHandler />
           <QueryProvider>
             <ToastProvider />
-            <SiteShell
-              topAnnouncementBar={siteChrome.topAnnouncementBar}
-              socialLinks={siteChrome.socialLinks}
-              branding={b}
-              searchQuickKeywords={siteChrome.searchQuickKeywords}
-            >
-              {children}
-            </SiteShell>
+            {children}
           </QueryProvider>
         </ViewTransitions>
         {GA_MEASUREMENT_ID ? (

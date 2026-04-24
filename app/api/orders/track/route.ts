@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import axios from "axios";
 import { wcStatusToTracking } from "@/features/order-tracking/wc-status-to-tracking";
 import { createWooClient } from "@/lib/create-woo-client";
+import { isWooEnvConfigured } from "@/lib/woo-diagnostics";
 import { USE_MOCK } from "@/lib/constants";
 import { normalizeDigits } from "@/lib/phone-digits";
 import {
@@ -37,16 +38,8 @@ function mockResponse(q: string): TrackOrderResponse {
   };
 }
 
-function isWooConfigured(): boolean {
-  return Boolean(
-    process.env.WC_BASE_URL &&
-      process.env.WC_CONSUMER_KEY &&
-      process.env.WC_CONSUMER_SECRET,
-  );
-}
-
 async function fetchOrderById(
-  woo: ReturnType<typeof createWooClient>,
+  woo: Awaited<ReturnType<typeof createWooClient>>,
   id: number,
 ) {
   try {
@@ -69,7 +62,7 @@ function phonesMatch(a: string, b: string): boolean {
 }
 
 async function findOrderByPhone(
-  woo: ReturnType<typeof createWooClient>,
+  woo: Awaited<ReturnType<typeof createWooClient>>,
   digits: string,
 ) {
   if (digits.length < 8) return null;
@@ -104,13 +97,18 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Invalid query" }, { status: 400 });
   }
 
-  if (USE_MOCK || !isWooConfigured()) {
+  if (USE_MOCK) {
+    const body = trackOrderResponseSchema.parse(mockResponse(qRaw));
+    return NextResponse.json(body);
+  }
+
+  if (!(await isWooEnvConfigured())) {
     const body = trackOrderResponseSchema.parse(mockResponse(qRaw));
     return NextResponse.json(body);
   }
 
   try {
-    const woo = createWooClient();
+    const woo = await createWooClient();
     const digits = normalizeDigits(qRaw);
 
     let order: Awaited<ReturnType<typeof fetchOrderById>> = null;

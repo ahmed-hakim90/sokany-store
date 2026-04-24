@@ -5,6 +5,11 @@ import { useEffect, useId, useRef, useState } from "react";
 import { AppImage } from "@/components/AppImage";
 import { IconButton } from "@/components/ui/icon-button";
 import { PriceText } from "@/components/ui/price-text";
+import {
+  formatWooCouponLines,
+  formatWooShippingLines,
+  isSafeOrderMetaKey,
+} from "@/features/orders/lib/woo-excess-labels";
 import type { Order } from "@/features/orders/types";
 import { formatPrice } from "@/lib/utils";
 
@@ -120,6 +125,14 @@ export function OrderDetailsModal({ order, open, onOpenChange }: OrderDetailsMod
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-semibold leading-snug text-brand-950">{line.name}</p>
                   <p className="mt-1 text-xs text-brand-900/60">الكمية: {line.quantity}</p>
+                  {line.wooExcess?.variation_id != null ? (
+                    <p className="mt-0.5 text-xs text-brand-900/50">
+                      تنويع: {String(line.wooExcess.variation_id)}
+                    </p>
+                  ) : null}
+                  {line.wooExcess?.sku != null && String(line.wooExcess.sku).trim() !== "" ? (
+                    <p className="mt-0.5 text-xs text-brand-900/50">SKU: {String(line.wooExcess.sku)}</p>
+                  ) : null}
                   <p className="mt-1 text-sm font-semibold text-brand-800">
                     {formatPrice(line.total)}
                   </p>
@@ -127,11 +140,65 @@ export function OrderDetailsModal({ order, open, onOpenChange }: OrderDetailsMod
               </li>
             ))}
           </ul>
+
+          {order.wooExcess && (
+            <div className="mt-6 space-y-3 border-t border-border/60 pt-4 text-sm text-brand-900/80">
+              {formatWooShippingLines(order.wooExcess.shipping_lines) && (
+                <p>
+                  <span className="font-medium text-brand-950">الشحن: </span>
+                  {formatWooShippingLines(order.wooExcess.shipping_lines)}
+                </p>
+              )}
+              {formatWooCouponLines(order.wooExcess.coupon_lines) && (
+                <p>
+                  <span className="font-medium text-brand-950">كوبونات: </span>
+                  {formatWooCouponLines(order.wooExcess.coupon_lines)}
+                </p>
+              )}
+            </div>
+          )}
+
+          {order.metaData.some((e) => isSafeOrderMetaKey(e.key)) ? (
+            <div className="mt-4 border-t border-border/60 pt-4">
+              <p className="text-sm font-medium text-brand-950">تفاصيل إضافية (من الـ API)</p>
+              <ul className="mt-2 space-y-1.5 text-xs text-brand-900/70">
+                {order.metaData
+                  .filter((e) => isSafeOrderMetaKey(e.key))
+                  .slice(0, 12)
+                  .map((e) => (
+                    <li key={`${e.key}-${String(e.value)}`} className="break-words">
+                      <span className="font-medium text-brand-900/85">{e.key}:</span>{" "}
+                      {typeof e.value === "object"
+                        ? JSON.stringify(e.value)
+                        : String(e.value)}
+                    </li>
+                  ))}
+              </ul>
+            </div>
+          ) : null}
         </div>
 
-        <footer className="shrink-0 border-t border-border/80 px-4 py-3 sm:px-5">
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-sm text-brand-900/70">الإجمالي</span>
+        <footer className="shrink-0 space-y-3 border-t border-border/80 px-4 py-3 sm:px-5">
+          <div className="space-y-1.5 text-sm text-brand-900/75">
+            <div className="flex items-center justify-between gap-2">
+              <span>المجموع الفرعي</span>
+              <span className="tabular-nums">{formatPrice(order.subtotal)}</span>
+            </div>
+            {order.totalTax > 0 ? (
+              <div className="flex items-center justify-between gap-2">
+                <span>الضريبة</span>
+                <span className="tabular-nums">{formatPrice(order.totalTax)}</span>
+              </div>
+            ) : null}
+            {order.shippingTotal > 0 ? (
+              <div className="flex items-center justify-between gap-2">
+                <span>تكلفة الشحن (مُجمّع)</span>
+                <span className="tabular-nums">{formatPrice(order.shippingTotal)}</span>
+              </div>
+            ) : null}
+          </div>
+          <div className="flex items-center justify-between gap-2 border-t border-border/50 pt-3">
+            <span className="text-sm font-medium text-brand-900/70">الإجمالي</span>
             <PriceText amount={order.total} emphasized className="text-lg" />
           </div>
         </footer>

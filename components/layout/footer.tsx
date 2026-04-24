@@ -55,10 +55,10 @@ export function Footer({
   logoDisabled = SITE_LOGO_DISABLED,
 }: FooterProps) {
   const year = new Date().getFullYear();
-  const categoriesQuery = useCategories();
+  const categoriesQuery = useCategories({ per_page: 100 });
   const categoryList =
     categoriesQuery.data && categoriesQuery.data.length > 0
-      ? categoriesQuery.data
+      ? categoriesQuery.data.filter((c) => c.count > 0)
       : mockCategories.map((c) => ({
           id: c.id,
           name: c.name,

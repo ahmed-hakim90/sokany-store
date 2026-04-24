@@ -32,7 +32,8 @@ export const wpCategorySchema = z.object({
   parent: z.number().default(0),
   count: z.number().default(0),
   _links: z.record(z.string(), z.unknown()).default({}),
-});
+})
+  .passthrough();
 
 export const wpProductTagSchema = z.object({
   id: z.number(),
@@ -86,7 +87,8 @@ export const wpProductSchema = z.object({
   /** WooCommerce «Linked products» — upsells/related IDs from the REST product payload. */
   related_ids: z.array(z.number()).default([]),
   meta_data: z.array(z.unknown()).default([]),
-});
+})
+  .passthrough();
 
 const wpBillingSchema = z.object({
   first_name: emptyString,
@@ -126,6 +128,12 @@ export const wpOrderLineItemSchema = z.object({
       src: z.string().url(),
     })
     .optional(),
+})
+  .passthrough();
+
+const wpOrderMetaEntrySchema = z.object({
+  key: z.string(),
+  value: z.unknown(),
 });
 
 export const wpOrderSchema = z.object({
@@ -143,7 +151,9 @@ export const wpOrderSchema = z.object({
   payment_method: emptyString,
   payment_method_title: emptyString,
   customer_note: emptyString,
-});
+  meta_data: z.array(wpOrderMetaEntrySchema).nullish().default([]),
+})
+  .passthrough();
 
 export const createOrderPayloadSchema = z.object({
   billing: wpBillingSchema,

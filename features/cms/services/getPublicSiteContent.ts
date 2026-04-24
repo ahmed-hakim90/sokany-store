@@ -21,8 +21,14 @@ import {
   cmsHomeHeroDocSchema,
   cmsRetailersDocSchema,
   cmsSectionBannersDocSchema,
+  cmsHeaderCategoryStripSchema,
+  cmsHomeCategoryScrollerSchema,
   cmsSiteConfigDocSchema,
   cmsSpotlightsDocSchema,
+  CMS_DEFAULT_HEADER_CATEGORY_STRIP,
+  CMS_DEFAULT_HOME_CATEGORY_SCROLLER,
+  type CmsHeaderCategoryStrip,
+  type CmsHomeCategoryScroller,
   type CmsPromoFlash,
   type CmsTopAnnouncementBar,
   type CmsSiteBranding,
@@ -51,6 +57,28 @@ export type PublicSiteContent = {
   retailers: { list: AuthorizedRetailer[]; mapHeroSrc: string };
   /** كلمات البحث السريعة في الهيدر — من CMS أو `DEFAULT_SEARCH_QUICK_KEYWORDS`. */
   searchQuickKeywords: string[];
+  /** دوائر أيقونات تحت الهيدر — من `site_config.headerCategoryStrip`. */
+  headerCategoryStrip: CmsHeaderCategoryStrip;
+  /** سكroller صور التصنيفات تحت بانر الهيرو — من `site_config.homeCategoryScroller`، أو Woo عند التعطيل. */
+  homeCategoryScroller: CmsHomeCategoryScroller;
+  /**
+   * رابط HTTPS علني مُدار من `site_config.storefrontIntegrations` (لوحة التحكم).
+   * المفاتيح السرية تبقى في env — انظر `INTEGRATION_SERVER_SECRET` في المثال.
+   */
+  publicReadBaseUrl: string | null;
+  /**
+   * رابط ويب هوك API خارجي (للعرض) — من CMS أو `null`؛ الافتراضي في الصفحة من `getExternalDataWebhookUrl()`.
+   */
+  externalDataWebhookUrl: string | null;
+  /**
+   * أصل ووردبرس/وُوكومرس من ‎`storefrontIntegrations.wooBaseUrl` — للعرض في اللوحة فقط.
+   * الاستخدام الفعلي في السيرفر عبر ‎`resolveWooBaseUrlForServer`‎.
+   */
+  cmsWooBaseUrl: string | null;
+  /**
+   * نطاق واجهة نيكست من CMS — لعناوين ويبهوك المعروضة (مع ‎`resolveWooCommerceWebhookUrl`‎).
+   */
+  cmsPublicStorefrontBaseUrl: string | null;
 };
 
 function defaultPromoFlash(): CmsPromoFlash {
@@ -116,6 +144,30 @@ function mergeSearchQuickKeywords(
   return fallback;
 }
 
+function mergeHeaderCategoryStrip(
+  raw: unknown,
+  fallback: CmsHeaderCategoryStrip,
+): CmsHeaderCategoryStrip {
+  const r = cmsHeaderCategoryStripSchema.safeParse(raw);
+  if (!r.success) return fallback;
+  return {
+    enabled: r.data.enabled,
+    items: r.data.items,
+  };
+}
+
+function mergeHomeCategoryScroller(
+  raw: unknown,
+  fallback: CmsHomeCategoryScroller,
+): CmsHomeCategoryScroller {
+  const r = cmsHomeCategoryScrollerSchema.safeParse(raw);
+  if (!r.success) return fallback;
+  return {
+    enabled: r.data.enabled,
+    items: r.data.items,
+  };
+}
+
 function mapHeroFromCms(
   slides: { imageUrl: string; alt?: string; href?: string }[],
 ): HomeHeroSlide[] {
@@ -150,6 +202,12 @@ async function fetchPublicSiteContentUncached(): Promise<PublicSiteContent> {
       mapHeroSrc: retailersMapHeroSrc,
     },
     searchQuickKeywords: [...DEFAULT_SEARCH_QUICK_KEYWORDS],
+    headerCategoryStrip: { ...CMS_DEFAULT_HEADER_CATEGORY_STRIP },
+    homeCategoryScroller: { ...CMS_DEFAULT_HOME_CATEGORY_SCROLLER },
+    publicReadBaseUrl: null,
+    externalDataWebhookUrl: null,
+    cmsWooBaseUrl: null,
+    cmsPublicStorefrontBaseUrl: null,
   };
 
   if (!process.env.FIREBASE_SERVICE_ACCOUNT_JSON?.trim()) {
@@ -208,6 +266,69 @@ async function fetchPublicSiteContentUncached(): Promise<PublicSiteContent> {
       staticBundle.searchQuickKeywords,
     );
 
+    const headerCategoryStrip = mergeHeaderCategoryStrip(
+      siteParsed?.success
+        ? ((siteParsed.data as { headerCategoryStrip?: unknown }).headerCategoryStrip)
+        : undefined,
+      staticBundle.headerCategoryStrip,
+    );
+
+    const homeCategoryScroller = mergeHomeCategoryScroller(
+      siteParsed?.success
+        ? (siteParsed.data as { homeCategoryScroller?: unknown }).homeCategoryScroller
+        : undefined,
+      staticBundle.homeCategoryScroller,
+    );
+
+    const publicReadBaseUrl = (() => {
+      if (!siteParsed?.success) return null;
+      const u = siteParsed.data.storefrontIntegrations?.publicReadBaseUrl?.trim();
+      if (!u) return null;
+      try {
+        const url = new URL(u);
+        return url.protocol === "https:" ? u : null;
+      } catch {
+        return null;
+      }
+    })();
+
+    const externalDataWebhookUrl = (() => {
+      if (!siteParsed?.success) return null;
+      const u =
+        siteParsed.data.storefrontIntegrations?.externalDataWebhookUrl?.trim();
+      if (!u) return null;
+      try {
+        const url = new URL(u);
+        return url.protocol === "https:" ? u : null;
+      } catch {
+        return null;
+      }
+    })();
+
+    const cmsWooBaseUrl = (() => {
+      if (!siteParsed?.success) return null;
+      const u = siteParsed.data.storefrontIntegrations?.wooBaseUrl?.trim();
+      if (!u) return null;
+      try {
+        return new URL(u).href;
+      } catch {
+        return null;
+      }
+    })();
+
+    const cmsPublicStorefrontBaseUrl = (() => {
+      if (!siteParsed?.success) return null;
+      const u =
+        siteParsed.data.storefrontIntegrations?.publicStorefrontBaseUrl?.trim();
+      if (!u) return null;
+      try {
+        const url = new URL(u);
+        return url.protocol === "https:" ? u : null;
+      } catch {
+        return null;
+      }
+    })();
+
     const heroSlides: HomeHeroSlide[] = (() => {
       if (!heroParsed?.success) {
         return fsHero;
@@ -258,6 +379,12 @@ async function fetchPublicSiteContentUncached(): Promise<PublicSiteContent> {
       socialLinks,
       branding,
       searchQuickKeywords,
+      headerCategoryStrip,
+      homeCategoryScroller,
+      publicReadBaseUrl,
+      externalDataWebhookUrl,
+      cmsWooBaseUrl,
+      cmsPublicStorefrontBaseUrl,
       heroSlides,
       sectionBanners,
       branches,

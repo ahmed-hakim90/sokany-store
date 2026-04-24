@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   try {
-    const woo = createWooClient();
+    const woo = await createWooClient();
     const response = await woo.get<WCCustomer[]>("/customers", {
       params: { email: session.email, per_page: 1 },
     });
@@ -43,7 +43,7 @@ export async function PUT(request: NextRequest) {
   }
   try {
     const body: unknown = await request.json();
-    const woo = createWooClient();
+    const woo = await createWooClient();
     const list = await woo.get<WCCustomer[]>("/customers", {
       params: { email: session.email, per_page: 1 },
     });

@@ -25,4 +25,6 @@ export type Category = {
   image: string | null;
   count: number;
   parentId: number;
+  /** Unmodelled top-level fields from Woo `products/categories` (passthrough). */
+  wooExcess?: Record<string, unknown>;
 };

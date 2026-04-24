@@ -107,4 +107,11 @@ export type Product = {
   }[];
   /** WooCommerce linked related product IDs (preferred source for «ذات صلة»). */
   relatedIds: number[];
+  /** `meta_data` from Woo (pass-through) — e.g. plugin / custom fields. */
+  metaData: unknown[];
+  /**
+   * Top-level Woo product keys not modelled in `Product` (requires `wpProductSchema.passthrough()`).
+   * e.g. `weight`, `dimensions`, `upsell_ids`, `cross_sell_ids`, `variations`.
+   */
+  wooExcess?: Record<string, unknown>;
 };

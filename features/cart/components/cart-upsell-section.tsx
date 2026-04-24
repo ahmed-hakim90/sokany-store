@@ -23,7 +23,7 @@ export function CartUpsellSection({ className }: { className?: string }) {
   });
 
   const products = useMemo(() => {
-    const raw = query.data ?? [];
+    const raw = query.data?.items ?? [];
     return raw.filter((p) => !excludeIds.has(p.id)).slice(0, 8);
   }, [query.data, excludeIds]);
 

@@ -17,6 +17,8 @@ export type OrderItem = {
   price: number;
   total: number;
   image: string;
+  /** e.g. `variation_id`, `sku`, `meta_data` from Woo line item (passthrough). */
+  wooExcess?: Record<string, unknown>;
 };
 
 export type Order = {
@@ -34,6 +36,12 @@ export type Order = {
   paymentMethod: string;
   paymentMethodTitle: string;
   customerNote: string;
+  /** Woo order `meta_data` (order-level). */
+  metaData: Array<{ key: string; value: unknown }>;
+  /**
+   * Unmodelled top-level order fields: `shipping_lines`, `tax_lines`, `coupon_lines`, `fee_lines`, `date_paid`, …
+   */
+  wooExcess?: Record<string, unknown>;
 };
 
 export type WCOrderLineItem = {
@@ -83,7 +91,8 @@ export type WCOrder = {
   payment_method: string;
   payment_method_title: string;
   customer_note: string;
-  meta_data?: Array<{ key: string; value: string | number | boolean }>;
+  /** Woo may omit or send `null`. After `wpOrderSchema` parse, empty array. */
+  meta_data?: Array<{ key: string; value: unknown }> | null;
 };
 
 export type CreateOrderPayload = {

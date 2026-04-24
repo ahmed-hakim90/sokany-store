@@ -151,9 +151,9 @@ export function MobileNavDrawer({
 
   if (!mounted) return null;
 
-  const panelInitial = reduceMotion ? { x: 0 } : { x: "100%" };
+  const panelInitial = reduceMotion ? { x: 0 } : { x: "-100%" };
   const panelAnimate = { x: 0 };
-  const panelExit = reduceMotion ? { x: 0 } : { x: "100%" };
+  const panelExit = reduceMotion ? { x: 0 } : { x: "-100%" };
 
   return createPortal(
     <AnimatePresence>
@@ -191,7 +191,7 @@ export function MobileNavDrawer({
               aria-modal="true"
               aria-labelledby={titleId}
               className={cn(
-                "fixed top-0 bottom-0 right-0 z-[141] flex h-dvh min-h-dvh w-[min(20rem,88vw)] max-w-[100vw] flex-col border-s border-border/80 bg-page shadow-2xl",
+                "fixed top-0 bottom-0 left-0 z-[141] flex h-dvh min-h-dvh w-[min(20rem,88vw)] max-w-[100vw] flex-col border-s border-border/80 bg-page shadow-2xl",
                 "pt-[max(0.75rem,env(safe-area-inset-top))] pb-[max(0.75rem,env(safe-area-inset-bottom))]",
               )}
               initial={panelInitial}

@@ -32,10 +32,12 @@ export function useProductsCatalog() {
     const order =
       orderRaw === "asc" || orderRaw === "desc" ? orderRaw : undefined;
 
+    const category = parseNumber(searchParams.get("category"));
     return {
       page: parseNumber(searchParams.get("page")) ?? 1,
       per_page: parseNumber(searchParams.get("per_page")) ?? 12,
-      category: parseNumber(searchParams.get("category")),
+      category,
+      include_children: category != null ? true : undefined,
       featured:
         searchParams.get("featured") === "true" ? true : undefined,
       search,
@@ -134,6 +136,7 @@ export function useProductsCatalog() {
     allActive,
     pushFilters,
     searchParams,
+    /** معاملات الكتالوج الحالية (للتصفح بالصفحات وغيره). */
     catalogParams: params,
   };
 }

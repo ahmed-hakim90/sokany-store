@@ -1,19 +1,15 @@
 import { NextResponse } from "next/server";
-import { revalidateAfterProductWebhook } from "@/features/woocommerce/revalidate-after-product-webhook";
+import {
+  extractWooWebhookResourceId,
+  revalidateAfterWooCommerceWebhook,
+} from "@/features/woocommerce/revalidate-after-product-webhook";
+import { recordWooWebhookDelivery } from "@/features/woocommerce/services/record-woo-webhook-delivery";
+import { zodIssuesToJsonString } from "@/lib/zod-issues-compact";
 import { verifyWooCommerceWebhookSignature } from "@/lib/verify-woocommerce-webhook-signature";
-
-function extractProductId(body: unknown): number | undefined {
-  if (!body || typeof body !== "object") return undefined;
-  const id = (body as { id?: unknown }).id;
-  if (typeof id === "number" && Number.isFinite(id)) return id;
-  if (typeof id === "string") {
-    const n = Number(id);
-    if (Number.isFinite(n)) return n;
-  }
-  return undefined;
-}
+import { wpProductSchema } from "@/schemas/wordpress";
 
 export async function POST(request: Request) {
+  const t0 = Date.now();
   const secret = process.env.WC_WEBHOOK_SECRET?.trim();
   if (!secret) {
     return NextResponse.json(
@@ -37,22 +33,55 @@ export async function POST(request: Request) {
   }
 
   const topic = request.headers.get("x-wc-webhook-topic");
-  const productId = extractProductId(payload);
+  const resourceIdRaw = extractWooWebhookResourceId(payload);
+  const resourceId = resourceIdRaw === undefined ? null : resourceIdRaw;
+
+  let zodValidationError: string | null = null;
+  const tl = (topic ?? "").toLowerCase();
+  if (tl.startsWith("product.")) {
+    const parsed = wpProductSchema.safeParse(payload);
+    if (!parsed.success) {
+      zodValidationError = zodIssuesToJsonString(parsed.error);
+    }
+  }
 
   try {
-    revalidateAfterProductWebhook(productId);
+    revalidateAfterWooCommerceWebhook(topic, payload);
   } catch (err) {
-    console.error("[woocommerce-webhook] revalidatePath failed", err);
+    console.error("[woocommerce-webhook] revalidate failed", err);
+    const msg = err instanceof Error ? err.message : String(err);
+    await recordWooWebhookDelivery({
+      requestHeaders: request.headers,
+      rawBody,
+      topic,
+      eventType: topic,
+      resourceId,
+      status: "failed",
+      errorMessage: msg,
+      processingTimeMs: Date.now() - t0,
+      zodValidationError,
+    });
     return NextResponse.json(
       { error: "Cache revalidation failed" },
       { status: 500 },
     );
   }
 
+  await recordWooWebhookDelivery({
+    requestHeaders: request.headers,
+    rawBody,
+    topic,
+    eventType: topic,
+    resourceId,
+    status: "processed",
+    processingTimeMs: Date.now() - t0,
+    zodValidationError,
+  });
+
   return NextResponse.json({
     ok: true,
     topic,
-    productId: productId ?? null,
+    resourceId,
   });
 }
 

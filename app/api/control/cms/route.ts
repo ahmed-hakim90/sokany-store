@@ -3,8 +3,9 @@ import * as admin from "firebase-admin";
 import { revalidateTag } from "next/cache";
 import { CMS_DOC_IDS, STOREFRONT_CMS_COLLECTION } from "@/features/cms/lib/collections";
 import { CMS_CACHE_TAG } from "@/features/cms/services/getPublicSiteContent";
-import { requireControlSession } from "@/lib/api-control-auth";
+import { requireControlSession, requireCmsPutKey } from "@/lib/api-control-auth";
 import { getAdminFirestore } from "@/lib/firebase-admin";
+import { parseCmsDocumentPutKey, type CmsDocumentPutKey } from "@/lib/control-cms-keys";
 import {
   cmsBranchesDocSchema,
   cmsHomeHeroDocSchema,
@@ -16,24 +17,42 @@ import {
 
 export const runtime = "nodejs";
 
-const PUT_KEYS = [
-  "site_config",
-  "home_hero",
-  "section_banners",
-  "branches",
-  "retailers",
-  "spotlights",
-] as const;
-
-type PutKey = (typeof PUT_KEYS)[number];
+type PutKey = CmsDocumentPutKey;
 
 function parsePutKey(k: string): PutKey | null {
-  return PUT_KEYS.includes(k as PutKey) ? (k as PutKey) : null;
+  return parseCmsDocumentPutKey(k);
+}
+
+function pickCmsBundle(
+  data: {
+    site_config: unknown;
+    home_hero: unknown;
+    section_banners: unknown;
+    branches: unknown;
+    retailers: unknown;
+    spotlights: unknown;
+  },
+  allowed: (k: CmsDocumentPutKey) => boolean,
+) {
+  return {
+    site_config: allowed("site_config") ? data.site_config : null,
+    home_hero: allowed("home_hero") ? data.home_hero : null,
+    section_banners: allowed("section_banners") ? data.section_banners : null,
+    branches: allowed("branches") ? data.branches : null,
+    retailers: allowed("retailers") ? data.retailers : null,
+    spotlights: allowed("spotlights") ? data.spotlights : null,
+  };
 }
 
 export async function GET(request: NextRequest) {
   const auth = await requireControlSession(request);
   if (auth instanceof NextResponse) return auth;
+  if (auth.scope === "media") {
+    return NextResponse.json(
+      { error: "ليس لديك صلاحية قراءة إعدادات CMS" },
+      { status: 403 },
+    );
+  }
 
   if (!process.env.FIREBASE_SERVICE_ACCOUNT_JSON?.trim()) {
     return NextResponse.json({ error: "Firebase Admin not configured" }, { status: 503 });
@@ -58,15 +77,31 @@ export async function GET(request: NextRequest) {
       retailers,
       spotlights,
     ] = snaps.map((s) => (s.exists ? s.data() : null));
-
-    return NextResponse.json({
+    const raw = {
       site_config: siteConfig ?? null,
       home_hero: homeHero ?? null,
       section_banners: sectionBanners ?? null,
       branches: branches ?? null,
       retailers: retailers ?? null,
       spotlights: spotlights ?? null,
-    });
+    };
+    if (auth.tabs === "all") {
+      return NextResponse.json(raw);
+    }
+    const t = new Set(auth.tabs);
+    return NextResponse.json(
+      pickCmsBundle(raw, (k) => {
+        if (k === "site_config") {
+          return t.has("general") || t.has("branding");
+        }
+        if (k === "home_hero") return t.has("hero");
+        if (k === "section_banners") return t.has("banners");
+        if (k === "branches") return t.has("branches");
+        if (k === "retailers") return t.has("retailers");
+        if (k === "spotlights") return t.has("spotlights");
+        return false;
+      }),
+    );
   } catch (e) {
     console.error(e);
     return NextResponse.json({ error: "Read failed" }, { status: 500 });
@@ -76,6 +111,12 @@ export async function GET(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   const auth = await requireControlSession(request);
   if (auth instanceof NextResponse) return auth;
+  if (auth.scope === "media") {
+    return NextResponse.json(
+      { error: "ليس لديك صلاحية تعديل إعدادات CMS" },
+      { status: 403 },
+    );
+  }
 
   if (!process.env.FIREBASE_SERVICE_ACCOUNT_JSON?.trim()) {
     return NextResponse.json({ error: "Firebase Admin not configured" }, { status: 503 });
@@ -98,6 +139,10 @@ export async function PUT(request: NextRequest) {
       { error: "Expected { key, data } where key is one of CMS documents" },
       { status: 400 },
     );
+  }
+  const denied = requireCmsPutKey(auth, putKey);
+  if (denied) {
+    return denied;
   }
 
   const ts = admin.firestore.FieldValue.serverTimestamp();

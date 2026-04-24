@@ -1,12 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import type { ControlPanelTabId } from "@/features/control/lib/control-tabs";
+import { isControlPanelTabId } from "@/features/control/lib/control-tabs";
+import { ControlAccessTab } from "@/features/control/components/ControlAccessTab";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
-import { AppImage } from "@/components/AppImage";
 import { Button } from "@/components/Button";
-import { Container } from "@/components/Container";
 import { cn } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   PWA_INSTALL_NAME,
   SITE_BRAND_TITLE_AR,
@@ -26,24 +28,33 @@ import type {
 } from "@/schemas/cms";
 import {
   CMS_DEFAULT_TOP_ANNOUNCEMENT_BAR,
+  CMS_DEFAULT_HEADER_CATEGORY_STRIP,
+  CMS_DEFAULT_HOME_CATEGORY_SCROLLER,
+  cmsHeaderCategoryStripSchema,
+  cmsHomeCategoryScrollerSchema,
   cmsHomeHeroDocSchema,
   cmsBranchesDocSchema,
   cmsSectionBannersDocSchema,
   cmsRetailersDocSchema,
   cmsSpotlightsDocSchema,
   cmsSiteBrandingSchema,
-  cmsSiteConfigDocSchema,
 } from "@/schemas/cms";
 import {
   AnnouncementBarForm,
   ControlImageUrlField,
+  HeaderCategoryStripForm,
+  HomeCategoryScrollerForm,
   HeroSlidesForm,
   RetailersForm,
   SectionBannersForm,
   SocialLinksForm,
   SpotlightsForm,
-  uploadControlImage,
 } from "@/features/control/components/control-panel-forms";
+import { ControlMediaTab } from "@/features/control/components/ControlMediaTab";
+import { putCmsRequest } from "@/features/control/lib/control-cms-put";
+import {
+  mergeSiteConfigPatch,
+} from "@/features/control/lib/site-config-merge";
 
 type CmsBundle = {
   site_config: unknown;
@@ -54,16 +65,52 @@ type CmsBundle = {
   spotlights: unknown;
 };
 
-type TabId =
-  | "general"
-  | "branding"
-  | "hero"
-  | "branches"
-  | "banners"
-  | "retailers"
-  | "spotlights"
-  | "media"
-  | "notifications";
+type ClientControlSession = {
+  scope: "full" | "media";
+  tabs: "all" | string[];
+  mediaFolders: "all" | string[];
+  superAdmin: boolean;
+};
+
+const BASE_TAB_LIST: { id: ControlPanelTabId; label: string }[] = [
+  { id: "general", label: "عام" },
+  { id: "branding", label: "هوية الموقع" },
+  { id: "hero", label: "الهيرو" },
+  { id: "branches", label: "الفروع" },
+  { id: "banners", label: "بانرات الأقسام" },
+  { id: "retailers", label: "الموزعون" },
+  { id: "spotlights", label: "إعلانات مميزة" },
+  { id: "media", label: "الوسائط" },
+  { id: "preview", label: "معاينة الموقع" },
+  { id: "notifications", label: "إشعارات" },
+  { id: "access", label: "الصلاحيات" },
+];
+
+function buildNavTabList(
+  s: ClientControlSession | null,
+  scope: "unknown" | "full" | "media",
+): { id: ControlPanelTabId; label: string }[] {
+  if (scope === "media" && s?.scope === "media") {
+    return [{ id: "media", label: "الوسائط" }];
+  }
+  if (scope === "full" && s) {
+    const fromBase = (id: ControlPanelTabId) => BASE_TAB_LIST.find((b) => b.id === id)!;
+    if (s.tabs === "all") {
+      const core = BASE_TAB_LIST.filter((t) => t.id !== "access");
+      return s.superAdmin ? [...core, fromBase("access")] : core;
+    }
+    const ids = s.tabs
+      .filter(
+        (x) => isControlPanelTabId(x) && (x as ControlPanelTabId) !== "access",
+      ) as ControlPanelTabId[];
+    const out = ids.map((id) => fromBase(id));
+    return s.superAdmin ? [...out, fromBase("access")] : out;
+  }
+  if (scope === "unknown" || !s) {
+    return BASE_TAB_LIST.filter((t) => t.id !== "access");
+  }
+  return BASE_TAB_LIST;
+}
 
 function SearchQuickKeywordsSection({
   cmsKeywords,
@@ -168,35 +215,6 @@ function SearchQuickKeywordsSection({
   );
 }
 
-const TABS: { id: TabId; label: string }[] = [
-  { id: "general", label: "عام" },
-  { id: "branding", label: "هوية الموقع" },
-  { id: "hero", label: "الهيرو" },
-  { id: "branches", label: "الفروع" },
-  { id: "banners", label: "بانرات الأقسام" },
-  { id: "retailers", label: "الموزعون" },
-  { id: "spotlights", label: "إعلانات مميزة" },
-  { id: "media", label: "الوسائط" },
-  { id: "notifications", label: "إشعارات" },
-];
-
-function formatControlApiError(payload: { error?: unknown }): string {
-  const e = payload.error;
-  if (typeof e === "string") return e;
-  if (e && typeof e === "object" && "formErrors" in e) {
-    const f = e as {
-      formErrors: string[];
-      fieldErrors: Record<string, string[] | undefined>;
-    };
-    const fe = Object.values(f.fieldErrors)
-      .filter(Boolean)
-      .flat() as string[];
-    const parts = [...(f.formErrors ?? []), ...fe];
-    return parts.length > 0 ? parts.join(" — ") : "خطأ في التحقق من البيانات";
-  }
-  return "فشل الحفظ";
-}
-
 /** حقول نصية فارغة تُحذف؛ `logoDisabled` يُمرَّر دائمًا من خانة الاختيار. */
 function brandingFromForm(fd: FormData): CmsSiteBranding {
   const t = (name: string) => String(fd.get(name) ?? "").trim();
@@ -226,37 +244,105 @@ function brandingFromForm(fd: FormData): CmsSiteBranding {
   return b;
 }
 
-async function putCmsRequest(key: string, data: unknown): Promise<void> {
-  const res = await fetch("/api/control/cms", {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ key, data }),
-  });
-  if (!res.ok) {
-    const j = (await res.json().catch(() => ({}))) as { error?: unknown };
-    throw new Error(formatControlApiError(j));
-  }
-}
-
 /*
  * لوحة التحكم: تبويبات ونماذج (بدون JSON في الواجهة)؛ التحقق بـ Zod قبل الحفظ.
  */
 export function ControlPanel() {
   const router = useRouter();
-  const [tab, setTab] = useState<TabId>("general");
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get("tab");
+  const [tab, setTab] = useState<ControlPanelTabId>("general");
   const [bundle, setBundle] = useState<CmsBundle | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [sessionError, setSessionError] = useState<string | null>(null);
+  const [accessScope, setAccessScope] = useState<"unknown" | "full" | "media">("unknown");
   const [saving, setSaving] = useState<string | null>(null);
-  const [uploading, setUploading] = useState(false);
-  const [lastUploadUrl, setLastUploadUrl] = useState<string | null>(null);
-  /** معاينة محلية أثناء الرفع أو بعد فشل الرفع (blob URL) */
-  const [uploadLocalPreviewUrl, setUploadLocalPreviewUrl] = useState<string | null>(null);
+  const [clientSession, setClientSession] = useState<ClientControlSession | null>(null);
+  /** يتغيّر بعد حفظ CMS/رفع ناجح لإعادة تحميل iframe معاينة الواجهة. */
+  const [storefrontPreviewKey, setStorefrontPreviewKey] = useState(0);
+  const navTabs = useMemo(
+    () => buildNavTabList(clientSession, accessScope),
+    [clientSession, accessScope],
+  );
+
+  const onSelectTab = useCallback(
+    (next: ControlPanelTabId) => {
+      if (accessScope === "media" && next !== "media") {
+        return;
+      }
+      if (!navTabs.some((n) => n.id === next)) {
+        return;
+      }
+      setTab(next);
+      router.replace(`/control?tab=${next}`, { scroll: false });
+    },
+    [accessScope, router, navTabs],
+  );
 
   useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      setSessionError(null);
+      const res = await fetch("/api/control/session");
+      if (cancelled) return;
+      if (res.status === 401) {
+        router.replace("/control/login");
+        return;
+      }
+      if (!res.ok) {
+        setSessionError("تعذر التحقق من صلاحية الجلسة");
+        return;
+      }
+      const j = (await res.json().catch(() => ({}))) as {
+        scope?: "full" | "media";
+        tabs?: "all" | string[];
+        mediaFolders?: "all" | string[];
+        superAdmin?: boolean;
+      };
+      if (j.scope === "media") {
+        setClientSession({
+          scope: "media",
+          tabs: ["media"],
+          mediaFolders: j.mediaFolders === undefined ? "all" : (j.mediaFolders as "all" | string[]),
+          superAdmin: Boolean(j.superAdmin),
+        });
+        setAccessScope("media");
+        setTab("media");
+        return;
+      }
+      setClientSession({
+        scope: "full",
+        tabs: (j.tabs as "all" | string[] | undefined) ?? "all",
+        mediaFolders: j.mediaFolders === undefined ? "all" : (j.mediaFolders as "all" | string[]),
+        superAdmin: Boolean(j.superAdmin),
+      });
+      setAccessScope("full");
+    })();
     return () => {
-      if (uploadLocalPreviewUrl) URL.revokeObjectURL(uploadLocalPreviewUrl);
+      cancelled = true;
     };
-  }, [uploadLocalPreviewUrl]);
+  }, [router]);
+
+  useEffect(() => {
+    if (accessScope === "unknown") return;
+    if (accessScope === "media") {
+      setTab("media");
+      if (tabParam && tabParam !== "media") {
+        router.replace("/control?tab=media", { scroll: false });
+      }
+      return;
+    }
+    const allowed = new Set(navTabs.map((n) => n.id));
+    const first = (navTabs[0]?.id ?? "general") as ControlPanelTabId;
+    if (tabParam && isControlPanelTabId(tabParam) && allowed.has(tabParam as ControlPanelTabId)) {
+      setTab(tabParam);
+      return;
+    }
+    if (tabParam != null && tabParam !== "" && !allowed.has(tabParam as ControlPanelTabId)) {
+      setTab(first);
+      router.replace(`/control?tab=${first}`, { scroll: false });
+    }
+  }, [accessScope, tabParam, router, navTabs]);
 
   const load = useCallback(async () => {
     setLoadError(null);
@@ -276,8 +362,10 @@ export function ControlPanel() {
   }, [router]);
 
   useEffect(() => {
-    void load();
-  }, [load]);
+    if (accessScope === "full") {
+      void load();
+    }
+  }, [accessScope, load]);
 
   async function logout() {
     await fetch("/api/control/session", { method: "DELETE" });
@@ -296,6 +384,7 @@ export function ControlPanel() {
       await fn();
       toast.success(successMsg);
       await load();
+      setStorefrontPreviewKey((k) => k + 1);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "فشل الحفظ");
     } finally {
@@ -303,34 +392,10 @@ export function ControlPanel() {
     }
   }
 
-  function mergeSiteConfigPatch(patch: Partial<CmsSiteConfigDoc>): CmsSiteConfigDoc {
-    const current = bundle?.site_config as Partial<CmsSiteConfigDoc> | null;
-    return cmsSiteConfigDocSchema.parse({
-      promoFlash:
-        patch.promoFlash ??
-        current?.promoFlash ?? {
-          enabled: true,
-          endsAt: null,
-          headline: undefined,
-          subline: undefined,
-        },
-      topAnnouncementBar:
-        patch.topAnnouncementBar ??
-        current?.topAnnouncementBar ??
-        CMS_DEFAULT_TOP_ANNOUNCEMENT_BAR,
-      socialLinks: patch.socialLinks ?? current?.socialLinks,
-      branding:
-        patch.branding !== undefined ? patch.branding : current?.branding,
-      searchQuickKeywords:
-        patch.searchQuickKeywords !== undefined
-          ? patch.searchQuickKeywords
-          : current?.searchQuickKeywords,
-    });
-  }
-
   async function saveSiteConfig(patch: Partial<CmsSiteConfigDoc>) {
+    const current = bundle?.site_config as Partial<CmsSiteConfigDoc> | null;
     await runSave("site_config", () =>
-      putCmsRequest("site_config", mergeSiteConfigPatch(patch)),
+      putCmsRequest("site_config", mergeSiteConfigPatch(current, patch)),
     );
   }
 
@@ -396,48 +461,137 @@ export function ControlPanel() {
     }, "تم استيراد الفروع والموزعين من الملفات الثابتة");
   }
 
-  async function onUploadFile(f: File) {
-    setUploading(true);
-    setLastUploadUrl(null);
-    setUploadLocalPreviewUrl((prev) => {
-      if (prev) URL.revokeObjectURL(prev);
-      return URL.createObjectURL(f);
-    });
-    try {
-      const url = await uploadControlImage(f);
-      setLastUploadUrl(url);
-      setUploadLocalPreviewUrl((prev) => {
-        if (prev) URL.revokeObjectURL(prev);
-        return null;
-      });
-      toast.success("تم رفع الصورة");
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "فشل الرفع");
-      setUploadLocalPreviewUrl((prev) => {
-        if (prev) URL.revokeObjectURL(prev);
-        return null;
-      });
-    } finally {
-      setUploading(false);
-    }
+  if (accessScope === "unknown" && sessionError) {
+    return (
+      <div className="flex min-h-dvh w-full flex-1 flex-col items-center justify-center p-4">
+        <p className="text-center text-red-600">{sessionError}</p>
+        <Button type="button" className="mt-4" onClick={() => window.location.reload()}>
+          إعادة تحميل
+        </Button>
+      </div>
+    );
+  }
+
+  if (accessScope === "unknown") {
+    return (
+      <div
+        className="flex w-full min-h-0 min-h-dvh max-w-full flex-1 flex-col md:flex-row"
+        aria-busy
+      >
+        <aside
+          className="shrink-0 border-b border-border/80 bg-white p-3 sm:p-4 md:min-h-dvh md:w-64 md:shrink-0 md:overflow-y-auto md:self-stretch md:border-b-0 md:py-5 md:ps-4 md:pe-3"
+          aria-hidden
+        />
+        <div className="bg-page flex min-h-0 min-w-0 flex-1 flex-col md:min-h-dvh md:min-w-0 md:border-s md:border-border/60">
+          <header className="shrink-0 border-b border-border bg-white px-4 py-3 sm:px-5 sm:py-4">
+            <h1 className="font-display text-2xl font-bold text-brand-950">إعدادات المتجر</h1>
+            <p className="mt-1 text-sm text-muted-foreground">جاري التحقق من الجلسة…</p>
+          </header>
+          <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-3 sm:p-4 md:p-6">
+            <Skeleton className="h-8 w-52" />
+            <Skeleton className="h-4 w-full max-w-md" />
+            <Skeleton className="h-24 w-full" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (accessScope === "media") {
+    return (
+      <div className="flex w-full min-h-0 min-h-dvh max-w-full flex-1 flex-col md:flex-row">
+        <aside className="shrink-0 border-b border-border/80 bg-white p-3 sm:p-4 md:min-h-dvh md:w-64 md:shrink-0 md:overflow-y-auto md:self-stretch md:border-b-0 md:py-5 md:ps-4 md:pe-3">
+          <p className="mb-2 text-xs font-medium text-muted-foreground">صلاحية الوسائط فقط</p>
+          <nav className="flex min-w-0 flex-col gap-1" role="tablist" aria-label="قسم الوسائط">
+            {navTabs.map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                className="min-h-12 w-full rounded-xl border border-brand-200/90 bg-brand-50 px-3 py-3 text-start text-sm font-semibold text-brand-950 sm:px-4"
+                disabled
+                aria-current="page"
+              >
+                {t.label}
+              </button>
+            ))}
+          </nav>
+        </aside>
+        <div className="bg-page flex min-h-0 min-w-0 flex-1 flex-col md:min-h-dvh md:min-w-0 md:border-s md:border-border/60">
+          <header className="shrink-0 border-b border-border bg-white px-4 py-3 sm:px-5 sm:py-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0">
+                <h1 className="font-display text-2xl font-bold text-brand-950">إدارة الوسائط</h1>
+                <p className="text-sm text-muted-foreground">
+                  رفع وقائمة وحذف الملفات ضمن المسار{" "}
+                  <span dir="ltr" className="font-mono text-xs">
+                    cms/site-media/
+                  </span>{" "}
+                  فقط.
+                </p>
+              </div>
+              <Button type="button" variant="secondary" className="shrink-0" onClick={() => void logout()}>
+                خروج
+              </Button>
+            </div>
+          </header>
+          <div className="min-h-0 min-w-0 flex-1 overflow-y-auto p-3 sm:p-4 md:p-6">
+            <ControlMediaTab mediaFolderPolicy={clientSession?.mediaFolders} />
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (loadError) {
     return (
-      <Container className="py-10">
-        <p className="text-red-600">{loadError}</p>
-        <Button type="button" className="mt-4" onClick={() => void load()}>
-          إعادة المحاولة
-        </Button>
-      </Container>
+      <div className="flex w-full min-h-0 min-h-dvh max-w-full flex-1 flex-col md:flex-row">
+        <aside
+          className="shrink-0 border-b border-border/80 bg-white p-3 sm:p-4 md:min-h-dvh md:w-64 md:shrink-0 md:overflow-y-auto md:self-stretch md:border-b-0 md:py-5 md:ps-4 md:pe-3"
+          aria-hidden
+        />
+        <div className="bg-page flex min-h-0 min-w-0 flex-1 flex-col md:min-h-dvh md:min-w-0 md:border-s md:border-border/60">
+          <header className="shrink-0 border-b border-border bg-white px-4 py-3 sm:px-5 sm:py-4">
+            <h1 className="font-display text-2xl font-bold text-brand-950">إعدادات المتجر</h1>
+          </header>
+          <div className="min-h-0 flex-1 overflow-y-auto p-3 sm:p-4 md:p-6">
+            <p className="text-red-600">{loadError}</p>
+            <Button type="button" className="mt-4" onClick={() => void load()}>
+              إعادة المحاولة
+            </Button>
+          </div>
+        </div>
+      </div>
     );
   }
 
   if (!bundle) {
     return (
-      <Container className="py-16">
-        <p className="text-muted-foreground">جاري التحميل…</p>
-      </Container>
+      <div
+        className="flex w-full min-h-0 min-h-dvh max-w-full flex-1 flex-col md:flex-row"
+        aria-busy
+      >
+        <aside
+          className="shrink-0 border-b border-border/80 bg-white p-3 sm:p-4 md:min-h-dvh md:w-64 md:shrink-0 md:overflow-y-auto md:self-stretch md:border-b-0 md:py-5 md:ps-4 md:pe-3"
+          aria-hidden
+        />
+        <div className="bg-page flex min-h-0 min-w-0 flex-1 flex-col md:min-h-dvh md:min-w-0 md:border-s md:border-border/60">
+          <header className="shrink-0 border-b border-border bg-white px-4 py-3 sm:px-5 sm:py-4">
+            <h1 className="font-display text-2xl font-bold text-brand-950">إعدادات المتجر</h1>
+            <p className="mt-1 text-sm text-muted-foreground">جاري التحميل…</p>
+          </header>
+          <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-3 sm:p-4 md:p-6">
+            <Skeleton className="h-8 w-52" />
+            <Skeleton className="h-4 w-full max-w-md" />
+            <Skeleton className="h-4 w-full max-w-sm" />
+            <Skeleton className="h-4 w-40" />
+            <Skeleton className="h-24 w-full" />
+            <Skeleton className="h-4 w-3/4" />
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-2/3" />
+          </div>
+        </div>
+      </div>
     );
   }
 
@@ -483,47 +637,100 @@ export function ControlPanel() {
     ? spotlightsParsed.data
     : { items: [] };
 
+  const currentTabLabel = navTabs.find((t) => t.id === tab)?.label ?? "المحتوى";
+
+  /*
+   * غلاف تطبيق: عمود جانبي + منطقة رئيسية (bg-page) قابلة للتمرير؛
+   * معاينة: الـ content يتمدد (overflow hidden) و iframe min-h-0. RTL: أول قسم = اليمين.
+   */
   return (
-    <Container className="py-8 pb-24">
-      <header className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="font-display text-2xl font-bold text-brand-950">إعدادات المتجر</h1>
-          <p className="text-sm text-muted-foreground">
-            المصدر: Firestore. الصفحات العامة تُخزَّن مؤقتًا نحو دقيقة؛ حفظ أي تبويب من هنا يُحدّث
-            العرض فورًا عبر الخادم.
-          </p>
-        </div>
-        <Button type="button" variant="secondary" onClick={() => void logout()}>
-          خروج
-        </Button>
-      </header>
+    <div className="flex w-full min-h-0 min-h-dvh max-w-full flex-1 flex-col md:flex-row">
+      <aside className="shrink-0 border-b border-slate-200/90 bg-white p-3 sm:p-4 md:min-h-dvh md:w-60 md:shrink-0 md:overflow-y-auto md:self-stretch md:border-b-0 md:py-5 md:ps-4 md:pe-3">
+        <label
+          htmlFor="control-tab-jump"
+          className="mb-2 block text-sm font-medium text-slate-800 md:hidden"
+        >
+          القسم
+        </label>
+        <select
+          id="control-tab-jump"
+          className="mb-0 w-full min-h-12 min-w-0 rounded-lg border border-slate-200 bg-white py-3 ps-3 pe-2 text-sm font-semibold text-slate-900 shadow-sm md:hidden"
+          value={tab}
+          aria-label="قسم لوحة التحكم"
+          onChange={(e) => onSelectTab(e.target.value as ControlPanelTabId)}
+        >
+          {navTabs.map((t) => (
+            <option key={t.id} value={t.id}>
+              {t.label}
+            </option>
+          ))}
+        </select>
+        <nav
+          className="mt-0 hidden min-w-0 flex-col gap-1 md:mt-0 md:flex"
+          role="tablist"
+          aria-label="أقسام لوحة التحكم"
+        >
+          {navTabs.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              id={`control-tab-${t.id}`}
+              role="tab"
+              aria-selected={tab === t.id}
+              aria-controls="control-panel-body"
+              className={cn(
+                "min-h-10 w-full rounded-md border px-3 py-2.5 text-start text-sm font-medium transition-colors sm:px-3.5",
+                tab === t.id
+                  ? "border-slate-200 bg-white text-slate-900 shadow-sm"
+                  : "border-transparent text-slate-600 hover:border-transparent hover:bg-slate-100/80 hover:text-slate-900",
+              )}
+              onClick={() => onSelectTab(t.id)}
+            >
+              {t.label}
+            </button>
+          ))}
+        </nav>
+      </aside>
 
-      {/* شريط تبويبات: سكرول أفقي على الجوال */}
-      <div
-        className="mb-8 flex gap-1 overflow-x-auto border-b border-border pb-px [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-        role="tablist"
-        aria-label="أقسام لوحة التحكم"
-      >
-        {TABS.map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            role="tab"
-            aria-selected={tab === t.id}
-            className={cn(
-              "shrink-0 whitespace-nowrap rounded-t-lg px-4 py-2.5 text-sm font-semibold transition-colors",
-              tab === t.id
-                ? "border-b-2 border-brand-500 bg-brand-50/80 text-brand-950"
-                : "text-muted-foreground hover:bg-surface-muted/60 hover:text-foreground",
-            )}
-            onClick={() => setTab(t.id)}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col bg-[#f6f9fc] md:min-h-dvh md:min-w-0 md:border-s md:border-slate-200/90">
+        <header className="shrink-0 border-b border-slate-200/90 bg-white px-4 py-3 sm:px-5 sm:py-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div className="min-w-0">
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                الإعدادات
+              </p>
+              <h1 className="font-display text-2xl font-bold tracking-tight text-slate-900">
+                إعدادات المتجر
+              </h1>
+              <p className="text-sm text-slate-600">
+                المصدر: Firestore. الصفحات العامة تُخزَّن مؤقتًا نحو دقيقة؛ حفظ أي تبويب من
+                هنا يُحدّث العرض فورًا عبر الخادم. إعدادات ‎Woo/API وعناوين التكامل من{" "}
+                <span className="font-medium text-slate-800">تشخيص / ‎dev</span>.
+              </p>
+            </div>
+            <Button
+              type="button"
+              variant="secondary"
+              className="shrink-0 border-slate-200 bg-white text-slate-800 shadow-sm hover:bg-slate-50"
+              onClick={() => void logout()}
+            >
+              خروج
+            </Button>
+          </div>
+        </header>
 
-      {tab === "general" ? (
+        <div
+          id="control-panel-body"
+          className={cn(
+            "min-h-0 flex-1 p-3 sm:p-4 md:p-6",
+            tab === "preview"
+              ? "flex min-h-0 flex-col overflow-hidden"
+              : "min-w-0 overflow-y-auto",
+          )}
+          role="tabpanel"
+          aria-label={currentTabLabel}
+        >
+            {tab === "general" ? (
         <section className="space-y-6">
           <section className="space-y-4 rounded-2xl border border-border bg-white p-5 shadow-sm">
             <h2 className="font-display text-lg font-bold">قسم العروض السريعة</h2>
@@ -613,6 +820,32 @@ export function ControlPanel() {
             cmsKeywords={site?.searchQuickKeywords}
             disabled={saving === "site_config"}
             onSave={(keywords) => void saveSiteConfig({ searchQuickKeywords: keywords })}
+          />
+
+          <HeaderCategoryStripForm
+            key={JSON.stringify((site as { headerCategoryStrip?: unknown })?.headerCategoryStrip ?? null)}
+            initial={(() => {
+              const r = cmsHeaderCategoryStripSchema.safeParse(
+                (site as { headerCategoryStrip?: unknown } | null)?.headerCategoryStrip ??
+                  CMS_DEFAULT_HEADER_CATEGORY_STRIP,
+              );
+              return r.success ? r.data : CMS_DEFAULT_HEADER_CATEGORY_STRIP;
+            })()}
+            disabled={saving === "site_config"}
+            onSave={(doc) => void saveSiteConfig({ headerCategoryStrip: doc })}
+          />
+
+          <HomeCategoryScrollerForm
+            key={JSON.stringify((site as { homeCategoryScroller?: unknown })?.homeCategoryScroller ?? null)}
+            initial={(() => {
+              const r = cmsHomeCategoryScrollerSchema.safeParse(
+                (site as { homeCategoryScroller?: unknown } | null)?.homeCategoryScroller ??
+                  CMS_DEFAULT_HOME_CATEGORY_SCROLLER,
+              );
+              return r.success ? r.data : CMS_DEFAULT_HOME_CATEGORY_SCROLLER;
+            })()}
+            disabled={saving === "site_config"}
+            onSave={(doc) => void saveSiteConfig({ homeCategoryScroller: doc })}
           />
 
           <section className="rounded-2xl border border-amber-200/80 bg-amber-50/50 p-5">
@@ -878,73 +1111,66 @@ export function ControlPanel() {
       ) : null}
 
       {tab === "media" ? (
-        <section className="space-y-3 rounded-2xl border border-border bg-white p-5 shadow-sm">
-          <h2 className="font-display text-lg font-bold">رفع صورة</h2>
-          <p className="text-sm text-muted-foreground">
-            الأساس: ارفع من نفس التبويب الذي يحتوي الحقل (الهيرو، الهوية، البانرات، الموزعون، إلخ).
-            هذا القسم اختياري إذا احتجت رابطًا عامًا للنسخ السريع دون فتح تبويب آخر.
-          </p>
-          <input
-            type="file"
-            accept="image/jpeg,image/png,image/webp,image/gif,image/avif"
-            disabled={uploading}
-            onChange={(e) => {
-              const f = e.target.files?.[0];
-              if (f) void onUploadFile(f);
-            }}
-          />
-          {uploading ? (
-            <p className="text-sm text-muted-foreground">جاري الرفع…</p>
-          ) : null}
-          {lastUploadUrl ? (
-            <div className="space-y-2">
-              <p className="text-sm font-medium text-brand-950">معاينة الصورة المرفوعة</p>
-              <div className="relative max-h-[min(24rem,70vh)] w-full max-w-2xl overflow-hidden rounded-xl border border-border bg-surface-muted/40">
-                <AppImage
-                  src={lastUploadUrl}
-                  alt="معاينة الصورة بعد الرفع"
-                  width={1200}
-                  height={675}
-                  className="h-auto w-full object-contain"
-                  sizes="(max-width: 42rem) 100vw, 42rem"
-                />
-              </div>
-              <p className="break-all rounded-lg bg-surface-muted/50 p-3 font-mono text-xs text-muted-foreground">
-                {lastUploadUrl}
-              </p>
-            </div>
-          ) : null}
-          {uploadLocalPreviewUrl && uploading ? (
-            <div className="space-y-2">
-              <p className="text-sm font-medium text-brand-950">معاينة قبل اكتمال الرفع</p>
-              <div className="relative max-h-[min(24rem,70vh)] w-full max-w-2xl overflow-hidden rounded-xl border border-border bg-surface-muted/40">
-                <img
-                  src={uploadLocalPreviewUrl}
-                  alt="معاينة محلية"
-                  className="h-auto max-h-[min(24rem,70vh)] w-full object-contain"
-                />
-              </div>
-            </div>
-          ) : null}
-          {uploadLocalPreviewUrl && !uploading && !lastUploadUrl ? (
-            <div className="space-y-2">
-              <p className="text-sm font-medium text-amber-900">
-                معاينة (فشل الرفع — يمكنك اختيار ملف آخر)
-              </p>
-              <div className="relative max-h-[min(24rem,70vh)] w-full max-w-2xl overflow-hidden rounded-xl border border-amber-200 bg-amber-50/50">
-                <img
-                  src={uploadLocalPreviewUrl}
-                  alt="معاينة محلية"
-                  className="h-auto max-h-[min(24rem,70vh)] w-full object-contain"
-                />
-              </div>
-            </div>
-          ) : null}
-        </section>
+        <ControlMediaTab
+          onRemoteMediaChanged={() => setStorefrontPreviewKey((k) => k + 1)}
+          mediaFolderPolicy={clientSession?.mediaFolders}
+        />
       ) : null}
 
-      {tab === "notifications" ? <NotificationsSection /> : null}
-    </Container>
+            {tab === "access" ? <ControlAccessTab /> : null}
+
+            {tab === "preview" ? (
+              <section
+                className="flex min-h-0 min-w-0 flex-1 flex-col gap-4"
+                aria-label="معاينة مباشرة للواجهة"
+              >
+                <div className="flex shrink-0 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="min-w-0">
+                    <h2 className="font-display text-lg font-bold">معاينة الموقع (مباشر)</h2>
+                    <p className="text-sm text-muted-foreground">
+                      تُعاد تحميل المعاينة تلقائياً بعد كل حفظ (أو رفع صورة) ناجح. إن احتجت
+                      واجهاً دون انتظار طبقة التخزين المؤقت (حوالي دقيقة) استخدم
+                      &quot;تحديث&quot;.
+                    </p>
+                  </div>
+                  <div className="flex shrink-0 flex-wrap gap-2 sm:justify-end">
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      onClick={() => setStorefrontPreviewKey((k) => k + 1)}
+                    >
+                      تحديث المعاينة
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      onClick={() =>
+                        window.open(
+                          `/?_control_preview=${Date.now()}`,
+                          "_blank",
+                          "noopener,noreferrer",
+                        )
+                      }
+                    >
+                      فتح في تبويب جديد
+                    </Button>
+                  </div>
+                </div>
+                <div className="min-h-0 min-w-0 flex-1 overflow-hidden rounded-xl border border-border bg-surface-muted/30 shadow-inner">
+                  <iframe
+                    key={storefrontPreviewKey}
+                    title="معاينة الموقع"
+                    className="block h-full min-h-[50dvh] w-full min-w-0 border-0 bg-page"
+                    src={`/?_control_preview=${storefrontPreviewKey}`}
+                  />
+                </div>
+              </section>
+            ) : null}
+
+            {tab === "notifications" ? <NotificationsSection /> : null}
+        </div>
+      </div>
+    </div>
   );
 }
 

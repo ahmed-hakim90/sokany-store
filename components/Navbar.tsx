@@ -2,7 +2,7 @@
 
 import { Link } from "next-view-transitions";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AppImage } from "@/components/AppImage";
 import { MobileNavDrawer } from "@/components/layout/mobile-nav-drawer";
 import {
@@ -15,6 +15,7 @@ import { CatalogFilterDrawerTrigger } from "@/features/catalog/components/Catalo
 import { useMobileChromeCollapsedStore } from "@/components/layout/mobile-chrome-collapsed-store";
 import { DesktopCategoryMegaNav } from "@/components/layout/desktop-category-mega-nav";
 import { TopHeader } from "@/components/layout/top-header";
+import { HeaderCategoryIconStrip } from "@/features/categories/components/HeaderCategoryIconStrip";
 import { useCategories } from "@/features/categories/hooks/useCategories";
 import { useCartDrawerOpenStore } from "@/features/cart/store/useCartDrawerOpenStore";
 import { useWishlistDrawerOpenStore } from "@/features/wishlist/store/useWishlistDrawerOpenStore";
@@ -24,6 +25,10 @@ import { ROUTES, SITE_LOGO_DISABLED, SITE_LOGO_PATH, SITE_NAME } from "@/lib/con
 import { DEFAULT_SEARCH_QUICK_KEYWORDS } from "@/lib/search-quick-keywords";
 import { SOCIAL_LINKS, type SocialLink } from "@/lib/social-links";
 import { cn } from "@/lib/utils";
+import {
+  CMS_DEFAULT_HEADER_CATEGORY_STRIP,
+  type CmsHeaderCategoryStrip,
+} from "@/schemas/cms";
 
 /** روابط تظهر في صف الديسكتوب بعد «العروض» (ليست داخل «خدماتنا»). */
 const desktopPrimaryBarExtraLinks = [
@@ -96,6 +101,8 @@ export type NavbarProps = {
   searchQuickKeywords?: readonly string[];
   /** روابط السوشيال للشريط الديسكتوب — من CMS أو الافتراضي. */
   socialLinks?: readonly SocialLink[];
+  /** دوائر أيقونات تحت الهيدر — من `getPublicSiteContent`. */
+  headerCategoryStrip?: CmsHeaderCategoryStrip;
 };
 
 function MobileCartLink({
@@ -141,6 +148,7 @@ export function Navbar({
   logoDisabled = SITE_LOGO_DISABLED,
   searchQuickKeywords = DEFAULT_SEARCH_QUICK_KEYWORDS,
   socialLinks = SOCIAL_LINKS,
+  headerCategoryStrip = CMS_DEFAULT_HEADER_CATEGORY_STRIP,
 }: NavbarProps = {}) {
   const pathname = usePathname();
   const open = useMobileNavDrawerOpenStore((s) => s.open);
@@ -148,6 +156,10 @@ export function Navbar({
   const { totalItems } = useCart();
   const { totalCount: wishlistCount } = useWishlist();
   const categoriesQuery = useCategories({ per_page: 100 });
+  const navCategories = useMemo(
+    () => (categoriesQuery.data ?? []).filter((c) => c.count > 0),
+    [categoriesQuery.data],
+  );
   const openDesktopCartDrawer = useCartDrawerOpenStore((s) => s.openDrawer);
   const closeDesktopCartDrawer = useCartDrawerOpenStore((s) => s.closeDrawer);
   const desktopCartDrawerOpen = useCartDrawerOpenStore((s) => s.open);
@@ -199,13 +211,16 @@ export function Navbar({
 
   const desktopSubheader =
     !isCheckout ? (
-      <DesktopCategoryMegaNav
-        categories={categoriesQuery.data}
-        categoriesLoading={categoriesQuery.isLoading}
-        primaryBarExtraLinks={desktopPrimaryBarExtraLinks}
-        moreLinks={servicesDropdownLinks}
-        socialLinks={socialLinks}
-      />
+      <>
+        <HeaderCategoryIconStrip config={headerCategoryStrip} variant="default" />
+        <DesktopCategoryMegaNav
+          categories={navCategories}
+          categoriesLoading={categoriesQuery.isLoading}
+          primaryBarExtraLinks={desktopPrimaryBarExtraLinks}
+          moreLinks={servicesDropdownLinks}
+          socialLinks={socialLinks}
+        />
+      </>
     ) : null;
 
   const trailing = (
@@ -399,7 +414,14 @@ export function Navbar({
         mobileWordmark={mobileWordmark}
         mobileLeading={mobileLeading}
         mobileTrailing={mobileTrailing}
-        mobileToolbarBelow={undefined}
+        mobileToolbarBelow={
+          !isCheckout ? (
+            <HeaderCategoryIconStrip
+              config={headerCategoryStrip}
+              variant="toolbar"
+            />
+          ) : undefined
+        }
         mobileSecondary={mobileSecondary}
         mobileChromeCollapsed={mobileChromeCollapsed}
       />
@@ -410,7 +432,7 @@ export function Navbar({
           returnFocusRef={mobileNavDrawerReturnFocusRef}
           linkSections={mobileDrawerLinkSections}
           policyLinks={mobileDrawerPolicyLinks}
-          categories={categoriesQuery.data}
+          categories={navCategories}
           categoriesLoading={categoriesQuery.isLoading}
         />
       ) : null}

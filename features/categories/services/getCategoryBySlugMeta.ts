@@ -16,13 +16,16 @@ export async function getCategoryBySlugMeta(
     return raw ? mapCategory(wpCategorySchema.parse(raw)) : null;
   }
   try {
-    const woo = createWooClient();
+    const woo = await createWooClient();
     const res = await woo.get("/products/categories", {
       params: { slug, per_page: 1 },
     });
     const first = wpCategoriesSchema.parse(res.data)[0];
     return first ? mapCategory(first) : null;
   } catch {
+    if (!USE_MOCK) {
+      return null;
+    }
     const raw = fallbackCategories.find((c) => c.slug === slug);
     return raw ? mapCategory(wpCategorySchema.parse(raw)) : null;
   }

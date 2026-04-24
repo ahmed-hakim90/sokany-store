@@ -1,13 +1,14 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
+import { useSearchParams } from "next/navigation";
 import { useTransitionRouter } from "next-view-transitions";
 import { Button } from "@/components/Button";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorState } from "@/components/ErrorState";
 import { useCart } from "@/hooks/useCart";
-import { DEFAULT_PAGE, ROUTES } from "@/lib/constants";
-import { CatalogPromoTile } from "@/features/catalog/components/catalog-promo-tile";
+import { ROUTES } from "@/lib/constants";
+import { CatalogPagination } from "@/features/catalog/components/CatalogPagination";
 import { useProducts } from "@/features/products/hooks/useProducts";
 import { ProductGrid } from "@/features/products/components/ProductGrid";
 import type { Product } from "@/features/products/types";
@@ -26,19 +27,23 @@ function CategoriesIntro() {
 }
 
 /*
- * قسم «منتجات متاحة»: بطاقة داخل العمود الرئيسي بعنوان وسطي وشبكة منتجات (مع بلاطة عرض في أول الشبكة).
+ * قسم «منتجات متاحة»: شبكة المنتجات داخل العمود الرئيسي.
  */
 function AvailableProductsSection({
   productsQuery,
   getCartLineQuantity,
   onCartLineQuantityChange,
   router,
+  page,
 }: {
   productsQuery: ReturnType<typeof useProducts>;
   getCartLineQuantity: (productId: number) => number;
   onCartLineQuantityChange: (product: Product, next: number) => void;
   router: ReturnType<typeof useTransitionRouter>;
+  page: number;
 }) {
+  const items = productsQuery.data?.items ?? [];
+  const totalPages = productsQuery.data?.totalPages ?? 1;
   return (
     <section
       className="space-y-3 rounded-2xl  lg:p-0"
@@ -59,33 +64,41 @@ function AvailableProductsSection({
           onRetry={() => void productsQuery.refetch()}
         />
       ) : (
-        <ProductGrid
-          status={
-            productsQuery.isPending
-              ? "loading"
-              : !productsQuery.data?.length
-                ? "empty"
-                : "ready"
-          }
-          products={productsQuery.data ?? []}
-          getCartLineQuantity={getCartLineQuantity}
-          onCartLineQuantityChange={onCartLineQuantityChange}
-          cardVariant="mobileCompact"
-          cardVariantMd="desktopCatalogWide"
-          leadingSlot={<CatalogPromoTile />}
-          gridClassName="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4"
-          empty={
-            <EmptyState
-              title="لا توجد منتجات حالياً"
-              description="تصفح الكتالوج الكامل من صفحة المنتجات."
-              action={
-                <Button type="button" onClick={() => router.push(ROUTES.PRODUCTS)}>
-                  المنتجات
-                </Button>
-              }
+        <>
+          <ProductGrid
+            status={
+              productsQuery.isPending
+                ? "loading"
+                : !items.length
+                  ? "empty"
+                  : "ready"
+            }
+            products={items}
+            getCartLineQuantity={getCartLineQuantity}
+            onCartLineQuantityChange={onCartLineQuantityChange}
+            cardVariant="mobileCompact"
+            cardVariantMd="desktopCatalogWide"
+            gridClassName="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4"
+            empty={
+              <EmptyState
+                title="لا توجد منتجات حالياً"
+                description="تصفح الكتالوج الكامل من صفحة المنتجات."
+                action={
+                  <Button type="button" onClick={() => router.push(ROUTES.PRODUCTS)}>
+                    المنتجات
+                  </Button>
+                }
+              />
+            }
+          />
+          {!productsQuery.isPending && !productsQuery.isError && items.length > 0 ? (
+            <CatalogPagination
+              currentPage={page}
+              totalPages={totalPages}
+              getHref={(p) => (p <= 1 ? ROUTES.CATEGORIES : `${ROUTES.CATEGORIES}?page=${p}`)}
             />
-          }
-        />
+          ) : null}
+        </>
       )}
     </section>
   );
@@ -97,14 +110,25 @@ function AvailableProductsSection({
  */
 export function CategoriesPageContent() {
   const router = useTransitionRouter();
+  const searchParams = useSearchParams();
+  const page = useMemo(
+    () => Math.max(1, parseInt(searchParams.get("page") ?? "1", 10) || 1),
+    [searchParams],
+  );
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    window.scrollTo(0, 0);
+  }, [searchParams]);
+
   const productParams = useMemo(
     () => ({
-      page: DEFAULT_PAGE,
+      page,
       per_page: 12,
       orderby: "popularity" as const,
       order: "desc" as const,
     }),
-    [],
+    [page],
   );
   const productsQuery = useProducts(productParams);
   const { getCartLineQuantity, setProductLineQuantity } = useCart();
@@ -120,6 +144,7 @@ export function CategoriesPageContent() {
           getCartLineQuantity={getCartLineQuantity}
           onCartLineQuantityChange={setProductLineQuantity}
           router={router}
+          page={page}
         />
       </div>
     </>

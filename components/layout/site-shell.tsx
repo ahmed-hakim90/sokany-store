@@ -9,7 +9,7 @@ import { Navbar } from "@/components/Navbar";
 import { DesktopCartDrawer } from "@/features/cart/components/DesktopCartDrawer";
 import { CatalogFilterDrawer } from "@/features/catalog/components/CatalogFilterDrawer";
 import { DesktopWishlistDrawer } from "@/features/wishlist/components/DesktopWishlistDrawer";
-import type { CmsTopAnnouncementBar } from "@/schemas/cms";
+import type { CmsHeaderCategoryStrip, CmsTopAnnouncementBar } from "@/schemas/cms";
 import type { ResolvedSiteBranding } from "@/lib/site-branding";
 import type { SocialLink } from "@/lib/social-links";
 
@@ -19,6 +19,7 @@ export type SiteShellProps = {
   socialLinks: SocialLink[];
   branding: ResolvedSiteBranding;
   searchQuickKeywords: string[];
+  headerCategoryStrip: CmsHeaderCategoryStrip;
 };
 
 export function SiteShell({
@@ -27,6 +28,7 @@ export function SiteShell({
   socialLinks,
   branding,
   searchQuickKeywords,
+  headerCategoryStrip,
 }: SiteShellProps) {
   return (
     <>
@@ -39,6 +41,7 @@ export function SiteShell({
             logoDisabled={branding.logoDisabled}
             searchQuickKeywords={searchQuickKeywords}
             socialLinks={socialLinks}
+            headerCategoryStrip={headerCategoryStrip}
           />
         </Suspense>
       </div>

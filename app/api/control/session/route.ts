@@ -1,10 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
-import { isControlPanelUidAllowed } from "@/lib/control-auth";
+import { isUidControlPanelAccessAllowed, resolveControlSessionForUid } from "@/lib/control-access-resolve";
+import { requireControlSession } from "@/lib/api-control-auth";
 import {
   CONTROL_SESSION_COOKIE_NAME,
-  signControlSessionToken,
+  signControlSessionPayload,
 } from "@/lib/control-session";
 import { verifyFirebaseIdToken } from "@/lib/firebase-admin";
+
+export async function GET(request: NextRequest) {
+  const auth = await requireControlSession(request);
+  if (auth instanceof NextResponse) return auth;
+  return NextResponse.json({
+    ok: true,
+    scope: auth.scope,
+    tabs: auth.tabs,
+    mediaFolders: auth.mediaFolders,
+    superAdmin: auth.superAdmin,
+  });
+}
 
 export async function POST(request: NextRequest) {
   let body: unknown;
@@ -32,11 +45,21 @@ export async function POST(request: NextRequest) {
 
   try {
     const decoded = await verifyFirebaseIdToken(idToken);
-    if (!isControlPanelUidAllowed(decoded.uid)) {
+    if (!(await isUidControlPanelAccessAllowed(decoded.uid))) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
-    const session = await signControlSessionToken(decoded.uid);
-    const res = NextResponse.json({ ok: true });
+    const payload = await resolveControlSessionForUid(decoded.uid);
+    if (!payload) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+    const session = await signControlSessionPayload(payload);
+    const res = NextResponse.json({
+      ok: true,
+      scope: payload.scope,
+      tabs: payload.tabs,
+      mediaFolders: payload.mediaFolders,
+      superAdmin: payload.superAdmin,
+    });
     res.cookies.set(CONTROL_SESSION_COOKIE_NAME, session, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",

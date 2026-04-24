@@ -2,6 +2,11 @@ import { parsePrice } from "@/lib/utils";
 import { toAbsoluteSiteUrl } from "@/lib/site";
 import type { BillingAddress, ShippingAddress } from "@/features/user/types";
 import type { Order, OrderItem, OrderStatus, WCOrder } from "@/features/orders/types";
+import {
+  WOO_V3_ORDER_LINE_ITEM_SCHEMA_KEYS,
+  WOO_V3_ORDER_SCHEMA_KEYS,
+  pickWooExcess,
+} from "@/lib/woo-passthrough-keys";
 
 const PLACEHOLDER_PATH = "/images/placeholder.png";
 
@@ -58,6 +63,7 @@ function mapLineItems(items: WCOrder["line_items"]): OrderItem[] {
     price: parsePrice(li.price),
     total: parsePrice(li.total),
     image: toAbsoluteSiteUrl(li.image?.src ?? PLACEHOLDER_PATH),
+    wooExcess: pickWooExcess(li as object, WOO_V3_ORDER_LINE_ITEM_SCHEMA_KEYS),
   }));
 }
 
@@ -78,6 +84,8 @@ export function mapOrder(wc: WCOrder): Order {
     paymentMethod: wc.payment_method,
     paymentMethodTitle: wc.payment_method_title,
     customerNote: wc.customer_note,
+    metaData: Array.isArray(wc.meta_data) ? wc.meta_data : [],
+    wooExcess: pickWooExcess(wc as object, WOO_V3_ORDER_SCHEMA_KEYS),
   };
 }
 

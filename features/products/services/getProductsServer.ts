@@ -1,11 +1,28 @@
 import "server-only";
 
+import { unstable_cache } from "next/cache";
 import { createWooClient } from "@/lib/create-woo-client";
+import { WOO_CACHE_TAG_PRODUCTS } from "@/lib/woocommerce-cache-tags";
 import { wpProductsSchema } from "@/schemas/wordpress";
 import type { ProductQueryParams } from "@/types";
 import { mapProducts } from "../adapters";
 import { filterMockProducts } from "../mock";
 import type { Product } from "../types";
+
+const fetchWooProductsForServer = unstable_cache(
+  async (paramsKey: string) => {
+    const params = (
+      paramsKey ? JSON.parse(paramsKey) : undefined
+    ) as ProductQueryParams | undefined;
+    const woo = await createWooClient();
+    const response = await woo.get("/products", {
+      params: (params ?? {}) as Record<string, string | number | boolean | undefined>,
+    });
+    return response.data;
+  },
+  ["woo-server-products-raw-v1"],
+  { revalidate: 120, tags: [WOO_CACHE_TAG_PRODUCTS] },
+);
 
 function mockProductsFromParams(params?: ProductQueryParams): Product[] {
   const page = params?.page ?? 1;
@@ -27,11 +44,9 @@ export async function getProductsServer(
   params?: ProductQueryParams,
 ): Promise<Product[]> {
   try {
-    const woo = createWooClient();
-    const response = await woo.get("/products", {
-      params: params as Record<string, string | number | boolean | undefined>,
-    });
-    return mapProducts(wpProductsSchema.parse(response.data));
+    const paramsKey = JSON.stringify(params ?? {});
+    const data = await fetchWooProductsForServer(paramsKey);
+    return mapProducts(wpProductsSchema.parse(data));
   } catch {
     return mockProductsFromParams(params);
   }

@@ -21,7 +21,7 @@ function toWooReviewListParams(
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const woo = createWooClient();
+    const woo = await createWooClient();
     const params = toWooReviewListParams(searchParams);
     const response = await woo.get("/products/reviews", { params });
     return NextResponse.json(response.data, {
@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
   }
   try {
     const body: unknown = await request.json();
-    const woo = createWooClient();
+    const woo = await createWooClient();
     const response = await woo.post("/products/reviews", body);
     return NextResponse.json(response.data, { status: 201 });
   } catch (error) {

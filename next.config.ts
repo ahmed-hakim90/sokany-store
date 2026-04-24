@@ -56,6 +56,11 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
+        hostname: "www.sokany-eg.com",
+        pathname: "/wp-content/**",
+      },
+      {
+        protocol: "https",
         hostname: "img.freepik.com",
         pathname: "/**",
       },

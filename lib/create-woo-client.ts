@@ -1,9 +1,14 @@
 import "server-only";
 import axios from "axios";
 import { WC_REST_BASE_PATH } from "@/lib/constants";
+import { resolveWooBaseUrlForServer } from "@/lib/resolve-woo-base-url";
 
-export function createWooClient() {
-  const baseURL = process.env.WC_BASE_URL;
+/**
+ * يربط REST وو عبر ‎`WC_CONSUMER_KEY` / ‎`WC_CONSUMER_SECRET` + أصل المتجر
+ * (‎`WC_BASE_URL` أو ‎`storefrontIntegrations.wooBaseUrl` في CMS).
+ */
+export async function createWooClient() {
+  const baseURL = await resolveWooBaseUrlForServer();
   const key = process.env.WC_CONSUMER_KEY;
   const secret = process.env.WC_CONSUMER_SECRET;
   if (!baseURL || !key || !secret) {

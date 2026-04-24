@@ -2,10 +2,15 @@ import { normalizeProductDescriptionSource } from "@/lib/html";
 import { parsePrice, stripHtml } from "@/lib/utils";
 import { toAbsoluteSiteUrl } from "@/lib/site";
 import type { Product, WCProduct } from "@/features/products/types";
+import {
+  WOO_V3_PRODUCT_SCHEMA_KEYS,
+  pickWooExcess,
+} from "@/lib/woo-passthrough-keys";
 
 const PLACEHOLDER_PATH = "/images/placeholder.png";
 
 export function mapProduct(raw: WCProduct): Product {
+  const asRecord = raw as WCProduct & Record<string, unknown>;
   const price = parsePrice(raw.price);
   const regularPrice = parsePrice(raw.regular_price);
   const salePriceRaw = raw.sale_price.trim();
@@ -68,6 +73,8 @@ export function mapProduct(raw: WCProduct): Product {
       options: [...a.options],
     })),
     relatedIds: raw.related_ids ?? [],
+    metaData: Array.isArray(raw.meta_data) ? raw.meta_data : [],
+    wooExcess: pickWooExcess(asRecord, WOO_V3_PRODUCT_SCHEMA_KEYS),
   };
 }
 

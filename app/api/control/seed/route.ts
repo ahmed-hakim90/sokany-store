@@ -8,14 +8,14 @@ import {
   authorizedRetailers,
   retailersMapHeroSrc,
 } from "@/features/retailers/data";
-import { requireControlSession } from "@/lib/api-control-auth";
+import { requireCanRunSeed } from "@/lib/api-control-auth";
 import { getAdminFirestore } from "@/lib/firebase-admin";
 
 export const runtime = "nodejs";
 
 /** يملأ مستندات الفروع والموزعين من البيانات الثابتة في الكود. */
 export async function POST(request: NextRequest) {
-  const auth = await requireControlSession(request);
+  const auth = await requireCanRunSeed(request);
   if (auth instanceof NextResponse) return auth;
 
   if (!process.env.FIREBASE_SERVICE_ACCOUNT_JSON?.trim()) {

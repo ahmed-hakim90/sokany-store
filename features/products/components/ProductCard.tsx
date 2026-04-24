@@ -399,21 +399,25 @@ export function ProductCard({
                  * RTL: أول عنصر في الصف = يمين الشاشة — السلة؛ نهاية الصف = يسار — المفضلة + معاينة (أيقون فقط).
                  */}
                 <div className="flex w-full min-w-0 items-center justify-between gap-2">
-                  <IconButton
+                  <button
                     type="button"
-                    variant="accent"
-                    size="lg"
                     disabled={!product.inStock}
                     aria-label={justAdded ? "تمت الإضافة للسلة" : "أضف للسلة"}
-                    className="shrink-0 shadow-md shadow-brand-500/20 ring-1 ring-black/[0.06] [&_svg]:h-6 [&_svg]:w-6"
+                    className="inline-flex min-h-[44px] min-w-0 shrink-0 flex-row items-center gap-1.5 rounded-2xl bg-brand-500 px-2.5 py-1.5 text-black ring-1 ring-black/[0.06] transition-shadow transition-colors [box-shadow:0_2px_4px_-1px_rgba(15,23,42,0.12),0_8px_20px_-6px_rgba(0,0,0,0.2),0_0_0_1px_rgba(0,0,0,0.06),0_20px_36px_-10px_rgba(218,255,0,0.45),inset_0_1px_0_0_rgba(255,255,255,0.35)] hover:bg-brand-400 hover:[box-shadow:0_2px_4px_-1px_rgba(15,23,42,0.1),0_10px_24px_-6px_rgba(0,0,0,0.22),0_0_0_1px_rgba(0,0,0,0.05),0_24px_44px_-8px_rgba(218,255,0,0.55),inset_0_1px_0_0_rgba(255,255,255,0.4)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 disabled:pointer-events-none disabled:opacity-50"
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
                       handleAddToCart();
                     }}
                   >
-                    <CartGlyph added={justAdded} />
-                  </IconButton>
+                    <CartGlyph added={justAdded} iconClass="h-5 w-5" />
+                    <span
+                      className="whitespace-nowrap text-[10px] font-bold leading-tight"
+                      aria-hidden
+                    >
+                      أضف للسلة
+                    </span>
+                  </button>
                   <div className="flex shrink-0 items-center gap-2">
                     {wishlistSlot}
                     <IconButton
@@ -481,11 +485,17 @@ function EyeIcon({ className }: { className?: string }) {
   );
 }
 
-function CartGlyph({ added }: { added?: boolean }) {
-  const iconClass = "h-6 w-6 shrink-0";
+function CartGlyph({
+  added,
+  iconClass = "h-6 w-6",
+}: {
+  added?: boolean;
+  iconClass?: string;
+}) {
+  const sizeClass = cn("shrink-0", iconClass);
   if (added) {
     return (
-      <svg viewBox="0 0 24 24" className={iconClass} aria-hidden>
+      <svg viewBox="0 0 24 24" className={sizeClass} aria-hidden>
         <path
           fill="currentColor"
           d="M9.55 17.65l-4.1-4.1 1.4-1.45 2.7 2.7 6.75-6.75 1.45 1.45-8.2 8.15z"
@@ -494,7 +504,7 @@ function CartGlyph({ added }: { added?: boolean }) {
     );
   }
   return (
-    <svg viewBox="0 0 24 24" fill="none" className={iconClass} aria-hidden>
+    <svg viewBox="0 0 24 24" fill="none" className={sizeClass} aria-hidden>
       <path
         d="M3 4h2.2c.5 0 .93.33 1.06.81l.54 2.02m0 0L8 12h9.5a1 1 0 00.97-.76l1.2-4.8a.75.75 0 00-.73-.94H6.8z"
         stroke="currentColor"

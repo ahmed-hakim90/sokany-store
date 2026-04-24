@@ -138,11 +138,12 @@ export function HomeHeroBanner({
         ref={scrollerRef}
         className="flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-[calc((100vw-330px)/2)] pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
+        {/* أول شريحتين بـ priority — LCP في الكاروسيل قد لا يكون الشريحة 0 حسب ترتيب CMS/RTL */}
         {slides.map((slide, index) => (
           <HeroImageCard
             key={`${slide.imageSrc}-${index}`}
             slide={slide}
-            priority={index === 0}
+            priority={index < 2}
           />
         ))}
       </div>

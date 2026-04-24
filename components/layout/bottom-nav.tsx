@@ -57,7 +57,15 @@ export function BottomNavInner() {
       "flex h-14 w-full max-w-[4.85rem] flex-col items-center justify-center gap-1 rounded-2xl border border-transparent px-0.5 py-1.5 text-[11px] font-semibold leading-tight transition-colors duration-200 sm:max-w-[5.25rem] sm:text-xs",
       active
         ? "border-brand-950 bg-brand-950 text-accent"
-        : "text-muted-foreground hover:bg-black/[0.03] hover:text-foreground/70",
+        : "text-muted-foreground hover:bg-black/[0.03] hover:text-foreground/80",
+    );
+
+  const tabIconShellClass = (active: boolean) =>
+    cn(
+      "relative inline-flex text-current",
+      active
+        ? "drop-shadow-[0_1px_1px_rgba(0,0,0,0.45)]"
+        : "drop-shadow-[0_1px_1.5px_rgba(15,23,42,0.2)]",
     );
 
   return (
@@ -89,7 +97,7 @@ export function BottomNavInner() {
                   }
                 }}
               >
-                <span className="relative inline-flex text-current">
+                <span className={tabIconShellClass(active)}>
                   <Icon />
                   {isCart && totalItems > 0 ? (
                     <span
@@ -124,7 +132,9 @@ export function BottomNavInner() {
               openDrawer();
             }}
           >   
-            <span className="relative inline-flex text-current">
+            <span
+              className={tabIconShellClass(Boolean(drawerOpen && !isCheckout))}
+            >
               <ListIcon />
             </span>
             <span className="line-clamp-1 text-center">{mainMenuItem.label}</span>
@@ -135,7 +145,9 @@ export function BottomNavInner() {
   );
 }
 
-const iconClass = "h-4 w-4 shrink-0 stroke-[1.5] text-current";
+/** Slightly larger + stronger stroke on small screens for legibility; shadow lives on parent shell. */
+const iconClass =
+  "h-5 w-5 shrink-0 stroke-2 text-current sm:h-4 sm:w-4 sm:stroke-[1.5]";
 
 function HomeIcon() {
   return (

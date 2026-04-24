@@ -1,24 +1,69 @@
 import "server-only";
 
 import { revalidatePath } from "next/cache";
+import { ROUTES } from "@/lib/constants";
+import {
+  revalidateCategoryListingPathsAfterHook,
+  revalidateProductListingPaths,
+  revalidateWooDataTags,
+} from "@/lib/woocommerce-revalidate-broadcast";
 
 /**
- * After a verified WooCommerce product webhook, refresh Next.js cached routes that
- * embed product data from the server (metadata, RSC payloads).
+ * مُستخرَج من جسم الـ Webhook (منتج / تصنيف) — ‎`id`‎ لعدد صحيح.
+ */
+export function extractWooWebhookResourceId(body: unknown): number | undefined {
+  if (!body || typeof body !== "object") return undefined;
+  const id = (body as { id?: unknown }).id;
+  if (typeof id === "number" && Number.isFinite(id)) return id;
+  if (typeof id === "string") {
+    const n = Number(id);
+    if (Number.isFinite(n)) return n;
+  }
+  return undefined;
+}
+
+/**
+ * بعد ‎`POST`‎ مُوثّق لـ ‎`/api/webhooks/woocommerce`‎.
  *
- * TanStack Query on the client keeps its own cache (`staleTime` in hooks such as
- * `useProducts`); it is not invalidated by this call. Shoppers still pick up API
- * changes when the query goes stale, on window refetch, or after navigation. For
- * near-real-time UI updates you would add polling, SSE, or a push channel — out
- * of scope for the webhook handler alone.
+ * - ‎`product.*`‎ (مثلاً ‎`product.updated`‎): تغيير سعر، كمية، جديد/محذوف — يعيد توليد الصفحات + كاش الـ API.
+ * - ‎`product_cat.*`‎: تصنيفات + سايت-ماب.
+ * - الاستعلام على العميل (TanStack Query) له ‎`staleTime`‎ — قد يلزم تنقّل أو إعادة تحميل لرؤية فورية.
+ */
+export function revalidateAfterWooCommerceWebhook(
+  topic: string | null,
+  payload: unknown,
+): void {
+  revalidateWooDataTags();
+
+  const t = (topic ?? "").toLowerCase().trim();
+
+  if (t.startsWith("product_cat.")) {
+    revalidateCategoryListingPathsAfterHook();
+    return;
+  }
+
+  if (t.startsWith("product.")) {
+    revalidateProductListingPaths(extractWooWebhookResourceId(payload));
+    return;
+  }
+
+  if (t.startsWith("order.")) {
+    revalidatePath(ROUTES.ORDER_TRACKING);
+    revalidatePath(ROUTES.MY_ORDERS);
+    revalidatePath(ROUTES.ACCOUNT);
+    revalidatePath("/");
+    return;
+  }
+
+  revalidatePath("/products");
+  revalidatePath("/categories");
+}
+
+/**
+ * @deprecated استخدم ‎`revalidateAfterWooCommerceWebhook`‎. مُبقاة لتوافق اختبارات/
+ * استدعاءات قديمة.
  */
 export function revalidateAfterProductWebhook(productId?: number): void {
-  revalidatePath("/");
-  revalidatePath("/products");
-  revalidatePath("/search");
-  revalidatePath("/categories");
-
-  if (productId !== undefined && Number.isFinite(productId)) {
-    revalidatePath(`/products/${productId}`);
-  }
+  revalidateWooDataTags();
+  revalidateProductListingPaths(productId);
 }

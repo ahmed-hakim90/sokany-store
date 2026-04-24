@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import * as admin from "firebase-admin";
-import { requireControlSession } from "@/lib/api-control-auth";
+import { requireNotificationsAccess } from "@/lib/api-control-auth";
 import { getFirebaseAdminApp } from "@/lib/firebase-admin";
 
 export const runtime = "nodejs";
 
 export async function POST(request: NextRequest) {
-  const auth = await requireControlSession(request);
+  const auth = await requireNotificationsAccess(request);
   if (auth instanceof NextResponse) return auth;
 
   let body: unknown;
