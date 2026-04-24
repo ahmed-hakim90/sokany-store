@@ -12,6 +12,26 @@ import type { CmsSiteBranding } from "@/schemas/cms";
 export const DEFAULT_OG_IMAGE_URL =
   "https://sokany-eg.com/wp-content/uploads/2022/08/SOKANY-EG-2png.png";
 
+/** يطابق `brand-500` / `--color-brand-500` في `app/globals.css` — لون `theme-color` و PWA. */
+export const DEFAULT_BRAND_THEME_COLOR = "#daff00";
+
+/** لون سمة قديم كان يُطابق الخلفية الافتراضية — يُستبدل بـ ‎`DEFAULT_BRAND_THEME_COLOR` تلقائياً. */
+const LEGACY_BRANDING_THEME_SLATE = "#2f3d4e";
+
+/**
+ * لون السمة الظاهر في المتجر (metadata / manifest) — يصحح الفراغ والقيمة الوراثية الرمادية.
+ */
+export function normalizeStorefrontThemeColor(
+  raw: string | undefined | null,
+): string {
+  const t = raw?.trim();
+  if (!t) return DEFAULT_BRAND_THEME_COLOR;
+  if (t.toLowerCase() === LEGACY_BRANDING_THEME_SLATE) {
+    return DEFAULT_BRAND_THEME_COLOR;
+  }
+  return t;
+}
+
 export type ResolvedSiteBranding = {
   siteName: string;
   siteBrandTitleAr: string;
@@ -49,8 +69,7 @@ export function resolveSiteBranding(b: CmsSiteBranding | undefined): ResolvedSit
     pwaShortName: b?.pwaShortName ?? PWA_INSTALL_NAME,
     pwaDescription:
       b?.pwaDescription ?? "متجر أجهزة سوكانى الكهربائية",
-    /** يطابق لون البراند الأساسي `brand-500` / `--color-brand-500` في `app/globals.css` */
-    themeColor: b?.themeColor ?? "#daff00",
+    themeColor: normalizeStorefrontThemeColor(b?.themeColor),
     backgroundColor: b?.backgroundColor ?? "#2F3D4E",
     defaultMetadataTitle: b?.defaultMetadataTitle ?? SITE_BRAND_TITLE_AR,
     defaultOgImageUrl: b?.defaultOgImageUrl ?? DEFAULT_OG_IMAGE_URL,

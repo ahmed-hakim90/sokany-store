@@ -117,7 +117,7 @@ export const CMS_DEFAULT_HEADER_CATEGORY_STRIP: CmsHeaderCategoryStrip = {
 const internalPathRefine = (h: string) =>
   h.startsWith("/") && !h.startsWith("//") && !h.includes("..");
 
-/** `site_config.homeCategoryScroller` — ترتيب/تقييد عبر /control؛ الصور من وو (تُلغى البلاطة بلا صورة). */
+/** `site_config.homeCategoryScroller` — ‎`sectionVisible`‎ + ترتيب/تقييد عبر /control؛ الصور من وو (تُلغى البلاطة بلا صورة). */
 export const cmsHomeCategoryScrollerItemSchema = z.object({
   /** اختياري: الشريح يستخدم `image` من ووكومرس؛ يُبقى الحقل للوحة أو للتوافق مع بيانات قديمة. */
   imageUrl: z.string().max(800).default(""),
@@ -132,6 +132,11 @@ export const cmsHomeCategoryScrollerItemSchema = z.object({
 export type CmsHomeCategoryScrollerItem = z.infer<typeof cmsHomeCategoryScrollerItemSchema>;
 
 export const cmsHomeCategoryScrollerSchema = z.object({
+  /**
+   * إظهار سكroller صور التصنيفات تحت الهيرو. المستندات القديمة بلا هذا الحقل تُعامل كـ ‎`true`‎
+   * (نفس السلوك قبل إضافة المفتاح).
+   */
+  sectionVisible: z.boolean().default(true),
   enabled: z.boolean(),
   items: z.array(cmsHomeCategoryScrollerItemSchema).max(24),
 });
@@ -139,6 +144,7 @@ export const cmsHomeCategoryScrollerSchema = z.object({
 export type CmsHomeCategoryScroller = z.infer<typeof cmsHomeCategoryScrollerSchema>;
 
 export const CMS_DEFAULT_HOME_CATEGORY_SCROLLER: CmsHomeCategoryScroller = {
+  sectionVisible: false,
   enabled: false,
   items: [],
 };

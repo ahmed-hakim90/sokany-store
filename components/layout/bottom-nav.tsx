@@ -53,7 +53,7 @@ export function BottomNavInner() {
 
   const tabClass = (active: boolean) =>
     cn(
-      "flex h-14 w-full max-w-[4.85rem] flex-col items-center justify-center gap-1 rounded-2xl border border-transparent px-0.5 py-1.5 text-[11px] font-semibold leading-tight transition-colors duration-200 sm:max-w-[5.25rem] sm:text-xs",
+      "flex h-14 w-full max-w-[4.85rem] flex-col items-center justify-center gap-1 rounded-2xl border border-transparent px-0.5 py-1.5 text-xs font-semibold leading-tight transition-colors duration-200 sm:max-w-[5.25rem] sm:text-[0.8125rem]",
       active
         ? "border-brand-950 bg-brand-950 text-accent"
         : "text-muted-foreground hover:bg-black/[0.03] hover:text-foreground/80",

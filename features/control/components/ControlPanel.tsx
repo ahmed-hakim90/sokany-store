@@ -17,6 +17,10 @@ import {
   SITE_WORDMARK,
 } from "@/lib/constants";
 import { DEFAULT_SEARCH_QUICK_KEYWORDS } from "@/lib/search-quick-keywords";
+import {
+  DEFAULT_BRAND_THEME_COLOR,
+  normalizeStorefrontThemeColor,
+} from "@/lib/site-branding";
 import type {
   CmsHomeHeroDoc,
   CmsSiteConfigDoc,
@@ -988,10 +992,12 @@ export function ControlPanel() {
               <label className="text-sm font-medium">لون السمة (#RRGGBB)</label>
               <input
                 name="themeColor"
-                defaultValue={site?.branding?.themeColor ?? ""}
+                defaultValue={normalizeStorefrontThemeColor(
+                  site?.branding?.themeColor,
+                )}
                 dir="ltr"
                 className="mt-1 w-full rounded-lg border border-border px-3 py-2 font-mono text-sm"
-                placeholder="#2F3D4E"
+                placeholder={DEFAULT_BRAND_THEME_COLOR}
               />
             </div>
             <div>

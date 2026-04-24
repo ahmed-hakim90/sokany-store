@@ -60,9 +60,9 @@ export type PublicSiteContent = {
   /** دوائر اختصارات التصنيفات — من `site_config.headerCategoryStrip`؛ تُعرض في `StorefrontHeaderCategoryStrip` تحت الـ sticky وليس داخل `Navbar`. */
   headerCategoryStrip: CmsHeaderCategoryStrip;
   /**
-   * ‎`site_config.homeCategoryScroller`‎: مع ‎`enabled` وقائمة غير فارغة يُبنى الشريح
-   * من ‎`items` (مسارات ‎`/categories/…`‎) بترتيبها وصور ‎Woo فقط — تُستبعد البلاطة بلا صورة
-   * أو ليست أباً. بلا تقييد: أبٌ (له منتجات) وله ‎`image` فقط. يُحرّر في ‎/control.
+   * ‎`site_config.homeCategoryScroller`‎: ‎`sectionVisible`‎ = إظهار/إخفاء الشريح بالكامل. مع التقييد ‎(‎`enabled`‎
+   * وقائمة غير فارغة) يُبنى الشريح من ‎`items` (مسارات ‎`/categories/…`‎) بترتيبها وصور ‎Woo — تُستبعد
+   * البلاطة بلا صورة أو ليست أباً. بلا تقييد: أبٌ (له منتجات) وله ‎`image` فقط. يُحرّر في ‎/control.
    */
   homeCategoryScroller: CmsHomeCategoryScroller;
   /**
@@ -167,6 +167,7 @@ function mergeHomeCategoryScroller(
   const r = cmsHomeCategoryScrollerSchema.safeParse(raw);
   if (!r.success) return fallback;
   return {
+    sectionVisible: r.data.sectionVisible,
     enabled: r.data.enabled,
     items: r.data.items,
   };

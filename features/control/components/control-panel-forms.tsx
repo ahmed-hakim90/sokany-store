@@ -1637,10 +1637,12 @@ export function HomeCategoryScrollerForm({
   disabled: boolean;
   onSave: (doc: CmsHomeCategoryScroller) => void;
 }) {
+  const [sectionVisible, setSectionVisible] = useState(initial.sectionVisible);
   const [enabled, setEnabled] = useState(initial.enabled);
   const [items, setItems] = useState(initial.items);
 
   useEffect(() => {
+    setSectionVisible(initial.sectionVisible);
     setEnabled(initial.enabled);
     setItems(initial.items);
   }, [initial]);
@@ -1674,6 +1676,7 @@ export function HomeCategoryScrollerForm({
 
   function handleSave() {
     const doc: CmsHomeCategoryScroller = {
+      sectionVisible,
       enabled,
       items: items.map((it) => ({
         imageUrl: (it.imageUrl ?? "").trim(),
@@ -1694,12 +1697,21 @@ export function HomeCategoryScrollerForm({
       <div>
         <h2 className="font-display text-lg font-bold">سكroller صور تحت بانر الهيرو</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          الصور تُجلب من ووكومرس. يُستبعد أي قسم **بلا** صورة تصنيف. عند تفعيل الخيار: يظهر
-          **فقط** المسارات المسجّلة في القائمة أدناه وبالترتيب؛ تُلغى البلاطات التي لا
-          تطابق تصنيف أب وله منتجات أو التي لا صورة لها. عند الإيقاف: كل تصنيفات الأب
-          (ذات صورة) أبجدياً.
+          «إظهار الشريح» يُتحكم من أول مربع. عند تفعيله: الصور من ووكومرس — يُستبعد أي قسم
+          بلا صورة. عند «تقييد ببلاطاتي» تُعرض فقط المسارات المسجّلة بالترتيب؛ بلا التقييد:
+          تصنيفات الأب (ذات صورة) بترتيب أبجدي.
         </p>
       </div>
+
+      <label className="flex items-center gap-2">
+        <input
+          type="checkbox"
+          checked={sectionVisible}
+          disabled={disabled}
+          onChange={(e) => setSectionVisible(e.target.checked)}
+        />
+        <span className="text-sm font-medium">إظهار شريح صور التصنيفات على الصفحة الرئيسية</span>
+      </label>
 
       <label className="flex items-center gap-2">
         <input

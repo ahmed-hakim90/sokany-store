@@ -31,9 +31,10 @@ import {
 
 /*
  * الصفحة الرئيسية (/): عمود واحد داخل Container بمسافات رأسية تتسع تدريجياً (sm → md).
- * التسلسل: هيرو (سكروول أفقي + auto-rotate) → شريط صور التصنيفات
- * (٢٤٠×١٢٠: وو ‎+‎ إخفاء بلا صورة؛ مع «التحكم» = لائحة المسار فقط) → عروض سريعة (بانر أزرق + عداد + CTA ثم شبكة on_sale) → كبسولة خدمات (٤ عناصر في سطر واحد على كل الشاشات)
- * → بطاقة ترويج «حصرياً» (افتراضي أو spotlight) → الأكثر مبيعاً (كل المتجر ‎+‎ ‎`orderby: popularity`‎) → وصل حديثاً → أقسام الأب.
+ * التسلسل: هيرو (سكروول أفقي + auto-rotate) → (اختياري من ‎`site_config.homeCategoryScroller.sectionVisible`‎) شريط
+ * صور التصنيفات (٢٤٠×١٢٠ من وو) → عروض سريعة (بانر أزرق + عداد + CTA ثم شبكة on_sale) → كبسولة خدمات
+ * (٤ عناصر في سطر واحد على كل الشاشات) → بطاقة ترويج «حصرياً» (افتراضي أو spotlight) → الأكثر مبيعاً
+ * (كل المتجر ‎+‎ ‎`orderby: popularity`‎) → وصل حديثاً → أقسام الأب.
  */
 export type HomeBottomPromo = {
   eyebrow?: string;
@@ -60,8 +61,7 @@ export type HomePageContentProps = {
   /** بطاقة الترويج بعد كبسولة الخدمات — افتراضي ثابت أو من spotlight في Firestore. */
   homeBottomPromo?: HomeBottomPromo;
   /**
-   * عند التفعيل: الشريح يُبنى من ترتيب البلاطات (مسار `/categories/...`) — يُعاد
-   * استبعاد أي تصنيف ليست له صورة في وو. بدون تفعيل: أبٌ + صورة وو فقط.
+   * سكroller صور التصنيفات تحت الهيرو — ‎`sectionVisible`‎ من ‎/control يتحكم في الإظهار.
    */
   homeCategoryScroller?: CmsHomeCategoryScroller;
 };
@@ -102,7 +102,10 @@ export function HomePageContent({
   });
   const { getCartLineQuantity, setProductLineQuantity } = useCart();
   const categoryTiles = useMemo(
-    () => buildHomeCategoryStripTiles(categories.data, homeCategoryScroller),
+    () =>
+      homeCategoryScroller.sectionVisible
+        ? buildHomeCategoryStripTiles(categories.data, homeCategoryScroller)
+        : [],
     [categories.data, homeCategoryScroller],
   );
 
@@ -112,11 +115,12 @@ export function HomePageContent({
         {/* أعلى الصفحة: شرائح هيرو ديناميكية تُقرأ من /public/images/hero */}
         {heroSlides.length > 0 ? <HomeHeroBanner slides={heroSlides} /> : null}
 
-        {/* تحت البانر مباشرة: شريط صور ديناميكي من التصنيفات المتاحة في API */}
-        <HomeCategoryImageScroller
-          tiles={categoryTiles}
-          isLoading={categories.isPending}
-        />
+        {homeCategoryScroller.sectionVisible ? (
+          <HomeCategoryImageScroller
+            tiles={categoryTiles}
+            isLoading={categories.isPending}
+          />
+        ) : null}
 
         {/* عروض سريعة: منتجات مخفّضة من WooCommerce + عداد تنازلي */}
         {!flashSaleSectionEnabled ? null : flashSales.isError ? (
