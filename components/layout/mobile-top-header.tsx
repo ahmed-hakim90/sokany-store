@@ -59,7 +59,10 @@ export function MobileTopHeader({
       <div className={cn("w-full", className)}>
         <div
           className={cn(
-            "border-b border-border/70 bg-white",
+            "border-b transition-colors duration-300 ease-out motion-reduce:transition-none",
+            topRowHidden
+              ? "border-black/10 bg-brand-500"
+              : "border-border/70 bg-white",
             whiteShellHPad,
             stickyChromeBottomShadowClass,
           )}
@@ -78,8 +81,20 @@ export function MobileTopHeader({
             {toolbarBelow}
           </div>
           {secondary ? (
-            <div className="border-t border-border/40 px-0 pb-2 pt-1.5 text-center">
-              <div className="text-[11px] font-medium leading-snug text-muted-foreground sm:text-xs">
+            <div
+              className={cn(
+                "border-t px-0 pb-2 pt-1.5 text-center",
+                topRowHidden ? "border-black/10" : "border-border/40",
+              )}
+            >
+              <div
+                className={cn(
+                  "text-[11px] font-medium leading-snug sm:text-xs",
+                  topRowHidden
+                    ? "text-brand-900/85"
+                    : "text-muted-foreground",
+                )}
+              >
                 {secondary}
               </div>
             </div>
