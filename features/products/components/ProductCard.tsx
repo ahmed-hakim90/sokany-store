@@ -10,7 +10,8 @@ import { IconButton } from "@/components/ui/icon-button";
 import { PriceText } from "@/components/ui/price-text";
 import { cn } from "@/lib/utils";
 import { usePointerSwipe } from "@/hooks/usePointerSwipe";
-import { ROUTES } from "@/lib/constants";
+import { PRODUCT_CARD_SHOW_SALES_COUNT, ROUTES } from "@/lib/constants";
+import { getProductCardSalesCountText } from "@/features/products/lib/product-card-sales-count";
 import { playCartFlyAnimation } from "@/lib/cart-fly-animation";
 import { usePrefetchProduct } from "@/features/products/hooks/usePrefetchProduct";
 import { ProductQuickViewModal } from "@/features/products/components/product-quick-view-modal";
@@ -118,6 +119,10 @@ export function ProductCard({
       : null;
   const priceCompact = variant === "mobileCompact";
   const saleDiscount = saleDiscountPercent(product);
+  const salesCountLine = useMemo(
+    () => getProductCardSalesCountText(product, PRODUCT_CARD_SHOW_SALES_COUNT),
+    [product],
+  );
   const handlePrefetch = () => {
     void prefetchProduct(product.id);
   };
@@ -382,6 +387,18 @@ export function ProductCard({
             />
             <ProductStatusBadge product={product} className="ms-auto shrink-0" />
           </div>
+          {salesCountLine ? (
+            <p
+              className={cn(
+                "mt-0.5 text-[10px] font-medium text-muted-foreground",
+                variant === "mobileCompact" && "text-[9px]",
+                variant === "featured" && "sm:text-xs",
+                !priceCompact && "sm:text-[11px]",
+              )}
+            >
+              {salesCountLine}
+            </p>
+          ) : null}
           <div
             className={cn(
               "mt-auto pt-2",

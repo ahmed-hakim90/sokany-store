@@ -42,10 +42,10 @@ export function ProductCarouselRow({
       >
         {loading ?? (
           <>
-            {Array.from({ length: 5 }).map((_, i) => (
+            {Array.from({ length: 4 }).map((_, i) => (
               <div
                 key={i}
-                className="w-[min(42vw,11rem)] shrink-0 snap-start sm:w-[11rem]"
+                className="w-[min(64vw,14rem)] shrink-0 snap-start sm:w-[15rem] md:w-64"
               >
                 <ProductSkeleton />
               </div>
@@ -71,7 +71,7 @@ export function ProductCarouselRow({
       {products.map((product, index) => (
         <div
           key={product.id}
-          className="w-[min(42vw,11rem)] shrink-0 snap-start sm:w-[11rem]"
+          className="w-[min(64vw,14rem)] shrink-0 snap-start sm:w-[15rem] md:w-64"
           role="listitem"
         >
           <ProductCard

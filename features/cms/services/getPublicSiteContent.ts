@@ -59,7 +59,11 @@ export type PublicSiteContent = {
   searchQuickKeywords: string[];
   /** دوائر أيقونات تحت الهيدر — من `site_config.headerCategoryStrip`. */
   headerCategoryStrip: CmsHeaderCategoryStrip;
-  /** سكroller صور التصنيفات تحت بانر الهيرو — من `site_config.homeCategoryScroller`، أو Woo عند التعطيل. */
+  /**
+   * ‎`site_config.homeCategoryScroller`‎: مع ‎`enabled` وقائمة غير فارغة يُبنى الشريح
+   * من ‎`items` (مسارات ‎`/categories/…`‎) بترتيبها وصور ‎Woo فقط — تُستبعد البلاطة بلا صورة
+   * أو ليست أباً. بلا تقييد: أبٌ (له منتجات) وله ‎`image` فقط. يُحرّر في ‎/control.
+   */
   homeCategoryScroller: CmsHomeCategoryScroller;
   /**
    * رابط HTTPS علني مُدار من `site_config.storefrontIntegrations` (لوحة التحكم).

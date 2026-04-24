@@ -1572,7 +1572,9 @@ function HomeCategoryScrollerImageRow({
   const trimmed = local.trim();
   return (
     <div>
-      <label className="text-xs font-medium text-muted-foreground">صورة البلاطة (URL)</label>
+      <label className="text-xs font-medium text-muted-foreground">
+        صورة (اختياري) — الظهور يعتمد على صورة التصنيف في وو
+      </label>
       <div className="mt-1 flex flex-col gap-2 sm:flex-row sm:items-start sm:gap-2">
         <input
           type="text"
@@ -1662,7 +1664,7 @@ export function HomeCategoryScrollerForm({
           ? patch.imageAlt.trim() || undefined
           : cur.imageAlt;
       next[index] = {
-        imageUrl: (patch.imageUrl ?? cur.imageUrl).trim(),
+        imageUrl: (patch.imageUrl ?? cur.imageUrl ?? "").trim(),
         href: (patch.href ?? cur.href).trim(),
         ...(imageAlt ? { imageAlt } : {}),
       };
@@ -1674,7 +1676,7 @@ export function HomeCategoryScrollerForm({
     const doc: CmsHomeCategoryScroller = {
       enabled,
       items: items.map((it) => ({
-        imageUrl: it.imageUrl.trim(),
+        imageUrl: (it.imageUrl ?? "").trim(),
         href: it.href.trim(),
         imageAlt: it.imageAlt?.trim() ? it.imageAlt.trim() : undefined,
       })),
@@ -1692,8 +1694,10 @@ export function HomeCategoryScrollerForm({
       <div>
         <h2 className="font-display text-lg font-bold">سكroller صور تحت بانر الهيرو</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          عند التفعيل يستبدل الشريط الأفقي (٢٤٠×١٢٠) الافتراضي المبني من Woo ببلاطات: صورة + مسار. عند
-          إيقاف التشغيل يُعرض مرة أخرى من Woo كما سابقاً.
+          الصور تُجلب من ووكومرس. يُستبعد أي قسم **بلا** صورة تصنيف. عند تفعيل الخيار: يظهر
+          **فقط** المسارات المسجّلة في القائمة أدناه وبالترتيب؛ تُلغى البلاطات التي لا
+          تطابق تصنيف أب وله منتجات أو التي لا صورة لها. عند الإيقاف: كل تصنيفات الأب
+          (ذات صورة) أبجدياً.
         </p>
       </div>
 
@@ -1704,7 +1708,7 @@ export function HomeCategoryScrollerForm({
           disabled={disabled}
           onChange={(e) => setEnabled(e.target.checked)}
         />
-        <span className="text-sm font-medium">استخدام صور ومسارات لوحة التحكم بدل Woo</span>
+        <span className="text-sm font-medium">تقييد الشريح ببلاطاتي المحددة (مسار `/categories/...` فقط)</span>
       </label>
 
       <ul className="space-y-4">
@@ -1716,7 +1720,7 @@ export function HomeCategoryScrollerForm({
               className="grid gap-3 rounded-xl border border-border/80 bg-surface-muted/20 p-3 lg:grid-cols-2"
             >
               <HomeCategoryScrollerImageRow
-                imageUrl={item.imageUrl}
+                imageUrl={item.imageUrl ?? ""}
                 disabled={disabled}
                 onImageUrlChange={(url) => updateItem(i, { imageUrl: url })}
               />

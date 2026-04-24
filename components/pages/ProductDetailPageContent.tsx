@@ -15,11 +15,12 @@ import { ProductDetail } from "@/features/products/components/ProductDetail";
 import { ProductCarouselRow } from "@/features/products/components/product-carousel-row";
 import { ProductSkeleton } from "@/features/products/components/ProductSkeleton";
 import { ProductReviewForm } from "@/features/reviews/components/ProductReviewForm";
+import { ProductReviewsList } from "@/features/reviews/components/product-reviews-list";
 
 /*
  * صفحة تفاصيل المنتج (/products/[id]): عمود واحد داخل Container (حواف أفقية فقط).
  * كتلة المنتج (معرض + معلومات/شراء) بعرض كامل داخل الحاوية؛ شريط «أضف للسلة» ثابت عند التمرير بعد كتلة الشراء.
- * من sm فما فوق: التقييمات و«منتجات ذات صلة» (كاروسيل أفقي) داخل عمود max-w-7xl؛ lg يبقى نفس الحدود الأفقية من Container.
+ * التقييمات: على الشاشة الضيقة (أقل من md) سلايد ببطاقة مركزية وتقليب؛ من md فما فوق قائمة عمودية. «منتجات ذات صلة» (كاروسيل أفقي، كروت أوسع فيظهر عدد أقل في نفس العرض) داخل max-w-7xl؛ lg يبقى نفس الحدود من Container.
  */
 export function ProductDetailPageContent({ id }: { id: number }) {
   const router = useTransitionRouter();
@@ -91,23 +92,39 @@ export function ProductDetailPageContent({ id }: { id: number }) {
               <ProductReviewForm productId={productQuery.data.id} />
               <div className="mt-4">
                 {reviewsQuery.isPending ? (
-                  <ul className="space-y-4" aria-label="جاري تحميل التقييمات">
-                    {Array.from({ length: 3 }).map((_, index) => (
-                      <li
-                        key={index}
-                        className="rounded-xl border border-black/[0.06] bg-white p-4 shadow-[0_2px_16px_-4px_rgba(15,23,42,0.07)]"
-                      >
+                  <div className="space-y-0" aria-label="جاري تحميل التقييمات" aria-busy>
+                    <ul className="mx-auto w-full max-w-md list-none p-0 md:hidden">
+                      <li className="rounded-xl border border-black/[0.06] bg-white p-4 shadow-[0_2px_16px_-4px_rgba(15,23,42,0.07)]">
                         <div className="flex items-center justify-between gap-2">
                           <div className="h-4 w-28 animate-shimmer rounded bg-border/70" />
-                          <div className="h-3 w-14 animate-shimmer rounded bg-border/70" />
+                          <div className="h-3 w-20 animate-shimmer rounded bg-border/70" />
                         </div>
+                        <div className="mt-2 h-2 w-32 animate-shimmer rounded bg-border/50" />
                         <div className="mt-3 space-y-2">
                           <div className="h-3 animate-shimmer rounded bg-surface-muted" />
                           <div className="h-3 w-11/12 animate-shimmer rounded bg-surface-muted" />
                         </div>
                       </li>
-                    ))}
-                  </ul>
+                    </ul>
+                    <ul className="hidden list-none space-y-4 p-0 md:block">
+                      {Array.from({ length: 3 }).map((_, index) => (
+                        <li
+                          key={index}
+                          className="rounded-xl border border-black/[0.06] bg-white p-4 shadow-[0_2px_16px_-4px_rgba(15,23,42,0.07)]"
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="h-4 w-28 animate-shimmer rounded bg-border/70" />
+                            <div className="h-3 w-20 animate-shimmer rounded bg-border/70" />
+                          </div>
+                          <div className="mt-2 h-2 w-32 animate-shimmer rounded bg-border/50" />
+                          <div className="mt-3 space-y-2">
+                            <div className="h-3 animate-shimmer rounded bg-surface-muted" />
+                            <div className="h-3 w-11/12 animate-shimmer rounded bg-surface-muted" />
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 ) : reviewsQuery.isError ? (
                   <ErrorState
                     message={reviewsQuery.error.message}
@@ -119,28 +136,16 @@ export function ProductDetailPageContent({ id }: { id: number }) {
                     description="كن أول من يشارك تجربته."
                   />
                 ) : (
-                  <ul className="space-y-4">
-                    {reviewsQuery.data.map((review) => (
-                      <li
-                        key={review.id}
-                        className="rounded-xl border border-black/[0.06] bg-white p-4 shadow-[0_2px_16px_-4px_rgba(15,23,42,0.07)]"
-                      >
-                        <div className="flex items-center justify-between gap-2">
-                          <p className="text-sm font-semibold">{review.reviewer}</p>
-                          <span className="text-xs text-zinc-500">
-                            {review.rating.toFixed(1)} / 5
-                          </span>
-                        </div>
-                        <p className="mt-2 break-words text-sm text-zinc-700">{review.review}</p>
-                      </li>
-                    ))}
-                  </ul>
+                  <ProductReviewsList
+                    key={productQuery.data.id}
+                    reviews={reviewsQuery.data}
+                  />
                 )}
               </div>
             </div>
           </section>
 
-          {/* منتجات ذات صلة: نفس عمود max-w-7xl؛ الشبكة داخل العرض المحدود */}
+          {/* منتجات ذات صلة: نفس عمود max-w-7xl؛ كاروسيل كروت أوسع (عدد أقل مرئيًا) */}
           <section className="mt-16 min-w-0 border-t border-border pt-12">
             <div className="mx-auto w-full min-w-0 max-w-7xl">
               <div className="flex min-w-0 flex-wrap items-center justify-between gap-4">

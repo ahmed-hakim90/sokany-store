@@ -40,14 +40,14 @@ export function CatalogPagination({
           href={getHref(currentPage - 1)}
           rel="prev"
         >
-          ← السابقة
+          → السابقة
         </Link>
       ) : (
         <span
           className={cn(pageNavBtnClass, "pointer-events-none opacity-50")}
           aria-hidden
         >
-          ← السابقة
+          → السابقة
         </span>
       )}
       <span
@@ -62,14 +62,14 @@ export function CatalogPagination({
           href={getHref(currentPage + 1)}
           rel="next"
         >
-          التالية →
+          التالية ←
         </Link>
       ) : (
         <span
           className={cn(pageNavBtnClass, "pointer-events-none opacity-50")}
           aria-hidden
         >
-          التالية →
+          التالية ←
         </span>
       )}
     </nav>

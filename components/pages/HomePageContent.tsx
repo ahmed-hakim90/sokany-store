@@ -23,6 +23,7 @@ import { useCategories } from "@/features/categories/hooks/useCategories";
 import { HomeCategoryImageScroller } from "@/features/home/components/home-category-image-scroller";
 import { HomeFlashSaleCountdownStrip } from "@/features/home/components/home-flash-sale-countdown";
 import { useProducts } from "@/features/products/hooks/useProducts";
+import { buildHomeCategoryStripTiles } from "@/features/home/lib/home-category-strip-tiles";
 import {
   CMS_DEFAULT_HOME_CATEGORY_SCROLLER,
   type CmsHomeCategoryScroller,
@@ -31,9 +32,8 @@ import {
 /*
  * الصفحة الرئيسية (/): عمود واحد داخل Container بمسافات رأسية تتسع تدريجياً (sm → md).
  * التسلسل: هيرو (سكروول أفقي + auto-rotate) → شريط صور التصنيفات
- * (٢٤٠×١٢٠: Woo أو `homeCategoryScroller` من CMS) → عروض سريعة (بانر أزرق + عداد + CTA ثم شبكة on_sale) → كبسولة خدمات (٤ عناصر في سطر واحد على كل الشاشات)
- * → الأكثر مبيعاً (featured) → وصل حديثاً (orderby تاريخ) → أقسام الأب للتصنيفات
- * (هيكل تحميل حتى تُحمَّل قائمة التصنيفات ثم المحتوى الفعلي) → بطاقة ترويجي في الأسفل.
+ * (٢٤٠×١٢٠: وو ‎+‎ إخفاء بلا صورة؛ مع «التحكم» = لائحة المسار فقط) → عروض سريعة (بانر أزرق + عداد + CTA ثم شبكة on_sale) → كبسولة خدمات (٤ عناصر في سطر واحد على كل الشاشات)
+ * → الأكثر مبيعاً (كل المتجر ‎+‎ ‎`orderby: popularity`‎) → وصل حديثاً → أقسام الأب → بطاقة ترويجي.
  */
 export type HomeBottomPromo = {
   eyebrow?: string;
@@ -59,7 +59,10 @@ export type HomePageContentProps = {
   };
   /** بطاقة الترويج أسفل الصفحة — افتراضي ثابت أو من spotlight في Firestore. */
   homeBottomPromo?: HomeBottomPromo;
-  /** سكroller الصور تحت بانر الهيرو — من `site_config`، أو Woo عند التعطيل/الفارغ. */
+  /**
+   * عند التفعيل: الشريح يُبنى من ترتيب البلاطات (مسار `/categories/...`) — يُعاد
+   * استبعاد أي تصنيف ليست له صورة في وو. بدون تفعيل: أبٌ + صورة وو فقط.
+   */
   homeCategoryScroller?: CmsHomeCategoryScroller;
 };
 
@@ -80,7 +83,6 @@ export function HomePageContent({
   homeCategoryScroller = CMS_DEFAULT_HOME_CATEGORY_SCROLLER,
 }: HomePageContentProps) {
   const router = useTransitionRouter();
-  const featured = useProducts({ featured: true, per_page: 8 });
   const flashSales = useProducts({
     on_sale: true,
     per_page: 8,
@@ -93,30 +95,16 @@ export function HomePageContent({
     order: "desc",
   });
   const categories = useCategories({ per_page: 100 });
+  const homeBestsellers = useProducts({
+    per_page: 8,
+    orderby: "popularity",
+    order: "desc",
+  });
   const { getCartLineQuantity, setProductLineQuantity } = useCart();
-  const categoryTiles = useMemo(() => {
-    if (
-      homeCategoryScroller.enabled &&
-      homeCategoryScroller.items.length > 0
-    ) {
-      return homeCategoryScroller.items.map((it) => ({
-        imageSrc: it.imageUrl,
-        imageAlt: it.imageAlt,
-        href: it.href,
-      }));
-    }
-    return (categories.data ?? []).map((category) => ({
-      imageSrc: category.image ?? "/images/placeholder.png",
-      imageAlt: category.name,
-      href: ROUTES.CATEGORY(category.slug),
-    }));
-  }, [homeCategoryScroller, categories.data]);
-
-  const homeCategoryScrollerLoading = !(
-    homeCategoryScroller.enabled && homeCategoryScroller.items.length > 0
-  )
-    ? categories.isPending
-    : false;
+  const categoryTiles = useMemo(
+    () => buildHomeCategoryStripTiles(categories.data, homeCategoryScroller),
+    [categories.data, homeCategoryScroller],
+  );
 
   return (
     <div className="animate-fade-in bg-page">
@@ -127,7 +115,7 @@ export function HomePageContent({
         {/* تحت البانر مباشرة: شريط صور ديناميكي من التصنيفات المتاحة في API */}
         <HomeCategoryImageScroller
           tiles={categoryTiles}
-          isLoading={homeCategoryScrollerLoading}
+          isLoading={categories.isPending}
         />
 
         {/* عروض سريعة: منتجات مخفّضة من WooCommerce + عداد تنازلي */}
@@ -193,18 +181,21 @@ export function HomePageContent({
             </Link> */}
           </div>
 
-          {featured.isError ? (
-            <ErrorState message={featured.error.message} onRetry={() => void featured.refetch()} />
+          {homeBestsellers.isError ? (
+            <ErrorState
+              message={homeBestsellers.error.message}
+              onRetry={() => void homeBestsellers.refetch()}
+            />
           ) : (
             <ProductGrid
               status={
-                featured.isPending
+                homeBestsellers.isPending
                   ? "loading"
-                  : !featured.data?.items.length
+                  : !homeBestsellers.data?.items.length
                     ? "empty"
                     : "ready"
               }
-              products={featured.data?.items ?? []}
+              products={homeBestsellers.data?.items ?? []}
               getCartLineQuantity={getCartLineQuantity}
               onCartLineQuantityChange={setProductLineQuantity}
               cardVariant="mobileCompact"
@@ -212,7 +203,7 @@ export function HomePageContent({
               gridClassName="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4"
               empty={
                 <EmptyState
-                  title="لا توجد منتجات مميزة حالياً"
+                  title="لا توجد منتجات لعرضها في هذا القسم حالياً"
                   description="تصفح الكتالوج الكامل."
                   action={
                     <Button type="button" onClick={() => router.push(ROUTES.PRODUCTS)}>

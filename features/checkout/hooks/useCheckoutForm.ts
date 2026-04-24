@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ZodError } from "zod";
 import { toast } from "sonner";
 import { useCart } from "@/hooks/useCart";
@@ -11,31 +11,17 @@ import {
 } from "@/features/checkout/hooks/useCheckoutOrderMutation";
 import { useCustomerAuth } from "@/features/checkout/hooks/useCustomerAuth";
 import {
+  clearCheckoutDraftFromStorage,
+  loadCheckoutDraftFromStorage,
+  saveCheckoutDraftToStorage,
+} from "@/features/checkout/lib/checkout-draft-storage";
+import { defaultCheckoutFormValues } from "@/features/checkout/lib/checkout-form-defaults";
+import {
   shippingFeeForMethod,
   shippingMethodTitleFor,
 } from "@/features/checkout/lib/to-create-order-payload";
 import type { CheckoutFormData } from "@/features/checkout/types";
 import { normalizeEgyptPhoneToE164 } from "@/lib/phone";
-
-const initialValues: CheckoutFormData = {
-  contactFirstName: "",
-  contactLastName: "",
-  contactEmail: "",
-  contactPhone: "",
-  shippingFirstName: "",
-  shippingLastName: "",
-  shippingAddress1: "",
-  shippingAddress2: "",
-  shippingCity: "",
-  shippingState: "",
-  shippingPostcode: "",
-  shippingCountry: "EG",
-  shippingMethod: "flat_rate",
-  paymentMethod: "cod",
-  customerNote: "",
-  createAccount: false,
-  accountPassword: "",
-};
 
 function checkoutFieldErrorsFromSchema(
   error: ZodError,
@@ -51,7 +37,8 @@ function checkoutFieldErrorsFromSchema(
 }
 
 export function useCheckoutForm() {
-  const [values, setValues] = useState<CheckoutFormData>(initialValues);
+  const [values, setValues] = useState<CheckoutFormData>(defaultCheckoutFormValues);
+  const [rehydratedDraft, setRehydratedDraft] = useState(false);
   const [errors, setErrors] = useState<Partial<Record<keyof CheckoutFormData, string>>>({});
   const [orderSuccessOpen, setOrderSuccessOpen] = useState(false);
   const [otpModalOpen, setOtpModalOpen] = useState(false);
@@ -66,6 +53,22 @@ export function useCheckoutForm() {
   }, []);
   const { items, totalPrice, clearCart } = useCart();
   const checkoutOrder = useCheckoutOrderMutation();
+
+  useEffect(() => {
+    const draft = loadCheckoutDraftFromStorage();
+    if (draft) {
+      setValues(draft);
+    }
+    setRehydratedDraft(true);
+  }, []);
+
+  useEffect(() => {
+    if (!rehydratedDraft) return;
+    const t = window.setTimeout(() => {
+      saveCheckoutDraftToStorage(values);
+    }, 300);
+    return () => window.clearTimeout(t);
+  }, [values, rehydratedDraft]);
   const {
     reset: resetCustomerAuth,
     sendOtp,
@@ -89,14 +92,15 @@ export function useCheckoutForm() {
   };
 
   const runOrderMutation = useCallback(
-    (firebaseUid: string) => {
+    (firebaseUid?: string) => {
       checkoutOrder.mutate(
         { values, items, firebaseUid },
         {
           onSuccess: () => {
             clearCart();
             setOrderSuccessOpen(true);
-            setValues(initialValues);
+            clearCheckoutDraftFromStorage();
+            setValues(defaultCheckoutFormValues);
             setErrors({});
             setOtpModalOpen(false);
             resetCustomerAuth();
@@ -117,7 +121,11 @@ export function useCheckoutForm() {
               }
               return;
             }
-            toast.error("حدث خطأ. حاول مرة أخرى.");
+            toast.error(
+              error instanceof Error
+                ? error.message
+                : "حدث خطأ أثناء إرسال الطلب. حاول مرة أخرى.",
+            );
           },
         },
       );
@@ -134,7 +142,14 @@ export function useCheckoutForm() {
       return;
     }
 
-    const e164 = normalizeEgyptPhoneToE164(checkoutParsed.data.contactPhone);
+    const data = checkoutParsed.data;
+    /* طلب ضيف بدون «إنشاء حساب» يُرسل مباشرة — OTP+Firebase فقط لمسار ربط الحساب. */
+    if (!data.createAccount) {
+      runOrderMutation();
+      return;
+    }
+
+    const e164 = normalizeEgyptPhoneToE164(data.contactPhone);
     if (!e164) {
       /* يفترض أن checkoutSchema يمنع هذا؛ احتياط لو تغيّر التطبيع لاحقاً */
       toast.error("رقم الموبايل غير صالح.");
@@ -145,7 +160,7 @@ export function useCheckoutForm() {
     setOtpPhoneE164(e164);
     setOtpSessionKey((k) => k + 1);
     setOtpModalOpen(true);
-  }, [values]);
+  }, [values, runOrderMutation]);
 
   const startOtpSms = useCallback(async () => {
     if (otpSendStartedRef.current || !otpPhoneE164) return;

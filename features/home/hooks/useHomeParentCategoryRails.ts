@@ -4,13 +4,8 @@ import { useMemo } from "react";
 import { useQueries } from "@tanstack/react-query";
 import { STALE_TIME } from "@/lib/constants";
 import { getProducts } from "@/features/products/services/getProducts";
+import { parentCategoriesForHome } from "@/features/home/lib/parentCategoriesForHome";
 import type { Category } from "@/features/categories/types";
-
-function parentCategoriesForHome(categories: Category[]): Category[] {
-  return [...categories]
-    .filter((c) => c.parentId === 0 && c.count > 0)
-    .sort((a, b) => a.name.localeCompare(b.name, "ar"));
-}
 
 export function useHomeParentCategoryRails(categories: Category[]) {
   const parents = useMemo(() => parentCategoriesForHome(categories), [categories]);

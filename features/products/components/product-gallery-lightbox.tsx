@@ -1,7 +1,7 @@
 "use client";
 
 import { FocusTrap } from "focus-trap-react";
-import { useLayoutEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 import {
   TransformComponent,
   TransformWrapper,
@@ -24,8 +24,6 @@ export function ProductGalleryLightbox({
   productName,
   titleId,
 }: ProductGalleryLightboxProps) {
-  if (!open || typeof document === "undefined") return null;
-
   const lightboxImageSrc = toAbsoluteSiteUrl(activeSrc);
 
   /**
@@ -34,21 +32,37 @@ export function ProductGalleryLightbox({
    */
   const backdropCloseArmedRef = useRef(false);
   useLayoutEffect(() => {
+    if (!open) return;
     backdropCloseArmedRef.current = false;
     const id = window.setTimeout(() => {
       backdropCloseArmedRef.current = true;
     }, 250);
     return () => window.clearTimeout(id);
-  }, [activeSrc]);
+  }, [open, activeSrc]);
+
+  /**
+   * لا نمرّر onClose لـ onDeactivate في focus-trap: عند unmount (ومنها Strict Mode
+   * في dev) ينفّذ المكتبة deactivate() وتستدعي onDeactivate فيعيد setLightboxOpen(false)
+   * ويُلغي فتح المعاينة قبل أن «تثبت».
+   * Escape: نتعامل معه هنا.
+   */
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [open, onClose]);
+
+  if (!open || typeof document === "undefined") return null;
 
   return (
     <FocusTrap
       active
       focusTrapOptions={{
-        escapeDeactivates: true,
-        // يمنع إغلاق من ضغطة الفتح نفسها أثناء أول 250ms
-        clickOutsideDeactivates: () => backdropCloseArmedRef.current,
-        onDeactivate: onClose,
+        escapeDeactivates: false,
+        clickOutsideDeactivates: false,
         /** يسمح بتمرير العجلة/اللمس داخل منطقة الزوم دون احتجاز من الـ trap */
         preventScroll: false,
       }}

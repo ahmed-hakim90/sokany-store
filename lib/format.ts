@@ -5,7 +5,7 @@ const currencyFormatOptions = {
   currency: DEFAULT_CURRENCY,
   minimumFractionDigits: 0,
   maximumFractionDigits: 2,
-  numberingSystem: "arab" as const,
+  numberingSystem: "latn" as const,
 };
 
 export function formatCurrency(amount: number): string {

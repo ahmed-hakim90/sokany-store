@@ -54,16 +54,16 @@ export function useProductDetailPage(id: number) {
 
   const relatedParams = useMemo(() => {
     const p = productQuery.data;
-    if (!p) return { per_page: 8, page: 1 };
-    const fromWoo = p.relatedIds.filter((rid) => rid !== p.id).slice(0, 12);
+    if (!p) return { per_page: 6, page: 1 };
+    const fromWoo = p.relatedIds.filter((rid) => rid !== p.id).slice(0, 6);
     if (fromWoo.length > 0) {
-      return { include: fromWoo.join(","), per_page: 8, page: 1 };
+      return { include: fromWoo.join(","), per_page: 6, page: 1 };
     }
     const categoryId = p.categories[0]?.id;
     if (categoryId) {
-      return { category: categoryId, per_page: 8, page: 1 };
+      return { category: categoryId, per_page: 6, page: 1 };
     }
-    return { per_page: 8, page: 1 };
+    return { per_page: 6, page: 1 };
   }, [productQuery.data]);
 
   const relatedQuery = useProducts(relatedParams, {
@@ -72,7 +72,7 @@ export function useProductDetailPage(id: number) {
 
   const relatedProducts = useMemo(() => {
     const products = relatedQuery.data?.items ?? [];
-    return products.filter((product) => product.id !== id).slice(0, 8);
+    return products.filter((product) => product.id !== id).slice(0, 6);
   }, [relatedQuery.data, id]);
 
   const specs = useMemo(() => {

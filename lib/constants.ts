@@ -24,12 +24,19 @@ export const DEFAULT_CURRENCY =
   process.env.NEXT_PUBLIC_DEFAULT_CURRENCY ?? "EGP";
 export const CURRENCY_LOCALE =
   process.env.NEXT_PUBLIC_CURRENCY_LOCALE ?? "ar-EG";
+/** عرض إجمالي مبيعات المنتج (من Woo ‎`total_sales`‎) على كارت المنتج. ‎`NEXT_PUBLIC_PRODUCT_CARD_SHOW_SALES_COUNT=false`‎ لإخفاء السطر بالكامل. */
+export const PRODUCT_CARD_SHOW_SALES_COUNT =
+  process.env.NEXT_PUBLIC_PRODUCT_CARD_SHOW_SALES_COUNT !== "false";
+/** لا تُعرض أرقام المبيعات على الكارت عندما يكون العدد أصغر من هذه القيمة. */
+export const PRODUCT_CARD_MIN_SALES_TO_DISPLAY = 50;
 export const CART_STORAGE_KEY = "woo_cart";
 /** Minimum cart subtotal (EGP) for free shipping messaging on cart — override via env. */
 export const FREE_SHIPPING_THRESHOLD_EGP = Number(
   process.env.NEXT_PUBLIC_FREE_SHIPPING_THRESHOLD_EGP ?? 500,
 );
 export const WISHLIST_STORAGE_KEY = "woo_wishlist";
+/** مسودة بيانات إتمام الطلب (بدون كلمة السر) ليُكمل العميل لاحقاً. */
+export const CHECKOUT_DRAFT_STORAGE_KEY = "checkout_draft";
 export const AUTH_TOKEN_KEY = "woo_auth_token";
 export const DEFAULT_PAGE = 1;
 export const DEFAULT_PER_PAGE = 12;

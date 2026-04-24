@@ -1,9 +1,20 @@
+import axios from "axios";
+import { ZodError } from "zod";
 import { apiClient } from "@/lib/api";
 import { USE_MOCK } from "@/lib/constants";
 import { mapOrder } from "@/features/orders/adapters";
 import { mockOrders } from "@/features/orders/mock";
 import { wpOrderSchema } from "@/schemas/wordpress";
 import type { CreateOrderPayload, Order, WCOrder } from "@/features/orders/types";
+
+function readApiErrorMessage(e: unknown): string | null {
+  if (axios.isAxiosError(e) && e.response?.data && typeof e.response.data === "object") {
+    const d = e.response.data as { error?: unknown; message?: unknown };
+    if (typeof d.error === "string" && d.error.trim()) return d.error;
+    if (typeof d.message === "string" && d.message.trim()) return d.message;
+  }
+  return null;
+}
 
 function buildMockOrder(data: CreateOrderPayload): WCOrder {
   const base = mockOrders[0];
@@ -43,6 +54,17 @@ export async function createOrder(data: CreateOrderPayload): Promise<Order> {
   if (USE_MOCK) {
     return mapOrder(wpOrderSchema.parse(buildMockOrder(data)));
   }
-  const response = await apiClient.post("/orders", data);
-  return mapOrder(wpOrderSchema.parse(response.data));
+  try {
+    const response = await apiClient.post("/orders", data);
+    return mapOrder(wpOrderSchema.parse(response.data));
+  } catch (e) {
+    const fromApi = readApiErrorMessage(e);
+    if (fromApi) {
+      throw new Error(fromApi);
+    }
+    if (e instanceof ZodError) {
+      throw new Error("تعذر معالجة ردّ المتجر بعد إنشاء الطلب. راجع سجلات الخادم.");
+    }
+    throw e instanceof Error ? e : new Error("تعذر إكمال الطلب.");
+  }
 }

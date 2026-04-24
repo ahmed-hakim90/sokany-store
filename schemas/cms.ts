@@ -117,9 +117,10 @@ export const CMS_DEFAULT_HEADER_CATEGORY_STRIP: CmsHeaderCategoryStrip = {
 const internalPathRefine = (h: string) =>
   h.startsWith("/") && !h.startsWith("//") && !h.includes("..");
 
-/** بلاطات سكroller الصور تحت بانر الهيرو (بديل عن Woo) — `site_config.homeCategoryScroller`. */
+/** `site_config.homeCategoryScroller` — ترتيب/تقييد عبر /control؛ الصور من وو (تُلغى البلاطة بلا صورة). */
 export const cmsHomeCategoryScrollerItemSchema = z.object({
-  imageUrl: z.string().min(1).max(800),
+  /** اختياري: الشريح يستخدم `image` من ووكومرس؛ يُبقى الحقل للوحة أو للتوافق مع بيانات قديمة. */
+  imageUrl: z.string().max(800).default(""),
   href: z
     .string()
     .min(1)
