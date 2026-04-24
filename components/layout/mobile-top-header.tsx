@@ -28,6 +28,8 @@ const whiteShellHPad =
 /*
  * موبايل (< lg): `safe-area-inset-top` على `SiteShell`، وهامش أفقي مع safe-area.
  * `topRowHidden` + `toolbarBelow`: ينهار صف الشعار فقط؛ البحث والتصنيفات يبقون.
+ * صف الشعار: شبكة ‎`auto` | ‎`1fr` | ‎`auto`‎ + حواف داخليّة (بدل هوامس سالبة) لتجنّب قصّ
+ * شارة المفضّة أو أرقام الخط الساخن عند حواف الشاشة/‎`overflow-hidden`‎ لطي الصف.
  */
 export function MobileTopHeader({
   wordmark,
@@ -41,14 +43,14 @@ export function MobileTopHeader({
   const logoRow = (
     <div
       className={cn(
-        "grid w-full min-h-[3.5rem] grid-cols-[minmax(4.5rem,auto)_minmax(0,1fr)_minmax(2.5rem,auto)] items-center gap-x-2",
+        "grid w-full min-h-[3.5rem] grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-1.5 px-0.5 min-[400px]:gap-x-2",
       )}
     >
-      <div className="flex justify-start [&_button]:-ms-1 [&_a]:-ms-1">
+      <div className="flex min-w-0 shrink-0 items-center justify-self-start">
         {leading}
       </div>
-      <div className="min-w-0 text-center">{wordmark}</div>
-      <div className="flex justify-end [&_button]:-me-1 [&_a]:-me-1">
+      <div className="min-w-0 justify-self-center text-center">{wordmark}</div>
+      <div className="flex min-w-0 shrink-0 items-center justify-self-end">
         {trailing}
       </div>
     </div>
@@ -75,9 +77,13 @@ export function MobileTopHeader({
                 : "max-h-[5.5rem]",
             )}
           >
-            <div className="pt-2">{logoRow}</div>
+            {/*
+              ‎`overflow-hidden`‎ لحركة الطي يقصّ ما يخرج عن الصندوق؛ ‎`px-1.5`‎ + ‎`pt-2`‎
+              + إزالة الهوامس السالبة في صف الشعار يحافظ على الـ safe-area وشارة المفضّة.
+             */}
+            <div className="px-1.5 pt-2">{logoRow}</div>
           </div>
-          <div className="min-w-0 px-0 pb-1.5 pt-0 [&_button]:-me-1">
+          <div className="min-w-0 px-1.5 pb-1.5 pt-0">
             {toolbarBelow}
           </div>
           {secondary ? (
@@ -113,7 +119,7 @@ export function MobileTopHeader({
           stickyChromeBottomShadowClass,
         )}
       >
-        {logoRow}
+        <div className="px-1.5">{logoRow}</div>
         {secondary ? (
           <div className="border-t border-border/40 pb-2 pt-1.5 text-center">
             <div className="text-[11px] font-medium leading-snug text-muted-foreground sm:text-xs">
