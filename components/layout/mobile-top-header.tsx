@@ -32,8 +32,8 @@ const whiteShellHPad =
  * موبايل (< lg): `safe-area-inset-top` على `SiteShell` — غلاف ‎`TopHeader` موبايل **بدون** خلفية.
  * السطح: ‎`mobileTopHeaderGlassSurfaceClass`‎ (أبيض) / ‎`…CollapsedClass`‎ (ليم عند ‎`topRowHidden`‎) — مثل ‎`MobileCartBottomSheet` + peek.
  * `topRowHidden` + `toolbarBelow`: ينهار صف الشعار فقط؛ البحث والتصنيفات يبقون.
- * صف الشعار: شبكة ‎`auto` | ‎`1fr` | ‎`auto`‎ + حواف داخليّة (بدل هوامس سالبة) لتجنّب قصّ
- * شارة المفضّة أو أرقام الخط الساخن عند حواف الشاشة/‎`overflow-hidden`‎ لطي الصف.
+ * صف الشعار: شبكة ‎`auto` | ‎`1fr` | ‎`auto`‎ + حواف داخليّة (بدل هوامس سالبة) وتغليف منفصل بـ
+ * ‎`overflow-hidden`‎ لطي الصف فقط. الغلاف الزجاجي الخارجي بلا ‎`overflow-hidden`‎ حتى لا تُقصّ لوحات اقتراحات البحث.
  */
 export function MobileTopHeader({
   wordmark,
@@ -85,7 +85,7 @@ export function MobileTopHeader({
              */}
             <div className="px-1.5 pt-2">{logoRow}</div>
           </div>
-          <div className="min-w-0 px-1.5 pb-1.5 pt-0">
+          <div className="min-w-0 overflow-visible px-1.5 pb-1.5 pt-0">
             {toolbarBelow}
           </div>
           {secondary ? (

@@ -14,9 +14,11 @@ export const mobileCommercePeekSurfaceClass =
 /**
  * هيدر موبايل — نفس مزيج الليكويد جلاس مع ‎`mobileCommercePeekSurfaceClass` (‎`MobileCartBottomSheet`‎)؛
  * ‎`rounded-b` فقط (حواف أعلى مربّعة). ‎`MobileTopHeader`‎ (عرض كامل؛ غلاف ‎`SiteShell` بلا ‎`bg`‎).
+ * بدون ‎`overflow-hidden`‎ على الغلاف: لوحات ‎`absolute`‎ تحت حقل البحث (اقتراحات) تُرسم خارجه دون قصّ.
+ * صف الشعار يبقى داخل ‎`overflow-hidden`‎ منفصل لحركة الطي.
  */
 export const mobileTopHeaderGlassSurfaceClass = cn(
-  "overflow-hidden rounded-b-3xl border border-white/50",
+  "rounded-b-3xl border border-white/50",
   "bg-white/80",
   "shadow-[0_8px_32px_-10px_rgba(15,23,42,0.14),0_2px_8px_-4px_rgba(15,23,42,0.08),0_4px_16px_-4px_rgba(15,23,42,0.1)]",
   "backdrop-blur-2xl backdrop-saturate-150",
@@ -25,7 +27,7 @@ export const mobileTopHeaderGlassSurfaceClass = cn(
 
 /** وضع طي صف الشعار (ليمون) — ليكويد فوق ‎`brand-500`‎. */
 export const mobileTopHeaderGlassSurfaceCollapsedClass = cn(
-  "overflow-hidden rounded-b-3xl border border-white/35",
+  "rounded-b-3xl border border-white/35",
   "bg-brand-500/60",
   "shadow-[0_8px_32px_-10px_rgba(15,23,42,0.18),0_2px_8px_-4px_rgba(0,0,0,0.1),0_4px_18px_-4px_rgba(15,23,42,0.12)]",
   "backdrop-blur-2xl backdrop-saturate-150",

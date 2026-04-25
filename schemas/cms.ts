@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ROUTES } from "@/lib/constants";
 import { CATEGORY_ICON_SLUGS } from "@/lib/category-icon-slugs";
 
 /** Promo strip on home — countdown until `endsAt` (ISO). */
@@ -109,9 +110,34 @@ export const cmsHeaderCategoryStripSchema = z.object({
 
 export type CmsHeaderCategoryStrip = z.infer<typeof cmsHeaderCategoryStripSchema>;
 
+/**
+ * اختصارات التصنيفات تحت الهيدر — افتراضي مفعّل حتى تظهر الواجهة بدون إعداد Firestore.
+ * مُتجاوَز عند وجود ‎`headerCategoryStrip`‎ صالح في ‎`site_config`‎.
+ */
 export const CMS_DEFAULT_HEADER_CATEGORY_STRIP: CmsHeaderCategoryStrip = {
-  enabled: false,
-  items: [],
+  enabled: true,
+  items: [
+    {
+      href: ROUTES.CATEGORY("home-appliances"),
+      iconKey: "home-appliances",
+      label: "أجهزة منزلية",
+    },
+    {
+      href: ROUTES.CATEGORY("kitchen-supplies"),
+      iconKey: "kitchen-supplies",
+      label: "مطبخ",
+    },
+    {
+      href: ROUTES.CATEGORY("personal-care"),
+      iconKey: "personal-care",
+      label: "عناية شخصية",
+    },
+    {
+      href: ROUTES.CATEGORY("coffee-maker"),
+      iconKey: "coffee-maker",
+      label: "قهوة",
+    },
+  ],
 };
 
 const internalPathRefine = (h: string) =>
