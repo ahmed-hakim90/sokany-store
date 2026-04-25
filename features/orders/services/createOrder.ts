@@ -21,8 +21,9 @@ function buildMockOrder(data: CreateOrderPayload): WCOrder {
   const lineItems = data.line_items.map((item, index) => {
     const price = "0";
     return {
-      id: index + 1,
+      id: item.id ?? index + 1,
       product_id: item.product_id,
+      variation_id: item.variation_id ?? 0,
       name: `Product #${item.product_id}`,
       quantity: item.quantity,
       price,

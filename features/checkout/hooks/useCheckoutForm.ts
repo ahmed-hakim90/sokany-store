@@ -11,10 +11,16 @@ import {
 } from "@/features/checkout/hooks/useCheckoutOrderMutation";
 import { useCustomerAuth } from "@/features/checkout/hooks/useCustomerAuth";
 import {
+  readCheckoutAmendSession,
+  readCheckoutAmendFormPrefill,
+  clearCheckoutAmendFormPrefill,
+} from "@/features/checkout/lib/checkout-amend-session";
+import {
   clearCheckoutDraftFromStorage,
   loadCheckoutDraftFromStorage,
   saveCheckoutDraftToStorage,
 } from "@/features/checkout/lib/checkout-draft-storage";
+import { addGuestOrderRef } from "@/features/orders/lib/local-guest-orders-storage";
 import { defaultCheckoutFormValues } from "@/features/checkout/lib/checkout-form-defaults";
 import {
   CHECKOUT_SHIPPING_DISPLAY_LABEL,
@@ -41,6 +47,10 @@ export function useCheckoutForm() {
   const [rehydratedDraft, setRehydratedDraft] = useState(false);
   const [errors, setErrors] = useState<Partial<Record<keyof CheckoutFormData, string>>>({});
   const [orderSuccessOpen, setOrderSuccessOpen] = useState(false);
+  const [placedOrderSummary, setPlacedOrderSummary] = useState<{
+    id: number;
+    orderKey: string;
+  } | null>(null);
   const [otpModalOpen, setOtpModalOpen] = useState(false);
   /** Bumps when a new SMS session starts so `CheckoutOtpModal` remounts with a clean code field. */
   const [otpSessionKey, setOtpSessionKey] = useState(0);
@@ -50,13 +60,30 @@ export function useCheckoutForm() {
 
   const dismissOrderSuccess = useCallback(() => {
     setOrderSuccessOpen(false);
+    setPlacedOrderSummary(null);
   }, []);
   const { items, totalPrice, clearCart } = useCart();
   const checkoutOrder = useCheckoutOrderMutation();
 
   useEffect(() => {
+    const amend = readCheckoutAmendSession();
+    const amendPrefill = amend ? readCheckoutAmendFormPrefill(amend) : null;
     const draft = loadCheckoutDraftFromStorage();
-    if (draft) {
+
+    /* زيارة الدفع خارج مسار التعديل: إزالة تعبئة/نسخ احتياطي يتيمين حتى لا تُخلط جلسات لاحقاً */
+    if (!amend) {
+      clearCheckoutAmendFormPrefill();
+    }
+
+    /*
+     * لا نمسح prefill أثناء ‎amend‎ هنا: React 18 Strict Mode قد يعيد تشغيل التأثير مرتين في التطوير.
+     * يُمسح المفتاح عند ‎clearCheckoutAmendSession‎ بعد نجاح التعديل.
+     */
+    if (amend && amendPrefill) {
+      setValues({ ...defaultCheckoutFormValues, ...amendPrefill });
+    } else if (amend && draft) {
+      setValues(draft);
+    } else if (draft) {
       setValues(draft);
     }
     setRehydratedDraft(true);
@@ -96,8 +123,15 @@ export function useCheckoutForm() {
       checkoutOrder.mutate(
         { values, items, firebaseUid },
         {
-          onSuccess: () => {
+          onSuccess: (order) => {
             clearCart();
+            if (order.orderKey.trim()) {
+              addGuestOrderRef({ id: order.id, orderKey: order.orderKey });
+            }
+            setPlacedOrderSummary({
+              id: order.id,
+              orderKey: order.orderKey,
+            });
             setOrderSuccessOpen(true);
             clearCheckoutDraftFromStorage();
             setValues(defaultCheckoutFormValues);
@@ -212,6 +246,7 @@ export function useCheckoutForm() {
     loadingOverlayVisible:
       checkoutOrder.isPending || (authSending && !otpModalOpen),
     orderSuccessOpen,
+    placedOrderSummary,
     dismissOrderSuccess,
     otpModalOpen,
     otpSessionKey,

@@ -1,4 +1,11 @@
 export const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === "true";
+
+/**
+ * تعديل طلب الضيف (واجهة «طلباتي» + ‎`POST /api/orders/guest/amend`‎).
+ * الافتراضي: **معطّل**. فعّل بـ ‎`GUEST_ORDER_AMEND_ENABLED=true`‎ في بيئة الخادم فقط.
+ */
+export const GUEST_ORDER_AMEND_ENABLED =
+  process.env.GUEST_ORDER_AMEND_ENABLED === "true";
 export const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000";
 export const SITE_NAME =

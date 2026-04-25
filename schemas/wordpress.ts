@@ -213,8 +213,12 @@ const wpOrderMetaEntrySchema = z.object({
 
 export const wpOrderSchema = z.object({
   id: z.coerce.number(),
+  /** WooCommerce guest order secret — required for guest APIs. */
+  order_key: wooStringField.optional().default(""),
   status: wooStringField,
   date_created: wooStringField,
+  /** موثوق لحساب نافذة التعديل (GMT) — يُفضَّل على ‎date_created‎ عند التوفر. */
+  date_created_gmt: wooStringField.optional(),
   total: wooOrderNumericString,
   subtotal: wooOrderNumericString,
   total_tax: wooOrderNumericString,
@@ -235,8 +239,10 @@ export const createOrderPayloadSchema = z.object({
   shipping: wpShippingSchema,
   line_items: z.array(
     z.object({
+      id: z.number().int().positive().optional(),
       product_id: z.number(),
       quantity: z.number().int().positive(),
+      variation_id: z.number().int().nonnegative().optional(),
     }),
   ),
   shipping_lines: z

@@ -46,8 +46,12 @@ export function toCreateOrderPayload(
     },
     shipping,
     line_items: items.map((item) => ({
+      ...(item.wooLineItemId != null ? { id: item.wooLineItemId } : {}),
       product_id: item.productId,
       quantity: item.quantity,
+      ...(item.variationId != null && item.variationId > 0
+        ? { variation_id: item.variationId }
+        : {}),
     })),
     shipping_lines: [CHECKOUT_WOO_SHIPPING],
     payment_method: values.paymentMethod,

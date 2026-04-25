@@ -26,18 +26,31 @@ function HeartParticle({ index }: { index: number }) {
   );
 }
 
+type PlacedOrderSummary = {
+  id: number;
+  orderKey: string;
+};
+
 type OrderSuccessCelebrationProps = {
   open: boolean;
+  order: PlacedOrderSummary | null;
   onDismiss: () => void;
 };
 
 /**
  * طبقة شكر بعد تأكيد الطلب: نص ترحيبي وقلوب تطفو للأعلى (keyframes في globals.css).
  */
-export function OrderSuccessCelebration({ open, onDismiss }: OrderSuccessCelebrationProps) {
+export function OrderSuccessCelebration({
+  open,
+  order,
+  onDismiss,
+}: OrderSuccessCelebrationProps) {
   const router = useTransitionRouter();
 
   if (!open) return null;
+
+  const trackHref =
+    order != null ? `${ROUTES.ORDER_TRACKING}?q=${encodeURIComponent(String(order.id))}` : ROUTES.ORDER_TRACKING;
 
   return (
     <div
@@ -65,6 +78,14 @@ export function OrderSuccessCelebration({ open, onDismiss }: OrderSuccessCelebra
           <p className="mt-3 text-base font-medium text-foreground/90" id="order-success-desc">
             تم استلام طلبك بنجاح. نقدّر ثقتك في سوكاني ونتمنى لك تجربة رائعة.
           </p>
+          {order != null ? (
+            <p className="mt-3 text-sm font-semibold text-brand-900">
+              رقم الطلب:{" "}
+              <span dir="ltr" className="tabular-nums">
+                #{order.id}
+              </span>
+            </p>
+          ) : null}
           <p className="mt-2 text-sm text-muted-foreground">فريق خدمة العملاء جاهز لمساعدتك في أي وقت.</p>
 
           <div className="mt-8 flex flex-col gap-2 sm:flex-row sm:justify-center">
@@ -75,13 +96,33 @@ export function OrderSuccessCelebration({ open, onDismiss }: OrderSuccessCelebra
               className="min-h-12 font-bold"
               onClick={() => {
                 onDismiss();
+                router.push(trackHref);
+              }}
+            >
+              تتبع الطلب
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              size="lg"
+              className="min-h-12 font-bold"
+              onClick={() => {
+                onDismiss();
+                router.push(ROUTES.MY_ORDERS);
+              }}
+            >
+              طلباتي
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="lg"
+              onClick={() => {
+                onDismiss();
                 router.push(ROUTES.HOME);
               }}
             >
               متابعة التسوق
-            </Button>
-            <Button type="button" variant="ghost" size="lg" onClick={onDismiss}>
-              إغلاق
             </Button>
           </div>
         </div>
@@ -89,4 +130,3 @@ export function OrderSuccessCelebration({ open, onDismiss }: OrderSuccessCelebra
     </div>
   );
 }
-

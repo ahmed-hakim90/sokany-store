@@ -25,6 +25,8 @@ export type OrderItem = {
 
 export type Order = {
   id: number;
+  /** WooCommerce `order_key` — proves guest ownership for amend/cancel APIs. */
+  orderKey: string;
   status: OrderStatus;
   dateCreated: string;
   total: number;
@@ -59,6 +61,7 @@ export type WCOrderLineItem = {
 
 export type WCOrder = {
   id: number;
+  order_key?: string;
   status: string;
   date_created: string;
   total: string;
@@ -122,8 +125,10 @@ export type CreateOrderPayload = {
     country: string;
   };
   line_items: Array<{
+    id?: number;
     product_id: number;
     quantity: number;
+    variation_id?: number;
   }>;
   shipping_lines?: Array<{
     method_id: string;

@@ -1,25 +1,61 @@
 "use client";
 
 import { createPortal } from "react-dom";
+import { Link } from "next-view-transitions";
 import { useEffect, useId, useRef, useState } from "react";
 import { AppImage } from "@/components/AppImage";
+import { Button } from "@/components/Button";
 import { IconButton } from "@/components/ui/icon-button";
 import { PriceText } from "@/components/ui/price-text";
-import {
-  formatWooCouponLines,
-  formatWooShippingLines,
-  isSafeOrderMetaKey,
-} from "@/features/orders/lib/woo-excess-labels";
+import { formatWooCouponLines, formatWooShippingLines } from "@/features/orders/lib/woo-excess-labels";
+import type { BillingAddress, ShippingAddress } from "@/features/user/types";
 import type { Order } from "@/features/orders/types";
+import { ROUTES } from "@/lib/constants";
 import { formatPrice } from "@/lib/utils";
 
 export type OrderDetailsModalProps = {
   order: Order | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** Guest: تعديل الطلب (قد يُسمح وهو قيد التجهيز بينما الإلغاء لا). */
+  canAmend?: boolean;
+  /** Guest: إلغاء الطلب (عادة ‎pending‎ / ‎on-hold‎ فقط). */
+  canCancel?: boolean;
+  onAmend?: () => void;
+  onCancel?: () => void;
+  cancelPending?: boolean;
 };
 
-export function OrderDetailsModal({ order, open, onOpenChange }: OrderDetailsModalProps) {
+function formatPersonLines(addr: Pick<BillingAddress, "firstName" | "lastName" | "company">): string[] {
+  const name = [addr.firstName, addr.lastName].filter((s) => s?.trim()).join(" ").trim();
+  const lines: string[] = [];
+  if (name) lines.push(name);
+  if (addr.company?.trim()) lines.push(addr.company.trim());
+  return lines;
+}
+
+function formatStreetCityLines(
+  addr: Pick<BillingAddress, "address1" | "address2" | "city" | "state" | "postcode" | "country">,
+): string[] {
+  const lines: string[] = [];
+  if (addr.address1?.trim()) lines.push(addr.address1.trim());
+  if (addr.address2?.trim()) lines.push(addr.address2.trim());
+  const cityLine = [addr.city, addr.state, addr.postcode].filter((s) => s?.trim()).join(" ").trim();
+  if (cityLine) lines.push(cityLine);
+  if (addr.country?.trim()) lines.push(addr.country.trim());
+  return lines;
+}
+
+export function OrderDetailsModal({
+  order,
+  open,
+  onOpenChange,
+  canAmend = false,
+  canCancel = false,
+  onAmend,
+  onCancel,
+  cancelPending = false,
+}: OrderDetailsModalProps) {
   const titleId = useId();
   const closeRef = useRef<HTMLButtonElement>(null);
   const [mounted, setMounted] = useState(false);
@@ -68,6 +104,9 @@ export function OrderDetailsModal({ order, open, onOpenChange }: OrderDetailsMod
     year: "numeric",
   });
 
+  const billing = order.billing;
+  const shipping = order.shipping as ShippingAddress;
+
   return createPortal(
     <div
       className="fixed inset-0 z-[220] flex items-end justify-center sm:items-center sm:p-4"
@@ -106,7 +145,51 @@ export function OrderDetailsModal({ order, open, onOpenChange }: OrderDetailsMod
         </header>
 
         <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3 sm:px-5">
-          <p className="text-sm font-medium text-brand-950">المنتجات</p>
+          <div className="space-y-4 rounded-xl border border-border/70 bg-surface-muted/25 p-3 text-sm text-brand-900/90">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-brand-900/55">
+                بيانات التواصل
+              </p>
+              <ul className="mt-2 space-y-1.5 text-brand-950">
+                {formatPersonLines(billing).map((line) => (
+                  <li key={line}>{line}</li>
+                ))}
+                {billing.email?.trim() ? (
+                  <li dir="ltr" className="break-all text-brand-900/85">
+                    {billing.email.trim()}
+                  </li>
+                ) : null}
+                {billing.phone?.trim() ? (
+                  <li dir="ltr" className="tabular-nums text-brand-900/85">
+                    {billing.phone.trim()}
+                  </li>
+                ) : null}
+              </ul>
+            </div>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-brand-900/55">
+                عنوان الشحن
+              </p>
+              <ul className="mt-2 space-y-1.5 text-brand-950">
+                {formatPersonLines(shipping).map((line) => (
+                  <li key={`s-${line}`}>{line}</li>
+                ))}
+                {formatStreetCityLines(shipping).map((line) => (
+                  <li key={line}>{line}</li>
+                ))}
+              </ul>
+            </div>
+            {order.customerNote?.trim() ? (
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wide text-brand-900/55">
+                  ملاحظة على الطلب
+                </p>
+                <p className="mt-2 whitespace-pre-wrap text-brand-900/85">{order.customerNote.trim()}</p>
+              </div>
+            ) : null}
+          </div>
+
+          <p className="mt-6 text-sm font-medium text-brand-950">المنتجات</p>
           <ul className="mt-3 space-y-3">
             {order.items.map((line) => (
               <li
@@ -157,28 +240,44 @@ export function OrderDetailsModal({ order, open, onOpenChange }: OrderDetailsMod
               )}
             </div>
           )}
-
-          {order.metaData.some((e) => isSafeOrderMetaKey(e.key)) ? (
-            <div className="mt-4 border-t border-border/60 pt-4">
-              <p className="text-sm font-medium text-brand-950">تفاصيل إضافية (من الـ API)</p>
-              <ul className="mt-2 space-y-1.5 text-xs text-brand-900/70">
-                {order.metaData
-                  .filter((e) => isSafeOrderMetaKey(e.key))
-                  .slice(0, 12)
-                  .map((e) => (
-                    <li key={`${e.key}-${String(e.value)}`} className="break-words">
-                      <span className="font-medium text-brand-900/85">{e.key}:</span>{" "}
-                      {typeof e.value === "object"
-                        ? JSON.stringify(e.value)
-                        : String(e.value)}
-                    </li>
-                  ))}
-              </ul>
-            </div>
-          ) : null}
         </div>
 
         <footer className="shrink-0 space-y-3 border-t border-border/80 px-4 py-3 sm:px-5">
+          <div className="flex flex-col gap-2">
+            <Link
+              href={`${ROUTES.ORDER_TRACKING}?q=${encodeURIComponent(String(order.id))}`}
+              className="inline-flex h-10 w-full items-center justify-center rounded-md border border-border bg-white text-sm font-semibold text-foreground transition-colors hover:bg-surface-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500"
+            >
+              تتبع الطلب
+            </Link>
+            {canAmend && onAmend ? (
+              <Button
+                type="button"
+                variant="secondary"
+                size="md"
+                className="w-full font-semibold"
+                onClick={() => {
+                  onAmend();
+                  onOpenChange(false);
+                }}
+              >
+                تعديل الطلب (إضافة منتجات)
+              </Button>
+            ) : null}
+            {canCancel && onCancel ? (
+              <Button
+                type="button"
+                variant="ghost"
+                size="md"
+                className="w-full font-semibold text-red-700 hover:bg-red-50"
+                loading={cancelPending}
+                disabled={cancelPending}
+                onClick={() => onCancel()}
+              >
+                إلغاء الطلب
+              </Button>
+            ) : null}
+          </div>
           <div className="space-y-1.5 text-sm text-brand-900/75">
             <div className="flex items-center justify-between gap-2">
               <span>المجموع الفرعي</span>

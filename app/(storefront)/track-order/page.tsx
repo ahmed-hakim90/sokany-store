@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { OrderTrackingPageContent } from "@/components/pages/OrderTrackingPageContent";
 import { SITE_BRAND_TITLE_AR } from "@/lib/constants";
 import { getSiteUrl } from "@/lib/site";
 
 const title = `تتبع الطلب | ${SITE_BRAND_TITLE_AR}`;
 const description =
-  "تتبع حالة طلبك في ثوانٍ: أدخل رقم الموبايل أو رقم الطلب لمتابعة مراحل الشحن.";
+  "اعرض حالة طلبك بعد الضغط على «تتبع الطلب» من صفحة طلباتي أو من رابط التأكيد.";
 
 export const metadata: Metadata = {
   title,
@@ -22,6 +23,18 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
 };
 
+function TrackOrderFallback() {
+  return (
+    <div className="flex min-h-[50vh] items-center justify-center bg-page px-4 py-16">
+      <p className="text-sm text-brand-900/70">جاري التحميل…</p>
+    </div>
+  );
+}
+
 export default function TrackOrderPage() {
-  return <OrderTrackingPageContent />;
+  return (
+    <Suspense fallback={<TrackOrderFallback />}>
+      <OrderTrackingPageContent />
+    </Suspense>
+  );
 }

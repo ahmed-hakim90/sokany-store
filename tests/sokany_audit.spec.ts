@@ -31,7 +31,6 @@ const FOOTER_INTERNAL_PATHS: readonly string[] = [
   ROUTES.CHECKOUT,
   ROUTES.MY_ORDERS,
   ROUTES.MY_REVIEWS,
-  ROUTES.ORDER_TRACKING,
   ROUTES.ABOUT,
   ROUTES.SERVICE_CENTERS,
   ROUTES.RETAILERS,
@@ -50,7 +49,7 @@ const MOBILE_DRAWER_INTERNAL_PATHS: readonly string[] = [
   ROUTES.CATEGORY("personal-care"),
   ROUTES.PRODUCTS,
   ROUTES.CATEGORIES,
-  ROUTES.ORDER_TRACKING,
+  ROUTES.MY_ORDERS,
   ROUTES.ABOUT,
   ROUTES.CONTACT,
   ROUTES.SERVICE_CENTERS,
@@ -125,18 +124,16 @@ test.describe("Sokany storefront audit", () => {
     await addIcon.click();
   });
 
-  test("الوظائف: تتبع الطلب — API + واجهة البحث", async ({ page, request }) => {
+  test("الوظائف: تتبع الطلب — API + واجهة برابط الاستعلام", async ({ page, request }) => {
     const trackApi = await request.get("/api/orders/track?q=12345");
     expect(trackApi.status()).toBe(200);
     const trackJson = (await trackApi.json()) as { found?: boolean };
     expect(trackJson.found).toBe(true);
 
-    await page.goto(ROUTES.ORDER_TRACKING, { waitUntil: "domcontentloaded" });
-    await expect(
-      page.getByRole("heading", { name: "تتبع طلبك", level: 1 }),
-    ).toBeVisible();
-    await expect(page.locator("#track-order-input")).toBeVisible();
-    await expect(page.getByRole("button", { name: "تتبع الآن" })).toBeVisible();
+    await page.goto(`${ROUTES.ORDER_TRACKING}?q=12345`, { waitUntil: "domcontentloaded" });
+    await expect(page.getByText("تم استلام الطلب", { exact: false })).toBeVisible({
+      timeout: 15_000,
+    });
   });
 
   test("البيانات: الموزعون المعتمدون — عناوين من المصدر", async ({ page }) => {

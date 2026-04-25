@@ -1,13 +1,15 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
-import { useMutation } from "@tanstack/react-query";
-import { Search } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { Link, useTransitionRouter } from "next-view-transitions";
+import { useSearchParams } from "next/navigation";
+import { useMemo } from "react";
+import { Package } from "lucide-react";
 import { Button } from "@/components/Button";
 import { Container } from "@/components/Container";
 import { buildTrackingSteps } from "@/features/order-tracking/build-tracking-steps";
 import { trackOrder } from "@/features/order-tracking/services/trackOrder";
-import { WHATSAPP_SUPPORT_URL } from "@/lib/constants";
+import { ROUTES, STALE_TIME, WHATSAPP_SUPPORT_URL } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 const TERMINAL_COPY: Record<string, string> = {
@@ -17,23 +19,29 @@ const TERMINAL_COPY: Record<string, string> = {
 };
 
 /*
- * صفحة تتبع الطلب (/track-order): خلفية هادئة (bg-page) ثم عمود ضيق داخل Container — بطاقة بحث ثم بطاقة نتيجة.
- * الجوال أولاً: بطاقات بعرض أقصى max-w-md؛ الشريط الزمني من API ‎`/api/orders/track`‎ (أو وضع mock عند ‎USE_MOCK‎).
+ * صفحة تتبع الطلب (/track-order): بدون حقل إدخال — تُفتح عادة برابط ‎?q=‎ من بطاقة طلب أو شكر الشراء.
+ * بدون ‎q‎: توجيه لطلباتي لاختيار طلب وعرض حالته.
  */
 export function OrderTrackingPageContent() {
-  const [query, setQuery] = useState("");
+  const searchParams = useSearchParams();
+  const router = useTransitionRouter();
+  const qRaw = searchParams.get("q")?.trim() ?? "";
 
-  const mutation = useMutation({
-    mutationFn: (q: string) => trackOrder(q),
+  const trackQuery = useQuery({
+    queryKey: ["track-order", qRaw],
+    queryFn: () => trackOrder(qRaw),
+    enabled: qRaw.length >= 2,
+    staleTime: STALE_TIME.SHORT,
+    retry: 1,
   });
 
-  const data = mutation.data;
+  const data = trackQuery.data;
   const showTimeline =
-    mutation.isSuccess && data?.found === true && data.terminal == null;
+    trackQuery.isSuccess && data?.found === true && data.terminal == null;
   const showTerminal =
-    mutation.isSuccess && data?.found === true && data.terminal != null;
-  const showNotFound = mutation.isSuccess && data?.found === false;
-  const showError = mutation.isError;
+    trackQuery.isSuccess && data?.found === true && data.terminal != null;
+  const showNotFound = trackQuery.isSuccess && data?.found === false;
+  const showError = trackQuery.isError;
 
   const activeIndex = data?.found === true ? data.currentStepIndex : 0;
   const allCompleted = data?.found === true ? data.allCompleted : false;
@@ -49,57 +57,45 @@ export function OrderTrackingPageContent() {
     });
   }, [showTimeline, data]);
 
-  function onSubmit(e: FormEvent) {
-    e.preventDefault();
-    const q = query.trim();
-    if (q.length < 2) return;
-    mutation.mutate(q);
-  }
-
   const displayOrderRef = data?.found === true ? String(data.orderId) : "";
+
+  const showEmptyHint = qRaw.length < 2;
 
   return (
     <div className="flex min-h-[min(100dvh,1200px)] flex-col bg-page py-10 md:py-14">
       <Container className="mx-auto flex w-full max-w-md flex-1 flex-col items-stretch px-4">
-        <div className="w-full rounded-3xl border border-border/70 bg-white p-8 text-center shadow-sm">
-          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-brand-500/12">
-            <Search className="h-8 w-8 text-brand-700" strokeWidth={2} aria-hidden />
-          </div>
-          <h1 className="font-display text-2xl font-bold text-brand-950">تتبع طلبك</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            أدخل رقم الموبايل أو رقم الطلب لمعرفة حالة الشحن الحالية
-          </p>
-
-          <form onSubmit={onSubmit} className="mt-8 space-y-4">
-            <label htmlFor="track-order-input" className="sr-only">
-              رقم الطلب أو الموبايل
-            </label>
-            <input
-              id="track-order-input"
-              name="query"
-              type="text"
-              autoComplete="off"
-              placeholder="رقم الطلب (مثلاً: 12345)"
-              value={query}
-              onChange={(ev) => setQuery(ev.target.value)}
-              className={cn(
-                "w-full rounded-2xl border border-border/80 bg-surface-muted/50 px-5 py-4 text-center text-base font-semibold text-foreground outline-none transition-all",
-                "placeholder:text-muted-foreground/55 placeholder:font-normal",
-                "focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25",
-              )}
-            />
+        {showEmptyHint ? (
+          <div className="w-full rounded-3xl border border-border/70 bg-white p-8 text-center shadow-sm">
+            <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-brand-500/12">
+              <Package className="h-8 w-8 text-brand-700" strokeWidth={2} aria-hidden />
+            </div>
+            <h1 className="font-display text-2xl font-bold text-brand-950">تتبع طلبك</h1>
+            <p className="mt-3 text-sm text-muted-foreground">
+              اختر طلباً من قائمة «طلباتي» ثم اضغط «تتبع الطلب» لعرض حالة الشحن.
+            </p>
             <Button
-              type="submit"
+              type="button"
               variant="primary"
               size="lg"
-              loading={mutation.isPending}
-              className="h-14 w-full rounded-2xl text-base font-bold shadow-[0_12px_32px_-18px_rgba(218,255,0,0.75)]"
-              disabled={mutation.isPending || query.trim().length < 2}
+              className="mt-8 h-14 w-full rounded-2xl text-base font-bold shadow-[0_12px_32px_-18px_rgba(218,255,0,0.75)]"
+              onClick={() => router.push(ROUTES.MY_ORDERS)}
             >
-              تتبع الآن
+              الذهاب إلى طلباتي
             </Button>
-          </form>
-        </div>
+            <Link
+              href={ROUTES.HOME}
+              className="mt-4 inline-block text-sm font-semibold text-brand-800 underline-offset-4 hover:underline"
+            >
+              العودة للرئيسية
+            </Link>
+          </div>
+        ) : null}
+
+        {!showEmptyHint && trackQuery.isPending ? (
+          <div className="w-full rounded-3xl border border-border/70 bg-white p-8 text-center shadow-sm">
+            <p className="text-sm font-medium text-brand-950">جاري جلب حالة الطلب…</p>
+          </div>
+        ) : null}
 
         {showError ? (
           <div
@@ -114,8 +110,17 @@ export function OrderTrackingPageContent() {
           <div className="mt-8 w-full rounded-3xl border border-border/70 bg-white p-8 text-center shadow-sm">
             <p className="text-sm font-semibold text-brand-950">لم نعثر على طلب مطابق</p>
             <p className="mt-2 text-xs text-muted-foreground">
-              تأكد من رقم الطلب أو رقم الموبايل المسجّل عند الشراء.
+              راجع رقم الطلب من صفحة «طلباتي» أو تواصل مع الدعم.
             </p>
+            <Button
+              type="button"
+              variant="secondary"
+              size="lg"
+              className="mt-6 h-12 w-full"
+              onClick={() => router.push(ROUTES.MY_ORDERS)}
+            >
+              طلباتي
+            </Button>
           </div>
         ) : null}
 

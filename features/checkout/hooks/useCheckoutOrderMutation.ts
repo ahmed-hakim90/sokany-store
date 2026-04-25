@@ -7,9 +7,11 @@ import { login } from "@/features/auth/services/login";
 import { useAuthStore } from "@/features/auth/store/useAuthStore";
 import { checkoutSchema } from "@/features/checkout/schema";
 import { mapPayloadIssuesToCheckoutFields } from "@/features/checkout/lib/map-order-payload-issues";
+import { clearCheckoutAmendSession, readCheckoutAmendSession } from "@/features/checkout/lib/checkout-amend-session";
 import { toCreateOrderPayload } from "@/features/checkout/lib/to-create-order-payload";
 import type { CheckoutFormData } from "@/features/checkout/types";
 import type { CartItem } from "@/features/cart/types";
+import { amendGuestOrder } from "@/features/orders/services/amendGuestOrder";
 import { createOrder } from "@/features/orders/services/createOrder";
 import { createOrderPayloadSchema } from "@/schemas/wordpress";
 
@@ -79,8 +81,10 @@ export function useCheckoutOrderMutation() {
       }
 
       const data = checkoutParsed.data;
+      const amend = readCheckoutAmendSession();
+
       const wantsNewAccount =
-        data.createAccount && !useAuthStore.getState().isAuthenticated;
+        !amend && data.createAccount && !useAuthStore.getState().isAuthenticated;
 
       let customerId: number | undefined;
       if (wantsNewAccount) {
@@ -119,7 +123,19 @@ export function useCheckoutOrderMutation() {
         });
       }
 
-      const order = await createOrder(payloadParsed.data);
+      let order;
+      if (amend) {
+        order = await amendGuestOrder({
+          ...payloadParsed.data,
+          orderId: amend.orderId,
+          orderKey: amend.orderKey,
+        });
+        clearCheckoutAmendSession();
+      } else {
+        order = await createOrder(payloadParsed.data);
+        /* مسح جلسة تعديل يتيمة (مثلاً بعد إلغاء طلب سابق دون فتح مسار التعديل حتى النهاية) */
+        clearCheckoutAmendSession();
+      }
 
       if (wantsNewAccount && customerId !== undefined) {
         try {

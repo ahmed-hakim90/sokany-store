@@ -15,6 +15,7 @@ export function useCart() {
   const removeFromCart = useCartStore((state) => state.removeFromCart);
   const updateQuantity = useCartStore((state) => state.updateQuantity);
   const clearCart = useCartStore((state) => state.clearCart);
+  const replaceAllItems = useCartStore((state) => state.replaceAllItems);
 
   const safeItems = hasHydrated ? items : [];
   const safeTotalItems = hasHydrated ? totalItems : 0;
@@ -71,5 +72,6 @@ export function useCart() {
       updateQuantity(productId, quantity);
     },
     clearCart,
+    replaceAllItems,
   };
 }

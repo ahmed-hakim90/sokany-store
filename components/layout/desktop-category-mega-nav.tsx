@@ -2,8 +2,8 @@
 
 /*
  * شريط تصنيفات الديسكتوب (صف ثانٍ تحت اللوجو/البحث) + ميجا مينو عند الـ hover.
- * — الصف: «الرئيسية» ثم أقسام الميجا ثم «العروض» ثم روابط ثابتة (كل التصنيفات، من نحن، الفروع، الموزعون، تتبع الطلب)؛ يمين: سوشيال + «تواصل معنا» + «خدماتنا» (شروط، خصوصية، …).
- * — الميجا: شبكة ثلاثية الأعمدة (فرعية · أولوية تسوق · صورة) أو لوحة عروض بديلة.
+ * — الصف: «الرئيسية» ثم **تصنيفات جذرية من API** (parent=0 وعدّ منتجات >0، مُحدّاة) ثم «العروض» ثم روابط ثابتة؛ يمين: سوشيال + «تواصل معنا» + «خدماتنا».
+ * — الميجا: شبكة ثلاثية (فرعية · أولوية تسوق · صورة) مبنيّة من نفس ‎`categories`‎ (بالـ slug) أو لوحة عروض.
  * — الـ lg فقط؛ الموبايل يبقى على الدرج.
  */
 
@@ -28,55 +28,21 @@ import type { SocialLink } from "@/lib/social-links";
 import { cn } from "@/lib/utils";
 
 const MEGA_LINK_LIMIT = 12;
+/** أقصى عدد لأقسام الجذر تظهر في الصف (بعد «الرئيسية») — يُرتَّب أبجديًا عربيًا. */
+const MEGA_TOP_LEVEL_CATEGORY_LIMIT = 12;
 
 export type DesktopMoreLink = { href: string; label: string };
 
-type MegaKey = "home-appliances" | "kitchen-supplies" | "personal-care" | "offers";
-
-type PrimaryNavDef =
+type PrimaryBarItem =
+  | { key: "home"; href: string; label: string; mega: null }
+  | { key: string; href: string; label: string; mega: "category" }
   | {
-      key: "home";
+      key: "offers";
       href: string;
       label: string;
-      mega: null;
-      offersHighlight?: false;
-    }
-  | {
-      key: MegaKey;
-      href: string;
-      label: string;
-      mega: "category" | "offers";
-      offersHighlight?: boolean;
+      mega: "offers";
+      offersHighlight: true;
     };
-
-const PRIMARY_NAV: PrimaryNavDef[] = [
-  { key: "home", href: ROUTES.HOME, label: "الرئيسية", mega: null },
-  {
-    key: "home-appliances",
-    href: ROUTES.CATEGORY("home-appliances"),
-    label: "الأجهزة المنزلية",
-    mega: "category",
-  },
-  {
-    key: "kitchen-supplies",
-    href: ROUTES.CATEGORY("kitchen-supplies"),
-    label: "المطبخ",
-    mega: "category",
-  },
-  {
-    key: "personal-care",
-    href: ROUTES.CATEGORY("personal-care"),
-    label: "العناية الشخصية",
-    mega: "category",
-  },
-  {
-    key: "offers",
-    href: ROUTES.PRODUCTS,
-    label: "العروض",
-    mega: "offers",
-    offersHighlight: true,
-  },
-];
 
 function groupByParent(categories: Category[]): Map<number, Category[]> {
   const m = new Map<number, Category[]>();
@@ -167,6 +133,39 @@ export function DesktopCategoryMegaNav({
     [categories],
   );
 
+  const primaryBarItems: PrimaryBarItem[] = useMemo(() => {
+    const home: PrimaryBarItem = {
+      key: "home",
+      href: ROUTES.HOME,
+      label: "الرئيسية",
+      mega: null,
+    };
+    const topLevel = (categories ?? [])
+      .filter(
+        (c) =>
+          c.parentId === 0 &&
+          c.count > 0 &&
+          c.slug !== "offers" &&
+          c.slug !== "home",
+      )
+      .sort((a, b) => a.name.localeCompare(b.name, "ar"))
+      .slice(0, MEGA_TOP_LEVEL_CATEGORY_LIMIT);
+    const categoryItems: PrimaryBarItem[] = topLevel.map((c) => ({
+      key: c.slug,
+      href: ROUTES.CATEGORY(c.slug),
+      label: c.name,
+      mega: "category" as const,
+    }));
+    const offers: PrimaryBarItem = {
+      key: "offers",
+      href: ROUTES.PRODUCTS,
+      label: "العروض",
+      mega: "offers",
+      offersHighlight: true,
+    };
+    return [home, ...categoryItems, offers];
+  }, [categories]);
+
   const closeMega = useCallback(() => setOpenKey(null), []);
 
   useEffect(() => {
@@ -191,7 +190,7 @@ export function DesktopCategoryMegaNav({
     return () => document.removeEventListener("keydown", onKey);
   }, [closeMega]);
 
-  const renderCategoryMega = (slug: MegaKey) => {
+  const renderCategoryMega = (slug: string) => {
     const parent = findCategoryBySlug(categories, slug);
     const children = parent
       ? (byParent.get(parent.id) ?? []).filter((c: Category) => c.count > 0)
@@ -408,11 +407,12 @@ export function DesktopCategoryMegaNav({
           className="flex min-w-0 flex-1 flex-wrap items-center gap-0.5 py-1.5 text-sm font-medium"
           aria-label="التصنيفات الرئيسية"
         >
-          {PRIMARY_NAV.map((item) => {
+          {primaryBarItems.map((item) => {
             const isMega =
               item.mega === "category" || item.mega === "offers";
             const isOpen = openKey === item.key;
             const itemId = `${baseId}-${item.key}`;
+            const isOffers = item.mega === "offers";
 
             const navItem = (
               <div
@@ -432,12 +432,12 @@ export function DesktopCategoryMegaNav({
                   className={cn(
                     "inline-flex items-center rounded-md px-2.5 py-2 transition-colors",
                     navLinkPressableClass,
-                    item.offersHighlight
+                    isOffers
                       ? "font-semibold text-red-600 [@media(hover:hover)]:hover:bg-red-50 [@media(hover:hover)]:hover:text-red-700 active:bg-red-100/80"
                       : "text-brand-900/85 [@media(hover:hover)]:hover:bg-surface-muted/50 [@media(hover:hover)]:hover:text-brand-950",
-                    isOpen && !item.offersHighlight && "bg-surface-muted/45 text-brand-950",
-                    isOpen && item.offersHighlight && "bg-red-50 text-red-700",
-                    !item.offersHighlight && navLinkActiveSurfaceClass,
+                    isOpen && !isOffers && "bg-surface-muted/45 text-brand-950",
+                    isOpen && isOffers && "bg-red-50 text-red-700",
+                    !isOffers && navLinkActiveSurfaceClass,
                   )}
                   aria-expanded={isMega ? isOpen : undefined}
                   aria-haspopup={isMega ? "true" : undefined}
@@ -554,7 +554,7 @@ export function DesktopCategoryMegaNav({
             <Container>
               {openKey === "offers"
                 ? renderOffersMega()
-                : renderCategoryMega(openKey as MegaKey)}
+                : renderCategoryMega(openKey ?? "")}
             </Container>
           </motion.div>
         ) : null}

@@ -46,12 +46,3 @@ export function formatWooCouponLines(value: unknown): string | null {
   return parts.length > 0 ? parts.join(" · ") : null;
 }
 
-export function isSafeOrderMetaKey(key: string): boolean {
-  if (key === "firebase_uid") {
-    return false;
-  }
-  if (key.startsWith("_")) {
-    return false;
-  }
-  return true;
-}

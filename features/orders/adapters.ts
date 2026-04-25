@@ -72,6 +72,7 @@ export function mapOrder(wc: WCOrder): Order {
   const status = isOrderStatus(wc.status) ? wc.status : "pending";
   return {
     id: wc.id,
+    orderKey: typeof wc.order_key === "string" ? wc.order_key : "",
     status,
     dateCreated: wc.date_created,
     total: parsePrice(wc.total),

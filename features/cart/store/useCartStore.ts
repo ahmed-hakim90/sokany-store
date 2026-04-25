@@ -53,6 +53,10 @@ export const useCartStore = create<CartState>()(
         const t = totals(items);
         set({ items, ...t });
       },
+      replaceAllItems: (items: CartItem[]) => {
+        const t = totals(items);
+        set({ items, ...t });
+      },
       clearCart: () => set({ items: [], totalItems: 0, totalPrice: 0 }),
     }),
     {

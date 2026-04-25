@@ -31,7 +31,7 @@ const desktopPrimaryBarExtraLinks = [
   { href: ROUTES.ABOUT, label: "من نحن" },
   { href: ROUTES.SERVICE_CENTERS, label: "الفروع" },
   { href: ROUTES.RETAILERS, label: "الموزعون المعتمدون" },
-  { href: ROUTES.ORDER_TRACKING, label: "تتبع الطلب" },
+  { href: ROUTES.MY_ORDERS, label: "طلباتي" },
 ] as const;
 
 /** باقي الروابط تحت زر «خدماتنا» على الديسكتوب. */
@@ -45,7 +45,7 @@ const servicesDropdownLinks = [
 
 /**
  * أقسام القائمة الجانبية للموبايل — الترتيب: بحث ← التصنيفات ← روابط سريعة ← أقسام ← عن المتجر ← سياسات (أكورديون) ← تواصل.
- * شريط الديسكتوب يُعرَّف في `DesktopCategoryMegaNav` و`desktopPrimaryBarExtraLinks` / `servicesDropdownLinks`.
+ * شريط الديسكتوب: `DesktopCategoryMegaNav` (أقسام جذرية من ‎`useCategories`‎ + «العروض») و`desktopPrimaryBarExtraLinks` / `servicesDropdownLinks`.
  */
 const mobileDrawerLinkSections = [
   {
@@ -70,7 +70,7 @@ const mobileDrawerLinkSections = [
       { href: ROUTES.ABOUT, label: "من نحن" },
       { href: ROUTES.SERVICE_CENTERS, label: "الفروع ومراكز الصيانة" },
       { href: ROUTES.RETAILERS, label: "الموزعون المعتمدون" },
-      { href: ROUTES.ORDER_TRACKING, label: "تتبع الطلب" },
+      { href: ROUTES.MY_ORDERS, label: "تتبع الطلب" },
     ],
   },
 ] as const;

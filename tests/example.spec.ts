@@ -51,13 +51,8 @@ test.describe('فحص الشمولية لموقع سوكاني مصر - الوك
 
   // --- اختبار تتبع الطلب (Logic Check) ---
   test('فحص محاكي تتبع الطلبات', async ({ page }) => {
-    await page.goto('/track-order');
-    const input = page.locator('input');
-    await input.fill('12345');
-    await page.click('button:has-text("تتبع")');
-    
-    // التأكد من ظهور التايم لاين (Timeline)
-    await expect(page.locator('text=تم استلام الطلب')).toBeVisible();
+    await page.goto('/track-order?q=12345');
+    await expect(page.locator('text=تم استلام الطلب')).toBeVisible({ timeout: 15_000 });
   });
 
   // --- اختبار الروابط المكسورة (Broken Links) ---

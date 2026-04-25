@@ -65,6 +65,7 @@ export const WOO_V3_CATEGORY_SCHEMA_KEYS = new Set(
 export const WOO_V3_ORDER_SCHEMA_KEYS = new Set(
   [
     "id",
+    "order_key",
     "status",
     "date_created",
     "total",
@@ -84,7 +85,16 @@ export const WOO_V3_ORDER_SCHEMA_KEYS = new Set(
 
 /** Matches `wpOrderLineItemSchema` in `schemas/wordpress.ts` (price/total + optional image). */
 export const WOO_V3_ORDER_LINE_ITEM_SCHEMA_KEYS = new Set(
-  ["id", "name", "product_id", "quantity", "price", "total", "image"] as const,
+  [
+    "id",
+    "name",
+    "product_id",
+    "variation_id",
+    "quantity",
+    "price",
+    "total",
+    "image",
+  ] as const,
 );
 
 /** Keys not in `excess` — for building `Record` of unmodeled top-level API fields. */

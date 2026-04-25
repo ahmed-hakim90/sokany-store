@@ -14,7 +14,7 @@ export const HEADER_NAV_ROUTE_CHOICES: { value: string; label: string }[] = [
   { value: ROUTES.CONTACT, label: "اتصل بنا" },
   { value: ROUTES.SERVICE_CENTERS, label: "الفروع" },
   { value: ROUTES.RETAILERS, label: "الموزعون" },
-  { value: ROUTES.ORDER_TRACKING, label: "تتبع الطلب" },
+  { value: ROUTES.MY_ORDERS, label: "تتبع الطلب" },
   { value: ROUTES.WISHLIST, label: "المفضلة" },
   { value: ROUTES.CATEGORY("home-appliances"), label: "تصنيف: الأجهزة المنزلية" },
   { value: ROUTES.CATEGORY("kitchen-supplies"), label: "تصنيف: المطبخ" },

@@ -29,6 +29,7 @@ const shipping = {
 export const mockOrders: WCOrder[] = [
   {
     id: 9001,
+    order_key: "mock_order_key_9001",
     status: "processing",
     date_created: "2025-03-01T09:00:00",
     total: "2499.00",
@@ -56,6 +57,7 @@ export const mockOrders: WCOrder[] = [
   },
   {
     id: 9002,
+    order_key: "mock_order_key_9002",
     status: "completed",
     date_created: "2025-03-02T11:30:00",
     total: "798.00",
@@ -83,6 +85,7 @@ export const mockOrders: WCOrder[] = [
   },
   {
     id: 9003,
+    order_key: "mock_order_key_9003",
     status: "pending",
     date_created: "2025-03-03T16:45:00",
     total: "1899.00",

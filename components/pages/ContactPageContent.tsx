@@ -97,7 +97,7 @@ export function ContactPageContent() {
           <p className="mt-2 text-muted-foreground">
             متابعة الطلب:{" "}
             <a
-              href={ROUTES.ORDER_TRACKING}
+              href={ROUTES.MY_ORDERS}
               className="font-medium text-brand-800 underline-offset-2 hover:underline"
             >
               تتبع الطلب

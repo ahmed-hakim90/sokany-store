@@ -34,6 +34,7 @@ export function CheckoutForm() {
     isSubmitting,
     loadingOverlayVisible,
     orderSuccessOpen,
+    placedOrderSummary,
     dismissOrderSuccess,
     otpModalOpen,
     otpSessionKey,
@@ -110,7 +111,11 @@ export function CheckoutForm() {
         onMountSendSms={startOtpSms}
         onSubmitCode={(code) => void confirmOtpAndPlaceOrder(code)}
       />
-      <OrderSuccessCelebration open={orderSuccessOpen} onDismiss={dismissOrderSuccess} />
+      <OrderSuccessCelebration
+        open={orderSuccessOpen}
+        order={placedOrderSummary}
+        onDismiss={dismissOrderSuccess}
+      />
       <CheckoutLoadingOverlay visible={loadingOverlayVisible} />
       {/* حاوية مركزية: ضيقة على الجوال/تابلت، تتسع وتتحول لصف من عمودين من lg */}
       <div
