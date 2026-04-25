@@ -144,12 +144,20 @@ export function ProductCard({
         alt: img.alt || product.name,
       }));
     }
-    return [{ key: "thumb", src: product.thumbnail, alt: product.name }];
+    if (product.thumbnail.trim()) {
+      return [{ key: "thumb", src: product.thumbnail, alt: product.name }];
+    }
+    return [];
   }, [product]);
 
   const [imageIndex, setImageIndex] = useState(0);
   const multiImage = cardSlides.length > 1;
-  const activeSlide = cardSlides[imageIndex] ?? cardSlides[0];
+  const activeSlide = cardSlides[imageIndex] ??
+    cardSlides[0] ?? {
+      key: "no-image",
+      src: "",
+      alt: product.name,
+    };
 
   useEffect(() => {
     setImageIndex(0);
@@ -304,6 +312,8 @@ export function ProductCard({
                 sizes={imageSizes}
                 priority={imagePriority}
                 className="object-contain object-center"
+                shimmerUntilLoaded
+                usePlaceholderOnError={false}
               />
             ) : (
               <AnimatePresence initial={false} mode="sync">
@@ -325,6 +335,8 @@ export function ProductCard({
                     sizes={imageSizes}
                     priority={imagePriority}
                     className="object-contain object-center"
+                    shimmerUntilLoaded
+                    usePlaceholderOnError={false}
                   />
                 </motion.div>
               </AnimatePresence>

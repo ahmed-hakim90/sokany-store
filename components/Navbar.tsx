@@ -192,6 +192,7 @@ export function Navbar({
             fill
             sizes="100%"
             className="object-contain"
+            priority
             usePlaceholderOnError={false}
             onLoadError={() => setLogoLoadFailed(true)}
           />
@@ -322,6 +323,7 @@ export function Navbar({
             fill
             sizes="(max-width: 640px) 128px, 144px"
             className="object-contain"
+            priority
             usePlaceholderOnError={false}
             onLoadError={() => setLogoLoadFailed(true)}
           />
@@ -351,6 +353,7 @@ export function Navbar({
             fill
             sizes="(max-width: 640px) 128px, 144px"
             className="object-contain"
+            priority
             usePlaceholderOnError={false}
             onLoadError={() => setLogoLoadFailed(true)}
           />

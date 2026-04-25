@@ -2,6 +2,7 @@ import "server-only";
 
 import { unstable_cache } from "next/cache";
 import { createWooClient } from "@/lib/create-woo-client";
+import { DEFAULT_PER_PAGE } from "@/lib/constants";
 import { WOO_CACHE_TAG_PRODUCTS } from "@/lib/woocommerce-cache-tags";
 import { wpProductsSchema } from "@/schemas/wordpress";
 import type { ProductQueryParams } from "@/types";
@@ -28,7 +29,7 @@ const fetchWooProductsForServer = unstable_cache(
 
 function mockProductsFromParams(params?: ProductQueryParams): Product[] {
   const page = params?.page ?? 1;
-  const per_page = params?.per_page ?? 12;
+  const per_page = params?.per_page ?? DEFAULT_PER_PAGE;
   const featured = params?.featured === true ? true : undefined;
   const search = params?.search?.trim() || undefined;
   const category = params?.category;

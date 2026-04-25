@@ -7,7 +7,7 @@ export type IconButtonVariant = "ghost" | "subtle" | "accent";
 export type IconButtonSize = "sm" | "md" | "lg";
 
 const base =
-  "inline-flex shrink-0 items-center justify-center rounded-full transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 disabled:pointer-events-none disabled:opacity-50";
+  "inline-flex shrink-0 touch-manipulation items-center justify-center rounded-full transition-[transform,colors,opacity] duration-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 active:scale-95 active:opacity-90 disabled:pointer-events-none disabled:opacity-50";
 
 const variantClasses: Record<IconButtonVariant, string> = {
   ghost: "text-foreground hover:bg-surface-muted/80",

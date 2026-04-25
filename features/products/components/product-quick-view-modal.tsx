@@ -191,6 +191,8 @@ export function ProductQuickViewModal({
                   fill
                   sizes="(max-width: 640px) 100vw, 32rem"
                   className="pointer-events-none object-contain object-center"
+                  shimmerUntilLoaded
+                  usePlaceholderOnError={false}
                 />
               </div>
             </div>
@@ -218,6 +220,8 @@ export function ProductQuickViewModal({
                     fill
                     sizes="56px"
                     className="object-cover"
+                    shimmerUntilLoaded
+                    usePlaceholderOnError={false}
                   />
                 </button>
               ))}

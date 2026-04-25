@@ -11,6 +11,8 @@ export type HomePromoCardProps = {
   eyebrow?: string;
   imageSrc?: string;
   imageAlt?: string;
+  /** Eager image when this block is likely the main hero-sized visual (e.g. no carousel above). */
+  imagePriority?: boolean;
   className?: string;
 };
 
@@ -22,6 +24,7 @@ export function HomePromoCard({
   eyebrow,
   imageSrc = "/images/hero-banner.jpg",
   imageAlt = "",
+  imagePriority = false,
   className,
 }: HomePromoCardProps) {
   const a11yLabel =
@@ -31,22 +34,22 @@ export function HomePromoCard({
   return (
     <div className={cn("w-full", className)}>
       {/*
-        كل الشاشات: بانر صورة فقط (النص في أصل التصميم) — بلا شريط داكن.
-        `aria-label` على الرابط يلخّص النصوص لقارئات الشاشة.
+        كل الشاشات: بانر صورة فقط — ارتفاع مُطابق لشرائح الهيرو: ‎`min(400px, 70dvh)`‎
+        (انظر ‎`HomeHeroBanner`‎). ‎`aria-label`‎ على الرابط لقارئات الشاشة.
       */}
       <Link
         href={href}
         className="relative block w-full overflow-hidden rounded-2xl border border-black/10 shadow-md"
         aria-label={a11yLabel}
       >
-        <div className="relative aspect-[2/1] w-full min-h-[10.5rem] sm:min-h-[12rem] md:min-h-[14rem]">
+        <div className="relative h-[min(240px,70dvh)] w-full">
           <AppImage
             src={imageSrc}
             alt=""
             fill
-            priority
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1100px"
             className="object-cover object-center"
+            priority={imagePriority}
           />
         </div>
       </Link>

@@ -7,8 +7,9 @@ import { useTransitionRouter } from "next-view-transitions";
 import { Button } from "@/components/Button";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorState } from "@/components/ErrorState";
+import { ScrollReveal } from "@/components/ScrollReveal";
 import { useCart } from "@/hooks/useCart";
-import { ROUTES } from "@/lib/constants";
+import { DEFAULT_PER_PAGE, ROUTES } from "@/lib/constants";
 import { useCategories } from "@/features/categories/hooks/useCategories";
 import { useProducts } from "@/features/products/hooks/useProducts";
 import { CatalogPagination } from "@/features/catalog/components/CatalogPagination";
@@ -158,7 +159,7 @@ export function CategorySlugPageContent({ slug }: { slug: string }) {
       categoryId
         ? {
             category: categoryId,
-            per_page: 12,
+            per_page: DEFAULT_PER_PAGE,
             page,
             include_children: true,
           }
@@ -204,21 +205,25 @@ export function CategorySlugPageContent({ slug }: { slug: string }) {
   return (
     <>
       <div className="hidden lg:block">
-        <CategorySlugHeader
-          categoryId={category.id}
-          title={category.name}
-          description={category.description}
-        />
+        <ScrollReveal>
+          <CategorySlugHeader
+            categoryId={category.id}
+            title={category.name}
+            description={category.description}
+          />
+        </ScrollReveal>
       </div>
       <div className="mt-0 lg:mt-8">
-        <CategorySlugProductsSection
-          productsQuery={productsQuery}
-          getCartLineQuantity={getCartLineQuantity}
-          onCartLineQuantityChange={setProductLineQuantity}
-          router={router}
-          categorySlug={slug}
-          page={page}
-        />
+        <ScrollReveal>
+          <CategorySlugProductsSection
+            productsQuery={productsQuery}
+            getCartLineQuantity={getCartLineQuantity}
+            onCartLineQuantityChange={setProductLineQuantity}
+            router={router}
+            categorySlug={slug}
+            page={page}
+          />
+        </ScrollReveal>
       </div>
     </>
   );

@@ -1,6 +1,7 @@
 "use client";
 
 import { Link } from "next-view-transitions";
+import { ScrollReveal } from "@/components/ScrollReveal";
 import { ErrorState } from "@/components/ErrorState";
 import { ROUTES } from "@/lib/constants";
 import type { Category } from "@/features/categories/types";
@@ -91,7 +92,7 @@ export function HomeParentCategorySections({
         const bannerHref = banner?.href;
 
         return (
-          <div key={cat.id} className="space-y-4">
+          <ScrollReveal key={cat.id} className="space-y-4">
             <HomeCategoryExclusiveBanner
               category={bannerCategory}
               sectionBannerSrc={sectionBannerSrc}
@@ -138,7 +139,7 @@ export function HomeParentCategorySections({
                 />
               )}
             </section>
-          </div>
+          </ScrollReveal>
         );
       })}
     </div>

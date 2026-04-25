@@ -23,6 +23,7 @@ import { Container } from "@/components/Container";
 import type { Category } from "@/features/categories/types";
 import { SocialGlyph } from "@/components/layout/social-glyph";
 import { ROUTES } from "@/lib/constants";
+import { navLinkActiveSurfaceClass, navLinkPressableClass } from "@/lib/nav-link-interaction";
 import type { SocialLink } from "@/lib/social-links";
 import { cn } from "@/lib/utils";
 
@@ -143,8 +144,11 @@ export type DesktopCategoryMegaNavProps = {
   socialLinks: readonly SocialLink[];
 };
 
-const primaryBarExtraLinkClass =
-  "inline-flex items-center rounded-md px-2.5 py-2 text-brand-900/85 transition-colors hover:bg-surface-muted/50 hover:text-brand-950";
+const primaryBarExtraLinkClass = cn(
+  "inline-flex items-center rounded-md px-2.5 py-2 text-brand-900/85 transition-colors [@media(hover:hover)]:hover:bg-surface-muted/50 [@media(hover:hover)]:hover:text-brand-950",
+  navLinkPressableClass,
+  navLinkActiveSurfaceClass,
+);
 
 export function DesktopCategoryMegaNav({
   categories,
@@ -427,11 +431,13 @@ export function DesktopCategoryMegaNav({
                   href={item.href}
                   className={cn(
                     "inline-flex items-center rounded-md px-2.5 py-2 transition-colors",
+                    navLinkPressableClass,
                     item.offersHighlight
-                      ? "font-semibold text-red-600 hover:bg-red-50 hover:text-red-700"
-                      : "text-brand-900/85 hover:bg-surface-muted/50 hover:text-brand-950",
+                      ? "font-semibold text-red-600 [@media(hover:hover)]:hover:bg-red-50 [@media(hover:hover)]:hover:text-red-700 active:bg-red-100/80"
+                      : "text-brand-900/85 [@media(hover:hover)]:hover:bg-surface-muted/50 [@media(hover:hover)]:hover:text-brand-950",
                     isOpen && !item.offersHighlight && "bg-surface-muted/45 text-brand-950",
                     isOpen && item.offersHighlight && "bg-red-50 text-red-700",
+                    !item.offersHighlight && navLinkActiveSurfaceClass,
                   )}
                   aria-expanded={isMega ? isOpen : undefined}
                   aria-haspopup={isMega ? "true" : undefined}
@@ -479,7 +485,11 @@ export function DesktopCategoryMegaNav({
           </div>
           <Link
             href={ROUTES.CONTACT}
-            className="whitespace-nowrap rounded-md px-2 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-surface-muted/50 hover:text-brand-950"
+            className={cn(
+              "whitespace-nowrap rounded-md px-2 py-2 text-sm font-medium text-muted-foreground transition-colors [@media(hover:hover)]:hover:bg-surface-muted/50 [@media(hover:hover)]:hover:text-brand-950",
+              navLinkPressableClass,
+              navLinkActiveSurfaceClass,
+            )}
           >
             تواصل معنا
           </Link>
@@ -492,7 +502,7 @@ export function DesktopCategoryMegaNav({
             <button
               type="button"
               className={cn(
-                "inline-flex items-center gap-1 rounded-md px-2.5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-surface-muted/50 hover:text-brand-950",
+                "inline-flex touch-manipulation items-center gap-1 rounded-md px-2.5 py-2 text-sm font-medium text-muted-foreground transition-[transform,colors,opacity] duration-100 active:scale-95 active:opacity-90 [@media(hover:hover)]:hover:bg-surface-muted/50 [@media(hover:hover)]:hover:text-brand-950",
                 moreOpen && "bg-surface-muted/45 text-brand-950",
               )}
               aria-expanded={moreOpen}
@@ -512,7 +522,11 @@ export function DesktopCategoryMegaNav({
                     key={l.href}
                     role="menuitem"
                     href={l.href}
-                    className="block px-4 py-2 text-sm text-foreground hover:bg-surface-muted/60"
+                    className={cn(
+                      "block px-4 py-2 text-sm text-foreground [@media(hover:hover)]:hover:bg-surface-muted/60",
+                      navLinkPressableClass,
+                      navLinkActiveSurfaceClass,
+                    )}
                     onClick={() => setMoreOpen(false)}
                   >
                     {l.label}

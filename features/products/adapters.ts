@@ -1,13 +1,11 @@
 import { normalizeProductDescriptionSource } from "@/lib/html";
-import { parsePrice, stripHtml } from "@/lib/utils";
+import { parsePrice } from "@/lib/utils";
 import { toAbsoluteSiteUrl } from "@/lib/site";
 import type { Product, WCProduct } from "@/features/products/types";
 import {
   WOO_V3_PRODUCT_SCHEMA_KEYS,
   pickWooExcess,
 } from "@/lib/woo-passthrough-keys";
-
-const PLACEHOLDER_PATH = "/images/placeholder.png";
 
 export function mapProduct(raw: WCProduct): Product {
   const asRecord = raw as WCProduct & Record<string, unknown>;
@@ -19,19 +17,21 @@ export function mapProduct(raw: WCProduct): Product {
   const rating = Number.parseFloat(raw.average_rating);
   const normalizeImageSrc = (value: string): string => {
     const trimmed = value.trim();
-    if (!trimmed) return PLACEHOLDER_PATH;
+    if (!trimmed) return "";
     // Keep local snapshot paths (`/images/...`) as-is so they always resolve on
     // the current host/environment.
     if (trimmed.startsWith("/")) return trimmed;
     return toAbsoluteSiteUrl(trimmed);
   };
 
-  const images = raw.images.map((img) => ({
-    id: img.id,
-    src: normalizeImageSrc(img.src),
-    alt: img.alt || raw.name,
-  }));
-  const thumbnail = images[0]?.src ?? PLACEHOLDER_PATH;
+  const images = raw.images
+    .map((img) => ({
+      id: img.id,
+      src: normalizeImageSrc(img.src),
+      alt: img.alt || raw.name,
+    }))
+    .filter((img) => img.src.length > 0);
+  const thumbnail = images[0]?.src ?? "";
   return {
     id: raw.id,
     name: raw.name,

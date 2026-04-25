@@ -5,7 +5,7 @@ import { Link } from "next-view-transitions";
 import { Card } from "@/components/ui/card";
 import { CategoryIcon } from "@/features/categories/category-icon-registry";
 import { usePrefetchProducts } from "@/features/products/hooks/usePrefetchProducts";
-import { ROUTES } from "@/lib/constants";
+import { DEFAULT_PER_PAGE, ROUTES } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import type { Category } from "@/features/categories/types";
 
@@ -128,7 +128,7 @@ export function CategoryCatalogRail(props: CategoryCatalogRailProps) {
           href={ROUTES.PRODUCTS}
           active={allActive}
           label="الكل"
-          onPrefetch={() => void prefetchProducts({ page: 1, per_page: 12 })}
+          onPrefetch={() => void prefetchProducts({ page: 1, per_page: DEFAULT_PER_PAGE })}
         >
           <AllCategoriesGlyph className="h-6 w-6" />
         </RailTile>
@@ -158,7 +158,7 @@ export function CategoryCatalogRail(props: CategoryCatalogRailProps) {
             label={category.name}
             onPrefetch={
               isProducts
-                ? () => void prefetchProducts({ category: category.id, page: 1, per_page: 12 })
+                ? () => void prefetchProducts({ category: category.id, page: 1, per_page: DEFAULT_PER_PAGE })
                 : undefined
             }
           >

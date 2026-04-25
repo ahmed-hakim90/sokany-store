@@ -17,7 +17,7 @@ export function useHomeParentCategoryRails(categories: Category[]) {
         {
           category: cat.id,
           include_children: true,
-          per_page: 8,
+          per_page: 12,
           orderby: "popularity",
           order: "desc",
         },
@@ -26,7 +26,7 @@ export function useHomeParentCategoryRails(categories: Category[]) {
         getProducts({
           category: cat.id,
           include_children: true,
-          per_page: 8,
+          per_page: 12,
           orderby: "popularity",
           order: "desc",
         }),

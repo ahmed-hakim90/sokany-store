@@ -1,4 +1,5 @@
 import { apiClient } from "@/lib/api";
+import { DEFAULT_PER_PAGE } from "@/lib/constants";
 import { wpProductsSchema } from "@/schemas/wordpress";
 import type { ProductQueryParams } from "@/types";
 import { mapProducts } from "../adapters";
@@ -30,7 +31,7 @@ export async function getProductsList(
   const products = mapProducts(wpProductsSchema.parse(response.data));
   const h = response.headers;
   const total = parseWpTotalHeader(h["x-wp-total"] ?? h["X-WP-Total"], 0);
-  const per = params?.per_page ?? 12;
+  const per = params?.per_page ?? DEFAULT_PER_PAGE;
   const totalPages = Math.max(
     1,
     parseWpTotalHeader(

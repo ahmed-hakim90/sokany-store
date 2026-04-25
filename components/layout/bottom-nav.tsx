@@ -1,6 +1,7 @@
 "use client";
 
 import { Link } from "next-view-transitions";
+import { useLinkStatus } from "next/link";
 import { usePathname } from "next/navigation";
 import { useRef } from "react";
 import { useMobileChromeCollapsedStore } from "@/components/layout/mobile-chrome-collapsed-store";
@@ -10,6 +11,7 @@ import {
 } from "@/components/layout/mobile-nav-drawer-open-store";
 import { useCart } from "@/hooks/useCart";
 import { ROUTES } from "@/lib/constants";
+import { bottomNavItemPressableClass } from "@/lib/nav-link-interaction";
 import { cn } from "@/lib/utils";
 
 const linkItems = [
@@ -35,6 +37,47 @@ const mainMenuItem = {
   icon: ListIcon,
 } as const;
 
+function BottomNavLinkContents({
+  active,
+  isCart,
+  totalItems,
+  label,
+  Icon,
+  tabIconShellClassName,
+}: {
+  active: boolean;
+  isCart: boolean;
+  totalItems: number;
+  label: string;
+  Icon: (typeof linkItems)[number]["icon"];
+  tabIconShellClassName: (a: boolean) => string;
+}) {
+  const { pending } = useLinkStatus();
+  return (
+    <span
+      className={cn(
+        "flex w-full min-w-0 max-w-full flex-1 flex-col items-center justify-center gap-1",
+        pending && "opacity-50",
+      )}
+    >
+      <span className={tabIconShellClassName(active)}>
+        <Icon />
+        {isCart && totalItems > 0 ? (
+          <span
+            className={cn(
+              "absolute-end-0.5 -top-0.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-brand-500 px-0.5 text-[8px] font-bold leading-none text-black ring-2",
+              active ? "ring-brand-950" : "ring-white",
+            )}
+          >
+            {totalItems > 99 ? "99+" : totalItems}
+          </span>
+        ) : null}
+      </span>
+      <span className="line-clamp-1 text-center">{label}</span>
+    </span>
+  );
+}
+
 /**
  * Bottom tab row for mobile commerce chrome.
  * Fixed positioning and safe-area padding live in `MobileCommerceChrome`.
@@ -56,7 +99,7 @@ export function BottomNavInner() {
       "flex h-14 w-full max-w-[4.85rem] flex-col items-center justify-center gap-1 rounded-2xl border border-transparent px-0.5 py-1.5 text-xs font-semibold leading-tight transition-colors duration-200 sm:max-w-[5.25rem] sm:text-[0.8125rem]",
       active
         ? "border-brand-950 bg-brand-950 text-accent"
-        : "text-muted-foreground hover:bg-black/[0.03] hover:text-foreground/80",
+        : "text-muted-foreground [@media(hover:hover)]:hover:bg-black/[0.03] [@media(hover:hover)]:hover:text-foreground/80",
     );
 
   const tabIconShellClass = (active: boolean) =>
@@ -85,7 +128,7 @@ export function BottomNavInner() {
               <Link
                 href={href}
                 aria-current={active ? "page" : undefined}
-                className={tabClass(active)}
+                className={cn(tabClass(active), bottomNavItemPressableClass)}
                 {...(isCart ? { "data-cart-fly-target": "mobile" as const } : {})}
                 onClick={(e) => {
                   if (isCart && cartPeekHidden) {
@@ -94,20 +137,14 @@ export function BottomNavInner() {
                   }
                 }}
               >
-                <span className={tabIconShellClass(active)}>
-                  <Icon />
-                  {isCart && totalItems > 0 ? (
-                    <span
-                      className={cn(
-                        "absolute-end-0.5 -top-0.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-brand-500 px-0.5 text-[8px] font-bold leading-none text-black ring-2",
-                        active ? "ring-brand-950" : "ring-white",
-                      )}
-                    >
-                      {totalItems > 99 ? "99+" : totalItems}
-                    </span>
-                  ) : null}
-                </span>
-                <span className="line-clamp-1 text-center">{label}</span>
+                <BottomNavLinkContents
+                  active={active}
+                  isCart={isCart}
+                  totalItems={totalItems}
+                  label={label}
+                  Icon={Icon}
+                  tabIconShellClassName={tabIconShellClass}
+                />
               </Link>
             </li>
           );
@@ -121,6 +158,7 @@ export function BottomNavInner() {
             aria-haspopup="dialog"
             aria-label={mainMenuItem.label}
             className={cn(
+              bottomNavItemPressableClass,
               tabClass(drawerOpen && !isCheckout),
               isCheckout && "pointer-events-none opacity-40",
             )}

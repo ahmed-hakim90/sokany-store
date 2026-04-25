@@ -3,6 +3,7 @@
 import { useCallback, useEffect } from "react";
 import { Link } from "next-view-transitions";
 import { Container } from "@/components/Container";
+import { ScrollReveal } from "@/components/ScrollReveal";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorState } from "@/components/ErrorState";
 import { useCart } from "@/hooks/useCart";
@@ -98,18 +99,16 @@ export function ProductsPageContent() {
   return (
     <div className="flex min-h-0 min-w-0 flex-1 flex-col">
       <Container className="flex min-h-0 flex-1 flex-col sm:px-2 lg:px-8 lg:py-10">
-        <div className="shrink-0">
+        <ScrollReveal className="shrink-0">
           <h1 className="font-display text-xl font-bold tracking-tight text-brand-950 sm:text-2xl md:text-3xl">
             المنتجات
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
             تصفّح الكتالوج؛ استخدم أيقونة التصفية بجانب البحث لاختيار التصنيف والسعر والترتيب.
           </p>
-        </div>
+        </ScrollReveal>
 
-        <div className="mt-6 min-w-0 pb-4">
-          {catalogGrid}
-        </div>
+        <ScrollReveal className="mt-6 min-w-0 pb-4">{catalogGrid}</ScrollReveal>
       </Container>
     </div>
   );

@@ -8,8 +8,13 @@ import { resolveWooBaseUrlForServer } from "@/lib/resolve-woo-base-url";
 
 function safeWooLogLine(error: unknown): Record<string, unknown> {
   if (!isAxiosError(error)) {
+    const code =
+      error instanceof Error && "code" in error && typeof (error as { code?: unknown }).code === "string"
+        ? (error as { code: string }).code
+        : undefined;
     return {
       message: error instanceof Error ? error.message : String(error),
+      ...(code ? { code } : {}),
     };
   }
   const d = error.response?.data;
@@ -25,6 +30,8 @@ function safeWooLogLine(error: unknown): Record<string, unknown> {
   }
   return {
     message: error.message,
+    /** Node/axios syscall (e.g. ECONNRESET) — often set when `message` is empty. */
+    axiosCode: error.code,
     upstreamStatus: error.response?.status,
     requestUrl: [error.config?.baseURL, error.config?.url].filter(Boolean).join(""),
     wooCode,

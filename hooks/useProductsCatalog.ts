@@ -2,7 +2,7 @@
 
 import { startTransition, useCallback, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ROUTES } from "@/lib/constants";
+import { DEFAULT_PER_PAGE, ROUTES } from "@/lib/constants";
 import { useCategories } from "@/features/categories/hooks/useCategories";
 import { useProducts } from "@/features/products/hooks/useProducts";
 import type { ProductQueryParams } from "@/types";
@@ -35,7 +35,7 @@ export function useProductsCatalog() {
     const category = parseNumber(searchParams.get("category"));
     return {
       page: parseNumber(searchParams.get("page")) ?? 1,
-      per_page: parseNumber(searchParams.get("per_page")) ?? 12,
+      per_page: parseNumber(searchParams.get("per_page")) ?? DEFAULT_PER_PAGE,
       category,
       include_children: category != null ? true : undefined,
       featured:

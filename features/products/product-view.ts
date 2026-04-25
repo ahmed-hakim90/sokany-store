@@ -18,13 +18,14 @@ export type ProductView = {
 };
 
 export function toProductViewFromProduct(product: Product): ProductView {
+  const t = product.thumbnail.trim();
   return {
     id: product.id,
     name: product.name,
     sku: product.sku,
     price: String(product.price),
     permalink: product.permalink,
-    thumbnail: toAbsoluteSiteUrl(product.thumbnail),
+    thumbnail: t ? toAbsoluteSiteUrl(product.thumbnail) : "",
     images: product.images.map((img) => ({
       src: toAbsoluteSiteUrl(img.src),
       alt: img.alt,

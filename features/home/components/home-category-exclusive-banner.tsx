@@ -52,7 +52,7 @@ export function HomeCategoryExclusiveBanner({
           alt=""
           fill
           sizes="(max-width: 768px) 90vw, 1px"
-          className={cn("object-cover ", hasRealBannerImage ? "opacity-35" : "opacity-20")}
+          className={cn("object-cover ", hasRealBannerImage ? "opacity-100" : "opacity-20")}
         />
         {/* <div className="absolute inset-0 bg-black/25" /> */}
       </div>
@@ -109,7 +109,7 @@ function BannerImageBlock({
       sizes="(max-width: 767px) 100vw, (max-width: 1280px) 45vw, 520px"
       className={cn(
         "object-cover object-center cover-center",
-        dimmed && "opacity-40",
+        dimmed && "opacity-0",
       )}
     />
   );

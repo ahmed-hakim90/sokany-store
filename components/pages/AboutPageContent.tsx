@@ -10,6 +10,7 @@ import { AboutValueFeatureBlock } from "@/features/about/components/about-value-
 import { AboutStoryBlock } from "@/features/about/components/AboutStoryBlock";
 import { aboutContent } from "@/features/about/content";
 import { Container } from "@/components/Container";
+import { ScrollReveal } from "@/components/ScrollReveal";
 
 /*
  * صفحة من نحن (/about): عمود واحد داخل Container بمسافات رأسية (gap-14…md:gap-20).
@@ -22,58 +23,81 @@ export function AboutPageContent() {
   return (
     <div className="bg-page pb-6 pt-1 md:pb-12 md:pt-2">
       <Container className="flex flex-col gap-14 sm:gap-16 md:gap-20">
-        {/* كل مكوّن أدناه يشغل كامل عرض الحاوية؛ التباعد الرأسي بين المكوّنات فقط */}
-        <AboutEditorialHero
-          headline={aboutContent.hero.headline}
-          imageSrc={aboutContent.hero.imageSrc}
-          imageAlt={aboutContent.hero.imageAlt}
-        />
+        {/* كل مكوّن أدناه يشغل كامل عرض الحاوية؛ التباعد الرأسي بين المكوّنات فقط — يظهر تدريجياً عند الاقتراب من الشاشة */}
+        <ScrollReveal>
+          <AboutEditorialHero
+            headline={aboutContent.hero.headline}
+            imageSrc={aboutContent.hero.imageSrc}
+            imageAlt={aboutContent.hero.imageAlt}
+          />
+        </ScrollReveal>
 
-        <AboutTrustQualityCard
-          title={aboutContent.trust.title}
-          body={aboutContent.trust.body}
-          tiles={aboutContent.trust.tiles}
-        />
+        <ScrollReveal>
+          <AboutTrustQualityCard
+            title={aboutContent.trust.title}
+            body={aboutContent.trust.body}
+            tiles={aboutContent.trust.tiles}
+          />
+        </ScrollReveal>
 
-        <AboutStoryboardSection
-          title={aboutContent.storyboard.title}
-          intro={aboutContent.storyboard.intro}
-          frames={aboutContent.storyboard.frames}
-        />
+        <ScrollReveal>
+          <AboutStoryboardSection
+            title={aboutContent.storyboard.title}
+            intro={aboutContent.storyboard.intro}
+            frames={aboutContent.storyboard.frames}
+          />
+        </ScrollReveal>
 
-        <AboutLimeStatRibbon value={aboutContent.limeStat.value} label={aboutContent.limeStat.label} />
+        <ScrollReveal>
+          <AboutLimeStatRibbon value={aboutContent.limeStat.value} label={aboutContent.limeStat.label} />
+        </ScrollReveal>
 
-        <AboutDarkMediaCard
-          title={aboutContent.darkMedia.title}
-          subtitle={aboutContent.darkMedia.subtitle}
-          imageSrc={aboutContent.darkMedia.imageSrc}
-          imageAlt={aboutContent.darkMedia.imageAlt}
-        />
+        <ScrollReveal>
+          <AboutDarkMediaCard
+            title={aboutContent.darkMedia.title}
+            subtitle={aboutContent.darkMedia.subtitle}
+            imageSrc={aboutContent.darkMedia.imageSrc}
+            imageAlt={aboutContent.darkMedia.imageAlt}
+          />
+        </ScrollReveal>
 
-        <AboutValueFeatureBlock
-          title={aboutContent.value.title}
-          body={aboutContent.value.body}
-          tiles={aboutContent.value.tiles}
-        />
+        <ScrollReveal>
+          <AboutValueFeatureBlock
+            title={aboutContent.value.title}
+            body={aboutContent.value.body}
+            tiles={aboutContent.value.tiles}
+          />
+        </ScrollReveal>
 
-        <AboutStoryBlock title={aboutContent.vision.title} paragraphs={[...aboutContent.vision.paragraphs]} />
+        <ScrollReveal>
+          <AboutStoryBlock
+            title={aboutContent.vision.title}
+            paragraphs={[...aboutContent.vision.paragraphs]}
+          />
+        </ScrollReveal>
 
-        <AboutServiceShowcaseCard
-          imageSrc={aboutContent.serviceShowcase.imageSrc}
-          imageAlt={aboutContent.serviceShowcase.imageAlt}
-          chipHref={aboutContent.serviceShowcase.chipHref}
-          chipLabel={aboutContent.serviceShowcase.chipLabel}
-        />
+        <ScrollReveal>
+          <AboutServiceShowcaseCard
+            imageSrc={aboutContent.serviceShowcase.imageSrc}
+            imageAlt={aboutContent.serviceShowcase.imageAlt}
+            chipHref={aboutContent.serviceShowcase.chipHref}
+            chipLabel={aboutContent.serviceShowcase.chipLabel}
+          />
+        </ScrollReveal>
 
-        <AboutAfterSalesSection
-          title={aboutContent.afterSales.title}
-          intro={aboutContent.afterSales.intro}
-          rows={aboutContent.afterSales.rows}
-          ctaLabel={aboutContent.afterSales.ctaLabel}
-          ctaHref={aboutContent.afterSales.ctaHref}
-        />
+        <ScrollReveal>
+          <AboutAfterSalesSection
+            title={aboutContent.afterSales.title}
+            intro={aboutContent.afterSales.intro}
+            rows={aboutContent.afterSales.rows}
+            ctaLabel={aboutContent.afterSales.ctaLabel}
+            ctaHref={aboutContent.afterSales.ctaHref}
+          />
+        </ScrollReveal>
 
-        <AboutQuoteBlock quote={aboutContent.quote.text} attribution={aboutContent.quote.attribution} />
+        <ScrollReveal>
+          <AboutQuoteBlock quote={aboutContent.quote.text} attribution={aboutContent.quote.attribution} />
+        </ScrollReveal>
       </Container>
     </div>
   );

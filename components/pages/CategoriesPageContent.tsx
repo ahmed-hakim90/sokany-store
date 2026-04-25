@@ -6,8 +6,9 @@ import { useTransitionRouter } from "next-view-transitions";
 import { Button } from "@/components/Button";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorState } from "@/components/ErrorState";
+import { ScrollReveal } from "@/components/ScrollReveal";
 import { useCart } from "@/hooks/useCart";
-import { ROUTES } from "@/lib/constants";
+import { DEFAULT_PER_PAGE, ROUTES } from "@/lib/constants";
 import { CatalogPagination } from "@/features/catalog/components/CatalogPagination";
 import { useProducts } from "@/features/products/hooks/useProducts";
 import { ProductGrid } from "@/features/products/components/ProductGrid";
@@ -144,7 +145,7 @@ export function CategoriesPageContent() {
   const productParams = useMemo(
     () => ({
       page,
-      per_page: 12,
+      per_page: DEFAULT_PER_PAGE,
       orderby: "popularity" as const,
       order: "desc" as const,
     }),
@@ -156,16 +157,20 @@ export function CategoriesPageContent() {
   return (
     <>
       <div className="hidden lg:block">
-        <CategoriesIntro />
+        <ScrollReveal>
+          <CategoriesIntro />
+        </ScrollReveal>
       </div>
       <div className="mt-0 lg:mt-8">
-        <AvailableProductsSection
-          productsQuery={productsQuery}
-          getCartLineQuantity={getCartLineQuantity}
-          onCartLineQuantityChange={setProductLineQuantity}
-          router={router}
-          page={page}
-        />
+        <ScrollReveal>
+          <AvailableProductsSection
+            productsQuery={productsQuery}
+            getCartLineQuantity={getCartLineQuantity}
+            onCartLineQuantityChange={setProductLineQuantity}
+            router={router}
+            page={page}
+          />
+        </ScrollReveal>
       </div>
     </>
   );

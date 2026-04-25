@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { useTransitionRouter } from "next-view-transitions";
 import { Button } from "@/components/Button";
 import { Container } from "@/components/Container";
+import { ScrollReveal } from "@/components/ScrollReveal";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorState } from "@/components/ErrorState";
 import { useCart } from "@/hooks/useCart";
@@ -35,7 +36,7 @@ import {
  * بانر الهيرو/الهوامس. التسلسل: هيرو (سكروول أفقي + auto-rotate) → (اختياري من ‎`site_config.homeCategoryScroller.sectionVisible`‎) شريط
  * صور التصنيفات (٢٤٠×١٢٠ من وو) → عروض سريعة (بانر أزرق + عداد + CTA ثم شبكة on_sale) → كبسولة خدمات
  * (٤ عناصر في سطر واحد على كل الشاشات) → بطاقة ترويج «حصرياً» (افتراضي أو spotlight) → الأكثر مبيعاً
- * (كل المتجر ‎+‎ ‎`orderby: popularity`‎) → وصل حديثاً → أقسام الأب.
+ * (كل المتجر ‎+‎ ‎`orderby: popularity`‎) → وصل حديثاً → أقسام الأب. فشل جلب التصنيفات: بطاقة ‎`ErrorState`‎ (عربي + إعادة المحاولة) بدل إخفاء القسم.
  */
 export type HomeBottomPromo = {
   eyebrow?: string;
@@ -86,18 +87,18 @@ export function HomePageContent({
   const router = useTransitionRouter();
   const flashSales = useProducts({
     on_sale: true,
-    per_page: 8,
+    per_page: 12,
     orderby: "date",
     order: "desc",
   });
   const newArrivals = useProducts({
-    per_page: 8,
+    per_page: 12,
     orderby: "date",
     order: "desc",
   });
   const categories = useCategories({ per_page: 100 });
   const homeBestsellers = useProducts({
-    per_page: 8,
+    per_page: 12,
     orderby: "popularity",
     order: "desc",
   });
@@ -116,21 +117,29 @@ export function HomePageContent({
         {/* أعلى الصفحة: شرائح هيرو ديناميكية تُقرأ من /public/images/hero */}
         {heroSlides.length > 0 ? <HomeHeroBanner slides={heroSlides} /> : null}
 
-        {homeCategoryScroller.sectionVisible ? (
-          <HomeCategoryImageScroller
-            tiles={categoryTiles}
-            isLoading={categories.isPending}
-          />
-        ) : null}
+        {/* {homeCategoryScroller.sectionVisible ? (
+          <ScrollReveal>
+            <HomeCategoryImageScroller
+              tiles={categoryTiles}
+              isLoading={categories.isPending}
+            />
+          </ScrollReveal>
+        ) : null} */}
 
         {/* عروض سريعة: منتجات مخفّضة من WooCommerce + عداد تنازلي */}
         {!flashSaleSectionEnabled ? null : flashSales.isError ? (
-          <ErrorState
-            message={flashSales.error.message}
-            onRetry={() => void flashSales.refetch()}
-          />
+          <ScrollReveal>
+            <ErrorState
+              message={flashSales.error.message}
+              onRetry={() => void flashSales.refetch()}
+            />
+          </ScrollReveal>
         ) : flashSales.isPending || (flashSales.data?.items.length ?? 0) > 0 ? (
-          <section className="space-y-4" aria-labelledby="home-flash-sales-title">
+          <ScrollReveal
+            as="section"
+            className="space-y-4"
+            aria-labelledby="home-flash-sales-title"
+          >
             <HomeFlashSaleCountdownStrip
               className="w-full"
               endsAtIso={promoFlash?.endsAtIso}
@@ -163,24 +172,34 @@ export function HomePageContent({
                 />
               }
             />
-          </section>
+          </ScrollReveal>
         ) : null}
 
         {/* كبسولة خدمات: أربع عناصر في سطر واحد — نفس الشكل على كل الشاشات */}
-        <HomeMobileServicesCapsule />
+        <ScrollReveal>
+          <HomeMobileServicesCapsule />
+        </ScrollReveal>
 
         {/* بعد المميزات: بطاقة ترويج كاملة العرض (حصرياً) — باقي أقسام الصفحة تليها */}
-        <HomePromoCard
-          eyebrow={homeBottomPromo.eyebrow}
-          title={homeBottomPromo.title}
-          subtitle={homeBottomPromo.subtitle}
-          href={homeBottomPromo.href}
-          ctaLabel={homeBottomPromo.ctaLabel}
-          imageSrc={homeBottomPromo.imageSrc}
-        />
+        <ScrollReveal>
+          <HomePromoCard
+            eyebrow={homeBottomPromo.eyebrow}
+            title={homeBottomPromo.title}
+            subtitle={homeBottomPromo.subtitle}
+            href={homeBottomPromo.href}
+            ctaLabel={homeBottomPromo.ctaLabel}
+            imageSrc={homeBottomPromo.imageSrc}
+            /* Full-width 70dvh: often competes with narrow hero slides for LCP — eager avoids dev warning. */
+            imagePriority
+          />
+        </ScrollReveal>
 
         {/* قسم الأكثر مبيعاً: عنوان وسطي + شبكة منتجات (٢ / ٣ / ٤ أعمدة حسب الشاشة) */}
-        <section className="space-y-4" aria-labelledby="home-bestsellers-title">
+        <ScrollReveal
+          as="section"
+          className="space-y-4"
+          aria-labelledby="home-bestsellers-title"
+        >
           <div className="flex flex-col items-center gap-2 text-center">
             <h2
               id="home-bestsellers-title"
@@ -229,16 +248,22 @@ export function HomePageContent({
               }
             />
           )}
-        </section>
+        </ScrollReveal>
 
         {/* وصل حديثاً: أحدث المنتجات حسب التاريخ */}
         {newArrivals.isError ? (
-          <ErrorState
-            message={newArrivals.error.message}
-            onRetry={() => void newArrivals.refetch()}
-          />
+          <ScrollReveal>
+            <ErrorState
+              message={newArrivals.error.message}
+              onRetry={() => void newArrivals.refetch()}
+            />
+          </ScrollReveal>
         ) : newArrivals.isPending || (newArrivals.data?.items.length ?? 0) > 0 ? (
-          <section className="space-y-4" aria-labelledby="home-new-arrivals-title">
+          <ScrollReveal
+            as="section"
+            className="space-y-4"
+            aria-labelledby="home-new-arrivals-title"
+          >
             <div className="flex flex-col items-center gap-2 text-center">
               <h2
                 id="home-new-arrivals-title"
@@ -273,15 +298,24 @@ export function HomePageContent({
                 />
               }
             />
-          </section>
+          </ScrollReveal>
         ) : null}
 
-        {/* أقسام رأسية لكل تصنيف أب: شبكات/سكك داخل نفس العمود عند توفر التصنيفات */}
+        {/* أقسام رأسية لكل تصنيف أب: شبكات/سكك — أو سكليتون أو خطأ جلب التصنيفات */}
         {categories.isPending ? (
-          <HomeParentCategorySectionsSkeleton
-            getCartLineQuantity={getCartLineQuantity}
-            onCartLineQuantityChange={setProductLineQuantity}
-          />
+          <ScrollReveal>
+            <HomeParentCategorySectionsSkeleton
+              getCartLineQuantity={getCartLineQuantity}
+              onCartLineQuantityChange={setProductLineQuantity}
+            />
+          </ScrollReveal>
+        ) : categories.isError ? (
+          <ScrollReveal>
+            <ErrorState
+              message={categories.error.message}
+              onRetry={() => void categories.refetch()}
+            />
+          </ScrollReveal>
         ) : categories.data && categories.data.length > 0 ? (
           <HomeParentCategorySections
             categories={categories.data}

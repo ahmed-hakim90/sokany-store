@@ -6,7 +6,7 @@ import {
   getSnapshotProducts,
 } from "@/features/data-snapshot/server";
 import { mockCategories } from "@/features/categories/mock";
-import { USE_MOCK } from "@/lib/constants";
+import { DEFAULT_PER_PAGE, USE_MOCK } from "@/lib/constants";
 import { wooBff502Response } from "@/lib/woo-bff-catch-payload";
 import { filterWcProductsExcludingOutOfStock } from "@/lib/woo-storefront-availability";
 import type { WCCategory } from "@/features/categories/types";
@@ -71,7 +71,9 @@ export async function GET(request: NextRequest) {
     }
     const { searchParams } = new URL(request.url);
     const page = Number(searchParams.get("page") ?? "1") || 1;
-    const per_page = Number(searchParams.get("per_page") ?? "12") || 12;
+    const per_page =
+      Number(searchParams.get("per_page") ?? String(DEFAULT_PER_PAGE)) ||
+      DEFAULT_PER_PAGE;
     const includeChildren =
       searchParams.get("include_children") === "true";
     const featured =

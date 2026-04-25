@@ -17,6 +17,7 @@ import { IconButton } from "@/components/ui/icon-button";
 import { CategoryIcon } from "@/features/categories/category-icon-registry";
 import type { Category } from "@/features/categories/types";
 import { CONTACT_EMAIL, ROUTES } from "@/lib/constants";
+import { navLinkActiveSurfaceClass, navLinkPressableClass } from "@/lib/nav-link-interaction";
 import { cn } from "@/lib/utils";
 
 export type NavDrawerLink = { href: string; label: string };
@@ -52,8 +53,11 @@ function buildCategoryTree(categories: Category[]) {
   }));
 }
 
-const navLinkClass =
-  "flex min-h-11 items-center rounded-lg px-2 text-sm font-medium text-brand-950 hover:bg-surface-muted/80";
+const navLinkClass = cn(
+  "flex min-h-11 items-center rounded-lg px-2 text-sm font-medium text-brand-950 [@media(hover:hover)]:hover:bg-surface-muted/80",
+  navLinkPressableClass,
+  navLinkActiveSurfaceClass,
+);
 const navLinkActiveClass =
   "bg-brand-500/15 text-brand-900 ring-1 ring-brand-500/40";
 
@@ -210,7 +214,9 @@ export function MobileNavDrawer({
                 <Link
                   href={ROUTES.ACCOUNT}
                   className={cn(
-                    "inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-brand-950 transition-colors hover:bg-surface-muted/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500",
+                    "inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-brand-950 transition-colors [@media(hover:hover)]:hover:bg-surface-muted/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500",
+                    navLinkPressableClass,
+                    "active:bg-black/[0.07]",
                     (pathname === ROUTES.ACCOUNT ||
                       pathname.startsWith(`${ROUTES.ACCOUNT}/`)) &&
                       "bg-brand-500/15 ring-1 ring-brand-500/40",
@@ -237,7 +243,11 @@ export function MobileNavDrawer({
                   <Link
                     ref={searchRef}
                     href={ROUTES.SEARCH}
-                    className="flex min-h-11 items-center gap-2 rounded-lg border border-border/80 bg-white px-3 py-2 text-sm font-semibold text-brand-950 shadow-sm ring-brand-500/0 transition-shadow hover:bg-surface-muted/50 focus-visible:outline focus-visible:ring-2 focus-visible:ring-brand-500/40"
+                    className={cn(
+                      "flex min-h-11 items-center gap-2 rounded-lg border border-border/80 bg-white px-3 py-2 text-sm font-semibold text-brand-950 shadow-sm ring-brand-500/0 transition-shadow [@media(hover:hover)]:hover:bg-surface-muted/50 focus-visible:outline focus-visible:ring-2 focus-visible:ring-brand-500/40",
+                      navLinkPressableClass,
+                      "active:border-brand-500/35",
+                    )}
                     onClick={onClose}
                   >
                     <SearchGlyph className="shrink-0 text-muted-foreground" />
@@ -428,7 +438,9 @@ function CategoryDrawerRow({
       <Link
         href={href}
         className={cn(
-          "flex min-h-11 items-center gap-2 border-b border-border/60 px-2 py-1.5 text-sm font-medium text-brand-950 hover:bg-surface-muted/80",
+          "flex min-h-11 items-center gap-2 border-b border-border/60 px-2 py-1.5 text-sm font-medium text-brand-950 [@media(hover:hover)]:hover:bg-surface-muted/80",
+          navLinkPressableClass,
+          navLinkActiveSurfaceClass,
           active && navLinkActiveClass,
         )}
         onClick={onNavigate}
@@ -459,7 +471,9 @@ function CategoryDrawerRow({
         <Link
           href={href}
           className={cn(
-            "flex min-h-10 items-center gap-2 rounded-lg px-2 py-1 text-xs font-semibold text-brand-800 hover:bg-surface-muted/70",
+            "flex min-h-10 items-center gap-2 rounded-lg px-2 py-1 text-xs font-semibold text-brand-800 [@media(hover:hover)]:hover:bg-surface-muted/70",
+            navLinkPressableClass,
+            navLinkActiveSurfaceClass,
             active && "text-brand-600",
           )}
           onClick={onNavigate}
@@ -478,7 +492,9 @@ function CategoryDrawerRow({
               key={ch.id}
               href={chHref}
               className={cn(
-                "flex min-h-10 items-center gap-2 rounded-lg px-2 py-1 text-sm text-brand-950 hover:bg-surface-muted/80",
+                "flex min-h-10 items-center gap-2 rounded-lg px-2 py-1 text-sm text-brand-950 [@media(hover:hover)]:hover:bg-surface-muted/80",
+                navLinkPressableClass,
+                navLinkActiveSurfaceClass,
                 chActive && navLinkActiveClass,
               )}
               onClick={onNavigate}

@@ -234,6 +234,7 @@ export function Footer({
                   fill
                   sizes="100%"
                   className="object-contain"
+                  fetchPriority="low"
                 />
               </div>
             )}

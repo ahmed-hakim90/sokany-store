@@ -1,5 +1,6 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { GoogleAnalytics } from "@next/third-parties/google";
+import { cache } from "react";
 import { headers } from "next/headers";
 import Script from "next/script";
 import { Cairo, Montserrat } from "next/font/google";
@@ -38,16 +39,27 @@ async function requestMetadataBase(): Promise<URL> {
   return new URL(`${proto}://${host}`);
 }
 
-export async function generateMetadata(): Promise<Metadata> {
+const getCachedBranding = cache(async () => {
   const { branding } = await getPublicSiteContent();
+  return branding;
+});
+
+export async function generateViewport(): Promise<Viewport> {
+  const branding = await getCachedBranding();
+  return {
+    /** شريط النظام/المتصفح (Chrome أندرويد وغيره) — يلتزم بـ `branding.themeColor` من الـ CMS */
+    themeColor: branding.themeColor,
+  };
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  const branding = await getCachedBranding();
   const metadataBase = await requestMetadataBase();
   const googleVerification =
     process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION?.trim();
 
   return {
     metadataBase,
-    /** شريط النظام/المتصفح (Chrome أندرويد وغيره) — يلتزم بـ `branding.themeColor` من الـ CMS */
-    themeColor: branding.themeColor,
     title: {
       default: branding.defaultMetadataTitle,
       template: `%s | ${branding.siteBrandTitleAr}`,

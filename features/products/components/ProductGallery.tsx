@@ -105,6 +105,8 @@ export const ProductGallery = forwardRef<HTMLDivElement, ProductGalleryProps>(
                 fill
                 sizes="(max-width: 1024px) 100vw, 50vw"
                 priority={priority}
+                shimmerUntilLoaded
+                usePlaceholderOnError={false}
               />
             </motion.div>
           </AnimatePresence>
@@ -152,7 +154,14 @@ export const ProductGallery = forwardRef<HTMLDivElement, ProductGalleryProps>(
                 )}
                 onClick={() => setActiveSrc(img.src)}
               >
-                <AppImage src={img.src} alt={img.alt} fill sizes="72px" />
+                <AppImage
+                  src={img.src}
+                  alt={img.alt}
+                  fill
+                  sizes="72px"
+                  shimmerUntilLoaded
+                  usePlaceholderOnError={false}
+                />
               </button>
             ))}
           </div>

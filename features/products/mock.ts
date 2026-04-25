@@ -1,3 +1,4 @@
+import { DEFAULT_PER_PAGE } from "@/lib/constants";
 import type { WCProduct } from "./types";
 
 // =====================================================
@@ -880,7 +881,7 @@ export function filterMockProducts(
 ): WCProduct[] {
   const results = applyMockProductFilters(params, source);
   const page = params?.page ?? 1;
-  const per_page = params?.per_page ?? 12;
+  const per_page = params?.per_page ?? DEFAULT_PER_PAGE;
   const start = (page - 1) * per_page;
   return results.slice(start, start + per_page);
 }

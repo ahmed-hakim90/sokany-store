@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import { useEffect, useRef } from "react";
 import { Link } from "next-view-transitions";
-import { ROUTES } from "@/lib/constants";
+import { DEFAULT_PER_PAGE, ROUTES } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import type { Category } from "@/features/categories/types";
 import { usePrefetchProducts } from "@/features/products/hooks/usePrefetchProducts";
@@ -83,7 +83,7 @@ export function CategorySidebar({
   const prefetchProducts = usePrefetchProducts();
   const prefetchAllProducts = () => {
     if (!isProductsMode) return;
-    void prefetchProducts({ page: 1, per_page: 12 });
+    void prefetchProducts({ page: 1, per_page: DEFAULT_PER_PAGE });
   };
 
   const allActive = isProductsMode ? allProductsActive : !activeSlug;
@@ -183,7 +183,7 @@ export function CategorySidebar({
                             void prefetchProducts({
                               category: category.id,
                               page: 1,
-                              per_page: 12,
+                              per_page: DEFAULT_PER_PAGE,
                             })
                         : undefined
                     }
@@ -193,7 +193,7 @@ export function CategorySidebar({
                             void prefetchProducts({
                               category: category.id,
                               page: 1,
-                              per_page: 12,
+                              per_page: DEFAULT_PER_PAGE,
                             })
                         : undefined
                     }
@@ -322,12 +322,12 @@ export function CategorySidebar({
                 )}
                 onMouseEnter={
                   isProductsMode
-                    ? () => void prefetchProducts({ category: category.id, page: 1, per_page: 12 })
+                    ? () => void prefetchProducts({ category: category.id, page: 1, per_page: DEFAULT_PER_PAGE })
                     : undefined
                 }
                 onFocus={
                   isProductsMode
-                    ? () => void prefetchProducts({ category: category.id, page: 1, per_page: 12 })
+                    ? () => void prefetchProducts({ category: category.id, page: 1, per_page: DEFAULT_PER_PAGE })
                     : undefined
                 }
               >

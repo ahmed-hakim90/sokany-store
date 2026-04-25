@@ -42,7 +42,7 @@ export const WISHLIST_STORAGE_KEY = "woo_wishlist";
 export const CHECKOUT_DRAFT_STORAGE_KEY = "checkout_draft";
 export const AUTH_TOKEN_KEY = "woo_auth_token";
 export const DEFAULT_PAGE = 1;
-export const DEFAULT_PER_PAGE = 12;
+export const DEFAULT_PER_PAGE = 20;
 export const STALE_TIME = {
   SHORT: 30_000,
   MEDIUM: 5 * 60_000,
