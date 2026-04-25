@@ -6,6 +6,9 @@ import { z } from "zod";
 /** WordPress REST origin for the official Sokany Egypt site (legal & static pages). */
 const DEFAULT_WP_ORIGIN = "https://sokany-eg.com";
 
+/** Fails fast so prerender (e.g. `next build`) is not held up by a stuck upstream. */
+const FETCH_TIMEOUT_MS = 10_000;
+
 function wpOrigin(): string {
   const raw = process.env.NEXT_PUBLIC_OFFICIAL_SOKANY_WP_ORIGIN?.trim();
   if (raw) {
@@ -118,20 +121,30 @@ function sanitizeWpHtml(raw: string): string {
 /**
  * Fetches a published WordPress page by slug from the official site REST API.
  * Cached for one hour — legal copy changes rarely.
+ * Never throws: network/timeout/parse errors return `null` so RSC prerender can fall back in UI.
  */
 export async function fetchSokanyWpPage(slug: string): Promise<SokanyWpPage | null> {
   const origin = wpOrigin();
   const url = `${origin}/wp-json/wp/v2/pages?slug=${encodeURIComponent(slug)}`;
-  const res = await fetch(url, {
-    next: { revalidate: 3600 },
-    headers: { Accept: "application/json" },
-  });
-  if (!res.ok) return null;
-  const json: unknown = await res.json();
-  const parsed = wpPageListSchema.safeParse(json);
-  if (!parsed.success || parsed.data.length === 0) return null;
-  const row = parsed.data[0];
-  const title = row.title.rendered.replace(/<[^>]+>/g, "").trim() || slug;
-  const html = sanitizeWpHtml(row.content.rendered);
-  return { title, html };
+  try {
+    const res = await fetch(url, {
+      next: { revalidate: 3600 },
+      headers: { Accept: "application/json" },
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+    });
+    if (!res.ok) return null;
+    const json: unknown = await res.json();
+    const parsed = wpPageListSchema.safeParse(json);
+    if (!parsed.success || parsed.data.length === 0) return null;
+    const row = parsed.data[0];
+    const title = row.title.rendered.replace(/<[^>]+>/g, "").trim() || slug;
+    const html = sanitizeWpHtml(row.content.rendered);
+    return { title, html };
+  } catch (e) {
+    if (process.env.NODE_ENV === "development") {
+      // eslint-disable-next-line no-console -- dev-only prerender / upstream diagnosis
+      console.warn(`[fetchSokanyWpPage] slug=${slug} failed:`, e);
+    }
+    return null;
+  }
 }
