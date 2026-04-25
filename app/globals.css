@@ -1,13 +1,64 @@
 @import "tailwindcss";
+<<<<<<< HEAD
 
 :root {
   --background: #ffffff;
   --foreground: #171717;
+=======
+@plugin "@tailwindcss/typography";
+@import "../styles/vaul.css";
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.28s;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 0.01ms;
+  }
+}
+/* Avoid accidental horizontal scroll from full-bleed children / long strings */
+html {
+  overflow-x: clip;
+}
+
+/* معاينة المنتج (portaled): تخفّي شريط «ملخص السلة» + الـ bottom nav عن الشاشة حتى لا يظهرا فوق/من تحت الـ dim */
+html[data-storefront-modal] [data-mobile-commerce-chrome] {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+:root {
+  /* True white for cards / inputs */
+  --background: #ffffff;
+  --foreground: #000000;
+  --sokany-accent: #daff00;
+  --sokany-black: #000000;
+  --sokany-gray-1: #afb7b9;
+  --sokany-gray-2: #d4d4d4;
+  --sokany-gray-3: #808080;
+  --sokany-white: #ffffff;
+  /* Cool-tint page canvas (soft blue-gray) */
+  --page: #edf1f6;
+  /* Neutral chrome behind product/category thumbnails */
+  --image-well: #eef1f4;
+  --sokany-muted-bg: #e2e8ef;
+  --sokany-border: #d5dde8;
+  /* Legacy olive (prefer lime/black in UI; kept for gradual migration) */
+  --sokany-olive: #556b2f;
+  /* Editorial cards / hero radii (~24px) */
+  --radius-editorial: 1.5rem;
+  /* Mobile fixed commerce chrome (bottom nav ± cart); overridden by JS when mounted */
+  --mobile-commerce-chrome-height: 12rem;
+>>>>>>> origin/main
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+<<<<<<< HEAD
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -23,4 +74,206 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+=======
+  --color-page: var(--page);
+  --color-image-well: var(--image-well);
+  --font-sans: var(--font-cairo), system-ui, sans-serif;
+  /* Latin wordmarks + headings; Cairo fallback for Arabic glyphs */
+  --font-display: var(--font-montserrat), var(--font-cairo), system-ui, sans-serif;
+  --font-wordmark: var(--font-montserrat), var(--font-cairo), system-ui, sans-serif;
+  --color-accent: var(--sokany-accent);
+  --color-ink: var(--sokany-black);
+  --color-muted: var(--sokany-gray-3);
+  --color-muted-foreground: var(--sokany-gray-3);
+  --color-border: var(--sokany-border);
+  --color-surface-muted: var(--sokany-muted-bg);
+  --color-olive: var(--sokany-olive);
+  /* Lime-first scale + ink tones — keeps existing `brand-*` utilities on-brand */
+  --color-brand-50: #fbfff0;
+  --color-brand-100: #f4ffcc;
+  --color-brand-200: #e8ff99;
+  --color-brand-300: #deff66;
+  --color-brand-400: #daff33;
+  --color-brand-500: #daff00;
+  --color-brand-600: #c4e600;
+  --color-brand-700: #2e2e2e;
+  --color-brand-800: #1f1f1f;
+  --color-brand-900: #141414;
+  --color-brand-950: #0a0a0a;
+  --animate-fade-in: fade-in 0.5s ease-out forwards;
+  --animate-slide-up: slide-up 0.45s ease-out forwards;
+  --animate-shimmer: shimmer 1.5s linear infinite;
+}
+
+body {
+  background: var(--page);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}
+
+/* شريط تمرير الصفحة — ليم/فلوري متوافق مع هوية سُكَاني */
+html {
+  scrollbar-color: var(--sokany-accent) var(--sokany-muted-bg);
+}
+html::-webkit-scrollbar {
+  width: 0.5rem;
+  height: 0.5rem;
+  /* لون الخلفية ثابت لمسار الشريط (لا يُزال بصرياً عند مرور/هوفر الإبهام) */
+  background: var(--sokany-muted-bg);
+}
+html::-webkit-scrollbar-track {
+  background: var(--sokany-muted-bg);
+  border-radius: 9999px;
+}
+/* إبقاء المسار ظاهراً عند مرور/تفاعل واجهة الصفحة (WebKit — لا نربط :hover بـ ::-webkit-scrollbar:… لأن مُحسّنات CSS ترفض ذلك) */
+html:hover::-webkit-scrollbar-track {
+  background: var(--sokany-muted-bg);
+}
+html::-webkit-scrollbar-thumb {
+  background: var(--sokany-accent);
+  border-radius: 9999px;
+  /* فصل الإبهام عن المسار بدل border بنفس لون المسار — يتجنب وميض/اختفاء الخلفية */
+  box-shadow: 0 0 0 2px var(--sokany-muted-bg) inset;
+  background-clip: padding-box;
+  border: none;
+}
+/* حد أدنى لمسطحة الإبهام: عمودي = ارتفاع، أفقي = عرض */
+html::-webkit-scrollbar-thumb:vertical {
+  min-height: 2.5rem;
+}
+html::-webkit-scrollbar-thumb:horizontal {
+  min-width: 2.5rem;
+}
+html::-webkit-scrollbar-thumb:hover {
+  /* لون صلب: يتفادى مشاكل color-mix/الشفافية في WebKit */
+  background: var(--color-brand-600, #c4e600);
+  box-shadow: 0 0 0 2px var(--sokany-muted-bg) inset;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Home hero Swiper — pagination over gradient */
+.hero-swiper .swiper-pagination {
+  bottom: 0.5rem;
+}
+.hero-swiper .swiper-pagination-bullet {
+  width: 0.45rem;
+  height: 0.45rem;
+  background: rgb(255 255 255 / 0.45);
+  opacity: 1;
+}
+.hero-swiper .swiper-pagination-bullet-active {
+  background: var(--sokany-accent);
+}
+
+@keyframes cart-success-heart-float {
+  0% {
+    transform: translate3d(0, 0, 0) scale(0.75);
+    opacity: 0;
+  }
+  12% {
+    opacity: 0.95;
+  }
+  100% {
+    transform: translate3d(0, -42rem, 0) scale(0.45);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cart-success-heart {
+    animation: none !important;
+    opacity: 0.35;
+  }
+}
+
+/** شريط إعلان علوي — تمرير أفقي لمحتوى مكرر (٥٠٪ عرض المسار). */
+@keyframes storefront-marquee {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+/*
+ * Utilities that reference CSS variables — keep them here instead of Tailwind arbitrary
+ * values like `[var(--x)]`, which Tailwind v4 can mis-parse as `var(-x)` and break the build.
+ */
+@layer utilities {
+  .animate-storefront-marquee {
+    animation: storefront-marquee 45s linear infinite;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .animate-storefront-marquee {
+      animation: none;
+    }
+  }
+  .pb-mobile-commerce {
+    padding-bottom: var(--mobile-commerce-chrome-height, 12rem);
+  }
+  /** Sit fixed UI (e.g. PDP sticky CTA) above the mobile bottom nav — must stay below z-50 modals. */
+  .bottom-mobile-commerce {
+    bottom: var(--mobile-commerce-chrome-height, 5rem);
+  }
+  .rounded-editorial {
+    border-radius: var(--radius-editorial, 1.5rem);
+  }
+  .max-h-mobile-catalog-split {
+    max-height: calc(100dvh - 7rem - var(--mobile-commerce-chrome-height));
+  }
+}
+
+/* محتوى ووردبريس/Elementor في صفحات الشروط — يكمّل `prose` للجداول والخرائط */
+@layer components {
+  .legal-wp-prose iframe {
+    width: 100%;
+    max-width: 100%;
+    border-radius: 0.75rem;
+    border: 1px solid color-mix(in srgb, var(--sokany-border) 80%, transparent);
+  }
+  .legal-wp-prose table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+    line-height: 1.6;
+  }
+  .legal-wp-prose :is(th, td) {
+    border: 1px solid var(--sokany-border);
+    padding: 0.5rem 0.75rem;
+    text-align: start;
+  }
+  .legal-wp-prose th {
+    background: color-mix(in srgb, var(--sokany-muted-bg) 65%, white);
+    font-weight: 600;
+  }
+>>>>>>> origin/main
 }

@@ -1,0 +1,15 @@
+diff --git a/node_modules/next-view-transitions/dist/index.js b/node_modules/next-view-transitions/dist/index.js
+index 41ba068..79bfe55 100644
+--- a/node_modules/next-view-transitions/dist/index.js
++++ b/node_modules/next-view-transitions/dist/index.js
+@@ -143,8 +143,9 @@ function useTransitionRouter() {
+                     });
+                 }));
+             if (onTransitionReady) {
+-                transition.ready.then(onTransitionReady);
++                transition.ready.then(onTransitionReady).catch(()=>{});
+             }
++            transition.finished.catch(()=>{});
+         } else {
+             return cb();
+         }

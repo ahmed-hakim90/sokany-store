@@ -1,0 +1,17 @@
+{
+  "scrapedAt": "2026-04-17T18:02:07.349Z",
+  "source": "https://sokany-eg.com",
+  "version": 1,
+  "totals": {
+    "categories": 36,
+    "products": 520,
+    "featuredProducts": 1
+  },
+  "options": {
+    "perPage": 100,
+    "concurrency": 4,
+    "maxProducts": null,
+    "skipImages": false
+  },
+  "elapsedMs": 2901
+}

@@ -1,0 +1,34 @@
+import type { Metadata } from "next";
+import { RetailersPageContent } from "@/components/pages/RetailersPageContent";
+import { getPublicSiteContent } from "@/features/cms/services/getPublicSiteContent";
+import { SITE_BRAND_TITLE_AR } from "@/lib/constants";
+import { getSiteUrl } from "@/lib/site";
+
+const title = `الموزعون المعتمدون | ${SITE_BRAND_TITLE_AR}`;
+const description =
+  "شبكة الموزعين المعتمدين لسوكانى في مصر — خريطة التغطية، محلات معتمدة، وضمان الوكيل والتسعير الرسمي.";
+
+export const metadata: Metadata = {
+  title,
+  description,
+  openGraph: {
+    title,
+    description,
+    url: `${getSiteUrl()}/retailers`,
+    siteName: SITE_BRAND_TITLE_AR,
+    locale: "ar_EG",
+    type: "website",
+  },
+  alternates: { canonical: `${getSiteUrl()}/retailers` },
+  robots: { index: true, follow: true },
+};
+
+export default async function RetailersPage() {
+  const content = await getPublicSiteContent();
+  return (
+    <RetailersPageContent
+      retailers={content.retailers.list}
+      mapHeroSrc={content.retailers.mapHeroSrc}
+    />
+  );
+}

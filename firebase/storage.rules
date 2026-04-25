@@ -1,0 +1,10 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // رفع الصور من السيرفر فقط (مفتاح الخدمة) — القواعد ترفض الكلاينت المباشر ما لم تضف استثناءً للمشرفين.
+    match /cms/{allPaths=**} {
+      allow read: if true;
+      allow write: if false;
+    }
+  }
+}
