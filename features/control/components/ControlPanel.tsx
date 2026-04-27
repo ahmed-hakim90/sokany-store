@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import type { ControlPanelTabId } from "@/features/control/lib/control-tabs";
 import { isControlPanelTabId } from "@/features/control/lib/control-tabs";
 import { ControlAccessTab } from "@/features/control/components/ControlAccessTab";
+import { OrderForwardingSettingsTab } from "@/features/control/components/OrderForwardingSettingsTab";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/Button";
@@ -87,6 +88,7 @@ const BASE_TAB_LIST: { id: ControlPanelTabId; label: string }[] = [
   { id: "media", label: "الوسائط" },
   { id: "preview", label: "معاينة الموقع" },
   { id: "notifications", label: "إشعارات" },
+  { id: "orderForwarding", label: "تكامل الطلبات" },
   { id: "access", label: "الصلاحيات" },
 ];
 
@@ -704,8 +706,8 @@ export function ControlPanel() {
               </h1>
               <p className="text-sm text-slate-600">
                 المصدر: Firestore. الصفحات العامة تُخزَّن مؤقتًا نحو دقيقة؛ حفظ أي تبويب من
-                هنا يُحدّث العرض فورًا عبر الخادم. إعدادات ‎Woo/API وعناوين التكامل من{" "}
-                <span className="font-medium text-slate-800">تشخيص / ‎dev</span>.
+                هنا يُحدّث العرض فورًا عبر الخادم. إعدادات ‎Woo/API وعناوين التكامل
+                التشغيلية موجودة في تبويبات التحكم وصفحات التشخيص.
               </p>
             </div>
             <Button
@@ -1170,6 +1172,8 @@ export function ControlPanel() {
             ) : null}
 
             {tab === "notifications" ? <NotificationsSection /> : null}
+
+            {tab === "orderForwarding" ? <OrderForwardingSettingsTab /> : null}
         </div>
       </div>
     </div>

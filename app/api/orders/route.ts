@@ -3,6 +3,7 @@ import axios from "axios";
 import { createWooClient } from "@/lib/create-woo-client";
 import { getSessionFromRequest } from "@/lib/auth-request";
 import { listWooOrdersForSession } from "@/lib/list-woo-orders-for-session";
+import { forwardOrderCreatedToExternalApi } from "@/features/orders/services/forward-order-to-external-api";
 
 function messageFromWooErrorBody(data: unknown): string {
   if (data && typeof data === "object" && "message" in data) {
@@ -41,6 +42,20 @@ export async function POST(request: NextRequest) {
     const body: unknown = await request.json();
     const woo = await createWooClient();
     const response = await woo.post("/orders", body);
+    try {
+      const forwarded = await forwardOrderCreatedToExternalApi(response.data);
+      if (forwarded.status === "failed") {
+        console.warn("[order-forwarding] failed to send created order", {
+          statusCode: forwarded.statusCode,
+          reason: forwarded.reason,
+        });
+      }
+    } catch (forwardError) {
+      console.warn(
+        "[order-forwarding] failed to send created order",
+        forwardError instanceof Error ? forwardError.message : String(forwardError),
+      );
+    }
     return NextResponse.json(response.data, { status: 201 });
   } catch (e) {
     if (axios.isAxiosError(e)) {

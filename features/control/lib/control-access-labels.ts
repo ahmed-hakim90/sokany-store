@@ -13,6 +13,7 @@ export const CONTROL_TAB_LABEL_AR: Partial<Record<ControlPanelTabId, string>> = 
   media: "الوسائط",
   preview: "معاينة",
   notifications: "إشعارات",
+  orderForwarding: "تكامل الطلبات",
   access: "الصلاحيات (مشرف)",
 };
 

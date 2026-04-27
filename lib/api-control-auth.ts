@@ -95,6 +95,23 @@ export async function requireNotificationsAccess(
   );
 }
 
+export async function requireOrderForwardingAccess(
+  request: NextRequest,
+): Promise<ControlSessionPayload | NextResponse> {
+  const r = await requireScopeFull(request);
+  if (r instanceof NextResponse) return r;
+  if (hasControlPanelTab(r, "orderForwarding")) {
+    return r;
+  }
+  if (r.tabs === "all") {
+    return r;
+  }
+  return NextResponse.json(
+    { error: "ليس لديك صلاحية تكاملات الطلبات من هذا الحساب" },
+    { status: 403 },
+  );
+}
+
 export async function requireSuperAdminSession(
   request: NextRequest,
 ): Promise<ControlSessionPayload | NextResponse> {
