@@ -2,6 +2,7 @@ import "server-only";
 
 import { revalidatePath, revalidateTag } from "next/cache";
 import {
+  WOO_CACHE_TAG_ORDERS,
   WOO_CACHE_TAG_PRODUCTS,
   WOO_CACHE_TAG_SITEMAP,
 } from "@/lib/woocommerce-cache-tags";
@@ -13,6 +14,10 @@ import {
 export function revalidateWooDataTags(): void {
   revalidateTag(WOO_CACHE_TAG_PRODUCTS, "max");
   revalidateTag(WOO_CACHE_TAG_SITEMAP, "max");
+}
+
+export function revalidateWooOrderTags(): void {
+  revalidateTag(WOO_CACHE_TAG_ORDERS, "max");
 }
 
 /** مسارات الكتالوج + صفحة منتج اختياري — بعد استدعاء ‎`revalidateWooDataTags`‎ من الـ hook. */

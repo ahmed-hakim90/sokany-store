@@ -6,6 +6,7 @@ import {
   revalidateCategoryListingPathsAfterHook,
   revalidateProductListingPaths,
   revalidateWooDataTags,
+  revalidateWooOrderTags,
 } from "@/lib/woocommerce-revalidate-broadcast";
 
 /**
@@ -48,9 +49,10 @@ export function revalidateAfterWooCommerceWebhook(
   }
 
   if (t.startsWith("order.")) {
+    revalidateWooOrderTags();
     revalidatePath(ROUTES.ORDER_TRACKING);
     revalidatePath(ROUTES.MY_ORDERS);
-  revalidatePath(ROUTES.MY_REVIEWS);
+    revalidatePath(ROUTES.MY_REVIEWS);
     revalidatePath(ROUTES.ACCOUNT);
     revalidatePath("/");
     return;
