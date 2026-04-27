@@ -28,6 +28,8 @@ function HeartParticle({ index }: { index: number }) {
 
 type PlacedOrderSummary = {
   id: number;
+  orderNumber: string;
+  trackingUrl: string;
   orderKey: string;
 };
 
@@ -36,6 +38,15 @@ type OrderSuccessCelebrationProps = {
   order: PlacedOrderSummary | null;
   onDismiss: () => void;
 };
+
+function toInternalTrackingHref(url: string): string {
+  try {
+    const parsed = new URL(url);
+    return `${parsed.pathname}${parsed.search}${parsed.hash}`;
+  } catch {
+    return url;
+  }
+}
 
 /**
  * طبقة شكر بعد تأكيد الطلب: نص ترحيبي وقلوب تطفو للأعلى (keyframes في globals.css).
@@ -50,7 +61,10 @@ export function OrderSuccessCelebration({
   if (!open) return null;
 
   const trackHref =
-    order != null ? `${ROUTES.ORDER_TRACKING}?q=${encodeURIComponent(String(order.id))}` : ROUTES.ORDER_TRACKING;
+    (order?.trackingUrl ? toInternalTrackingHref(order.trackingUrl) : null) ??
+    (order != null
+      ? `${ROUTES.ORDER_TRACKING}?q=${encodeURIComponent(String(order.id))}`
+      : ROUTES.ORDER_TRACKING);
 
   return (
     <div
@@ -83,6 +97,7 @@ export function OrderSuccessCelebration({
               رقم الطلب:{" "}
               <span dir="ltr" className="tabular-nums">
                 #{order.id}
+                {order.orderNumber !== String(order.id) ? ` / ${order.orderNumber}` : ""}
               </span>
             </p>
           ) : null}

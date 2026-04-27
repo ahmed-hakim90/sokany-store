@@ -1,9 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import axios from "axios";
+import { unstable_cache } from "next/cache";
 import { createWooClient } from "@/lib/create-woo-client";
 import { getSessionFromRequest } from "@/lib/auth-request";
 import { createReviewPayloadSchema } from "@/schemas/wordpress";
 import { getReviewEligibility } from "@/lib/review-purchase-eligibility";
+import { WOO_CACHE_TAG_REVIEWS } from "@/lib/woocommerce-cache-tags";
+import { revalidateWooReviewTags } from "@/lib/woocommerce-revalidate-broadcast";
+
+type CachedWooListResponse = {
+  data: unknown;
+  total: string;
+  totalPages: string;
+};
 
 /** Map storefront query params to WooCommerce REST `/products/reviews` (list uses `product`, not `product_id`). */
 function toWooReviewListParams(
@@ -20,16 +29,30 @@ function toWooReviewListParams(
   return params;
 }
 
+const fetchWooReviewsCached = unstable_cache(
+  async (paramsKey: string): Promise<CachedWooListResponse> => {
+    const woo = await createWooClient();
+    const params = JSON.parse(paramsKey) as Record<string, string>;
+    const response = await woo.get("/products/reviews", { params });
+    return {
+      data: response.data,
+      total: String(response.headers["x-wp-total"] ?? "0"),
+      totalPages: String(response.headers["x-wp-totalpages"] ?? "1"),
+    };
+  },
+  ["woo-api-reviews-v1"],
+  { revalidate: 300, tags: [WOO_CACHE_TAG_REVIEWS] },
+);
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const woo = await createWooClient();
     const params = toWooReviewListParams(searchParams);
-    const response = await woo.get("/products/reviews", { params });
-    return NextResponse.json(response.data, {
+    const cached = await fetchWooReviewsCached(JSON.stringify(params));
+    return NextResponse.json(cached.data, {
       headers: {
-        "X-WP-Total": String(response.headers["x-wp-total"] ?? "0"),
-        "X-WP-TotalPages": String(response.headers["x-wp-totalpages"] ?? "1"),
+        "X-WP-Total": cached.total,
+        "X-WP-TotalPages": cached.totalPages,
       },
     });
   } catch (error) {
@@ -94,6 +117,7 @@ export async function POST(request: NextRequest) {
       reviewer_email: session.email.trim().toLowerCase(),
     };
     const response = await woo.post("/products/reviews", secured);
+    revalidateWooReviewTags();
     return NextResponse.json(response.data, { status: 201 });
   } catch (error) {
     if (process.env.NODE_ENV === "development") {

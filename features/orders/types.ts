@@ -25,6 +25,10 @@ export type OrderItem = {
 
 export type Order = {
   id: number;
+  /** WooCommerce display order number; defaults to `id` when Woo omits `number`. */
+  orderNumber: string;
+  /** Storefront tracking URL for this Woo order id. */
+  trackingUrl: string;
   /** WooCommerce `order_key` — proves guest ownership for amend/cancel APIs. */
   orderKey: string;
   status: OrderStatus;
@@ -61,6 +65,8 @@ export type WCOrderLineItem = {
 
 export type WCOrder = {
   id: number;
+  number?: string;
+  storefront_tracking_url?: string;
   order_key?: string;
   status: string;
   date_created: string;

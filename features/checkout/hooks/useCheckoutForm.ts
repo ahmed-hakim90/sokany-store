@@ -49,6 +49,8 @@ export function useCheckoutForm() {
   const [orderSuccessOpen, setOrderSuccessOpen] = useState(false);
   const [placedOrderSummary, setPlacedOrderSummary] = useState<{
     id: number;
+    orderNumber: string;
+    trackingUrl: string;
     orderKey: string;
   } | null>(null);
   const [otpModalOpen, setOtpModalOpen] = useState(false);
@@ -134,6 +136,8 @@ export function useCheckoutForm() {
             }
             setPlacedOrderSummary({
               id: order.id,
+              orderNumber: order.orderNumber,
+              trackingUrl: order.trackingUrl,
               orderKey: order.orderKey,
             });
             setOrderSuccessOpen(true);

@@ -213,6 +213,9 @@ const wpOrderMetaEntrySchema = z.object({
 
 export const wpOrderSchema = z.object({
   id: z.coerce.number(),
+  /** WooCommerce display order number; often matches `id`, but plugins may customize it. */
+  number: wooStringField.optional(),
+  storefront_tracking_url: wooStringField.optional(),
   /** WooCommerce guest order secret — required for guest APIs. */
   order_key: wooStringField.optional().default(""),
   status: wooStringField,

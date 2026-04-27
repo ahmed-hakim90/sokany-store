@@ -31,7 +31,12 @@ export function OrderTrackingPageContent() {
     queryKey: ["track-order", qRaw],
     queryFn: () => trackOrder(qRaw),
     enabled: qRaw.length >= 2,
-    staleTime: STALE_TIME.SHORT,
+    staleTime: STALE_TIME.MEDIUM,
+    refetchInterval: (query) => {
+      const value = query.state.data;
+      return value?.found === true && value.terminal == null ? 60_000 : false;
+    },
+    refetchIntervalInBackground: false,
     retry: 1,
   });
 

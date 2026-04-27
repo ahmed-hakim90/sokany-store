@@ -4,6 +4,7 @@ import { revalidatePath, revalidateTag } from "next/cache";
 import {
   WOO_CACHE_TAG_ORDERS,
   WOO_CACHE_TAG_PRODUCTS,
+  WOO_CACHE_TAG_REVIEWS,
   WOO_CACHE_TAG_SITEMAP,
 } from "@/lib/woocommerce-cache-tags";
 
@@ -18,6 +19,10 @@ export function revalidateWooDataTags(): void {
 
 export function revalidateWooOrderTags(): void {
   revalidateTag(WOO_CACHE_TAG_ORDERS, "max");
+}
+
+export function revalidateWooReviewTags(): void {
+  revalidateTag(WOO_CACHE_TAG_REVIEWS, "max");
 }
 
 /** مسارات الكتالوج + صفحة منتج اختياري — بعد استدعاء ‎`revalidateWooDataTags`‎ من الـ hook. */
@@ -45,5 +50,7 @@ export function revalidateCategoryListingPathsAfterHook(): void {
  */
 export function revalidateAfterExternalDataWebhook(): void {
   revalidateWooDataTags();
+  revalidateWooOrderTags();
+  revalidateWooReviewTags();
   revalidateProductListingPaths();
 }

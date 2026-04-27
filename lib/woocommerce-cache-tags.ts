@@ -5,3 +5,4 @@
 export const WOO_CACHE_TAG_PRODUCTS = "woo-products";
 export const WOO_CACHE_TAG_SITEMAP = "sitemap-woo";
 export const WOO_CACHE_TAG_ORDERS = "woo-orders";
+export const WOO_CACHE_TAG_REVIEWS = "woo-reviews";

@@ -7,6 +7,7 @@ import {
   revalidateProductListingPaths,
   revalidateWooDataTags,
   revalidateWooOrderTags,
+  revalidateWooReviewTags,
 } from "@/lib/woocommerce-revalidate-broadcast";
 
 /**
@@ -44,17 +45,24 @@ export function revalidateAfterWooCommerceWebhook(
   }
 
   if (t.startsWith("product.")) {
+    revalidateWooReviewTags();
     revalidateProductListingPaths(extractWooWebhookResourceId(payload));
     return;
   }
 
   if (t.startsWith("order.")) {
     revalidateWooOrderTags();
+    revalidateWooReviewTags();
     revalidatePath(ROUTES.ORDER_TRACKING);
     revalidatePath(ROUTES.MY_ORDERS);
     revalidatePath(ROUTES.MY_REVIEWS);
     revalidatePath(ROUTES.ACCOUNT);
     revalidatePath("/");
+    return;
+  }
+
+  if (t.includes("review")) {
+    revalidateWooReviewTags();
     return;
   }
 

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { unstable_cache } from "next/cache";
 import { listMockProductsMatching } from "@/features/products/mock";
 import { createWooClient } from "@/lib/create-woo-client";
 import {
@@ -8,9 +9,16 @@ import {
 import { mockCategories } from "@/features/categories/mock";
 import { DEFAULT_PER_PAGE, USE_MOCK } from "@/lib/constants";
 import { wooBff502Response } from "@/lib/woo-bff-catch-payload";
+import { WOO_CACHE_TAG_PRODUCTS } from "@/lib/woocommerce-cache-tags";
 import { filterWcProductsExcludingOutOfStock } from "@/lib/woo-storefront-availability";
 import type { WCCategory } from "@/features/categories/types";
 import type { WCProduct } from "@/features/products/types";
+
+type CachedWooListResponse = {
+  data: unknown;
+  total: string;
+  totalPages: string;
+};
 
 function collectDescendantCategoryIds(
   rootId: number,
@@ -48,21 +56,33 @@ function filterProductsByCategorySet(
   );
 }
 
+const fetchWooProductsCached = unstable_cache(
+  async (paramsKey: string): Promise<CachedWooListResponse> => {
+    const woo = await createWooClient();
+    const params = JSON.parse(paramsKey) as Record<string, string>;
+    const response = await woo.get("/products", { params });
+    const payload = response.data;
+    return {
+      data: Array.isArray(payload)
+        ? filterWcProductsExcludingOutOfStock(payload)
+        : payload,
+      total: String(response.headers["x-wp-total"] ?? "0"),
+      totalPages: String(response.headers["x-wp-totalpages"] ?? "1"),
+    };
+  },
+  ["woo-api-products-v1"],
+  { revalidate: 300, tags: [WOO_CACHE_TAG_PRODUCTS] },
+);
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const woo = await createWooClient();
     const params = Object.fromEntries(searchParams.entries());
-    const response = await woo.get("/products", { params });
-    const payload = response.data;
-    // Drop ‎`outofstock`‎ only — ‎`onbackorder`‎ stays (matches ‎`mapProduct` ‎`inStock`‎).
-    const data = Array.isArray(payload)
-      ? filterWcProductsExcludingOutOfStock(payload)
-      : payload;
-    return NextResponse.json(data, {
+    const cached = await fetchWooProductsCached(JSON.stringify(params));
+    return NextResponse.json(cached.data, {
       headers: {
-        "X-WP-Total": String(response.headers["x-wp-total"] ?? "0"),
-        "X-WP-TotalPages": String(response.headers["x-wp-totalpages"] ?? "1"),
+        "X-WP-Total": cached.total,
+        "X-WP-TotalPages": cached.totalPages,
       },
     });
   } catch (error) {

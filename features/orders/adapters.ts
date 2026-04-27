@@ -1,5 +1,6 @@
 import { parsePrice } from "@/lib/utils";
 import { toAbsoluteSiteUrl } from "@/lib/site";
+import { ROUTES } from "@/lib/constants";
 import type { BillingAddress, ShippingAddress } from "@/features/user/types";
 import type { Order, OrderItem, OrderStatus, WCOrder } from "@/features/orders/types";
 import {
@@ -70,8 +71,16 @@ function mapLineItems(items: WCOrder["line_items"]): OrderItem[] {
 
 export function mapOrder(wc: WCOrder): Order {
   const status = isOrderStatus(wc.status) ? wc.status : "pending";
+  const orderNumber =
+    typeof wc.number === "string" && wc.number.trim() ? wc.number.trim() : String(wc.id);
+  const trackingUrl =
+    typeof wc.storefront_tracking_url === "string" && wc.storefront_tracking_url.trim()
+      ? wc.storefront_tracking_url.trim()
+      : toAbsoluteSiteUrl(`${ROUTES.ORDER_TRACKING}?q=${encodeURIComponent(String(wc.id))}`);
   return {
     id: wc.id,
+    orderNumber,
+    trackingUrl,
     orderKey: typeof wc.order_key === "string" ? wc.order_key : "",
     status,
     dateCreated: wc.date_created,

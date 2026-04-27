@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import axios from "axios";
+import { unstable_cache } from "next/cache";
 import { wcStatusToTracking } from "@/features/order-tracking/wc-status-to-tracking";
 import { createWooClient } from "@/lib/create-woo-client";
 import { isWooEnvConfigured } from "@/lib/woo-diagnostics";
 import { USE_MOCK } from "@/lib/constants";
 import { normalizeDigits } from "@/lib/phone-digits";
+import { WOO_CACHE_TAG_ORDERS } from "@/lib/woocommerce-cache-tags";
 import {
   trackOrderResponseSchema,
   type TrackOrderResponse,
@@ -91,59 +93,66 @@ async function findOrderByPhone(
   return null;
 }
 
+async function trackOrderUncached(qRaw: string): Promise<TrackOrderResponse> {
+  if (USE_MOCK) {
+    return trackOrderResponseSchema.parse(mockResponse(qRaw));
+  }
+
+  if (!(await isWooEnvConfigured())) {
+    return trackOrderResponseSchema.parse(mockResponse(qRaw));
+  }
+
+  const woo = await createWooClient();
+  const digits = normalizeDigits(qRaw);
+
+  let order: Awaited<ReturnType<typeof fetchOrderById>> = null;
+
+  const tryOrderId =
+    /^\d+$/.test(digits) &&
+    digits.length >= 3 &&
+    digits.length <= 9 &&
+    !digits.startsWith("0");
+
+  if (tryOrderId) {
+    order = await fetchOrderById(woo, parseInt(digits, 10));
+  }
+
+  if (!order && digits.length >= 8) {
+    order = await findOrderByPhone(woo, digits);
+  }
+
+  if (!order) {
+    return trackOrderResponseSchema.parse({ found: false });
+  }
+
+  const t = wcStatusToTracking(order.status);
+  return trackOrderResponseSchema.parse({
+    found: true,
+    orderId: order.id,
+    query: qRaw,
+    dateCreated: order.date_created,
+    currentStepIndex: t.currentStepIndex,
+    allCompleted: t.allCompleted,
+    terminal: t.terminal,
+    statusBadge: t.statusBadge,
+    source: "woocommerce",
+  });
+}
+
+const trackOrderCached = unstable_cache(
+  async (qRaw: string) => trackOrderUncached(qRaw),
+  ["woo-order-tracking-v1"],
+  { revalidate: 300, tags: [WOO_CACHE_TAG_ORDERS] },
+);
+
 export async function GET(request: NextRequest) {
   const qRaw = request.nextUrl.searchParams.get("q")?.trim() ?? "";
   if (qRaw.length < 2 || qRaw.length > 80) {
     return NextResponse.json({ error: "Invalid query" }, { status: 400 });
   }
 
-  if (USE_MOCK) {
-    const body = trackOrderResponseSchema.parse(mockResponse(qRaw));
-    return NextResponse.json(body);
-  }
-
-  if (!(await isWooEnvConfigured())) {
-    const body = trackOrderResponseSchema.parse(mockResponse(qRaw));
-    return NextResponse.json(body);
-  }
-
   try {
-    const woo = await createWooClient();
-    const digits = normalizeDigits(qRaw);
-
-    let order: Awaited<ReturnType<typeof fetchOrderById>> = null;
-
-    const tryOrderId =
-      /^\d+$/.test(digits) &&
-      digits.length >= 3 &&
-      digits.length <= 9 &&
-      !digits.startsWith("0");
-
-    if (tryOrderId) {
-      order = await fetchOrderById(woo, parseInt(digits, 10));
-    }
-
-    if (!order && digits.length >= 8) {
-      order = await findOrderByPhone(woo, digits);
-    }
-
-    if (!order) {
-      const body = trackOrderResponseSchema.parse({ found: false });
-      return NextResponse.json(body);
-    }
-
-    const t = wcStatusToTracking(order.status);
-    const body = trackOrderResponseSchema.parse({
-      found: true,
-      orderId: order.id,
-      query: qRaw,
-      dateCreated: order.date_created,
-      currentStepIndex: t.currentStepIndex,
-      allCompleted: t.allCompleted,
-      terminal: t.terminal,
-      statusBadge: t.statusBadge,
-      source: "woocommerce",
-    });
+    const body = await trackOrderCached(qRaw);
     return NextResponse.json(body);
   } catch (e) {
     console.error(e);
