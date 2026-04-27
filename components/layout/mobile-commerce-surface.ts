@@ -67,7 +67,7 @@ export const stickyAnnouncementBottomShadowWhenTopRowHiddenClass =
 
 export function mobileCommerceBottomNavCapsuleClassName() {
   return cn(
-    "mx-4 mb-0.5",
+    "mx-2 mt-0 mb-2",
     mobileCommerceGlassSurfaceClass,
     mobileCommerceCapsulePaddingXClass,
   );

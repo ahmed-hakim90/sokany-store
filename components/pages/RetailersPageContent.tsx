@@ -5,6 +5,7 @@ import {
   ExternalLink,
   Handshake,
   Map as MapIcon,
+  Navigation,
   Phone,
   Store,
 } from "lucide-react";
@@ -47,7 +48,8 @@ const hitBtn =
 
 /*
  * الموزعون المعتمدون (/retailers): خلفية صفحة `bg-page`؛ رأس hero بعمودين من md (نص + خريطة)،
- * ثم سيكشن شراكة بعرض كامل بخلفية داكنة، ثم قائمة بطاقات مع فلتر محافظة (منسدلة) وشبكة responsive حتى lg:3 أعمدة.
+ * ثم سيكشن شراكة بعرض كامل بخلفية داكنة، ثم قائمة بطاقات مع فلتر محافظة (منسدلة):
+ * على الموبايل تظهر كبطاقات أفقية مدمجة، ومن sm تتحول لشبكة كروت بصرية حتى lg:3 أعمدة.
  * سيكشن انضمام أسفل الصفحة بعرض محدود max-w-3xl.
  */
 export type RetailersPageContentProps = {
@@ -222,33 +224,33 @@ export function RetailersPageContent({
               أخرى أو عرض الكل.
             </p>
           ) : (
-            <ul className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            <ul className="grid gap-3 sm:gap-8 sm:grid-cols-2 lg:grid-cols-3">
               {filtered.map((store) => (
                 <li key={store.name}>
-                  <article className="group flex h-full flex-col overflow-hidden rounded-3xl border border-border/80 bg-white shadow-sm transition-shadow hover:shadow-md">
-                    <div className="relative aspect-[16/10] bg-muted">
+                  <article className="group flex h-full items-center gap-3 overflow-hidden rounded-3xl border border-border/80 bg-white p-3 shadow-sm transition-shadow hover:shadow-md sm:flex-col sm:items-stretch sm:gap-0 sm:p-0">
+                    <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-2xl bg-muted sm:aspect-[16/10] sm:h-auto sm:w-full sm:rounded-none">
                       <AppImage
                         src={store.imageSrc}
                         alt={`واجهة ${store.name}`}
                         fill
-                        sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+                        sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 96px"
                         className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
                       />
-                      <span className="absolute end-3 top-3 rounded-full bg-blue-600 px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-white">
+                      <span className="absolute end-3 top-3 hidden rounded-full bg-blue-600 px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-white sm:block">
                         موزع معتمد
                       </span>
                     </div>
-                    <div className="flex flex-1 flex-col p-5 sm:p-6">
-                      <p className="mb-1 text-xs font-bold text-blue-600">
+                    <div dir="rtl" className="flex min-w-0 flex-1 flex-col py-1 sm:p-6">
+                      <p className="mb-1 truncate text-[11px] font-bold text-blue-600 sm:text-xs">
                         {store.governorate}
                       </p>
-                      <h3 className="mb-2 font-display text-lg font-bold text-brand-950">
+                      <h3 className="mb-1 line-clamp-2 font-display text-base font-bold leading-snug text-brand-950 sm:mb-2 sm:text-lg">
                         {store.name}
                       </h3>
-                      <p className="mb-6 flex-1 text-xs leading-relaxed text-muted-foreground sm:text-sm">
+                      <p className="line-clamp-2 flex-1 text-xs leading-relaxed text-muted-foreground sm:mb-6 sm:line-clamp-none sm:text-sm">
                         {store.location}
                       </p>
-                      <div className="flex flex-col gap-2">
+                      <div className="hidden flex-col gap-2 sm:flex">
                         <a
                           href={mapHrefForRetailer(store)}
                           target="_blank"
@@ -285,6 +287,24 @@ export function RetailersPageContent({
                           </a>
                         ) : null}
                       </div>
+                    </div>
+                    <div className="flex shrink-0 flex-col gap-2 sm:hidden">
+                      <a
+                        href={retailerTelHref(store.phone)}
+                        aria-label={`اتصال بـ ${store.name}`}
+                        className="inline-flex h-12 w-12 items-center justify-center rounded-full border-2 border-brand-500 bg-white text-brand-500 transition-colors hover:bg-brand-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500"
+                      >
+                        <Phone className="h-6 w-6" aria-hidden />
+                      </a>
+                      <a
+                        href={mapHrefForRetailer(store)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={`الاتجاهات إلى ${store.name}`}
+                        className="inline-flex h-12 w-12 items-center justify-center rounded-full border-2 border-brand-500 bg-white text-brand-500 transition-colors hover:bg-brand-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500"
+                      >
+                        <Navigation className="h-6 w-6" aria-hidden />
+                      </a>
                     </div>
                   </article>
                 </li>

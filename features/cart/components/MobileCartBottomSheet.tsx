@@ -75,80 +75,83 @@ export function MobileCartBottomSheet({
       open={open}
       onOpenChange={onOpenChange}
       modal
-      shouldScaleBackground
+      shouldScaleBackground={false}
       dismissible
     >
-      {!peekHidden ? (
-        <div className="px-4 pb-0">
-          <motion.div
-            className={cn(
-              mobileCommercePeekSurfaceClass,
-              "flex min-h-[3.25rem] items-center justify-between gap-3 px-4 py-3",
-            )}
-            initial={
-              reduceMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 18 }
-            }
-            animate={{ opacity: 1, y: 0 }}
-            transition={
-              reduceMotion
-                ? { duration: 0 }
-                : { type: "spring", stiffness: 400, damping: 32 }
-            }
-          >
-            <Drawer.Trigger asChild disabled={!hasHydrated}>
-              <button
-                type="button"
-                className={cn(
-                  "flex min-w-0 flex-1 flex-col items-start gap-1 rounded-2xl text-start outline-none ring-brand-500/0 transition-[box-shadow] focus-visible:ring-2 focus-visible:ring-brand-500/40",
-                  !hasHydrated && "pointer-events-none opacity-80",
-                )}
-                aria-expanded={open}
-                aria-haspopup="dialog"
-                aria-label={open ? "إغلاق تفاصيل السلة" : "فتح تفاصيل السلة"}
-              >
-                <div
-                  className="flex w-full min-w-0 items-baseline justify-end gap-1.5"
-                  dir="ltr"
-                >
-                  <span className="font-display text-2xl font-black tabular-nums tracking-tight text-brand-950">
-                    {formatPriceAmountCheckout(totalPrice)}
-                  </span>
-                  <span className="translate-y-px text-[0.7rem] font-semibold text-brand-900/65">
-                    ج.م
-                  </span>
-                </div>
-                <p className="w-full truncate text-start text-xs text-muted-foreground">
-                  {qtyLabel}
-                </p>
-                <span className="sr-only">
-                  الإجمالي {formatPrice(totalPrice)} — اضغط لعرض تفاصيل السلة
-                </span>
-              </button>
-            </Drawer.Trigger>
+      <div className="px-4 pb-0" aria-hidden={peekHidden}>
+        <motion.div
+          className={cn(
+            mobileCommercePeekSurfaceClass,
+            "flex min-h-[3.25rem] items-center justify-between gap-3 px-4 py-3",
+            peekHidden && "pointer-events-none",
+          )}
+          initial={reduceMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 18 }}
+          animate={
+            peekHidden
+              ? { opacity: 0, y: reduceMotion ? 0 : 16 }
+              : { opacity: 1, y: 0 }
+          }
+          transition={
+            reduceMotion
+              ? { duration: 0 }
+              : { type: "spring", stiffness: 400, damping: 32 }
+          }
+        >
+          <Drawer.Trigger asChild disabled={!hasHydrated || peekHidden}>
             <button
               type="button"
+              tabIndex={peekHidden ? -1 : undefined}
               className={cn(
-                "inline-flex shrink-0 items-center gap-3 rounded-full border border-brand-800/12 bg-brand-300 py-1.5 ps-5 pe-2 text-sm font-black text-brand-950 shadow-md transition-[transform,colors] hover:bg-brand-400/85 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600",
+                "flex min-w-0 flex-1 flex-col items-start gap-1 rounded-2xl text-start outline-none ring-brand-500/0 transition-[box-shadow] focus-visible:ring-2 focus-visible:ring-brand-500/40",
+                (!hasHydrated || peekHidden) && "pointer-events-none opacity-80",
               )}
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                goCheckout();
-              }}
+              aria-expanded={open}
+              aria-haspopup="dialog"
+              aria-label={open ? "إغلاق تفاصيل السلة" : "فتح تفاصيل السلة"}
             >
-              <span className="max-w-[9rem] truncate sm:max-w-none">
-                إلى الدفع
-              </span>
-              <span
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-brand-950 shadow-sm ring-1 ring-black/[0.06]"
-                aria-hidden
+              <div
+                className="flex w-full min-w-0 items-baseline justify-end gap-1.5"
+                dir="ltr"
               >
-                <ArrowLeft className="size-5 rtl:rotate-180" />
+                <span className="font-display text-2xl font-black tabular-nums tracking-tight text-brand-950">
+                  {formatPriceAmountCheckout(totalPrice)}
+                </span>
+                <span className="translate-y-px text-[0.7rem] font-semibold text-brand-900/65">
+                  ج.م
+                </span>
+              </div>
+              <p className="w-full truncate text-start text-xs text-muted-foreground">
+                {qtyLabel}
+              </p>
+              <span className="sr-only">
+                الإجمالي {formatPrice(totalPrice)} — اضغط لعرض تفاصيل السلة
               </span>
             </button>
-          </motion.div>
-        </div>
-      ) : null}
+          </Drawer.Trigger>
+          <button
+            type="button"
+            tabIndex={peekHidden ? -1 : undefined}
+            className={cn(
+              "inline-flex shrink-0 items-center gap-3 rounded-full border border-brand-800/12 bg-brand-300 py-1.5 ps-5 pe-2 text-sm font-black text-brand-950 shadow-md transition-[transform,colors] hover:bg-brand-400/85 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600",
+            )}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              goCheckout();
+            }}
+          >
+            <span className="max-w-[9rem] truncate sm:max-w-none">
+              إلى الدفع
+            </span>
+            <span
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-brand-950 shadow-sm ring-1 ring-black/[0.06]"
+              aria-hidden
+            >
+              <ArrowLeft className="size-5 rtl:rotate-180" />
+            </span>
+          </button>
+        </motion.div>
+      </div>
 
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 z-[90] bg-slate-950/55 backdrop-blur-[2px]" />

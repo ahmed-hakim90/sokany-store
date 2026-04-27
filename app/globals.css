@@ -46,6 +46,7 @@ html[data-storefront-modal] [data-mobile-commerce-chrome] {
   --radius-editorial: 1.5rem;
   /* Mobile fixed commerce chrome (bottom nav ± cart); overridden by JS when mounted */
   --mobile-commerce-chrome-height: 12rem;
+  --mobile-commerce-floating-actions-bottom: 4.75rem;
 }
 
 @theme inline {
@@ -219,6 +220,10 @@ html::-webkit-scrollbar-thumb:hover {
   /** Sit fixed UI (e.g. PDP sticky CTA) above the mobile bottom nav — must stay below z-50 modals. */
   .bottom-mobile-commerce {
     bottom: var(--mobile-commerce-chrome-height, 5rem);
+  }
+  /** Position floating social/top actions just above the mobile bottom nav capsule. */
+  .bottom-mobile-floating-actions {
+    bottom: calc(var(--mobile-commerce-floating-actions-bottom, 4.75rem) + 0.25rem);
   }
   .rounded-editorial {
     border-radius: var(--radius-editorial, 1.5rem);

@@ -14,12 +14,17 @@ import {
 import { cn } from "@/lib/utils";
 
 const MOBILE_COMMERCE_CHROME_HEIGHT_VAR = "--mobile-commerce-chrome-height";
+const MOBILE_COMMERCE_FLOATING_ACTIONS_BOTTOM_VAR =
+  "--mobile-commerce-floating-actions-bottom";
 
 export function MobileCommerceChrome() {
   const pathname = usePathname();
   const { totalItems } = useCart();
   const cartPeekHidden = useMobileChromeCollapsedStore((s) => s.cartPeekHidden);
   const rootRef = useRef<HTMLDivElement>(null);
+  const bottomNavRef = useRef<HTMLDivElement>(null);
+  const reservedHeightRef = useRef(0);
+  const reservedHeightKeyRef = useRef("");
 
   const hideFloatingCart =
     pathname === ROUTES.CART || pathname === ROUTES.CHECKOUT;
@@ -30,11 +35,33 @@ export function MobileCommerceChrome() {
     const el = rootRef.current;
     if (!el) return;
 
+    const reservedHeightKey = `${pathname}:${showCartSummary}`;
+    if (reservedHeightKeyRef.current !== reservedHeightKey) {
+      reservedHeightRef.current = 0;
+      reservedHeightKeyRef.current = reservedHeightKey;
+    }
+
     const syncHeight = () => {
-      const h = Math.ceil(el.getBoundingClientRect().height);
+      const measuredHeight = Math.ceil(el.getBoundingClientRect().height);
+      const h = showCartSummary
+        ? Math.max(reservedHeightRef.current, measuredHeight)
+        : measuredHeight;
+      const bottomNavTop = bottomNavRef.current?.getBoundingClientRect().top;
+      const bottomNavBase =
+        bottomNavTop != null
+          ? Math.max(0, Math.ceil(window.innerHeight - bottomNavTop))
+          : 76;
+      const floatingActionsBottom =
+        showCartSummary && !cartPeekHidden ? measuredHeight : bottomNavBase;
+
+      reservedHeightRef.current = h;
       document.documentElement.style.setProperty(
         MOBILE_COMMERCE_CHROME_HEIGHT_VAR,
         `${h}px`,
+      );
+      document.documentElement.style.setProperty(
+        MOBILE_COMMERCE_FLOATING_ACTIONS_BOTTOM_VAR,
+        `${floatingActionsBottom}px`,
       );
     };
 
@@ -42,12 +69,20 @@ export function MobileCommerceChrome() {
       requestAnimationFrame(syncHeight);
     });
     ro.observe(el);
+    if (bottomNavRef.current) {
+      ro.observe(bottomNavRef.current);
+    }
+    window.addEventListener("resize", syncHeight);
     syncHeight();
 
     return () => {
       ro.disconnect();
+      window.removeEventListener("resize", syncHeight);
       document.documentElement.style.removeProperty(
         MOBILE_COMMERCE_CHROME_HEIGHT_VAR,
+      );
+      document.documentElement.style.removeProperty(
+        MOBILE_COMMERCE_FLOATING_ACTIONS_BOTTOM_VAR,
       );
     };
   }, [pathname, showCartSummary, cartPeekHidden]);
@@ -68,7 +103,10 @@ export function MobileCommerceChrome() {
           showCartSummary={showCartSummary}
           peekHidden={cartPeekHidden}
         />
-        <div className={mobileCommerceBottomNavCapsuleClassName()}>
+        <div
+          ref={bottomNavRef}
+          className={mobileCommerceBottomNavCapsuleClassName()}
+        >
           <BottomNavInner />
         </div>
       </div>

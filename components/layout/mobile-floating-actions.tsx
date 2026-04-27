@@ -15,7 +15,7 @@ export function MobileFloatingActions({ socialLinks }: MobileFloatingActionsProp
     <div
       className={
         "fixed end-4 z-[55] flex flex-col-reverse items-end gap-2 " +
-        "max-lg:bottom-[calc(var(--mobile-commerce-chrome-height,5rem)+0.75rem)] lg:bottom-8"
+        "bottom-mobile-floating-actions lg:bottom-8"
       }
     >
       <ScrollToTopButton />
