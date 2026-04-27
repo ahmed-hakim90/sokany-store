@@ -17,6 +17,7 @@ const CHECKOUT_WOO_SHIPPING = {
 };
 
 export function shippingFeeForMethod(_method: CheckoutFormData["shippingMethod"]): number {
+  void _method;
   return 0;
 }
 
@@ -25,6 +26,14 @@ export function toCreateOrderPayload(
   items: CartItem[],
   options?: { customerId?: number; firebaseUid?: string },
 ): CreateOrderPayload {
+  const metaData: NonNullable<CreateOrderPayload["meta_data"]> = [
+    { key: "governorate_code", value: values.shippingStateCode },
+    { key: "governorate_name", value: values.shippingState },
+    ...(options?.firebaseUid
+      ? [{ key: "firebase_uid", value: options.firebaseUid }]
+      : []),
+  ];
+
   const shipping = {
     first_name: values.shippingFirstName,
     last_name: values.shippingLastName,
@@ -59,10 +68,6 @@ export function toCreateOrderPayload(
     customer_note: values.customerNote,
     set_paid: false,
     ...(options?.customerId ? { customer_id: options.customerId } : {}),
-    ...(options?.firebaseUid
-      ? {
-          meta_data: [{ key: "firebase_uid", value: options.firebaseUid }],
-        }
-      : {}),
+    meta_data: metaData,
   };
 }

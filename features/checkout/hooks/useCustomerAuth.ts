@@ -34,6 +34,7 @@ function buildCustomerDoc(values: CheckoutFormData, phoneE164: string, authPhone
     shippingAddress2: values.shippingAddress2,
     shippingCity: values.shippingCity,
     shippingState: values.shippingState,
+    shippingStateCode: values.shippingStateCode,
     shippingPostcode: values.shippingPostcode,
     shippingCountry: values.shippingCountry,
     shippingMethod: values.shippingMethod,

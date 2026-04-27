@@ -13,7 +13,7 @@ export function useWishlist() {
   const removeProductStore = useWishlistStore((s) => s.removeProduct);
   const toggleProductStore = useWishlistStore((s) => s.toggleProduct);
 
-  const safeItems = hasHydrated ? items : [];
+  const safeItems = useMemo(() => (hasHydrated ? items : []), [hasHydrated, items]);
 
   const isInWishlist = useCallback(
     (productId: number) => safeItems.some((i) => i.productId === productId),

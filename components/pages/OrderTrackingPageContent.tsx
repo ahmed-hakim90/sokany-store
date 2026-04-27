@@ -49,13 +49,13 @@ export function OrderTrackingPageContent() {
   const orderSteps = useMemo(() => {
     if (!showTimeline || !data?.found) return [];
     const base = Date.parse(data.dateCreated);
-    const baseTimeMs = Number.isFinite(base) ? base : Date.now();
+    const baseTimeMs = Number.isFinite(base) ? base : trackQuery.dataUpdatedAt;
     return buildTrackingSteps({
       activeIndex: data.currentStepIndex,
       allCompleted: data.allCompleted,
       baseTimeMs,
     });
-  }, [showTimeline, data]);
+  }, [showTimeline, data, trackQuery.dataUpdatedAt]);
 
   const displayOrderRef = data?.found === true ? String(data.orderId) : "";
 

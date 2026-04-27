@@ -66,27 +66,31 @@ export function useCheckoutForm() {
   const checkoutOrder = useCheckoutOrderMutation();
 
   useEffect(() => {
-    const amend = readCheckoutAmendSession();
-    const amendPrefill = amend ? readCheckoutAmendFormPrefill(amend) : null;
-    const draft = loadCheckoutDraftFromStorage();
+    const timer = window.setTimeout(() => {
+      const amend = readCheckoutAmendSession();
+      const amendPrefill = amend ? readCheckoutAmendFormPrefill(amend) : null;
+      const draft = loadCheckoutDraftFromStorage();
 
-    /* زيارة الدفع خارج مسار التعديل: إزالة تعبئة/نسخ احتياطي يتيمين حتى لا تُخلط جلسات لاحقاً */
-    if (!amend) {
-      clearCheckoutAmendFormPrefill();
-    }
+      /* زيارة الدفع خارج مسار التعديل: إزالة تعبئة/نسخ احتياطي يتيمين حتى لا تُخلط جلسات لاحقاً */
+      if (!amend) {
+        clearCheckoutAmendFormPrefill();
+      }
 
-    /*
-     * لا نمسح prefill أثناء ‎amend‎ هنا: React 18 Strict Mode قد يعيد تشغيل التأثير مرتين في التطوير.
-     * يُمسح المفتاح عند ‎clearCheckoutAmendSession‎ بعد نجاح التعديل.
-     */
-    if (amend && amendPrefill) {
-      setValues({ ...defaultCheckoutFormValues, ...amendPrefill });
-    } else if (amend && draft) {
-      setValues(draft);
-    } else if (draft) {
-      setValues(draft);
-    }
-    setRehydratedDraft(true);
+      /*
+       * لا نمسح prefill أثناء ‎amend‎ هنا: React 18 Strict Mode قد يعيد تشغيل التأثير مرتين في التطوير.
+       * يُمسح المفتاح عند ‎clearCheckoutAmendSession‎ بعد نجاح التعديل.
+       */
+      if (amend && amendPrefill) {
+        setValues({ ...defaultCheckoutFormValues, ...amendPrefill });
+      } else if (amend && draft) {
+        setValues(draft);
+      } else if (draft) {
+        setValues(draft);
+      }
+      setRehydratedDraft(true);
+    }, 0);
+
+    return () => window.clearTimeout(timer);
   }, []);
 
   useEffect(() => {

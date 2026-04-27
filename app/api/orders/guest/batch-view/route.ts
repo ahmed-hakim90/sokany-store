@@ -8,6 +8,7 @@ import {
   GuestOrderAccessError,
   mapGuestViewResponse,
 } from "@/features/orders/lib/guest-order-server";
+import { mockOrderTimestampsForEligibility } from "@/features/orders/lib/mock-order-timestamps-for-eligibility";
 import { mockOrders } from "@/features/orders/mock";
 import { wpOrderSchema } from "@/schemas/wordpress";
 
@@ -37,12 +38,17 @@ export async function POST(request: NextRequest) {
   }
 
   if (USE_MOCK) {
+    const fresh = mockOrderTimestampsForEligibility();
     const results = parsed.data.refs.map((ref) => {
       const raw = mockOrders.find((o) => o.id === ref.orderId);
       if (!raw || raw.order_key !== ref.orderKey) {
         return { orderId: ref.orderId, error: "not_found" as const };
       }
-      const order = wpOrderSchema.parse(raw);
+      const order = wpOrderSchema.parse({
+        ...raw,
+        date_created: fresh.date_created,
+        date_created_gmt: fresh.date_created_gmt,
+      });
       return { orderId: ref.orderId, ...mapGuestViewResponse(order) };
     });
     return NextResponse.json({ results });

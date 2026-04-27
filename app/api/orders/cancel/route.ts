@@ -1,39 +1,49 @@
 import { NextRequest, NextResponse } from "next/server";
 import axios from "axios";
 import { z } from "zod";
+import { getSessionFromRequest } from "@/lib/auth-request";
 import { createWooClient } from "@/lib/create-woo-client";
+import { assertOrderAccessibleBySession } from "@/lib/verify-order-for-session";
 import { USE_MOCK } from "@/lib/constants";
 import {
-  fetchAndVerifyGuestOrder,
   guestOrderActionEligibility,
   GuestOrderAccessError,
 } from "@/features/orders/lib/guest-order-server";
 import { mockOrderTimestampsForEligibility } from "@/features/orders/lib/mock-order-timestamps-for-eligibility";
 import { mockOrders } from "@/features/orders/mock";
+import { wpOrderSchema } from "@/schemas/wordpress";
 
 const bodySchema = z.object({
   orderId: z.number().int().positive(),
-  orderKey: z.string().min(1),
 });
 
 export async function POST(request: NextRequest) {
+  const session = await getSessionFromRequest(request);
+  if (!session) {
+    return NextResponse.json({ error: "غير مخوّل." }, { status: 401 });
+  }
+
   let json: unknown;
   try {
     json = await request.json();
   } catch {
-    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+    return NextResponse.json({ error: "طلب غير صالح." }, { status: 400 });
   }
 
   const parsed = bodySchema.safeParse(json);
   if (!parsed.success) {
-    return NextResponse.json({ error: "Invalid body" }, { status: 400 });
+    return NextResponse.json({ error: "بيانات غير كافية." }, { status: 400 });
   }
 
-  const { orderId, orderKey } = parsed.data;
+  const { orderId } = parsed.data;
 
   if (USE_MOCK) {
     const raw = mockOrders.find((o) => o.id === orderId);
-    if (!raw || raw.order_key !== orderKey) {
+    if (!raw) {
+      return NextResponse.json({ error: "الطلب غير موجود." }, { status: 404 });
+    }
+    const email = (raw as { billing?: { email?: string } }).billing?.email?.trim();
+    if (email && email.toLowerCase() !== session.email.toLowerCase()) {
       return NextResponse.json({ error: "تعذر التحقق من الطلب." }, { status: 403 });
     }
     const t = mockOrderTimestampsForEligibility();
@@ -53,7 +63,9 @@ export async function POST(request: NextRequest) {
 
   try {
     const woo = await createWooClient();
-    const order = await fetchAndVerifyGuestOrder(woo, orderId, orderKey);
+    const res = await woo.get(`/orders/${orderId}`);
+    const order = wpOrderSchema.parse(res.data);
+    await assertOrderAccessibleBySession(woo, session, order);
     const elig = guestOrderActionEligibility({
       status: order.status,
       date_created: order.date_created,
@@ -74,7 +86,7 @@ export async function POST(request: NextRequest) {
     if (axios.isAxiosError(e) && e.response?.status === 404) {
       return NextResponse.json({ error: "الطلب غير موجود." }, { status: 404 });
     }
-    console.error("[POST /api/orders/guest/cancel]", e);
+    console.error("[POST /api/orders/cancel]", e);
     return NextResponse.json({ error: "تعذر إلغاء الطلب." }, { status: 500 });
   }
 }

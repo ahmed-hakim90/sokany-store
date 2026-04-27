@@ -9,6 +9,7 @@ import {
   guestOrderActionEligibility,
   GuestOrderAccessError,
 } from "@/features/orders/lib/guest-order-server";
+import { mockOrderTimestampsForEligibility } from "@/features/orders/lib/mock-order-timestamps-for-eligibility";
 import { mockOrders } from "@/features/orders/mock";
 import { createOrderPayloadSchema, wpOrderSchema } from "@/schemas/wordpress";
 
@@ -46,11 +47,11 @@ export async function POST(request: NextRequest) {
     if (!raw || raw.order_key !== orderKey) {
       return NextResponse.json({ error: "تعذر التحقق من الطلب." }, { status: 403 });
     }
-    const rawGmt = (raw as { date_created_gmt?: unknown }).date_created_gmt;
+    const t = mockOrderTimestampsForEligibility();
     const elig = guestOrderActionEligibility({
       status: raw.status,
-      date_created: raw.date_created,
-      date_created_gmt: typeof rawGmt === "string" ? rawGmt : undefined,
+      date_created: t.date_created,
+      date_created_gmt: t.date_created_gmt,
     });
     if (!elig.canAmend) {
       return NextResponse.json(

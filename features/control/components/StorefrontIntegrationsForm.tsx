@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/Button";
 import type { CmsStorefrontIntegrations } from "@/schemas/cms";
 
@@ -28,14 +28,6 @@ export function StorefrontIntegrationsForm({ initial, disabled, onSave }: Props)
     () => initial?.externalDataWebhookUrl ?? "",
   );
   const [adminNote, setAdminNote] = useState(() => initial?.adminNote ?? "");
-
-  useEffect(() => {
-    setWooBaseUrl(initial?.wooBaseUrl ?? "");
-    setPublicStorefrontBaseUrl(initial?.publicStorefrontBaseUrl ?? "");
-    setPublicReadBaseUrl(initial?.publicReadBaseUrl ?? "");
-    setExternalDataWebhookUrl(initial?.externalDataWebhookUrl ?? "");
-    setAdminNote(initial?.adminNote ?? "");
-  }, [initial]);
 
   return (
     <section className="space-y-4 rounded-2xl border border-border bg-white p-5 shadow-sm">

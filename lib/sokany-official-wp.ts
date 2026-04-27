@@ -142,7 +142,6 @@ export async function fetchSokanyWpPage(slug: string): Promise<SokanyWpPage | nu
     return { title, html };
   } catch (e) {
     if (process.env.NODE_ENV === "development") {
-      // eslint-disable-next-line no-console -- dev-only prerender / upstream diagnosis
       console.warn(`[fetchSokanyWpPage] slug=${slug} failed:`, e);
     }
     return null;

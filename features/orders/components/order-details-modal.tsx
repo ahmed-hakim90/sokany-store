@@ -2,7 +2,7 @@
 
 import { createPortal } from "react-dom";
 import { Link } from "next-view-transitions";
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useSyncExternalStore } from "react";
 import { AppImage } from "@/components/AppImage";
 import { Button } from "@/components/Button";
 import { IconButton } from "@/components/ui/icon-button";
@@ -25,6 +25,10 @@ export type OrderDetailsModalProps = {
   onCancel?: () => void;
   cancelPending?: boolean;
 };
+
+function subscribeStaticSnapshot() {
+  return () => {};
+}
 
 function formatPersonLines(addr: Pick<BillingAddress, "firstName" | "lastName" | "company">): string[] {
   const name = [addr.firstName, addr.lastName].filter((s) => s?.trim()).join(" ").trim();
@@ -58,11 +62,7 @@ export function OrderDetailsModal({
 }: OrderDetailsModalProps) {
   const titleId = useId();
   const closeRef = useRef<HTMLButtonElement>(null);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useSyncExternalStore(subscribeStaticSnapshot, () => true, () => false);
 
   useEffect(() => {
     if (!open) return;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { Button } from "@/components/Button";
 import { isClientRedirectSafeguardEnabled } from "@/lib/client-redirect-safeguard";
 
@@ -9,6 +9,23 @@ type BeforeInstallPromptEvent = Event & {
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 };
 
+function getIosInstallHintSnapshot() {
+  if (typeof window === "undefined" || !isClientRedirectSafeguardEnabled()) {
+    return false;
+  }
+  const ua = window.navigator.userAgent.toLowerCase();
+  const isIos = /iphone|ipad|ipod/.test(ua);
+  const isStandalone =
+    (typeof window.matchMedia === "function" &&
+      window.matchMedia("(display-mode: standalone)").matches) ||
+    (window.navigator as unknown as { standalone?: boolean }).standalone === true;
+  return isIos && !isStandalone;
+}
+
+function subscribeStaticSnapshot() {
+  return () => {};
+}
+
 /**
  * تثبيت PWA عبر `beforeinstallprompt` فقط. تلميح iOS (userAgent) يظهر فقط مع `?redirect=1`.
  * التموضع: `PwaEngagementStack`.
@@ -16,7 +33,11 @@ type BeforeInstallPromptEvent = Event & {
 export function PwaInstallPrompt() {
   const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null);
   const [dismissed, setDismissed] = useState(false);
-  const [iosHint, setIosHint] = useState(false);
+  const iosHint = useSyncExternalStore(
+    subscribeStaticSnapshot,
+    getIosInstallHintSnapshot,
+    () => false,
+  );
 
   useEffect(() => {
     const handler = (e: Event) => {
@@ -24,18 +45,6 @@ export function PwaInstallPrompt() {
       setDeferred(e as BeforeInstallPromptEvent);
     };
     window.addEventListener("beforeinstallprompt", handler);
-
-    if (isClientRedirectSafeguardEnabled()) {
-      const ua = window.navigator.userAgent.toLowerCase();
-      const isIos = /iphone|ipad|ipod/.test(ua);
-      const isStandalone =
-        (typeof window.matchMedia === "function" &&
-          window.matchMedia("(display-mode: standalone)").matches) ||
-        (window.navigator as unknown as { standalone?: boolean }).standalone === true;
-      if (isIos && !isStandalone) {
-        setIosHint(true);
-      }
-    }
 
     return () => window.removeEventListener("beforeinstallprompt", handler);
   }, []);

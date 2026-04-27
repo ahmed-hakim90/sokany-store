@@ -175,17 +175,6 @@ export function AnnouncementBarForm({
       : [{ text: "", href: "" }],
   );
 
-  useEffect(() => {
-    setEnabled(initial.enabled);
-    setMode(initial.mode);
-    setCarouselIntervalSec(initial.carouselIntervalSec ?? 8);
-    setRows(
-      initial.items.length > 0
-        ? initial.items.map((i) => ({ text: i.text, href: i.href ?? "" }))
-        : [{ text: "", href: "" }],
-    );
-  }, [initial]);
-
   function updateRow(i: number, patch: Partial<AnnRow>) {
     setRows((prev) => {
       const next = [...prev];
@@ -336,14 +325,6 @@ export function SocialLinksForm({
       ? initialFromCms.map((s) => ({ ...s }))
       : SOCIAL_LINKS.map((s) => ({ ...s })),
   );
-
-  useEffect(() => {
-    setRows(
-      initialFromCms && initialFromCms.length > 0
-        ? initialFromCms.map((s) => ({ ...s }))
-        : SOCIAL_LINKS.map((s) => ({ ...s })),
-    );
-  }, [initialFromCms]);
 
   function updateRow(i: number, field: keyof SocialLink, value: string) {
     setRows((prev) => {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { ZodError } from "zod";
 import { isAxiosError } from "axios";
@@ -22,22 +22,15 @@ export function ProductReviewForm({ productId }: { productId: number }) {
     reviewerEmail: user?.email?.trim() ?? "",
   }));
   const createReview = useCreateReview(productId);
-
-  useEffect(() => {
-    if (!user) return;
-    setFields((p) => ({
-      ...p,
-      reviewer: user.displayName?.trim() || p.reviewer,
-      reviewerEmail: user.email?.trim() || p.reviewerEmail,
-    }));
-  }, [user]);
+  const reviewer = user?.displayName?.trim() || fields.reviewer;
+  const reviewerEmail = user?.email?.trim() || fields.reviewerEmail;
 
   const submit = () => {
     createReview.mutate(
       {
         productId,
-        reviewer: fields.reviewer,
-        reviewerEmail: fields.reviewerEmail,
+        reviewer,
+        reviewerEmail,
         review: fields.review,
         rating: fields.rating,
       },
@@ -70,7 +63,7 @@ export function ProductReviewForm({ productId }: { productId: number }) {
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
         <FormField
           label="الاسم"
-          value={fields.reviewer}
+          value={reviewer}
           onChange={(e) => setFields((p) => ({ ...p, reviewer: e.target.value }))}
           readOnly={Boolean(user?.displayName?.trim())}
           autoComplete="name"
@@ -78,7 +71,7 @@ export function ProductReviewForm({ productId }: { productId: number }) {
         <FormField
           label="البريد الإلكتروني"
           type="email"
-          value={fields.reviewerEmail}
+          value={reviewerEmail}
           onChange={(e) => setFields((p) => ({ ...p, reviewerEmail: e.target.value }))}
           readOnly={Boolean(user?.email?.trim())}
           autoComplete="email"

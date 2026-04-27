@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useTransitionRouter } from "next-view-transitions";
 import { startTransition } from "react";
@@ -43,42 +43,40 @@ function chipClass(active: boolean) {
   );
 }
 
-export type CatalogFilterFormProps = {
-  /** Bump when the drawer opens to re-sync draft from the URL. */
-  resetKey: number;
-};
+function parseCatalogFilterDraft(searchParams: ReturnType<typeof useSearchParams>) {
+  const sp = new URLSearchParams(searchParams.toString());
+  const isFeatured = sp.get("featured") === "true";
+  const catRaw = sp.get("category");
+  const parsedCat = catRaw ? Number.parseInt(catRaw, 10) : NaN;
+  const validCat =
+    Number.isFinite(parsedCat) && parsedCat > 0 ? parsedCat : null;
+  const minP = sp.get("min_price");
+  const maxP = sp.get("max_price");
 
-export function CatalogFilterForm({ resetKey }: CatalogFilterFormProps) {
+  return {
+    featured: isFeatured,
+    categoryId: isFeatured ? null : validCat,
+    priceMin: minP ? Number.parseInt(minP, 10) || 0 : 0,
+    priceMax: maxP
+      ? Number.parseInt(maxP, 10) || CATALOG_PRICE_DEFAULT_MAX
+      : CATALOG_PRICE_DEFAULT_MAX,
+    sortValue: parseSortFromSearchParams(sp),
+  };
+}
+
+export function CatalogFilterForm() {
   const router = useTransitionRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const closeDrawer = useCatalogFilterDrawerOpenStore((s) => s.closeDrawer);
   const categoriesQuery = useCategories({ per_page: 100 });
+  const initialDraft = parseCatalogFilterDraft(searchParams);
 
-  const [featured, setFeatured] = useState(false);
-  const [categoryId, setCategoryId] = useState<number | null>(null);
-  const [sortValue, setSortValue] = useState("popularity:desc");
-  const [priceMin, setPriceMin] = useState(0);
-  const [priceMax, setPriceMax] = useState(CATALOG_PRICE_DEFAULT_MAX);
-
-  useEffect(() => {
-    const sp = new URLSearchParams(searchParams.toString());
-    const isFeatured = sp.get("featured") === "true";
-    const catRaw = sp.get("category");
-    const parsedCat = catRaw ? Number.parseInt(catRaw, 10) : NaN;
-    const validCat =
-      Number.isFinite(parsedCat) && parsedCat > 0 ? parsedCat : null;
-
-    setFeatured(isFeatured);
-    setCategoryId(isFeatured ? null : validCat);
-
-    const minP = sp.get("min_price");
-    const maxP = sp.get("max_price");
-    setPriceMin(minP ? Number.parseInt(minP, 10) || 0 : 0);
-    setPriceMax(maxP ? Number.parseInt(maxP, 10) || CATALOG_PRICE_DEFAULT_MAX : CATALOG_PRICE_DEFAULT_MAX);
-
-    setSortValue(parseSortFromSearchParams(sp));
-  }, [resetKey, searchParams]);
+  const [featured, setFeatured] = useState(initialDraft.featured);
+  const [categoryId, setCategoryId] = useState<number | null>(initialDraft.categoryId);
+  const [sortValue, setSortValue] = useState(initialDraft.sortValue);
+  const [priceMin, setPriceMin] = useState(initialDraft.priceMin);
+  const [priceMax, setPriceMax] = useState(initialDraft.priceMax);
 
   const apply = () => {
     const [orderby, order] = sortValue.split(":") as [string, "asc" | "desc"];
@@ -191,7 +189,7 @@ export function CatalogFilterForm({ resetKey }: CatalogFilterFormProps) {
       <section className="space-y-2">
         <h3 className="text-xs font-bold text-muted-foreground">نطاق السعر</h3>
         <PriceRangeFilter
-          key={`price-${resetKey}`}
+          key="price"
           minPrice={priceMin}
           maxPrice={priceMax}
           showActionButtons={false}

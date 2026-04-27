@@ -11,6 +11,7 @@ export const defaultCheckoutFormValues: CheckoutFormData = {
   shippingAddress2: "",
   shippingCity: "",
   shippingState: "",
+  shippingStateCode: "",
   shippingPostcode: "",
   shippingCountry: "EG",
   shippingMethod: "free_shipping",

@@ -12,6 +12,7 @@ export const firestoreCustomerSchema = z.object({
   shippingAddress2: z.string(),
   shippingCity: z.string().min(1),
   shippingState: z.string().min(1),
+  shippingStateCode: z.string().min(1),
   shippingPostcode: z.string().min(1),
   shippingCountry: z.string().min(2),
   shippingMethod: z.enum(["flat_rate", "local_pickup", "free_shipping"]),

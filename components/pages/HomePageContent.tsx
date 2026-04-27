@@ -1,6 +1,5 @@
 "use client";
 
-import { useMemo } from "react";
 import { useTransitionRouter } from "next-view-transitions";
 import { Button } from "@/components/Button";
 import { Container } from "@/components/Container";
@@ -21,14 +20,9 @@ import { HomeMobileServicesCapsule } from "@/features/home/components/home-mobil
 import { ProductGrid } from "@/features/products/components/ProductGrid";
 import { ROUTES } from "@/lib/constants";
 import { useCategories } from "@/features/categories/hooks/useCategories";
-import { HomeCategoryImageScroller } from "@/features/home/components/home-category-image-scroller";
 import { HomeFlashSaleCountdownStrip } from "@/features/home/components/home-flash-sale-countdown";
 import { useProducts } from "@/features/products/hooks/useProducts";
-import { buildHomeCategoryStripTiles } from "@/features/home/lib/home-category-strip-tiles";
-import {
-  CMS_DEFAULT_HOME_CATEGORY_SCROLLER,
-  type CmsHomeCategoryScroller,
-} from "@/schemas/cms";
+import type { CmsHomeCategoryScroller } from "@/schemas/cms";
 
 /*
  * الصفحة الرئيسية (/): عمود واحد داخل Container بمسافات رأسية تتسع تدريجياً (sm → md).
@@ -82,7 +76,6 @@ export function HomePageContent({
   flashSaleSectionEnabled = true,
   promoFlash,
   homeBottomPromo = DEFAULT_BOTTOM_PROMO,
-  homeCategoryScroller = CMS_DEFAULT_HOME_CATEGORY_SCROLLER,
 }: HomePageContentProps) {
   const router = useTransitionRouter();
   const flashSales = useProducts({
@@ -103,13 +96,6 @@ export function HomePageContent({
     order: "desc",
   });
   const { getCartLineQuantity, setProductLineQuantity } = useCart();
-  const categoryTiles = useMemo(
-    () =>
-      homeCategoryScroller.sectionVisible
-        ? buildHomeCategoryStripTiles(categories.data, homeCategoryScroller)
-        : [],
-    [categories.data, homeCategoryScroller],
-  );
 
   return (
     <div className="animate-fade-in bg-page max-lg:!bg-transparent">

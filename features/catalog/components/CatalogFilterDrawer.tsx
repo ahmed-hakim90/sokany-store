@@ -67,7 +67,7 @@ export function CatalogFilterDrawer() {
           </Drawer.Description>
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-4 pb-2 pt-2">
             <Suspense fallback={<CatalogFilterFormFallback />}>
-              <CatalogFilterForm resetKey={resetKey} />
+              <CatalogFilterForm key={resetKey} />
             </Suspense>
           </div>
         </Drawer.Content>

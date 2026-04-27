@@ -1,11 +1,7 @@
 import { Link } from "next-view-transitions";
 import { AppImage } from "@/components/AppImage";
-import { ROUTES } from "@/lib/constants";
 import type { Category } from "@/features/categories/types";
 import { cn } from "@/lib/utils";
-
-const FALLBACK_DESCRIPTION =
-  "تصفّح أحدث المنتجات والعروض في هذا القسم — جودة سوكانى وضمان موثوق.";
 
 export type HomeCategoryExclusiveBannerProps = {
   category: Category;
@@ -26,14 +22,8 @@ export function HomeCategoryExclusiveBanner({
   category,
   sectionBannerSrc = null,
   bannerHref,
-  badgeText = "حصرياً",
   className,
 }: HomeCategoryExclusiveBannerProps) {
-  const description =
-    category.description.trim().length > 0
-      ? category.description.trim()
-      : FALLBACK_DESCRIPTION;
-  const href = ROUTES.CATEGORY(category.slug);
   const imageSrc =
     sectionBannerSrc ?? category.image ?? "/images/placeholder.png";
   const hasRealBannerImage = Boolean(sectionBannerSrc || category.image);

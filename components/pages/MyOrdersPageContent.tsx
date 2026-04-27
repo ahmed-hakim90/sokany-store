@@ -16,11 +16,13 @@ import {
 } from "@/features/checkout/lib/checkout-amend-session";
 import { orderToCheckoutFormData } from "@/features/checkout/lib/order-to-checkout-form";
 import { fetchMyOrders } from "@/features/orders/services/fetchMyOrders";
+import { cancelSessionOrder } from "@/features/orders/services/cancelSessionOrder";
 import {
   cancelGuestOrder,
   fetchGuestOrdersBatch,
   type GuestBatchViewRow,
 } from "@/features/orders/services/guestOrdersApi";
+import { guestOrderActionEligibility } from "@/features/orders/lib/guest-order-server";
 import type { Order } from "@/features/orders/types";
 import {
   listGuestOrderRefs,
@@ -29,7 +31,7 @@ import {
 import { orderItemsToCartItems } from "@/features/orders/lib/order-items-to-cart-items";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import { useCart } from "@/hooks/useCart";
-import { GUEST_ORDER_AMEND_ENABLED, ROUTES, STALE_TIME } from "@/lib/constants";
+import { GUEST_ORDER_AMEND_ENABLED, ROUTES, STALE_TIME, USE_MOCK } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 /*
@@ -113,6 +115,21 @@ export function MyOrdersPageContent() {
     },
   });
 
+  const cancelSessionMutation = useMutation({
+    mutationFn: (orderId: number) => cancelSessionOrder(orderId),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["my-orders"] });
+      toast.success("تم إلغاء الطلب.");
+      setDetailOpen(false);
+      setDetailOrder(null);
+      setDetailCanAmend(false);
+      setDetailCanCancel(false);
+    },
+    onError: (e) => {
+      toast.error(e instanceof Error ? e.message : "تعذر إلغاء الطلب.");
+    },
+  });
+
   const openGuestDetails = (order: Order, canAmend: boolean, canCancel: boolean) => {
     setDetailOrder(order);
     setDetailCanAmend(canAmend);
@@ -123,7 +140,19 @@ export function MyOrdersPageContent() {
   const openAuthDetails = (order: Order) => {
     setDetailOrder(order);
     setDetailCanAmend(false);
-    setDetailCanCancel(false);
+    const gmt = order.wooExcess?.date_created_gmt;
+    const nowIso = new Date().toISOString();
+    const actions = guestOrderActionEligibility({
+      status: order.status,
+      /* ‎USE_MOCK‎: تواريخ ‎mockOrders‎ قد تخرج من نافذة الساعتين — نطابق سلوك الـ API. */
+      date_created: USE_MOCK ? nowIso : order.dateCreated,
+      date_created_gmt: USE_MOCK
+        ? nowIso
+        : typeof gmt === "string"
+          ? gmt
+          : undefined,
+    });
+    setDetailCanCancel(actions.canCancel);
     setDetailOpen(true);
   };
 
@@ -332,10 +361,14 @@ export function MyOrdersPageContent() {
         onCancel={
           detailOrder && detailCanCancel
             ? () => {
-                if (
-                  !detailOrder.orderKey.trim() ||
-                  !window.confirm("هل تريد إلغاء هذا الطلب؟")
-                ) {
+                if (!window.confirm("هل تريد إلغاء هذا الطلب؟")) {
+                  return;
+                }
+                if (isAuthenticated) {
+                  cancelSessionMutation.mutate(detailOrder.id);
+                  return;
+                }
+                if (!detailOrder.orderKey.trim()) {
                   return;
                 }
                 cancelGuestMutation.mutate({
@@ -345,7 +378,7 @@ export function MyOrdersPageContent() {
               }
             : undefined
         }
-        cancelPending={cancelGuestMutation.isPending}
+        cancelPending={cancelSessionMutation.isPending || cancelGuestMutation.isPending}
       />
     </div>
   );

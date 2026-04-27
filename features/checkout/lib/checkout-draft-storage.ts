@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { CheckoutFormData } from "@/features/checkout/types";
+import { findEgyptGovernorate } from "@/features/checkout/data/egypt-governorates";
 import { defaultCheckoutFormValues } from "@/features/checkout/lib/checkout-form-defaults";
 import { CHECKOUT_DRAFT_STORAGE_KEY } from "@/lib/constants";
 
@@ -14,6 +15,7 @@ const draftSchema = z.object({
   shippingAddress2: z.string().optional(),
   shippingCity: z.string().optional(),
   shippingState: z.string().optional(),
+  shippingStateCode: z.string().optional(),
   shippingPostcode: z.string().optional(),
   shippingCountry: z.string().optional(),
   shippingMethod: z.enum(["flat_rate", "local_pickup", "free_shipping"]).optional(),
@@ -23,9 +25,15 @@ const draftSchema = z.object({
 });
 
 function mergeFromDraft(parsed: z.infer<typeof draftSchema>): CheckoutFormData {
+  const governorate =
+    findEgyptGovernorate(parsed.shippingStateCode ?? "") ??
+    findEgyptGovernorate(parsed.shippingState ?? "");
+
   return {
     ...defaultCheckoutFormValues,
     ...parsed,
+    shippingState: governorate?.nameAr ?? parsed.shippingState ?? "",
+    shippingStateCode: governorate?.code ?? parsed.shippingStateCode ?? "",
     /* لا نعيد تخزين/تحميل كلمة السر — يُدخلها العميل من جديد عند اختيار «إنشاء حساب» */
     accountPassword: "",
     /* طريقة الشحن في الطلب مُوحّدة (مجاني) — مسودات قديمة قد تضم flat_rate */

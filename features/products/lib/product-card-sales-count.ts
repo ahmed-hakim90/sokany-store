@@ -1,4 +1,4 @@
-import { CURRENCY_LOCALE, PRODUCT_CARD_MIN_SALES_TO_DISPLAY } from "@/lib/constants";
+import { PRODUCT_CARD_MIN_SALES_TO_DISPLAY } from "@/lib/constants";
 import type { Product } from "@/features/products/types";
 
 /**

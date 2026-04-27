@@ -13,6 +13,7 @@ export type CheckoutFormData = {
   shippingAddress2: string;
   shippingCity: string;
   shippingState: string;
+  shippingStateCode: string;
   shippingPostcode: string;
   shippingCountry: string;
   shippingMethod: ShippingMethod;

@@ -438,6 +438,7 @@ export function ControlMediaTab({
                 className="h-[min(16rem,50vh)] w-full border-0"
               />
             ) : (
+              // eslint-disable-next-line @next/next/no-img-element -- local object URL preview before upload
               <img
                 src={uploadLocalPreviewUrl}
                 alt=""
@@ -456,6 +457,7 @@ export function ControlMediaTab({
                 className="h-[min(14rem,45vh)] w-full border-0"
               />
             ) : (
+              // eslint-disable-next-line @next/next/no-img-element -- local object URL preview after failed upload
               <img
                 src={uploadLocalPreviewUrl}
                 alt=""

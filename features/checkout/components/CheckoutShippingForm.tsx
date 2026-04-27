@@ -1,10 +1,17 @@
 "use client";
 
 import { FormField } from "@/components/ui/form-field";
+import { SearchableSelectField } from "@/components/ui/searchable-select-field";
 import { Card } from "@/components/ui/card";
 import { CheckoutSectionChip } from "@/features/checkout/components/checkout-section-chip";
+import { EGYPT_GOVERNORATES } from "@/features/checkout/data/egypt-governorates";
 import type { CheckoutFormData } from "@/features/checkout/types";
 import { cn } from "@/lib/utils";
+
+const GOVERNORATE_OPTIONS = EGYPT_GOVERNORATES.map((governorate) => ({
+  value: governorate.code,
+  label: governorate.nameAr,
+}));
 
 export type CheckoutShippingFormProps = {
   values: CheckoutFormData;
@@ -21,6 +28,12 @@ export function CheckoutShippingForm({
   errors,
   onChange,
 }: CheckoutShippingFormProps) {
+  const handleGovernorateChange = (code: string) => {
+    const governorate = EGYPT_GOVERNORATES.find((item) => item.code === code);
+    onChange("shippingStateCode", governorate?.code ?? "");
+    onChange("shippingState", governorate?.nameAr ?? "");
+  };
+
   return (
     <Card
       variant="summary"
@@ -142,14 +155,16 @@ export function CheckoutShippingForm({
               autoComplete="address-level2"
               required
             />
-            <FormField
+            <SearchableSelectField
               label="المحافظة"
               id="shippingState"
-              name="shippingState"
-              value={values.shippingState}
-              onChange={(e) => onChange("shippingState", e.target.value)}
-              error={errors.shippingState}
-              autoComplete="address-level1"
+              name="shippingStateCode"
+              value={values.shippingStateCode}
+              onValueChange={handleGovernorateChange}
+              options={GOVERNORATE_OPTIONS}
+              placeholder="ابحثي عن المحافظة"
+              helperText="سيتم إرسال اسم المحافظة مع الطلب وكودها للإدارة."
+              error={errors.shippingStateCode ?? errors.shippingState}
               required
             />
             <FormField

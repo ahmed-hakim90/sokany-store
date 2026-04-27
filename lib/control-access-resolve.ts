@@ -1,6 +1,6 @@
 import "server-only";
 
-import { CONTROL_TABS_EXCLUDING_ACCESS, isControlPanelTabId } from "@/features/control/lib/control-tabs";
+import { isControlPanelTabId } from "@/features/control/lib/control-tabs";
 import { CONTROL_PANEL_ACCESS_COLLECTION } from "@/features/control/lib/collections";
 import { controlPanelAccessDocSchema, type ControlPanelAccessDoc } from "@/schemas/control-panel-access";
 import { getControlAccessForUid, type ControlPanelAccess } from "@/lib/control-auth";

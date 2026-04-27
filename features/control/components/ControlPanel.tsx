@@ -129,10 +129,6 @@ function SearchQuickKeywordsSection({
     cmsKeywords && cmsKeywords.length > 0 ? [...cmsKeywords] : [""],
   );
 
-  useEffect(() => {
-    setRows(cmsKeywords && cmsKeywords.length > 0 ? [...cmsKeywords] : [""]);
-  }, [cmsKeywords]);
-
   function updateRow(i: number, value: string) {
     setRows((prev) => {
       const next = [...prev];
@@ -1191,11 +1187,6 @@ function BranchesForm({
 }) {
   const [sales, setSales] = useState(initial.sales);
   const [service, setService] = useState(initial.service);
-
-  useEffect(() => {
-    setSales(initial.sales);
-    setService(initial.service);
-  }, [initial]);
 
   function addSales() {
     setSales((s) => [

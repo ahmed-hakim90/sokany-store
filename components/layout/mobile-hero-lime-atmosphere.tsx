@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { useMobileChromeCollapsedStore } from "@/components/layout/mobile-chrome-collapsed-store";
 import { ROUTES } from "@/lib/constants";
 import { cn } from "@/lib/utils";
@@ -19,31 +19,39 @@ const SCROLL_REACH_PX = 560;
 
 /** بعد الترطيب فقط (يتجنّب اختلاف SSR/هيدراتيشن). */
 function useLgOrBelow() {
-  const [ok, setOk] = useState(false);
-  useEffect(() => {
-    if (typeof window === "undefined" || typeof window.matchMedia !== "function")
-      return;
-    const mq = window.matchMedia("(max-width: 1023px)");
-    setOk(mq.matches);
-    const h = () => setOk(mq.matches);
-    mq.addEventListener("change", h);
-    return () => mq.removeEventListener("change", h);
-  }, []);
-  return ok;
+  return useSyncExternalStore(
+    (onStoreChange) => {
+      if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
+        return () => {};
+      }
+      const mq = window.matchMedia("(max-width: 1023px)");
+      mq.addEventListener("change", onStoreChange);
+      return () => mq.removeEventListener("change", onStoreChange);
+    },
+    () =>
+      typeof window !== "undefined" &&
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(max-width: 1023px)").matches,
+    () => false,
+  );
 }
 
 function usePrefersReducedMotion() {
-  const [reduced, setReduced] = useState(false);
-  useEffect(() => {
-    if (typeof window === "undefined" || typeof window.matchMedia !== "function")
-      return;
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setReduced(mq.matches);
-    const h = () => setReduced(mq.matches);
-    mq.addEventListener("change", h);
-    return () => mq.removeEventListener("change", h);
-  }, []);
-  return reduced;
+  return useSyncExternalStore(
+    (onStoreChange) => {
+      if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
+        return () => {};
+      }
+      const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+      mq.addEventListener("change", onStoreChange);
+      return () => mq.removeEventListener("change", onStoreChange);
+    },
+    () =>
+      typeof window !== "undefined" &&
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+    () => false,
+  );
 }
 
 export function MobileHeroLimeAtmosphere() {
