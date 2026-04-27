@@ -145,7 +145,7 @@ export function HomePageContent({
               onCartLineQuantityChange={setProductLineQuantity}
               cardVariant="mobileCompact"
               cardVariantMd="desktopCatalogWide"
-              gridClassName="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4"
+              gridClassName="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-5"
               empty={
                 <EmptyState
                   title="لا توجد عروض نشطة حالياً"
@@ -220,7 +220,7 @@ export function HomePageContent({
               onCartLineQuantityChange={setProductLineQuantity}
               cardVariant="mobileCompact"
               cardVariantMd="desktopCatalogWide"
-              gridClassName="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4"
+              gridClassName="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-5"
               empty={
                 <EmptyState
                   title="لا توجد منتجات لعرضها في هذا القسم حالياً"
@@ -271,7 +271,7 @@ export function HomePageContent({
               onCartLineQuantityChange={setProductLineQuantity}
               cardVariant="mobileCompact"
               cardVariantMd="desktopCatalogWide"
-              gridClassName="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4"
+              gridClassName="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-5"
               empty={
                 <EmptyState
                   title="لا توجد منتجات جديدة حالياً"

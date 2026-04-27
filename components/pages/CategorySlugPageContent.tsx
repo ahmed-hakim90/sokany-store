@@ -87,7 +87,7 @@ function CategorySlugProductsSection({
         onCartLineQuantityChange={onCartLineQuantityChange}
         cardVariant="mobileCompact"
         cardVariantMd="desktopCatalogWide"
-        gridClassName="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4"
+        gridClassName="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-5"
         empty={
           <EmptyState
             title="لا توجد منتجات في هذا التصنيف"
@@ -120,7 +120,7 @@ export function CategorySlugPageLoadingFallback() {
   return (
     <div className="space-y-8">
       <div className="hidden h-10 w-1/3 max-w-xs animate-shimmer rounded bg-brand-100 lg:block" />
-      <div className="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-5">
         {Array.from({ length: 8 }).map((_, i) => (
           <ProductSkeleton key={i} />
         ))}

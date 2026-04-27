@@ -33,7 +33,8 @@ export type ProductCardVariant =
   | "mobileCompact"
   | "desktopCatalog"
   | "desktopCatalogWide"
-  | "featured";
+  | "featured"
+  | "detailed";
 
 export type ProductCardProps = {
   product: Product;
@@ -77,29 +78,38 @@ function saleDiscountPercent(product: Product): number | null {
 
 const variantLayout: Record<
   ProductCardVariant,
-  { card: string; body: string; title: string }
+  { card: string; body: string; title: string; image: string }
 > = {
   /* بدون ‎overflow-hidden‎ على الـcard — لئلا يُقصّ ظل/حلقة أزرار التذييل (المعاينة) على موبايل. القصّ للصور فقط على مربع الصورة. */
   mobileCompact: {
-    card: "p-0 min-w-0",
-    body: "gap-1.5 px-3 py-2.5 sm:px-3.5 sm:py-3",
-    title:
-      "line-clamp-2 min-h-[2.5rem] text-xs font-bold leading-snug text-slate-900",
+    card: "min-w-0 gap-2 p-2.5",
+    body: "gap-2 p-0",
+    title: "truncate text-[13px] font-medium leading-4 text-slate-900",
+    image: "h-[128px] w-full sm:h-[142px]",
   },
   desktopCatalog: {
-    card: "p-0 min-w-0",
-    body: "gap-2 p-3 sm:p-3.5",
-    title: "line-clamp-2 min-h-[2.75rem] text-sm font-bold leading-snug text-neutral-950",
+    card: "min-w-0 gap-2 p-2.5",
+    body: "gap-2 p-0",
+    title: "truncate text-[13px] font-medium leading-4 text-neutral-950",
+    image: "h-[132px] w-full sm:h-[150px] lg:h-[160px]",
   },
   desktopCatalogWide: {
+    card: "min-w-0 gap-2 p-2.5",
+    body: "gap-2 p-0",
+    title: "truncate text-[13px] font-medium leading-4 text-neutral-950",
+    image: "h-[132px] w-full sm:h-[150px] lg:h-[160px]",
+  },
+  featured: {
+    card: "min-w-0 gap-2 p-2.5",
+    body: "gap-2 p-0",
+    title: "truncate text-[13px] font-medium leading-4 text-neutral-950",
+    image: "h-[132px] w-full sm:h-[150px] lg:h-[160px]",
+  },
+  detailed: {
     card: "p-0 min-w-0",
     body: "gap-2 p-3 sm:p-3.5",
     title: "line-clamp-2 min-h-[2.75rem] text-sm font-bold leading-snug text-neutral-950",
-  },
-  featured: {
-    card: "p-0 min-w-0",
-    body: "gap-2 p-3 sm:gap-2 sm:p-4",
-    title: "line-clamp-2 min-h-[3rem] text-sm font-bold leading-snug text-neutral-950 sm:text-base",
+    image: "aspect-square w-full",
   },
 };
 
@@ -122,7 +132,8 @@ export function ProductCard({
     product.onSale && product.regularPrice > product.price
       ? product.regularPrice
       : null;
-  const priceCompact = variant === "mobileCompact";
+  const isDetailed = variant === "detailed";
+  const priceCompact = !isDetailed;
   const saleDiscount = saleDiscountPercent(product);
   const salesCountLine = useMemo(
     () => getProductCardSalesCountText(product, PRODUCT_CARD_SHOW_SALES_COUNT),
@@ -244,16 +255,29 @@ export function ProductCard({
   };
 
   const imageSizes =
-    variant === "mobileCompact"
-      ? "(max-width: 768px) 42vw, 11rem"
-      : "(max-width: 768px) 50vw, 25vw";
+    isDetailed
+      ? "(max-width: 768px) 50vw, 25vw"
+      : "(max-width: 768px) 42vw, 10rem";
+
+  const handleCardClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const target = e.target;
+    if (
+      target instanceof Element &&
+      target.closest("a, button, input, select, textarea, [data-card-image-swipe]")
+    ) {
+      return;
+    }
+    navigateToProduct();
+  };
 
   const titleLink = (
     <Link
       href={ROUTES.PRODUCT(product.id)}
+      dir="rtl"
       className={cn(
-        "block text-foreground transition-colors hover:text-brand-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500",
+        "block min-w-0 text-foreground transition-colors hover:text-brand-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500",
         layout.title,
+        !isDetailed && "border-b border-slate-200/80 pb-2 text-right",
       )}
       onMouseEnter={handlePrefetch}
       onFocus={handlePrefetch}
@@ -266,20 +290,17 @@ export function ProductCard({
     <PriceText
       presentation="default"
       amount={product.price}
-      compareAt={compareAt}
+      compareAt={isDetailed ? compareAt : null}
       compact={priceCompact}
       emphasized={false}
       amountClassName={cn(
-        "font-bold text-slate-900",
-        priceCompact &&
-          "font-display text-lg font-extrabold tracking-tight md:text-xl",
-        !priceCompact && "text-base md:text-lg",
-        variant === "featured" && !priceCompact && "text-lg md:text-xl",
+        "font-display font-extrabold tracking-tight text-slate-950",
+        priceCompact ? "text-[17px] leading-none sm:text-lg" : "text-base md:text-lg",
+        variant === "featured" && "text-lg",
       )}
-      compareAtClassName="!text-xs !text-neutral-400 md:!text-xs"
+      compareAtClassName="!text-[11px] !text-neutral-400 md:!text-xs"
       className={cn(
-        "min-w-0 !flex-col !gap-0.5 !gap-x-0",
-        showCartQty ? "!items-center" : "!items-start",
+        "min-w-0 !flex-col !items-start !gap-0 !gap-x-0",
       )}
     />
   );
@@ -288,19 +309,21 @@ export function ProductCard({
     <>
       <Card
         variant="product"
+        onClick={handleCardClick}
         className={cn(
-          "group/card flex h-full min-w-0 flex-col border-slate-200/90 transition-shadow duration-300 motion-reduce:transition-none",
-          variant === "mobileCompact"
-            ? "rounded-2xl shadow-[0_10px_40px_-14px_rgba(15,23,42,0.18)] ring-1 ring-slate-900/[0.04] hover:shadow-[0_16px_48px_-16px_rgba(15,23,42,0.22)]"
-            : "rounded-xl border-black/[0.06] hover:shadow-[0_14px_44px_-14px_rgba(15,23,42,0.18)]",
+          "group/card relative flex h-full min-w-0 cursor-pointer flex-col border-slate-200/80 transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-[0_18px_38px_-22px_rgba(15,23,42,0.42)] active:scale-[0.97] motion-reduce:transform-none motion-reduce:transition-none",
+          isDetailed
+            ? "rounded-xl border-black/[0.06]"
+            : "rounded-2xl bg-white shadow-[0_8px_24px_-18px_rgba(15,23,42,0.26)] ring-1 ring-slate-900/[0.04]",
           layout.card,
           className,
         )}
       >
         <div
           className={cn(
-            "relative aspect-square overflow-hidden bg-white",
-            variant === "mobileCompact" ? "rounded-t-2xl" : "rounded-t-xl",
+            "relative mx-auto overflow-hidden bg-white",
+            isDetailed ? "rounded-t-xl" : "rounded-xl",
+            layout.image,
           )}
         >
           <div ref={imageFlyRef} className="absolute inset-0 z-0">
@@ -311,7 +334,7 @@ export function ProductCard({
                 fill
                 sizes={imageSizes}
                 priority={imagePriority}
-                className="object-contain object-center"
+                className="object-contain object-center transition-transform duration-200 ease-out group-hover/card:scale-105 group-active/card:scale-[0.97] motion-reduce:transition-none motion-reduce:group-hover/card:scale-100"
                 shimmerUntilLoaded
                 usePlaceholderOnError={false}
               />
@@ -334,7 +357,7 @@ export function ProductCard({
                     fill
                     sizes={imageSizes}
                     priority={imagePriority}
-                    className="object-contain object-center"
+                    className="object-contain object-center transition-transform duration-200 ease-out group-hover/card:scale-105 group-active/card:scale-[0.97] motion-reduce:transition-none motion-reduce:group-hover/card:scale-100"
                     shimmerUntilLoaded
                     usePlaceholderOnError={false}
                   />
@@ -344,6 +367,7 @@ export function ProductCard({
           </div>
           {multiImage ? (
             <div
+              data-card-image-swipe
               className="absolute inset-0 z-[1] touch-none select-none"
               aria-hidden
               onPointerEnter={onCardImagePointerEnter}
@@ -360,27 +384,25 @@ export function ProductCard({
               aria-label={product.name}
             />
           )}
-          {product.featured ? (
-            <span className="pointer-events-none absolute left-2 top-2 z-[3] rounded-md bg-sky-700 px-2 py-1 text-[10px] font-bold leading-none text-white shadow-sm">
-              مميز
-            </span>
-          ) : null}
-          {saleDiscount !== null ? (
+          {isDetailed && saleDiscount !== null ? (
             <span
               dir="ltr"
-              className="pointer-events-none absolute right-2 top-2 z-[3] rounded-md bg-[#c45c5c] px-2 py-1 text-[11px] font-extrabold leading-none text-white shadow-sm sm:text-xs"
+              className="pointer-events-none absolute left-2 top-2 z-[3] rounded-full bg-[#c45c5c] px-2 py-1 text-[10px] font-extrabold leading-none text-white shadow-sm sm:text-[11px]"
             >
               −{saleDiscount}%
             </span>
+          ) : isDetailed && product.featured ? (
+            <span className="pointer-events-none absolute left-2 top-2 z-[3] rounded-full bg-slate-950 px-2 py-1 text-[10px] font-bold leading-none text-white shadow-sm">
+              مميز
+            </span>
           ) : null}
-          {/* المفضلة على الصورة فقط عندما لا يظهر زر السلة في أسفل الكارت */}
-          {wishlistSlot && !showCartQty ? (
-            <div className="absolute bottom-2 z-[4] left-auto right-2 md:left-2 md:right-auto">
+          {wishlistSlot ? (
+            <div className="absolute right-2 top-2 z-[4]">
               {wishlistSlot}
             </div>
           ) : null}
 
-          {PRODUCT_CARD_SHOW_QUICK_VIEW ? (
+          {PRODUCT_CARD_SHOW_QUICK_VIEW && isDetailed ? (
             <>
               {/* معاينة سريعة — ديسكتوب: يظهر مع الـ hover */}
               <div className="pointer-events-none absolute inset-0 z-[2] hidden bg-gradient-to-t from-black/45 via-black/10 to-transparent opacity-0 transition-opacity duration-200 md:flex md:flex-col md:items-center md:justify-center md:group-hover/card:opacity-100">
@@ -423,36 +445,31 @@ export function ProductCard({
           className={cn(
             "relative flex min-w-0 flex-1 flex-col bg-white",
             layout.body,
-            variant === "mobileCompact" ? "rounded-b-2xl" : "rounded-b-xl",
+            isDetailed ? "rounded-b-xl" : "rounded-b-2xl",
           )}
         >
-          {!product.inStock ? (
+          {isDetailed && !product.inStock ? (
             <span className="text-[10px] font-semibold text-muted-foreground sm:text-[11px]">
               غير متوفر حالياً
             </span>
           ) : null}
           {titleLink}
-          <div
-            className={cn(
-              "mt-1 flex flex-wrap items-center justify-between gap-x-2 gap-y-1",
-              variant === "mobileCompact" && "min-h-[1.25rem]",
-            )}
-          >
-            <ProductRatingDisplay
-              rating={product.rating}
-              ratingCount={product.ratingCount}
-              size={variant === "mobileCompact" ? "xs" : "sm"}
-              className="min-w-0"
-            />
-            <ProductStatusBadge product={product} className="ms-auto shrink-0" />
-          </div>
-          {salesCountLine ? (
+          {isDetailed ? (
+            <div className="mt-1 flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
+              <ProductRatingDisplay
+                rating={product.rating}
+                ratingCount={product.ratingCount}
+                size="sm"
+                className="min-w-0"
+              />
+              <ProductStatusBadge product={product} className="ms-auto shrink-0" />
+            </div>
+          ) : null}
+          {isDetailed && salesCountLine ? (
             <p
               className={cn(
                 "mt-0.5 text-[10px] font-medium text-muted-foreground",
-                variant === "mobileCompact" && "text-[9px]",
-                variant === "featured" && "sm:text-xs",
-                !priceCompact && "sm:text-[11px]",
+                "sm:text-[11px]",
               )}
             >
               {salesCountLine}
@@ -460,69 +477,32 @@ export function ProductCard({
           ) : null}
           <div
             className={cn(
-              "mt-auto pt-2",
+              "mt-auto",
               showCartQty
-                ? "flex flex-col gap-2"
-                : "flex min-h-[3.25rem] items-end pt-1",
+                ? "pt-0.5"
+                : cn("flex items-end pt-1", isDetailed && "min-h-[3.25rem]"),
             )}
           >
             {showCartQty ? (
-              <>
-                <div className="flex w-full min-w-0 justify-center px-0.5">
+              <div className="grid w-full min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-1.5">
+                <div className="min-w-0">
                   {priceBlock}
                 </div>
-                {/*
-                 * صف واحد: «أضف» + مفضلة (ومعاينة اختياري بـ ‎PRODUCT_CARD_SHOW_QUICK_VIEW‎).
-                 */}
-                <div className="grid w-full min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-1 sm:gap-2">
-                  <button
-                    type="button"
-                    disabled={!product.inStock}
-                    aria-label={justAdded ? "تمت الإضافة للسلة" : "أضف للسلة"}
-                    className="relative inline-flex h-11 min-h-[44px] w-full min-w-0 max-w-full items-center justify-center rounded-2xl bg-brand-500 px-2.5 py-1.5 text-black ring-1 ring-black/[0.06] transition-shadow transition-colors [box-shadow:0_2px_4px_-1px_rgba(15,23,42,0.12),0_8px_20px_-6px_rgba(0,0,0,0.2),0_0_0_1px_rgba(0,0,0,0.06),0_20px_36px_-10px_rgba(218,255,0,0.45),inset_0_1px_0_0_rgba(255,255,255,0.35)] hover:bg-brand-400 hover:[box-shadow:0_2px_4px_-1px_rgba(15,23,42,0.1),0_10px_24px_-6px_rgba(0,0,0,0.22),0_0_0_1px_rgba(0,0,0,0.05),0_24px_44px_-8px_rgba(218,255,0,0.55),inset_0_1px_0_0_rgba(255,255,255,0.4)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 disabled:pointer-events-none disabled:opacity-50 sm:px-3"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      handleAddToCart();
-                    }}
-                  >
-                    <span
-                      className="relative z-10 text-center text-xs font-bold leading-snug sm:text-sm"
-                      aria-hidden
-                    >
-                      أضف للسلة
-                    </span>
-                    <span
-                      className="absolute start-2 top-1/2 z-0 -translate-y-1/2 sm:start-2.5"
-                      aria-hidden
-                    >
-                      <CartGlyph
-                        added={justAdded}
-                        iconClass="h-5 w-5 shrink-0 sm:h-6 sm:w-6"
-                      />
-                    </span>
-                  </button>
-                  <div className="flex min-w-0 shrink-0 items-center justify-end gap-1.5 sm:gap-2">
-                    {wishlistSlot}
-                    {PRODUCT_CARD_SHOW_QUICK_VIEW ? (
-                      <IconButton
-                        type="button"
-                        variant="subtle"
-                        size="md"
-                        aria-label="معاينة سريعة"
-                        className="border-slate-200/90 bg-white/95 shadow-md shadow-slate-900/10 ring-1 ring-slate-900/[0.05] backdrop-blur-sm hover:bg-white"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          setQuickViewOpen(true);
-                        }}
-                      >
-                        <EyeIcon />
-                      </IconButton>
-                    ) : null}
-                  </div>
-                </div>
-              </>
+                <button
+                  type="button"
+                  disabled={!product.inStock}
+                  aria-label={justAdded ? "تمت الإضافة للسلة" : "أضف للسلة"}
+                  className="inline-flex h-8 shrink-0 items-center justify-center gap-1.5 rounded-full bg-brand-500 px-3 text-xs font-bold leading-none text-black shadow-[0_8px_18px_-12px_rgba(132,204,22,0.9)] ring-1 ring-black/[0.06] transition-all duration-200 ease-out hover:bg-brand-400 group-hover/card:scale-105 active:scale-[0.97] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 disabled:pointer-events-none disabled:opacity-45 disabled:group-hover/card:scale-100 sm:h-9 sm:px-4"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleAddToCart();
+                  }}
+                >
+                  <MiniCartIcon checked={justAdded} />
+                  {justAdded ? "تم" : "أضف للسلة"}
+                </button>
+              </div>
             ) : (
               <div
                 className={cn(
@@ -537,7 +517,7 @@ export function ProductCard({
         </div>
       </Card>
 
-      {PRODUCT_CARD_SHOW_QUICK_VIEW ? (
+      {PRODUCT_CARD_SHOW_QUICK_VIEW && isDetailed ? (
         <ProductQuickViewModal
           product={product}
           open={quickViewOpen}
@@ -573,17 +553,10 @@ function EyeIcon({ className }: { className?: string }) {
   );
 }
 
-function CartGlyph({
-  added,
-  iconClass = "h-6 w-6",
-}: {
-  added?: boolean;
-  iconClass?: string;
-}) {
-  const sizeClass = cn("shrink-0", iconClass);
-  if (added) {
+function MiniCartIcon({ checked }: { checked?: boolean }) {
+  if (checked) {
     return (
-      <svg viewBox="0 0 24 24" className={sizeClass} aria-hidden>
+      <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0" aria-hidden>
         <path
           fill="currentColor"
           d="M9.55 17.65l-4.1-4.1 1.4-1.45 2.7 2.7 6.75-6.75 1.45 1.45-8.2 8.15z"
@@ -591,17 +564,18 @@ function CartGlyph({
       </svg>
     );
   }
+
   return (
-    <svg viewBox="0 0 24 24" fill="none" className={sizeClass} aria-hidden>
+    <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4 shrink-0" aria-hidden>
       <path
-        d="M3 4h2.2c.5 0 .93.33 1.06.81l.54 2.02m0 0L8 12h9.5a1 1 0 00.97-.76l1.2-4.8a.75.75 0 00-.73-.94H6.8z"
+        d="M4 5h2.1c.45 0 .84.3.96.74L7.5 7.4m0 0 1.05 4.05h7.6a1 1 0 0 0 .96-.72l.9-3.05a.75.75 0 0 0-.72-.96H7.5Z"
         stroke="currentColor"
-        strokeWidth="2.1"
+        strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      <circle cx="10" cy="18.2" r="1.35" fill="currentColor" />
-      <circle cx="17" cy="18.2" r="1.35" fill="currentColor" />
+      <circle cx="10" cy="18" r="1.25" fill="currentColor" />
+      <circle cx="16" cy="18" r="1.25" fill="currentColor" />
     </svg>
   );
 }

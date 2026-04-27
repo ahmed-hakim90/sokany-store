@@ -70,7 +70,7 @@ export function ProductsPageContent() {
         onCartLineQuantityChange={setProductLineQuantity}
         cardVariant="mobileCompact"
         cardVariantMd="desktopCatalogWide"
-        gridClassName="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4"
+        gridClassName="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-5"
         empty={
           <EmptyState
             title="لا توجد منتجات"

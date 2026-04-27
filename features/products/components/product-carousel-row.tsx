@@ -45,7 +45,7 @@ export function ProductCarouselRow({
             {Array.from({ length: 4 }).map((_, i) => (
               <div
                 key={i}
-                className="w-[min(64vw,14rem)] shrink-0 snap-start sm:w-[15rem] md:w-64"
+                className="w-[10.5rem] shrink-0 snap-start sm:w-44 md:w-48"
               >
                 <ProductSkeleton />
               </div>
@@ -71,7 +71,7 @@ export function ProductCarouselRow({
       {products.map((product, index) => (
         <div
           key={product.id}
-          className="w-[min(64vw,14rem)] shrink-0 snap-start sm:w-[15rem] md:w-64"
+          className="w-[10.5rem] shrink-0 snap-start sm:w-44 md:w-48"
           role="listitem"
         >
           <ProductCard

@@ -20,7 +20,7 @@ export default function StorefrontRouteLoading() {
         <Skeleton className="h-4 w-full max-w-md" />
         <Skeleton className="h-4 w-2/3 max-w-sm" />
       </div>
-      <div className="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-5">
         {Array.from({ length: 8 }).map((_, i) => (
           <ProductSkeleton key={i} />
         ))}

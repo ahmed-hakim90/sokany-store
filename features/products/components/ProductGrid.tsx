@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 export type ProductGridStatus = "loading" | "empty" | "ready";
 
 const defaultGridClass =
-  "grid grid-cols-2 gap-6 lg:grid-cols-4";
+  "grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-5";
 
 export type ProductGridProps = {
   className?: string;
@@ -86,7 +86,7 @@ export function ProductGrid({
           <ProductCard
             key={product.id}
             product={product}
-            imagePriority={index < 4}
+            imagePriority={index < 5}
             getCartLineQuantity={getCartLineQuantity}
             onCartLineQuantityChange={onCartLineQuantityChange}
             variant={resolvedVariant}

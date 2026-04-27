@@ -49,7 +49,7 @@ export function HomeParentCategorySectionsSkeleton({
               onCartLineQuantityChange={onCartLineQuantityChange}
               cardVariant="mobileCompact"
               cardVariantMd="desktopCatalogWide"
-              gridClassName="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4"
+              gridClassName="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-5"
             />
           </section>
         </div>
@@ -135,7 +135,7 @@ export function HomeParentCategorySections({
                   onCartLineQuantityChange={onCartLineQuantityChange}
                   cardVariant="mobileCompact"
                   cardVariantMd="desktopCatalogWide"
-                  gridClassName="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4"
+                  gridClassName="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-5"
                 />
               )}
             </section>
