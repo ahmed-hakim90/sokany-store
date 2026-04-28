@@ -11,6 +11,7 @@ import { DEFAULT_PER_PAGE, USE_MOCK } from "@/lib/constants";
 import { wooBff502Response } from "@/lib/woo-bff-catch-payload";
 import { WOO_CACHE_TAG_PRODUCTS } from "@/lib/woocommerce-cache-tags";
 import { filterWcProductsExcludingOutOfStock } from "@/lib/woo-storefront-availability";
+import { fetchWooStorefrontProductsPage } from "@/features/products/services/woo-storefront-product-page";
 import type { WCCategory } from "@/features/categories/types";
 import type { WCProduct } from "@/features/products/types";
 
@@ -60,17 +61,17 @@ const fetchWooProductsCached = unstable_cache(
   async (paramsKey: string): Promise<CachedWooListResponse> => {
     const woo = await createWooClient();
     const params = JSON.parse(paramsKey) as Record<string, string>;
-    const response = await woo.get("/products", { params });
-    const payload = response.data;
+    const { data, total, totalPages } = await fetchWooStorefrontProductsPage(
+      woo,
+      params,
+    );
     return {
-      data: Array.isArray(payload)
-        ? filterWcProductsExcludingOutOfStock(payload)
-        : payload,
-      total: String(response.headers["x-wp-total"] ?? "0"),
-      totalPages: String(response.headers["x-wp-totalpages"] ?? "1"),
+      data,
+      total,
+      totalPages,
     };
   },
-  ["woo-api-products-v1"],
+  ["woo-api-products-v2-storefront-walk"],
   { revalidate: 300, tags: [WOO_CACHE_TAG_PRODUCTS] },
 );
 

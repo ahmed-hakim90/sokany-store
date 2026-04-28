@@ -29,10 +29,18 @@ export function useProductsCatalog() {
 
     const orderbyRaw = searchParams.get("orderby");
     const orderRaw = searchParams.get("order");
-    const order =
+    const orderResolved =
       orderRaw === "asc" || orderRaw === "desc" ? orderRaw : undefined;
 
     const category = parseNumber(searchParams.get("category"));
+    const orderbyResolved =
+      orderbyRaw &&
+      ["date", "popularity", "price", "rating", "title", "rand"].includes(
+        orderbyRaw,
+      )
+        ? orderbyRaw
+        : undefined;
+
     return {
       page: parseNumber(searchParams.get("page")) ?? 1,
       per_page: parseNumber(searchParams.get("per_page")) ?? DEFAULT_PER_PAGE,
@@ -41,12 +49,11 @@ export function useProductsCatalog() {
       featured:
         searchParams.get("featured") === "true" ? true : undefined,
       search,
-      orderby:
-        orderbyRaw &&
-        ["date", "popularity", "price", "rating", "title"].includes(orderbyRaw)
-          ? orderbyRaw
-          : undefined,
-      order,
+      orderby: orderbyResolved,
+      order:
+        orderbyResolved === "rand"
+          ? undefined
+          : orderResolved,
       min_price: parseNonNegativeInt(searchParams.get("min_price")),
       max_price: parseNonNegativeInt(searchParams.get("max_price")),
     };
@@ -90,7 +97,9 @@ export function useProductsCatalog() {
       if (next.orderby !== undefined) {
         if (next.orderby) {
           params.set("orderby", next.orderby);
-          if (next.order === "asc" || next.order === "desc") {
+          if (next.orderby === "rand") {
+            params.delete("order");
+          } else if (next.order === "asc" || next.order === "desc") {
             params.set("order", next.order);
           }
         } else {

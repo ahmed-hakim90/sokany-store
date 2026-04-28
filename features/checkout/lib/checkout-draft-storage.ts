@@ -9,6 +9,7 @@ const draftSchema = z.object({
   contactLastName: z.string().optional(),
   contactEmail: z.string().optional(),
   contactPhone: z.string().optional(),
+  contactPhoneAlt: z.string().optional(),
   shippingFirstName: z.string().optional(),
   shippingLastName: z.string().optional(),
   shippingAddress1: z.string().optional(),
@@ -21,6 +22,7 @@ const draftSchema = z.object({
   shippingMethod: z.enum(["flat_rate", "local_pickup", "free_shipping"]).optional(),
   paymentMethod: z.enum(["cod", "card"]).optional(),
   customerNote: z.string().optional(),
+  shipToDifferentAddress: z.boolean().optional(),
   createAccount: z.boolean().optional(),
 });
 

@@ -13,6 +13,7 @@ import {
 } from "@/features/catalog/components/price-range-filter";
 import { useCatalogFilterDrawerOpenStore } from "@/features/catalog/store/useCatalogFilterDrawerOpenStore";
 import {
+  type CatalogFilterApplyInput,
   buildProductsCatalogHref,
   buildSearchPageCatalogHref,
 } from "@/lib/catalog-products-url";
@@ -25,10 +26,12 @@ const SORT_OPTIONS = [
   { value: "price:asc", label: "السعر: من الأقل للأعلى" },
   { value: "price:desc", label: "السعر: من الأعلى للأقل" },
   { value: "rating:desc", label: "الأعلى تقييماً" },
+  { value: "rand", label: "ترتيب عشوائي" },
 ] as const;
 
 function parseSortFromSearchParams(sp: URLSearchParams): string {
   const orderby = sp.get("orderby") ?? "popularity";
+  if (orderby === "rand") return "rand";
   const order = sp.get("order") === "asc" ? "asc" : "desc";
   const v = `${orderby}:${order}`;
   return SORT_OPTIONS.some((o) => o.value === v) ? v : "popularity:desc";
@@ -79,20 +82,31 @@ export function CatalogFilterForm() {
   const [priceMax, setPriceMax] = useState(initialDraft.priceMax);
 
   const apply = () => {
-    const [orderby, order] = sortValue.split(":") as [string, "asc" | "desc"];
     const min_price =
       priceMin > 0 ? priceMin : null;
     const max_price =
       priceMax > 0 && priceMax < CATALOG_PRICE_DEFAULT_MAX ? priceMax : null;
 
-    const draft = {
-      featured,
-      categoryId: featured ? null : categoryId,
-      min_price,
-      max_price,
-      orderby,
-      order: order === "asc" ? "asc" : "desc",
-    } as const;
+    let draft: CatalogFilterApplyInput;
+    if (sortValue === "rand") {
+      draft = {
+        featured,
+        categoryId: featured ? null : categoryId,
+        min_price,
+        max_price,
+        orderby: "rand",
+      };
+    } else {
+      const [orderby, order] = sortValue.split(":") as [string, "asc" | "desc"];
+      draft = {
+        featured,
+        categoryId: featured ? null : categoryId,
+        min_price,
+        max_price,
+        orderby,
+        order: order === "asc" ? "asc" : "desc",
+      };
+    }
 
     const href =
       pathname === ROUTES.SEARCH

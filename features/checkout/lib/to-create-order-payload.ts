@@ -26,34 +26,50 @@ export function toCreateOrderPayload(
   items: CartItem[],
   options?: { customerId?: number; firebaseUid?: string },
 ): CreateOrderPayload {
+  const postcode = values.shippingPostcode.trim() || "-";
+
+  const sharedLines = {
+    address_1: values.shippingAddress1,
+    address_2: values.shippingAddress2,
+    city: values.shippingCity,
+    state: values.shippingState,
+    postcode,
+    country: values.shippingCountry,
+  } as const;
+
+  const shippingNames = values.shipToDifferentAddress
+    ? {
+        first_name: values.shippingFirstName.trim(),
+        last_name: values.shippingLastName.trim(),
+      }
+    : {
+        first_name: values.contactFirstName.trim(),
+        last_name: values.contactLastName.trim(),
+      };
+
   const metaData: NonNullable<CreateOrderPayload["meta_data"]> = [
     { key: "governorate_code", value: values.shippingStateCode },
     { key: "governorate_name", value: values.shippingState },
     ...(options?.firebaseUid
       ? [{ key: "firebase_uid", value: options.firebaseUid }]
       : []),
+    ...(values.contactPhoneAlt.trim()
+      ? [{ key: "alternate_phone", value: values.contactPhoneAlt.trim() }]
+      : []),
   ];
-
-  const shipping = {
-    first_name: values.shippingFirstName,
-    last_name: values.shippingLastName,
-    address_1: values.shippingAddress1,
-    address_2: values.shippingAddress2,
-    city: values.shippingCity,
-    state: values.shippingState,
-    postcode: values.shippingPostcode,
-    country: values.shippingCountry,
-  } as const;
 
   return {
     billing: {
-      ...shipping,
-      first_name: values.contactFirstName || shipping.first_name,
-      last_name: values.contactLastName || shipping.last_name,
-      email: values.contactEmail,
+      first_name: values.contactFirstName,
+      last_name: values.contactLastName,
+      ...sharedLines,
+      email: values.contactEmail.trim(),
       phone: values.contactPhone,
     },
-    shipping,
+    shipping: {
+      ...shippingNames,
+      ...sharedLines,
+    },
     line_items: items.map((item) => ({
       ...(item.wooLineItemId != null ? { id: item.wooLineItemId } : {}),
       product_id: item.productId,

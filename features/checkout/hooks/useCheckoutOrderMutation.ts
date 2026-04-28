@@ -18,7 +18,7 @@ import { createOrderPayloadSchema } from "@/schemas/wordpress";
 export type CheckoutOrderMutationInput = {
   values: CheckoutFormData;
   items: CartItem[];
-  /** Set after Firebase Phone Auth + Firestore `storefront_customers/{uid}` write. */
+  /** اختياري — مثلاً بعد مصادقة هاتف مستقبلية */
   firebaseUid?: string;
 };
 
@@ -84,7 +84,11 @@ export function useCheckoutOrderMutation() {
       const amend = readCheckoutAmendSession();
 
       const wantsNewAccount =
-        !amend && data.createAccount && !useAuthStore.getState().isAuthenticated;
+        !amend &&
+        data.createAccount &&
+        !useAuthStore.getState().isAuthenticated &&
+        data.contactEmail.trim().length > 0 &&
+        data.accountPassword.length >= 8;
 
       let customerId: number | undefined;
       if (wantsNewAccount) {

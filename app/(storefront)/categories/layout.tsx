@@ -8,6 +8,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { ErrorState } from "@/components/ErrorState";
 import { CategoryBrowseSplitLayout } from "@/features/categories/components/category-browse-split-layout";
 import { CategoryScrollerSkeleton } from "@/features/categories/components/CategoryScrollerSkeleton";
+import { StickyBelowHeaderRail } from "@/features/categories/components/sticky-below-header-rail";
 import { useCategories } from "@/features/categories/hooks/useCategories";
 import type { Category } from "@/features/categories/types";
 
@@ -41,13 +42,13 @@ export default function CategoriesLayout({ children }: { children: ReactNode }) 
 
   return (
     <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-      <Container className="flex min-h-0 flex-1 flex-col sm:px-2 lg:px-8 lg:py-10">
+      <Container className="flex min-h-0 flex-1 flex-col px-3 sm:px-2 lg:px-6 lg:py-6">
         {query.isPending ? (
-          <div className="mt-6">
-            <div className="rounded-editorial border border-border/70 bg-white/90 py-0.5 shadow-sm backdrop-blur-sm">
+          <div className="mt-6 flex min-h-0 flex-1 flex-col gap-3">
+            <StickyBelowHeaderRail>
               <CategoryScrollerSkeleton />
-            </div>
-            <div className="mt-6 min-w-0">{children}</div>
+            </StickyBelowHeaderRail>
+            <div className="min-w-0">{children}</div>
           </div>
         ) : query.isError ? (
           <div className="mt-6">

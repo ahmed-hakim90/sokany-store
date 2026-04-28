@@ -11,6 +11,7 @@ const OPTIONS = [
   { value: "price:asc", label: "السعر: من الأقل للأعلى" },
   { value: "price:desc", label: "السعر: من الأعلى للأقل" },
   { value: "rating:desc", label: "الأعلى تقييماً" },
+  { value: "rand", label: "ترتيب عشوائي" },
 ] as const;
 
 export function CatalogSortSelect() {
@@ -19,15 +20,23 @@ export function CatalogSortSelect() {
 
   const currentOrderby = searchParams.get("orderby") ?? "popularity";
   const currentOrder = searchParams.get("order") ?? "desc";
-  const value = `${currentOrderby}:${currentOrder}`;
+  const value =
+    currentOrderby === "rand"
+      ? "rand"
+      : `${currentOrderby}:${currentOrder}`;
 
   const onChange = useCallback(
     (next: string) => {
-      const [orderby, order] = next.split(":") as [string, "asc" | "desc"];
       const params = new URLSearchParams(searchParams.toString());
-      if (orderby && order) {
-        params.set("orderby", orderby);
-        params.set("order", order);
+      if (next === "rand") {
+        params.set("orderby", "rand");
+        params.delete("order");
+      } else {
+        const [orderby, order] = next.split(":") as [string, "asc" | "desc"];
+        if (orderby && order) {
+          params.set("orderby", orderby);
+          params.set("order", order);
+        }
       }
       params.delete("page");
       const qs = params.toString();
@@ -47,7 +56,9 @@ export function CatalogSortSelect() {
       </span>
       <select
         className="h-10 min-w-[10.5rem] max- rounded-xl border border-border bg-white px-3 text-sm font-semibold text-foreground outline-none ring-brand-500/0 focus-visible:ring-2 focus-visible:ring-brand-500/35"
-        value={OPTIONS.some((o) => o.value === value) ? value : "popularity:desc"}
+        value={
+          OPTIONS.some((o) => o.value === value) ? value : "popularity:desc"
+        }
         onChange={(e) => onChange(e.target.value)}
         aria-label="ترتيب المنتجات"
       >

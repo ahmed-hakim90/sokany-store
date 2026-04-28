@@ -8,7 +8,7 @@ export type ProductQueryParams = {
   include_children?: boolean;
   search?: string;
   slug?: string;
-  /** WooCommerce list: date | popularity | price | rating | title */
+  /** WooCommerce list: date | popularity | price | rating | title | rand */
   orderby?: string;
   order?: "asc" | "desc";
   /** WooCommerce v3+ list filters (ignored by older stores) */

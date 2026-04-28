@@ -13,6 +13,7 @@ import { DEFAULT_PER_PAGE, ROUTES } from "@/lib/constants";
 import { useCategories } from "@/features/categories/hooks/useCategories";
 import { useProducts } from "@/features/products/hooks/useProducts";
 import { CatalogPagination } from "@/features/catalog/components/CatalogPagination";
+import { HomeCategoryExclusiveBanner } from "@/features/home/components/home-category-exclusive-banner";
 import { ProductGrid } from "@/features/products/components/ProductGrid";
 import { ProductSkeleton } from "@/features/products/components/ProductSkeleton";
 import type { Product } from "@/features/products/types";
@@ -31,8 +32,8 @@ function CategorySlugHeader({
       <h1 className="font-display text-xl font-bold tracking-tight text-brand-950 sm:text-2xl md:text-3xl">
         {title}
       </h1>
-      <p className="mt-2 max-w-2xl break-words text-sm text-zinc-700">{description}</p>
-      <p className="mt-6">
+      <p className="mt-1.5 max-w-2xl break-words text-sm text-zinc-700">{description}</p>
+      <p className="mt-3">
         <Link
           href={`${ROUTES.PRODUCTS}?category=${categoryId}`}
           className="text-sm font-semibold text-brand-900 underline-offset-4 hover:underline"
@@ -119,7 +120,8 @@ function CategorySlugProductsSection({
 export function CategorySlugPageLoadingFallback() {
   return (
     <div className="space-y-8">
-      <div className="hidden h-10 w-1/3 max-w-xs animate-shimmer rounded bg-brand-100 lg:block" />
+      <div className="h-36 w-full animate-shimmer rounded-2xl bg-gradient-to-r from-image-well via-surface-muted to-image-well sm:h-40" />
+      <div className="h-10 w-1/3 max-w-xs animate-shimmer rounded bg-brand-100" />
       <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-5">
         {Array.from({ length: 8 }).map((_, i) => (
           <ProductSkeleton key={i} />
@@ -130,8 +132,9 @@ export function CategorySlugPageLoadingFallback() {
 }
 
 /*
- * محتوى صفحة تصنيف (/categories/[slug]): يُلفّه layout المشترك بشريط التصنيفات.
- * العنوان التحريري يظهر من lg؛ الشبكة تحتها على كل العرض.
+ * محتوى صفحة تصنيف (/categories/[slug]): يُلفّه layout المشترك بشريط تصنيفات أفقي (دوائر).
+ * الترتيب: بانر صورة التصنيف → عنوان ووصف ورابط «كل المنتجات» → شبكة المنتجات.
+ * المسافات بين الأقسام مضغوطة (‎`mt-3`‎–‎`mt-5`‎) لتقليل الشريط الرمادي (‎`bg-page`‎) الظاهر بين البانر والبطاقات.
  */
 export function CategorySlugPageContent({ slug }: { slug: string }) {
   const router = useTransitionRouter();
@@ -204,7 +207,10 @@ export function CategorySlugPageContent({ slug }: { slug: string }) {
 
   return (
     <>
-      <div className="hidden lg:block">
+      <ScrollReveal>
+        <HomeCategoryExclusiveBanner category={category} />
+      </ScrollReveal>
+      <div className="mt-3 lg:mt-4">
         <ScrollReveal>
           <CategorySlugHeader
             categoryId={category.id}
@@ -213,7 +219,7 @@ export function CategorySlugPageContent({ slug }: { slug: string }) {
           />
         </ScrollReveal>
       </div>
-      <div className="mt-0 lg:mt-8">
+      <div className="mt-3 lg:mt-5">
         <ScrollReveal>
           <CategorySlugProductsSection
             productsQuery={productsQuery}

@@ -106,6 +106,12 @@ export const ROUTES = {
   MY_REVIEWS: "/my-reviews",
 } as const;
 
+/** كتالوج الموبايل: عيّنة عشوائية ثابتة الحجم من `/products` (زر الشريط السفلي). */
+export const PRODUCTS_ALL_RANDOM_HREF = `${ROUTES.PRODUCTS}?${new URLSearchParams({
+  per_page: "40",
+  orderby: "rand",
+}).toString()}`;
+
 /** رابط دردشة واتساب لخدمة العملاء (مثل `https://wa.me/201xxxxxxxxxx`). يُضبط عبر البيئة لصفحة التتبع. */
 export const WHATSAPP_SUPPORT_URL =
   process.env.NEXT_PUBLIC_WHATSAPP_SUPPORT_URL?.trim() ?? "";
@@ -131,8 +137,11 @@ export const GA_MEASUREMENT_ID =
     ? "G-RLD66T23W5"
     : rawGaMeasurementId.trim();
 
-/** WordPress JWT Auth plugin token endpoint path (relative to WC_BASE_URL origin). */
-export const WP_JWT_AUTH_TOKEN_PATH = "/wp-json/jwt-auth/v1/token";
+/**
+ * المسار الافتراضي لإضافة JWT Authentication (مسار نسبي من أصل ‎WC_BASE_URL‎).
+ * للتجاوز: ‎`WC_JWT_AUTH_TOKEN_PATH`‎ في البيئة (انظر ‎`.env.local.example`‎).
+ */
+export const WP_JWT_AUTH_TOKEN_PATH_DEFAULT = "/wp-json/jwt-auth/v1/token";
 
 /** WooCommerce REST API base path. */
 export const WC_REST_BASE_PATH = "/wp-json/wc/v3";

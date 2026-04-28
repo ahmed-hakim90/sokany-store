@@ -1,6 +1,6 @@
 # مقاسات الصور للمصمم (Sokany Store)
 
-مرجع موحّد لتصدير الصور ورفعها في الأماكن الصحيحة. **ليس** كل مكوّن يسلّك الصور بنفس الأسلوب: بانرات وخلفيات تُركّز على `object-cover` (ملء الإطار مع قص محتمل)؛ **صور المنتج داخل البطاقات** تُعرض `object-contain` حتى يظهر المنتج **كاملاً** قدر الإمكان (مع هامش فاتح/غامق إذا اختلفت نسبة الصورة عن المربع).
+مرجع موحّد لتصدير الصور ورفعها في الأماكن الصحيحة. **ليس** كل مكوّن يسلّك الصور بنفس الأسلوب: بانرات ديكور وهيرو و**بانر القسم الحصري** (`HomeCategoryExclusiveBanner`) غالباً **`object-cover`** (ملء الإطار دون شرائط فوق/تحت؛ قصّ جانبي محتمل إذا اختلفت النسبة)؛ **صور المنتج داخل البطاقات** `object-contain`.
 
 ## سلوك العرض: قص vs صورة كاملة
 
@@ -15,7 +15,7 @@
 | الاستخدام | المصدر / المسار | المقاس أو النسبة الموصى بها | ملاحظات |
 |-----------|-----------------|------------------------------|---------|
 | شرائح الهيرو (الصفحة الرئيسية) | `public/images/hero/` — انظر [`public/images/hero/README.md`](../public/images/hero/README.md) | **330×540** بكسل (أو **660×1080** لـ Retina)؛ نسبة تقريبية **11∶18** | العرض المعروض للبطاقة ~**300px** وارتفاع حتى **400px** أو **70dvh** (الأصغر). `object-cover`. WebP أو JPG، جودة **80–90%**. [`features/home/components/home-hero-banner.tsx`](../features/home/components/home-hero-banner.tsx). |
-| بانر «حصرياً» لكل قسم أب (ترتيب بالرقم) | `public/images/banner-section/` — [`public/images/banner-section/README.md`](../public/images/banner-section/README.md) | عرض كامل تقريباً؛ ارتفاع مرجعي **≥ 224px** (`min-h` ≈ 14rem)؛ تصدير: **1200–1600px** × **450–600px** (أفقي) | `object-cover`؛ جوانب/خلفية 100vw على الجوال، وعرض ~**520px** على ديسكتوب. [`home-category-exclusive-banner.tsx`](../features/home/components/home-category-exclusive-banner.tsx). |
+| بانر «حصرياً» لكل قسم أب (ترتيب بالرقم) | `public/images/banner-section/` — [`public/images/banner-section/README.md`](../public/images/banner-section/README.md) | **نسبة الإطار في الموقع 16∶5** (مثال **1600×500** أو **1280×400**). ركّز المحتوى في **الوسط** تحسباً لقصّ جانبي أو علوي/سفلي حسب نسبة الملف. | **`object-cover`** داخل **`aspect-[16/5]`** — يملأ الإطار **بدون شرائط** فوق أو تحت (لا هامش letterbox). [`home-category-exclusive-banner.tsx`](../features/home/components/home-category-exclusive-banner.tsx). |
 | شريط صور التصنيفات (سكروول تحت الهيرو) | صور التصنيف من WooCommerce (أو placeholder) | **240×120** (**2∶1**)؛ Retina: **480×240** | `object-cover` في المكوّن. [`home-category-image-scroller.tsx`](../features/home/components/home-category-image-scroller.tsx). |
 | سيكشن صورة قسم عريضة (`HomeCategoryImageSection`) | من الـ API | **2∶1** — مثال: **896×448** (1×) أو **1792×896** (2×) | `object-cover`؛ `sizes` حتى ~**896px**. [`home-category-image-section.tsx`](../features/home/components/home-category-image-section.tsx). |
 | بطاقة ترويج أسفل الصفحة (نص + صورة) | `imageSrc` في `HomePromoCard` / إعدادات | أفقي؛ **≥ 240px** ارتفاع منطقي (`md:min-h-[15rem]`); تصدير **~1040×600** أو نفس النسبة | `object-cover`. [`home-promo-card.tsx`](../features/home/components/home-promo-card.tsx). |
@@ -28,6 +28,7 @@
 نفس الملف قد يُستعمل في **أكثر من مكان** (بانر، Bento، شريط…). الأفضل:
 
 - دقة كافية: **عرض ≥ 1200px** (أفقي) أو **مربع ≥ 1000×1000** إن أمكن.
+- صورة التصنيف تُعرض أحياناً في **بانر 16∶5** (`HomeCategoryExclusiveBanner`) بـ **`object-cover`**: صورة **أعرض** من الإطار → قصّ **جانبي**؛ صورة **أقل عرضاً** (أطول نسبياً) → قصّ **علوي/سفلي** — ركّز المحتوى في **الوسط**.
 - للأماكن التي تستخدم **`object-cover`**: مهم **منتصف** الإطار.
 - **صور المنتج للعرض في البطاقات** (`object-contain`): الأفضل خلفية موحّدة أو اقتصاص من المصمم في **مربع** لأقل هامش في الواجهة.
 

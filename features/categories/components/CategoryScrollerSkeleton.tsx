@@ -1,21 +1,18 @@
 import { cn } from "@/lib/utils";
 
-/** هيكل تحميل يطابق شريط التصنيفات الأفقي (chips) تحت `lg`. */
+/** هيكل تحميل يطابق شريط التصنيفات الأفقي (دوائر + تسمية) تحت `lg`. */
 export function CategoryScrollerSkeleton({ count = 8 }: { count?: number }) {
-  const widths = ["w-24", "w-28", "w-32", "w-28", "w-32", "w-28", "w-24", "w-36"] as const;
   return (
-    <div
-      className="flex min-w-0 gap-2 overflow-x-hidden pb-2"
-      aria-hidden
-    >
+    <div className="flex min-w-0 gap-2 overflow-x-hidden px-0 pb-1 pt-2.5 sm:gap-2.5 sm:pb-1.5 sm:pt-3" aria-hidden>
       {Array.from({ length: count }).map((_, i) => (
-        <div
-          key={i}
-          className={cn(
-            "h-10 shrink-0 animate-shimmer rounded-full bg-gradient-to-r from-image-well via-surface-muted to-image-well bg-[length:200%_100%]",
-            widths[i % widths.length],
-          )}
-        />
+        <div key={i} className="flex shrink-0 flex-col items-center gap-1.5">
+          <div
+            className={cn(
+              "h-14 w-14 shrink-0 animate-shimmer rounded-full bg-gradient-to-r from-image-well via-surface-muted to-image-well bg-[length:200%_100%] sm:h-16 sm:w-16",
+            )}
+          />
+          <div className="h-3 w-12 animate-shimmer rounded bg-border/60 sm:w-14" />
+        </div>
       ))}
     </div>
   );

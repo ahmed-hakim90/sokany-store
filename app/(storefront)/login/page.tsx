@@ -4,10 +4,10 @@ import { LoginPageContent } from "@/components/pages/LoginPageContent";
 
 export const metadata: Metadata = {
   title: "تسجيل الدخول",
-  description: "تسجيل الدخول برقم الموبايل لعرض طلباتك",
+  description: "تسجيل الدخول بالبريد وكلمة المرور (ووكومرس) لعرض حسابك وطلباتك",
   openGraph: {
     title: `تسجيل الدخول | ${SITE_NAME}`,
-    description: "تسجيل الدخول برقم الموبايل لعرض طلباتك",
+    description: "تسجيل الدخول بالبريد وكلمة المرور لعرض حسابك وطلباتك",
     siteName: SITE_BRAND_TITLE_AR,
     locale: "ar_EG",
   },

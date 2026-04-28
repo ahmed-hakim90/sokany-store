@@ -6,7 +6,10 @@ import { DEFAULT_PER_PAGE } from "@/lib/constants";
 import { WOO_CACHE_TAG_PRODUCTS } from "@/lib/woocommerce-cache-tags";
 import { wpProductsSchema } from "@/schemas/wordpress";
 import type { ProductQueryParams } from "@/types";
-import { filterWcProductsExcludingOutOfStock } from "@/lib/woo-storefront-availability";
+import {
+  fetchWooStorefrontProductsPage,
+  productQueryParamsToRecord,
+} from "@/features/products/services/woo-storefront-product-page";
 import { mapProducts } from "../adapters";
 import { filterMockProducts } from "../mock";
 import type { Product, WCProduct } from "../types";
@@ -17,13 +20,11 @@ const fetchWooProductsForServer = unstable_cache(
       paramsKey ? JSON.parse(paramsKey) : undefined
     ) as ProductQueryParams | undefined;
     const woo = await createWooClient();
-    const response = await woo.get("/products", {
-      params: (params ?? {}) as Record<string, string | number | boolean | undefined>,
-    });
-    const raw = response.data as WCProduct[];
-    return filterWcProductsExcludingOutOfStock(raw);
+    const record = productQueryParamsToRecord(params);
+    const { data } = await fetchWooStorefrontProductsPage(woo, record);
+    return data as WCProduct[];
   },
-  ["woo-server-products-raw-v2-instock-list"],
+  ["woo-server-products-v3-storefront-walk"],
   { revalidate: 120, tags: [WOO_CACHE_TAG_PRODUCTS] },
 );
 

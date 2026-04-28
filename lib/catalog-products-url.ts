@@ -6,7 +6,8 @@ export type CatalogFilterApplyInput = {
   min_price: number | null;
   max_price: number | null;
   orderby: string;
-  order: "asc" | "desc";
+  /** غير مُمرَّر مع ‎`orderby=rand`‎ */
+  order?: "asc" | "desc";
 };
 
 function applyCatalogFilterDraftToParams(
@@ -35,15 +36,19 @@ function applyCatalogFilterDraftToParams(
     params.delete("max_price");
   }
 
-  if (
+  if (draft.orderby === "rand") {
+    params.set("orderby", "rand");
+    params.delete("order");
+  } else if (
     draft.orderby &&
     ["date", "popularity", "price", "rating", "title"].includes(draft.orderby)
   ) {
     params.set("orderby", draft.orderby);
+    params.set("order", draft.order === "asc" ? "asc" : "desc");
   } else {
     params.set("orderby", "popularity");
+    params.set("order", draft.order === "asc" ? "asc" : "desc");
   }
-  params.set("order", draft.order === "asc" ? "asc" : "desc");
 
   params.delete("page");
 }

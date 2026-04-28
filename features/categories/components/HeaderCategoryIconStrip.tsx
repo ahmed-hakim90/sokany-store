@@ -1,8 +1,12 @@
 "use client";
 
-import { Link } from "next-view-transitions";
-import { usePathname } from "next/navigation";
-import { CategoryIcon } from "@/features/categories/category-icon-registry";
+import { usePathname, useSearchParams } from "next/navigation";
+import {
+  CategoryCircleNavLink,
+  storeCategorySlugFromHref,
+} from "@/features/categories/components/category-circle-nav-link";
+import { useCategories } from "@/features/categories/hooks/useCategories";
+import { ROUTES } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import type { CmsHeaderCategoryStrip } from "@/schemas/cms";
 
@@ -19,6 +23,16 @@ export function HeaderCategoryIconStrip({
   variant = "default",
 }: HeaderCategoryIconStripProps) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const categoryQueryId = Number.parseInt(
+    searchParams.get("category") ?? "",
+    10,
+  );
+  const categories = useCategories({ per_page: 100 });
+  const bySlug = categories.data?.length
+    ? Object.fromEntries(categories.data.map((c) => [c.slug, c] as const))
+    : null;
+
   if (!config.enabled || config.items.length === 0) return null;
 
   return (
@@ -27,40 +41,45 @@ export function HeaderCategoryIconStrip({
       aria-label="اختصارات التصنيفات"
       className={cn(
         "w-full min-w-0",
-        variant === "toolbar" ? "px-0 pt-1" : "border-b border-border/50 px-3 py-2 sm:px-4",
+        variant === "toolbar"
+          ? "px-0 pt-1"
+          : "border-b border-border/50 px-3 pt-1 pb-2 sm:px-4 sm:pt-1.5 sm:pb-2",
         className,
       )}
     >
       <ul
         className={cn(
-          "flex w-full min-w-0 flex-nowrap items-center justify-start gap-2 overflow-x-auto overscroll-x-contain pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+          "flex w-full min-w-0 flex-nowrap items-center justify-start gap-1.5 overflow-x-auto overscroll-x-contain pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
         )}
       >
         {config.items.map((item, i) => {
+          const catSlug = storeCategorySlugFromHref(item.href);
+          const matched = catSlug ? bySlug?.[catSlug] : undefined;
+          const activeViaProductsFilter =
+            pathname === ROUTES.PRODUCTS &&
+            Number.isFinite(categoryQueryId) &&
+            categoryQueryId > 0 &&
+            matched?.id === categoryQueryId;
+
           const isActive =
             item.href === "/"
               ? pathname === "/"
-              : pathname === item.href || pathname.startsWith(`${item.href}/`);
+              : activeViaProductsFilter ||
+                pathname === item.href ||
+                pathname.startsWith(`${item.href}/`);
           const a11y = item.label?.trim() || `انتقال إلى ${item.iconKey}`;
+          const imageSrc = matched?.image ?? null;
 
           return (
             <li key={`${item.href}-${item.iconKey}-${i}`} className="shrink-0">
-              <Link
+              <CategoryCircleNavLink
                 href={item.href}
-                className={cn(
-                  "relative flex h-12 w-12 items-center justify-center rounded-full border transition-colors",
-                  isActive
-                    ? "border-brand-600 bg-brand-100 text-brand-900 shadow-sm"
-                    : "border-border/80 bg-white text-brand-800 shadow-sm hover:bg-surface-muted/60",
-                )}
-                aria-label={a11y}
-                aria-current={isActive ? "page" : undefined}
-              >
-                <CategoryIcon
-                  slug={item.iconKey}
-                  className="h-6 w-6 drop-shadow-[0_1px_1.5px_rgba(15,23,42,0.18)]"
-                />
-              </Link>
+                isActive={isActive}
+                ariaLabel={a11y}
+                imageSrc={imageSrc}
+                iconSlug={item.iconKey}
+                layout="header"
+              />
             </li>
           );
         })}

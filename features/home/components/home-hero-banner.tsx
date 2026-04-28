@@ -158,7 +158,7 @@ function HeroImageCard({
   slide: HomeHeroSlide;
   priority?: boolean;
 }) {
-  // Same height as HomeCategoryExclusiveBanner (min-h-[14rem]) so hero and parent-category banners align.
+  // Hero cards use a fixed slide frame (300×25rem); parent-category banners use `aspect-[16/5]` — visual rhythm is approximate.
   const content = (
     <div className="relative h-[25rem] w-[300px] shrink-0 snap-center overflow-hidden rounded-2xl bg-image-well shadow-sm ring-1 ring-black/[0.06]">
       <AppImage

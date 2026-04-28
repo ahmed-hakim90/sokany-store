@@ -3,6 +3,11 @@ import { AppImage } from "@/components/AppImage";
 import type { Category } from "@/features/categories/types";
 import { cn } from "@/lib/utils";
 
+/*
+ * بانر تصنيف (الكتالوج مع ‎?category‎، أقسام أب في الهوم، ‎/categories/[slug]‎):
+ * إطار ‎16∶5‎ بعرض كامل؛ ‎object-cover‎ يملأ الإطار دون شرائط فوق/تحت (قد يُقصّ الطرفان إذا اختلفت نسبة المصدر).
+ * الاستجابة: ‎`sm`‎ / ‎`md`‎ / ‎`lg`‎ — عرض حاوية الـ Container.
+ */
 export type HomeCategoryExclusiveBannerProps = {
   category: Category;
   /** Optional override from `public/images/banner-section/{slug}.*` (server map). */
@@ -31,51 +36,17 @@ export function HomeCategoryExclusiveBanner({
   return (
     <section
       className={cn(
-        "relative isolate min-h-[14rem] overflow-hidden rounded-2xl bg-black shadow-lg",
+        "relative isolate w-full overflow-hidden rounded-2xl bg-image-well shadow-lg ring-1 ring-black/[0.06]",
         className,
       )}
-      aria-labelledby={`home-cat-banner-${category.id}-title`}
+      aria-label={category.name}
     >
-      <div className="absolute inset-0 -z-10 md:hidden">
-        <AppImage
-          src={imageSrc}
-          alt=""
-          fill
-          sizes="(max-width: 768px) 90vw, 1px"
-          className={cn("object-cover ", hasRealBannerImage ? "opacity-100" : "opacity-20")}
-        />
-        {/* <div className="absolute inset-0 bg-black/25" /> */}
-      </div>
-
-      <div className="flex min-h-[14rem] flex-col md:flex-row md:items-stretch">
-        {/* <div className="relative z-10 flex flex-1 flex-col justify-center gap-2.5 px-5 py-6 text-right sm:px-8 md:max-w-[52%] md:py-8 lg:px-10">
-          <span className="inline-flex w-fit rounded-md bg-sky-400/95 px-2.5 py-1 font-display text-[11px] font-bold text-yellow-300 sm:text-xs">
-            {badgeText}
-          </span>
-          <h2
-            id={`home-cat-banner-${category.id}-title`}
-            className="font-display text-xl font-bold leading-snug text-white sm:text-2xl md:text-3xl"
-          >
-            {category.name}
-          </h2>
-          <p className="max-w-xl text-pretty text-xs leading-relaxed text-zinc-400 sm:text-sm md:text-base">
-            {description}
-          </p>
-          <Link
-            href={href}
-            className="mt-1 inline-flex w-fit text-sm font-bold text-yellow-300 underline decoration-yellow-300 decoration-2 underline-offset-[5px] transition-colors hover:text-yellow-200 hover:decoration-yellow-200"
-          >
-            اكتشف الآن
-          </Link>
-        </div> */}
-
-        <BannerImageBlock
-          imageSrc={imageSrc}
-          imageAlt={hasRealBannerImage ? category.name : ""}
-          dimmed={!hasRealBannerImage}
-          bannerHref={bannerHref}
-        />
-      </div>
+      <BannerImageBlock
+        imageSrc={imageSrc}
+        imageAlt={hasRealBannerImage ? category.name : ""}
+        dimmed={!hasRealBannerImage}
+        bannerHref={bannerHref}
+      />
     </section>
   );
 }
@@ -96,15 +67,16 @@ function BannerImageBlock({
       src={imageSrc}
       alt={imageAlt}
       fill
-      sizes="(max-width: 767px) 100vw, (max-width: 1280px) 45vw, 520px"
+      sizes="(max-width: 768px) 100vw, (max-width: 1280px) min(90vw, 896px), min(72rem, 100vw)"
       className={cn(
-        "object-cover object-center cover-center",
+        "object-cover object-center",
         dimmed && "opacity-0",
       )}
     />
   );
 
-  const shellClass = "relative min-h-[12rem] flex-1 md:min-h-0 md:block";
+  const shellClass =
+    "relative block aspect-[16/5] w-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600";
 
   if (!bannerHref?.trim()) {
     return <div className={shellClass}>{inner}</div>;
@@ -117,7 +89,7 @@ function BannerImageBlock({
         href={href}
         target="_blank"
         rel="noopener noreferrer"
-        className={cn(shellClass, "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/80")}
+        className={shellClass}
       >
         {inner}
       </a>
@@ -125,13 +97,7 @@ function BannerImageBlock({
   }
 
   return (
-    <Link
-      href={href}
-      className={cn(
-        shellClass,
-        "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/80",
-      )}
-    >
+    <Link href={href} className={shellClass}>
       {inner}
     </Link>
   );

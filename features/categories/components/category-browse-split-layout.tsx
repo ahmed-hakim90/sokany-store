@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { CategorySidebar } from "@/features/categories/components/CategorySidebar";
+import { StickyBelowHeaderRail } from "@/features/categories/components/sticky-below-header-rail";
 import type { Category } from "@/features/categories/types";
 import { cn } from "@/lib/utils";
 
@@ -27,21 +28,23 @@ export function CategoryBrowseSplitLayout({
   return (
     <>
       {/*
-       * تحت lg: عمود — شريط تصنيفات أفقي ثم المحتوى؛ التمرير على مستند الصفحة (بدون overflow-y داخلي على الموبايل — يتعارض مع اللمس على iOS).
+       * تحت lg: عمود — شريط تصنيفات أفقي (لاصق أسفل الهيدر) ثم المحتوى؛ التمرير على مستند الصفحة (بدون overflow-y داخلي على الموبايل — يتعارض مع اللمس على iOS).
        * من lg: شبكة بعرض كامل — sidebar + محتوى بدون حد أقصى للارتفاع حتى يبقى الفوتر أسفل الصفحة.
        */}
       <div
         className={cn(
-          "flex min-h-0 flex-1 flex-col gap-4 sm:px-2 lg:px-1",
+          "flex min-h-0 flex-1 flex-col gap-2 sm:px-2 lg:px-1",
         )}
       >
         {showNavChrome ? (
           <div className="w-full min-w-0 shrink-0 lg:hidden">
-            <CategorySidebar
-              categories={categories}
-              activeSlug={activeSlug}
-              variant="rail"
-            />
+            <StickyBelowHeaderRail>
+              <CategorySidebar
+                categories={categories}
+                activeSlug={activeSlug}
+                variant="rail"
+              />
+            </StickyBelowHeaderRail>
           </div>
         ) : null}
         <div

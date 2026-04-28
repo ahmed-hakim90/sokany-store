@@ -1,12 +1,31 @@
 /**
+ * Converts Arabic‑Indic digits (٠١٢…) and Eastern Arabic‑Indic (Persian ۰۱۲…) to ASCII 0–9.
+ */
+export function normalizeArabicIndicDigitsToAscii(input: string): string {
+  let out = "";
+  for (const ch of input) {
+    const c = ch.codePointAt(0)!;
+    if (c >= 0x0660 && c <= 0x0669) {
+      out += String.fromCodePoint(0x30 + (c - 0x0660));
+    } else if (c >= 0x06f0 && c <= 0x06f9) {
+      out += String.fromCodePoint(0x30 + (c - 0x06f0));
+    } else {
+      out += ch;
+    }
+  }
+  return out;
+}
+
+/**
  * Normalizes common Egypt mobile inputs to E.164 (+20…).
  * Accepts e.g. 01xxxxxxxxx, 1xxxxxxxxx, +201xxxxxxxxx.
+ * Arabic‑Indic digits are converted automatically.
  */
 export function normalizeEgyptPhoneToE164(raw: string): string | null {
   const trimmed = raw.trim();
   if (!trimmed) return null;
 
-  let digits = trimmed.replace(/\s/g, "");
+  let digits = normalizeArabicIndicDigitsToAscii(trimmed).replace(/\s/g, "");
   if (digits.startsWith("+")) {
     digits = digits.slice(1);
   }

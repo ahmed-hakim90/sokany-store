@@ -5,6 +5,7 @@ export const defaultCheckoutFormValues: CheckoutFormData = {
   contactLastName: "",
   contactEmail: "",
   contactPhone: "",
+  contactPhoneAlt: "",
   shippingFirstName: "",
   shippingLastName: "",
   shippingAddress1: "",
@@ -17,6 +18,7 @@ export const defaultCheckoutFormValues: CheckoutFormData = {
   shippingMethod: "free_shipping",
   paymentMethod: "cod",
   customerNote: "",
+  shipToDifferentAddress: false,
   createAccount: false,
   accountPassword: "",
 };

@@ -91,7 +91,8 @@ export function SearchableSelectField({
       selectValue(match.value);
       return;
     }
-    if (value && selectedOption) {
+    /* لا يوجد تطابق مع ما كتبه المستخدم — أعد عرض التسمية المعتمدة للقيمة الحالية (يشمل value فارغاً + «بدون تحديد»). */
+    if (selectedOption) {
       setQueryState({ valueAtSync: value, query: selectedOption.label });
     }
     setOpen(false);
@@ -123,8 +124,9 @@ export function SearchableSelectField({
         name={name}
         value={query}
         onChange={(event) => {
-          setQueryState({ valueAtSync: "", query: event.target.value });
-          onValueChange("");
+          /* لا نستدعي onValueChange هنا — البحث محلي حتى الاختيار من القائمة أو blur؛
+           * استدعاء onValueChange("") كان يمسح المحافظة/المدينة في كل حرف */
+          setQueryState({ valueAtSync: value, query: event.target.value });
           setOpen(true);
         }}
         onFocus={() => setOpen(true)}

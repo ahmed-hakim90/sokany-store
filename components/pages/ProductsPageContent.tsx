@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { Link } from "next-view-transitions";
 import { Container } from "@/components/Container";
 import { ScrollReveal } from "@/components/ScrollReveal";
@@ -9,13 +9,20 @@ import { ErrorState } from "@/components/ErrorState";
 import { useCart } from "@/hooks/useCart";
 import { useProductsCatalog } from "@/hooks/useProductsCatalog";
 import { ROUTES } from "@/lib/constants";
+import { cn } from "@/lib/utils";
 import { focusProductSearchHeaderInput } from "@/lib/product-search-header";
 import { CatalogPagination } from "@/features/catalog/components/CatalogPagination";
+import { CategoryScrollerSkeleton } from "@/features/categories/components/CategoryScrollerSkeleton";
+import { CategorySidebar } from "@/features/categories/components/CategorySidebar";
+import { StickyBelowHeaderRail } from "@/features/categories/components/sticky-below-header-rail";
+import { useCategories } from "@/features/categories/hooks/useCategories";
+import { HomeCategoryExclusiveBanner } from "@/features/home/components/home-category-exclusive-banner";
 import { ProductGrid } from "@/features/products/components/ProductGrid";
 
 /*
  * صفحة الكتالوج (/products):
- * رأس بسيط ثم شبكة المنتجات؛ التصفية (تصنيف، سعر، ترتيب، مميز) تُفتح من درج الفلتر بجانب البحث في الشريط العلوي.
+ * ‎`sm`‎/`lg`: شريط تصنيفات أفقي (دوائر) أولاً → عند ‎`?category=id`‎ بانر صورة التصنيف تحته → شبكة المنتجات.
+ * بدون عنوان صفحة؛ التصفية من أيقونة الفلتر بجانب البحث في الهيدر.
  */
 export function ProductsPageContent() {
   useEffect(() => {
@@ -27,7 +34,31 @@ export function ProductsPageContent() {
     return () => window.cancelAnimationFrame(frame);
   }, []);
 
-  const { productsQuery, searchParams, catalogParams } = useProductsCatalog();
+  const {
+    productsQuery,
+    searchParams,
+    catalogParams,
+    activeCategoryId,
+    allActive,
+    isFeatured,
+  } = useProductsCatalog();
+  const categoriesQuery = useCategories({ per_page: 100 });
+  const productNavCategories = useMemo(() => {
+    const data = categoriesQuery.data;
+    if (!data?.length) return [];
+    return data.filter((c) => c.count > 0);
+  }, [categoriesQuery.data]);
+
+  /** لبانر الصورة: أي تصنيف مُصفّى بالـ id من قائمة وو (حتى لو count=0 في لحظة معيّنة). */
+  const selectedCategoryForBanner = useMemo(() => {
+    if (!activeCategoryId || isFeatured) return null;
+    const full = categoriesQuery.data ?? [];
+    return full.find((c) => c.id === activeCategoryId) ?? null;
+  }, [activeCategoryId, isFeatured, categoriesQuery.data]);
+
+  const showCategoryRail =
+    categoriesQuery.isPending ||
+    (categoriesQuery.isSuccess && productNavCategories.length > 0);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -98,17 +129,45 @@ export function ProductsPageContent() {
 
   return (
     <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-      <Container className="flex min-h-0 flex-1 flex-col sm:px-2 lg:px-8 lg:py-10">
-        <ScrollReveal className="shrink-0">
-          <h1 className="font-display text-xl font-bold tracking-tight text-brand-950 sm:text-2xl md:text-3xl">
-            المنتجات
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            تصفّح الكتالوج؛ استخدم أيقونة التصفية بجانب البحث لاختيار التصنيف والسعر والترتيب.
-          </p>
-        </ScrollReveal>
+      <Container className="flex min-h-0 flex-1 flex-col sm:px-2 lg:px-8 lg:pb-10 lg:pt-2">
+        {categoriesQuery.isPending ? (
+          <div className="min-w-0">
+            <StickyBelowHeaderRail>
+              <CategoryScrollerSkeleton />
+            </StickyBelowHeaderRail>
+          </div>
+        ) : categoriesQuery.isSuccess && productNavCategories.length > 0 ? (
+          <div className="min-w-0">
+            <StickyBelowHeaderRail>
+              <CategorySidebar
+                categories={productNavCategories}
+                variant="rail"
+                linkMode="productsQuery"
+                activeCategoryId={activeCategoryId ?? null}
+                allProductsActive={allActive}
+              />
+            </StickyBelowHeaderRail>
+          </div>
+        ) : null}
 
-        <ScrollReveal className="mt-6 min-w-0 pb-4">{catalogGrid}</ScrollReveal>
+        {selectedCategoryForBanner ? (
+          <div className="mt-3 min-w-0 sm:mt-4">
+            <ScrollReveal>
+              <HomeCategoryExclusiveBanner category={selectedCategoryForBanner} />
+            </ScrollReveal>
+          </div>
+        ) : null}
+
+        <ScrollReveal
+          className={cn(
+            "min-w-0 pb-4",
+            showCategoryRail || selectedCategoryForBanner
+              ? "mt-3 sm:mt-4"
+              : "mt-6",
+          )}
+        >
+          {catalogGrid}
+        </ScrollReveal>
       </Container>
     </div>
   );

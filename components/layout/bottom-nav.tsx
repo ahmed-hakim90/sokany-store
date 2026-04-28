@@ -10,16 +10,16 @@ import {
   useMobileNavDrawerOpenStore,
 } from "@/components/layout/mobile-nav-drawer-open-store";
 import { useCart } from "@/hooks/useCart";
-import { ROUTES } from "@/lib/constants";
+import { PRODUCTS_ALL_RANDOM_HREF, ROUTES } from "@/lib/constants";
 import { bottomNavItemPressableClass } from "@/lib/nav-link-interaction";
 import { cn } from "@/lib/utils";
 
 const linkItems = [
   { href: ROUTES.HOME, label: "الرئيسية", key: "home", icon: HomeIcon },
   {
-    href: ROUTES.CATEGORIES,
-    label: "الأقسام",
-    key: "categories",
+    href: PRODUCTS_ALL_RANDOM_HREF,
+    label: "كل المنتجات",
+    key: "products",
     icon: GridIcon,
   },
   { href: ROUTES.CART, label: "السلة", key: "cart", icon: CartIcon },
@@ -120,7 +120,9 @@ export function BottomNavInner() {
           const active =
             key === "home"
               ? pathname === ROUTES.HOME
-              : pathname === href || pathname.startsWith(`${href}/`);
+              : key === "products"
+                ? pathname === ROUTES.PRODUCTS
+                : pathname === href || pathname.startsWith(`${href}/`);
           const isCart = key === "cart";
 
           return (

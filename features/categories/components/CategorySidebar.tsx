@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { useEffect, useRef } from "react";
 import { Link } from "next-view-transitions";
 import { DEFAULT_PER_PAGE, ROUTES } from "@/lib/constants";
+import { CategoryCircleNavLink } from "@/features/categories/components/category-circle-nav-link";
 import { cn } from "@/lib/utils";
 import type { Category } from "@/features/categories/types";
 import { usePrefetchProducts } from "@/features/products/hooks/usePrefetchProducts";
@@ -48,16 +49,6 @@ export type CategorySidebarProps = {
   variant?: "default" | "rail";
 };
 
-/** شريط أفقي: عرض حسب النص، بدون ضغط لسطرين — يُستخدم مع `variant="rail"` فقط. */
-function railChipBase(allActiveOrActive: boolean) {
-  return cn(
-    "group w-max max-w-none shrink-0 snap-start border px-3 py-2 text-start transition-colors shadow-sm",
-    allActiveOrActive
-      ? "border-brand-950 bg-brand-950 text-accent shadow-sm"
-      : "border-border/80 bg-white/95 hover:bg-black/[0.03]",
-  );
-}
-
 export function CategorySidebar({
   categories,
   activeSlug,
@@ -98,7 +89,7 @@ export function CategorySidebar({
     return (
       <nav
         className={cn(
-          "-mx-4 w-[calc(100%+2rem)] min-w-0 border border-border/70 bg-white/90 shadow-sm backdrop-blur-sm",
+          "w-full min-w-0 border-0 bg-transparent shadow-none",
           className,
         )}
         aria-label="تصفية التصنيفات"
@@ -110,43 +101,35 @@ export function CategorySidebar({
             "snap-x snap-mandatory pb-1",
           )}
         >
-          <ul className="flex flex-nowrap gap-2 px-0 py-2.5">
+          <ul className="flex flex-nowrap items-start gap-2 px-0 pb-1 pt-2.5 sm:gap-2.5 sm:pb-1.5 sm:pt-3">
             <li
               className="shrink-0 snap-start"
               data-category-rail-active={allActive ? true : undefined}
             >
               {isProductsMode ? (
-                <Link
+                <CategoryCircleNavLink
                   href={ROUTES.PRODUCTS}
-                  className={cn(railChipBase(allActive), "inline-flex flex-col gap-0")}
+                  isActive={allActive}
+                  ariaLabel="كل المنتجات"
+                  imageSrc={null}
+                  iconSlug="all"
+                  layout="rail"
+                  caption="الكل"
                   onMouseEnter={prefetchAllProducts}
                   onFocus={prefetchAllProducts}
                   scroll={false}
-                >
-                  <span
-                    className={cn(
-                      "whitespace-nowrap text-sm leading-snug",
-                      allActive ? "font-bold" : "font-medium text-muted-foreground group-hover:text-foreground",
-                    )}
-                  >
-                    الكل
-                  </span>
-                </Link>
+                />
               ) : (
-                <Link
+                <CategoryCircleNavLink
                   href={ROUTES.CATEGORIES}
+                  isActive={allActive}
+                  ariaLabel="كل التصنيفات"
+                  imageSrc={null}
+                  iconSlug="all"
+                  layout="rail"
+                  caption="كل التصنيفات"
                   scroll={false}
-                  className={cn(railChipBase(allActive), "inline-flex flex-col gap-0")}
-                >
-                  <span
-                    className={cn(
-                      "whitespace-nowrap text-sm leading-snug",
-                      allActive ? "font-bold" : "font-medium text-muted-foreground group-hover:text-foreground",
-                    )}
-                  >
-                    كل التصنيفات
-                  </span>
-                </Link>
+                />
               )}
             </li>
             {categories.map((category) => {
@@ -163,10 +146,14 @@ export function CategorySidebar({
                   className="shrink-0 snap-start"
                   data-category-rail-active={active ? true : undefined}
                 >
-                  <Link
+                  <CategoryCircleNavLink
                     href={href}
-                    scroll={false}
-                    className={cn(railChipBase(active), "inline-flex flex-col gap-0")}
+                    isActive={active}
+                    ariaLabel={category.name}
+                    imageSrc={category.image}
+                    iconSlug={category.slug}
+                    layout="rail"
+                    caption={category.name}
                     onMouseEnter={
                       isProductsMode
                         ? () =>
@@ -187,26 +174,8 @@ export function CategorySidebar({
                             })
                         : undefined
                     }
-                  >
-                    <span
-                      className={cn(
-                        "whitespace-nowrap text-sm leading-snug",
-                        active
-                          ? "font-bold text-current"
-                          : "font-medium text-muted-foreground group-hover:text-foreground",
-                      )}
-                    >
-                      {category.name}
-                    </span>
-                    <span
-                      className={cn(
-                        "hidden text-[10px] leading-tight",
-                        active ? "text-accent/85" : "text-muted-foreground/85",
-                      )}
-                    >
-                      {/* {category.count} منتج */}
-                    </span>
-                  </Link>
+                    scroll={false}
+                  />
                 </li>
               );
             })}

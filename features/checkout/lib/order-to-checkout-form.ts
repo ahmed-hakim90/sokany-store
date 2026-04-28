@@ -20,6 +20,26 @@ function pickMetaString(order: Order, key: string): string {
   return typeof entry?.value === "string" ? entry.value.trim() : "";
 }
 
+function norm(s: string): string {
+  return s.trim().replace(/\s+/g, " ").toLowerCase();
+}
+
+/** يُقدَّر هل كان الطلب يستخدم عنوان شحن مختلفاً عن الفوترة (مستلم/عنوان مختلف). */
+function inferShipToDifferentAddress(order: Order): boolean {
+  const b = order.billing;
+  const s = order.shipping;
+  const pairs: [string, string][] = [
+    [b.firstName, s.firstName],
+    [b.lastName, s.lastName],
+    [b.address1, s.address1],
+    [b.address2, s.address2],
+    [b.city, s.city],
+    [b.postcode, s.postcode],
+    [b.country, s.country],
+  ];
+  return pairs.some(([x, y]) => norm(x ?? "") !== norm(y ?? ""));
+}
+
 /** يملأ حقول نموذج إتمام الطلب من طلب ووكومرس (مسار تعديل الطلب). */
 export function orderToCheckoutFormData(order: Order): CheckoutFormData {
   const b = order.billing;
@@ -36,6 +56,7 @@ export function orderToCheckoutFormData(order: Order): CheckoutFormData {
     contactLastName: pickStr(b.lastName, s.lastName),
     contactEmail: b.email?.trim() ?? "",
     contactPhone: b.phone?.trim() ?? "",
+    contactPhoneAlt: pickMetaString(order, "alternate_phone"),
     shippingFirstName: pickStr(s.firstName, b.firstName),
     shippingLastName: pickStr(s.lastName, b.lastName),
     shippingAddress1: pickStr(s.address1, b.address1),
@@ -48,6 +69,7 @@ export function orderToCheckoutFormData(order: Order): CheckoutFormData {
       pickStr(s.country, b.country) || defaultCheckoutFormValues.shippingCountry,
     paymentMethod: normalizePaymentMethod(order.paymentMethod),
     customerNote: order.customerNote ?? "",
+    shipToDifferentAddress: inferShipToDifferentAddress(order),
     createAccount: false,
     accountPassword: "",
   };

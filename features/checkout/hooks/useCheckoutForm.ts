@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { ZodError } from "zod";
 import { toast } from "sonner";
 import { useCart } from "@/hooks/useCart";
@@ -9,7 +9,6 @@ import {
   CheckoutOrderMutationError,
   useCheckoutOrderMutation,
 } from "@/features/checkout/hooks/useCheckoutOrderMutation";
-import { useCustomerAuth } from "@/features/checkout/hooks/useCustomerAuth";
 import {
   readCheckoutAmendSession,
   readCheckoutAmendFormPrefill,
@@ -27,8 +26,6 @@ import {
   shippingFeeForMethod,
 } from "@/features/checkout/lib/to-create-order-payload";
 import type { CheckoutFormData } from "@/features/checkout/types";
-import { normalizeEgyptPhoneToE164 } from "@/lib/phone";
-
 function checkoutFieldErrorsFromSchema(
   error: ZodError,
 ): Partial<Record<keyof CheckoutFormData, string>> {
@@ -53,13 +50,6 @@ export function useCheckoutForm() {
     trackingUrl: string;
     orderKey: string;
   } | null>(null);
-  const [otpModalOpen, setOtpModalOpen] = useState(false);
-  /** Bumps when a new SMS session starts so `CheckoutOtpModal` remounts with a clean code field. */
-  const [otpSessionKey, setOtpSessionKey] = useState(0);
-  /** E.164 set when opening the OTP step — SMS is sent after the modal mounts (reCAPTCHA lives in the modal). */
-  const [otpPhoneE164, setOtpPhoneE164] = useState<string | null>(null);
-  const otpSendStartedRef = useRef(false);
-
   const dismissOrderSuccess = useCallback(() => {
     setOrderSuccessOpen(false);
     setPlacedOrderSummary(null);
@@ -102,23 +92,18 @@ export function useCheckoutForm() {
     }, 300);
     return () => window.clearTimeout(t);
   }, [values, rehydratedDraft]);
-  const {
-    reset: resetCustomerAuth,
-    sendOtp,
-    verifyOtpAndSaveCustomer,
-    isSending: authSending,
-    isVerifying: authVerifying,
-    error: authError,
-  } = useCustomerAuth();
 
   const shippingFee = shippingFeeForMethod(values.shippingMethod);
   const orderTotal = totalPrice + shippingFee;
   const shippingMethodTitle = CHECKOUT_SHIPPING_DISPLAY_LABEL;
   const cartEmpty = items.length === 0;
 
-  const update = (key: keyof CheckoutFormData, value: string) => {
+  const update = useCallback(<K extends keyof CheckoutFormData>(
+    key: K,
+    value: CheckoutFormData[K],
+  ) => {
     setValues((prev) => ({ ...prev, [key]: value }));
-  };
+  }, []);
 
   const updatePaymentMethod = (value: CheckoutFormData["paymentMethod"]) => {
     setValues((prev) => ({ ...prev, paymentMethod: value }));
@@ -144,8 +129,6 @@ export function useCheckoutForm() {
             clearCheckoutDraftFromStorage();
             setValues(defaultCheckoutFormValues);
             setErrors({});
-            setOtpModalOpen(false);
-            resetCustomerAuth();
           },
           onError: (error) => {
             if (CheckoutOrderMutationError.is(error)) {
@@ -172,7 +155,7 @@ export function useCheckoutForm() {
         },
       );
     },
-    [checkoutOrder, clearCart, resetCustomerAuth, items, values],
+    [checkoutOrder, clearCart, items, values],
   );
 
   const submitOrder = useCallback(() => {
@@ -183,61 +166,8 @@ export function useCheckoutForm() {
       toast.error("يرجى تصحيح الحقول المظللة.");
       return;
     }
-
-    const data = checkoutParsed.data;
-    /* طلب ضيف بدون «إنشاء حساب» يُرسل مباشرة — OTP+Firebase فقط لمسار ربط الحساب. */
-    if (!data.createAccount) {
-      runOrderMutation();
-      return;
-    }
-
-    const e164 = normalizeEgyptPhoneToE164(data.contactPhone);
-    if (!e164) {
-      /* يفترض أن checkoutSchema يمنع هذا؛ احتياط لو تغيّر التطبيع لاحقاً */
-      toast.error("رقم الموبايل غير صالح.");
-      return;
-    }
-
-    otpSendStartedRef.current = false;
-    setOtpPhoneE164(e164);
-    setOtpSessionKey((k) => k + 1);
-    setOtpModalOpen(true);
+    runOrderMutation();
   }, [values, runOrderMutation]);
-
-  const startOtpSms = useCallback(async () => {
-    if (otpSendStartedRef.current || !otpPhoneE164) return;
-    otpSendStartedRef.current = true;
-    try {
-      await sendOtp(otpPhoneE164);
-    } catch (e) {
-      otpSendStartedRef.current = false;
-      toast.error(
-        e instanceof Error ? e.message : "تعذر إرسال رمز التحقق.",
-      );
-    }
-  }, [sendOtp, otpPhoneE164]);
-
-  const confirmOtpAndPlaceOrder = useCallback(
-    async (code: string) => {
-      try {
-        const uid = await verifyOtpAndSaveCustomer(values, code);
-        runOrderMutation(uid);
-      } catch {
-        /* `authError` from `useCustomerAuth` shows in the modal */
-      }
-    },
-    [verifyOtpAndSaveCustomer, runOrderMutation, values],
-  );
-
-  const dismissOtpModal = useCallback(() => {
-    setOtpModalOpen(false);
-    setOtpPhoneE164(null);
-    otpSendStartedRef.current = false;
-    resetCustomerAuth();
-  }, [resetCustomerAuth]);
-
-  const phoneHint =
-    normalizeEgyptPhoneToE164(values.contactPhone) ?? values.contactPhone.trim();
 
   return {
     values,
@@ -248,24 +178,11 @@ export function useCheckoutForm() {
     orderTotal,
     shippingMethodTitle,
     cartEmpty,
-    isSubmitting:
-      checkoutOrder.isPending || authSending || authVerifying,
-    /** Full-page checkout overlay — hide while OTP modal is open so it does not cover the dialog. */
-    loadingOverlayVisible:
-      checkoutOrder.isPending || (authSending && !otpModalOpen),
+    isSubmitting: checkoutOrder.isPending,
+    loadingOverlayVisible: checkoutOrder.isPending,
     orderSuccessOpen,
     placedOrderSummary,
     dismissOrderSuccess,
-    otpModalOpen,
-    otpSessionKey,
-    otpPhoneE164,
-    otpSending: authSending,
-    startOtpSms,
-    otpError: authError,
-    otpIsVerifying: authVerifying,
-    phoneHint,
-    confirmOtpAndPlaceOrder,
-    dismissOtpModal,
     update,
     updatePaymentMethod,
     submitOrder,

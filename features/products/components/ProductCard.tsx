@@ -525,7 +525,7 @@ export function ProductCard({
                   disabled={!product.inStock}
                   aria-label={addButtonAriaLabel}
                   className={cn(
-                    "inline-flex shrink-0 items-center justify-center gap-1 rounded-full bg-brand-500 font-bold leading-none text-black shadow-[0_8px_18px_-12px_rgba(132,204,22,0.9)] ring-1 ring-black/[0.06] transition-all duration-200 ease-out hover:bg-brand-400 group-hover/card:scale-105 active:scale-[0.97] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 disabled:pointer-events-none disabled:opacity-45 disabled:group-hover/card:scale-100",
+                    "inline-flex shrink-0 items-center justify-center gap-1 rounded bg-brand-500 font-bold leading-none text-black shadow-[0_8px_18px_-12px_rgba(132,204,22,0.9)] ring-1 ring-black/[0.06] transition-all duration-200 ease-out hover:bg-brand-400 group-hover/card:scale-105 active:scale-[0.97] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 disabled:pointer-events-none disabled:opacity-45 disabled:group-hover/card:scale-100",
                     isDetailed
                       ? "h-9 px-2.5 text-[11px] sm:px-4 sm:text-xs"
                       : "h-8 px-3 text-[11px] sm:h-8 sm:px-3.5 sm:text-xs",

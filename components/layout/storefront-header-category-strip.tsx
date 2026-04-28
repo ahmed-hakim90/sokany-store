@@ -24,7 +24,7 @@ export function StorefrontHeaderCategoryStrip({
   if (!config.enabled || config.items.length === 0) return null;
 
   return (
-    <div className={cn("z-30 bg-page max-lg:bg-white", className)}>
+    <div className={cn("z-30 bg-page max-lg:bg-white lg:-mt-1", className)}>
       <HeaderCategoryIconStrip config={config} variant="default" />
     </div>
   );

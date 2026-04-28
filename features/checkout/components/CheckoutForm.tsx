@@ -11,15 +11,13 @@ import { CheckoutShippingForm } from "@/features/checkout/components/CheckoutShi
 import { CheckoutSummary } from "@/features/checkout/components/CheckoutSummary";
 import { OrderSuccessCelebration } from "@/features/checkout/components/order-success-celebration";
 import { CheckoutSupportFooter } from "@/features/checkout/components/checkout-support-footer";
-import { CheckoutOtpModal } from "@/features/checkout/components/checkout-otp-modal";
 import { useCheckoutForm } from "@/features/checkout/hooks/useCheckoutForm";
 
 /*
- * نموذج إتمام الطلب: على الجوال عمود واحد — الملخص أولاً (order-1) ثم حقول الشحن والدفع (order-2).
+ * نموذج إتمام الطلب: على الجوال عمود واحد — الملخص أولاً (order-1) ثم حقول الدفع ثم طريقة الدفع (order-2).
  * من lg: صف أفقي بعرض أقصى أوسع — عمود النموذج يتمدد، عمود الملخص max-width مع sticky عند التمرير.
  * بعد نجاح الطلب: `OrderSuccessCelebration` (شكر + قلوب) فوق الطبقة z-[200].
- * التحقق بالهاتف (OTP): فقط لمسار «إنشاء حساب»/ربط الحساب — ليس لطلب الضيف.
- * الشحن مجاني دون اختيار طرق توصيل؛ لا يُعرض إنشاء حساب Woo اختياري (الهوية عبر Firebase + المتجر).
+ * الشحن مجاني؛ ملاحظات الطلب داخل كتلة «بيانات الدفع»؛ مسودة الحقول في localStorage.
  */
 export function CheckoutForm() {
   const {
@@ -36,16 +34,6 @@ export function CheckoutForm() {
     orderSuccessOpen,
     placedOrderSummary,
     dismissOrderSuccess,
-    otpModalOpen,
-    otpSessionKey,
-    otpPhoneE164,
-    otpSending,
-    startOtpSms,
-    otpError,
-    otpIsVerifying,
-    phoneHint,
-    confirmOtpAndPlaceOrder,
-    dismissOtpModal,
     update,
     updatePaymentMethod,
     submitOrder,
@@ -65,19 +53,19 @@ export function CheckoutForm() {
     </div>
   );
 
-  /* عمود الحقول: شحن ثم دفع ثم ملاحظات قانونية وأزرار ودعم */
+  /* عمود الحقول: بيانات الدفع + ملاحظات ثم طريقة الدفع ثم ملاحظات قانونية وأزرار ودعم */
   const formColumn = (
     <div className="order-2 flex min-w-0 flex-1 flex-col gap-3 lg:order-1">
       <CheckoutShippingForm
         values={values}
         errors={errors}
         onChange={update}
+        onCustomerNoteChange={(v) => update("customerNote", v)}
       />
       <CheckoutPaymentForm
         values={values}
         errors={errors}
         onPaymentMethodChange={updatePaymentMethod}
-        onCustomerNoteChange={(v) => update("customerNote", v)}
       />
       <CheckoutCouponRow />
       <CheckoutLegalNote />
@@ -98,19 +86,6 @@ export function CheckoutForm() {
 
   return (
     <>
-      <CheckoutOtpModal
-        key={otpSessionKey}
-        open={otpModalOpen}
-        otpSessionKey={otpSessionKey}
-        phoneHint={phoneHint}
-        phoneE164={otpPhoneE164}
-        isSending={otpSending}
-        error={otpError}
-        isVerifying={otpIsVerifying}
-        onClose={dismissOtpModal}
-        onMountSendSms={startOtpSms}
-        onSubmitCode={(code) => void confirmOtpAndPlaceOrder(code)}
-      />
       <OrderSuccessCelebration
         open={orderSuccessOpen}
         order={placedOrderSummary}
