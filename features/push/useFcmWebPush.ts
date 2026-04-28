@@ -8,6 +8,7 @@ import {
   messagingErrorIsInvalidVapid,
   warnIfVapidKeyLooksInvalidDev,
 } from "@/lib/push-vapid";
+import { emitWooCacheInvalidationFromData } from "@/lib/storefront-offline-cache";
 
 const VAPID = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY;
 
@@ -73,6 +74,9 @@ export function useFcmWebPush(enabled: boolean): void {
         }
       }
       offRef.current = onMessage(messaging, (payload) => {
+        if (emitWooCacheInvalidationFromData(payload.data)) {
+          return;
+        }
         const title = payload.notification?.title ?? "إشعار";
         const body = payload.notification?.body ?? "";
         toast(title, { description: body || undefined, duration: 8000 });

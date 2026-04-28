@@ -3,6 +3,7 @@ import {
   extractWooWebhookResourceId,
   revalidateAfterWooCommerceWebhook,
 } from "@/features/woocommerce/revalidate-after-product-webhook";
+import { sendWooCacheInvalidation } from "@/features/push/services/send-woo-cache-invalidation";
 import { recordWooWebhookDelivery } from "@/features/woocommerce/services/record-woo-webhook-delivery";
 import { zodIssuesToJsonString } from "@/lib/zod-issues-compact";
 import { verifyWooCommerceWebhookSignature } from "@/lib/verify-woocommerce-webhook-signature";
@@ -65,6 +66,12 @@ export async function POST(request: Request) {
       { error: "Cache revalidation failed" },
       { status: 500 },
     );
+  }
+
+  try {
+    await sendWooCacheInvalidation({ topic, resourceId });
+  } catch (err) {
+    console.error("[woocommerce-webhook] push invalidation failed", err);
   }
 
   await recordWooWebhookDelivery({

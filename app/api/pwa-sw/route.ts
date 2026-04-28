@@ -60,7 +60,18 @@ self.addEventListener("activate", (event) => {
 if (firebaseConfig.apiKey && firebaseConfig.messagingSenderId && firebaseConfig.appId) {
   firebase.initializeApp(firebaseConfig);
   const messaging = firebase.messaging();
+  const broadcastWooCacheInvalidation = (data) =>
+    self.clients
+      .matchAll({ type: "window", includeUncontrolled: true })
+      .then((clientList) => {
+        clientList.forEach((client) => {
+          client.postMessage(Object.assign({ type: "woo-cache-invalidation" }, data || {}));
+        });
+      });
   messaging.onBackgroundMessage((payload) => {
+    if (payload.data && payload.data.type === "woo-cache-invalidation") {
+      return broadcastWooCacheInvalidation(payload.data);
+    }
     const title =
       (payload.notification && payload.notification.title) ||
       (payload.data && payload.data.title) ||
