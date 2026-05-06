@@ -41,7 +41,7 @@ const footerLegalLinks = [
 /** أقصى عدد تصنيفات يُعرَض في الفوتر؛ الباقي عبر رابط «كل التصنيفات». */
 const FOOTER_CATEGORY_LIMIT = 8;
 
-const FOOTER_DEV_CREDIT_HREF = "https://hakimo-cv.vercel.app/hakimo" as const;
+// const FOOTER_DEV_CREDIT_HREF = "https://hakimo-cv.vercel.app/hakimo" as const;
 
 export type FooterProps = {
   socialLinks: SocialLink[];
@@ -247,7 +247,7 @@ export function Footer({
                 target="_blank"
                 rel="noopener noreferrer"
                 className="underline-offset-2 transition-colors hover:text-brand-900 hover:underline"
-                aria-label="صُنع بِحُبٍ — hakimo"
+                aria-label="صُنع بِحُبٍ — Sokany Technology"
               >
                 <span
                   className="inline-flex flex-row items-baseline justify-center gap-1.5"
@@ -263,7 +263,7 @@ export function Footer({
                     dir="ltr"
                     lang="en"
                   >
-                    hakimo
+                    Sokany Technology
                   </span>
                 </span>
               </a>
