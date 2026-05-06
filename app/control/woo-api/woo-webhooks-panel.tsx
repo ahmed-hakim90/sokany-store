@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { SOKANY_WOO_WEBHOOK_RECIPES } from "@/features/woocommerce/woo-webhook-topics";
-import { cn } from "@/lib/utils";
 
 type SwhRow = {
   id: number;
@@ -42,6 +41,7 @@ export function WooWebhooksPanel() {
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [syncResult, setSyncResult] = useState<PostRes | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const load = useCallback(async () => {
     setErr(null);
@@ -121,19 +121,15 @@ export function WooWebhooksPanel() {
   return (
     <div className="overflow-hidden rounded-xl border border-slate-200/90 bg-white p-5 shadow-sm ring-1 ring-slate-900/5">
       <h2 className="font-display text-sm font-bold text-slate-900">
-        مزامنة Webhooks (من اللوحة)
+        تجهيز التحديثات التلقائية من Woo
       </h2>
-      <p className="mt-1 text-xs text-slate-500">
-        يستدعي ووردبريس:{" "}
-        <code className="rounded bg-slate-100 px-1" dir="ltr">GET/POST /wc/v3/webhooks</code>
-        . يلزم{" "}
-        <code className="rounded bg-slate-100 px-1" dir="ltr">WC_*</code> +{" "}
-        <code className="rounded bg-slate-100 px-1" dir="ltr">WC_WEBHOOK_SECRET</code>.
+      <p className="mt-1 text-sm text-slate-600">
+        من هنا نراجع هل التحديثات الأساسية موجودة على Woo، ويمكننا إكمال الناقص تلقائيًا بدل ضبطه يدويًا.
       </p>
 
       {needsSecret ? (
         <p className="mt-2 rounded-lg border border-rose-200 bg-rose-50/60 px-3 py-2 text-sm text-rose-900">
-          <strong>WC_WEBHOOK_SECRET</strong> غير مضبوط — أضفه في البيئة ثم أعِد المحاولة.
+          الربط غير مكتمل من جهة الخادم، لذلك لا يمكن إنشاء التحديثات التلقائية الآن.
         </p>
       ) : null}
 
@@ -145,7 +141,7 @@ export function WooWebhooksPanel() {
           disabled={!!needsSecret || syncing}
           onClick={() => void onSync()}
         >
-          {syncing ? "جاري المزامنة…" : "إنشاء/تفعيل الناقص في Woo"}
+          {syncing ? "جارٍ التجهيز..." : "إكمال الناقص تلقائيًا"}
         </Button>
         <Button
           type="button"
@@ -159,16 +155,9 @@ export function WooWebhooksPanel() {
       </div>
 
       {missing.length > 0 ? (
-        <p className="mt-2 text-xs text-amber-800">
-          ناقص على المتجر:{" "}
-          {missing.map((t) => (
-            <code key={t} className="mx-0.5 font-mono text-[11px]" dir="ltr">
-              {t}
-            </code>
-          ))}
-        </p>
+        <p className="mt-2 text-xs text-amber-800">هناك تحديثات أساسية ناقصة وتحتاج إضافة.</p>
       ) : (
-        <p className="mt-2 text-xs text-emerald-800">جميع المواضيع المدعومة موجودة.</p>
+        <p className="mt-2 text-xs text-emerald-800">كل التحديثات الأساسية موجودة وجاهزة.</p>
       )}
 
       {syncResult && !syncResult.ok ? (
@@ -178,7 +167,7 @@ export function WooWebhooksPanel() {
         <div className="mt-3 text-xs text-slate-600">
           {syncResult.result.created.length > 0 ? (
             <p>
-              أُنشئ: {syncResult.result.created.map((c) => c.topic).join("، ")}
+              تمت إضافة: {syncResult.result.created.map((c) => c.topic).join("، ")}
             </p>
           ) : null}
           {syncResult.result.failed.length > 0 ? (
@@ -196,17 +185,34 @@ export function WooWebhooksPanel() {
         </div>
       ) : null}
 
-      <p className="mt-2 text-xs text-slate-500" dir="ltr">
-        {data.deliveryUrl}
-      </p>
+      <div className="mt-3 flex flex-col gap-2 rounded-xl border border-slate-200/80 bg-slate-50/70 p-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <p className="text-xs font-medium text-slate-900">الرابط الذي تستقبل عليه التحديثات</p>
+          <p className="mt-1 break-all font-mono text-[11px] text-slate-500" dir="ltr">
+            {data.deliveryUrl}
+          </p>
+        </div>
+        <Button
+          type="button"
+          variant="secondary"
+          className="border-slate-200 bg-white"
+          onClick={() => {
+            void navigator.clipboard.writeText(data.deliveryUrl);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 1500);
+          }}
+        >
+          {copied ? "تم النسخ" : "نسخ الرابط"}
+        </Button>
+      </div>
 
       <div className="mt-4 overflow-x-auto">
         <table className="w-full min-w-[300px] text-right text-sm">
           <thead>
             <tr className="border-b border-slate-200 text-xs text-slate-500">
-              <th className="px-2 py-2">topic</th>
-              <th className="px-2 py-2">الوصف</th>
-              <th className="px-2 py-2">Woo</th>
+              <th className="px-2 py-2">نوع التحديث</th>
+              <th className="px-2 py-2">معناه</th>
+              <th className="px-2 py-2">الحالة</th>
             </tr>
           </thead>
           <tbody>
@@ -220,14 +226,13 @@ export function WooWebhooksPanel() {
                   <td className="px-2 py-1.5 text-slate-700">{r.labelAr}</td>
                   <td className="px-2 py-1.5">
                     <span
-                      className={cn(
-                        "text-xs font-medium",
-                        w ? "text-emerald-700" : "text-slate-400",
-                      )}
+                      className={
+                        w
+                          ? "inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700 ring-1 ring-inset ring-emerald-600/15"
+                          : "inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700 ring-1 ring-inset ring-amber-600/15"
+                      }
                     >
-                      {w
-                        ? `#${w.id} ${w.status ?? ""}`.trim()
-                        : "—"}
+                      {w ? "جاهز" : "ناقص"}
                     </span>
                   </td>
                 </tr>

@@ -97,11 +97,11 @@ export function CategorySidebar({
         <div
           ref={railScrollRef}
           className={cn(
-            "overflow-x-auto overscroll-x-contain [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+            "max-w-full min-w-0 overflow-x-auto overscroll-x-contain [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
             "snap-x snap-mandatory pb-1",
           )}
         >
-          <ul className="flex flex-nowrap items-start gap-2 px-0 pb-1 pt-2.5 sm:gap-2.5 sm:pb-1.5 sm:pt-3">
+          <ul className="flex max-w-full min-w-0 flex-nowrap items-start gap-2 overflow-x-auto overscroll-x-contain px-0 pb-1 pt-2.5 [-ms-overflow-style:none] [scrollbar-width:none] sm:gap-2.5 sm:pb-1.5 sm:pt-3 [&::-webkit-scrollbar]:hidden">
             <li
               className="shrink-0 snap-start"
               data-category-rail-active={allActive ? true : undefined}

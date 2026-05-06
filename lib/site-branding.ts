@@ -51,15 +51,18 @@ export type ResolvedSiteBranding = {
   organizationName: string;
   organizationLogoUrl: string;
   supportPhoneDisplay: string;
+  productCardBadgeEnabled: boolean;
+  productCardBadgeText: string;
 };
 
 /** دمج حقول الهوية من Firestore مع ثوابت المشروع و`.env`. */
 export function resolveSiteBranding(b: CmsSiteBranding | undefined): ResolvedSiteBranding {
   const phoneFromEnv = process.env.NEXT_PUBLIC_SUPPORT_PHONE?.trim();
+  const siteWordmark = b?.siteWordmark ?? SITE_WORDMARK;
   return {
     siteName: b?.siteName ?? SITE_NAME,
     siteBrandTitleAr: b?.siteBrandTitleAr ?? SITE_BRAND_TITLE_AR,
-    siteWordmark: b?.siteWordmark ?? SITE_WORDMARK,
+    siteWordmark,
     logoPath: b?.logoPath ?? SITE_LOGO_PATH,
     logoDisabled: b?.logoDisabled ?? SITE_LOGO_DISABLED,
     icon192: b?.icon192 ?? "/images/icon-192.png",
@@ -77,5 +80,7 @@ export function resolveSiteBranding(b: CmsSiteBranding | undefined): ResolvedSit
     organizationLogoUrl: b?.organizationLogoUrl ?? DEFAULT_OG_IMAGE_URL,
     supportPhoneDisplay:
       b?.supportPhoneDisplay ?? phoneFromEnv ?? "+20-xxx-xxx-xxxx",
+    productCardBadgeEnabled: b?.productCardBadgeEnabled ?? true,
+    productCardBadgeText: b?.productCardBadgeText ?? `Official ${siteWordmark}`,
   };
 }

@@ -1,7 +1,7 @@
 import type { ControlPanelTabId } from "@/features/control/lib/control-tabs";
 
 const CMS_KEY_TO_TABS: Record<string, ControlPanelTabId[]> = {
-  site_config: ["general", "branding"],
+  site_config: ["general", "branding", "home"],
   home_hero: ["hero"],
   section_banners: ["banners"],
   branches: ["branches"],

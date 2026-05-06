@@ -62,7 +62,7 @@ export default function ControlLoginPage() {
           </p>
           <h1 className="font-display mt-1 text-2xl font-bold text-slate-900">تسجيل الدخول</h1>
           <p className="mt-2 text-sm text-slate-600">
-            سجّل الدخول بحساب مسموح (مُعرّف المستخدم في CONTROL_PANEL_ALLOWED_UIDS).
+            سجّل الدخول بالحساب المسموح له باستخدام لوحة التحكم.
           </p>
           <form onSubmit={onSubmit} className="mt-8 space-y-4">
             <div>
@@ -72,6 +72,9 @@ export default function ControlLoginPage() {
               >
                 البريد
               </label>
+              <p className="mb-2 text-xs text-slate-500">
+                اكتب نفس الإيميل اللي بتدخل بيه على لوحة التحكم.
+              </p>
               <input
                 id="ctrl-email"
                 type="email"
@@ -89,6 +92,9 @@ export default function ControlLoginPage() {
               >
                 كلمة المرور
               </label>
+              <p className="mb-2 text-xs text-slate-500">
+                اكتب كلمة مرور حساب التحكم. لو مش فاكرها لازم تتراجع من المسؤول.
+              </p>
               <input
                 id="ctrl-pass"
                 type="password"

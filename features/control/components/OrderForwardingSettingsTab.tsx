@@ -4,6 +4,11 @@ import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/Button";
+import { ControlFieldHelp } from "@/features/control/components/control-field-help";
+import {
+  ControlAdvancedDetails,
+  ControlFormSection,
+} from "@/features/control/components/control-page-chrome";
 import { formatControlApiError } from "@/features/control/lib/control-cms-put";
 import {
   DEFAULT_ORDER_FORWARDING_SECRET_HEADER_NAME,
@@ -111,15 +116,10 @@ export function OrderForwardingSettingsTab() {
   }
 
   return (
-    <section className="space-y-5 rounded-2xl border border-border bg-white p-5 shadow-sm">
-      <div>
-        <h2 className="font-display text-lg font-bold">تكامل إرسال الطلبات</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          يرسل السيرفر نسخة من الطلب إلى API خارجي بعد نجاح إنشائه في WooCommerce.
-          فشل الإرسال الخارجي لا يعطّل تجربة العميل.
-        </p>
-      </div>
-
+    <ControlFormSection
+      title="إرسال الطلبات لجهة خارجية"
+      description="استخدم هذا القسم لو عندك نظام خارجي يحتاج يستقبل نسخة من كل طلب جديد بعد نجاحه في المتجر."
+    >
       <form
         className="grid gap-4 sm:grid-cols-2"
         onSubmit={(e) => {
@@ -133,13 +133,21 @@ export function OrderForwardingSettingsTab() {
             checked={enabled}
             onChange={(e) => setEnabled(e.target.checked)}
           />
-          <span>تشغيل إرسال الطلبات للـ API الخارجي</span>
+          <span>تشغيل الإرسال التلقائي للطلبات</span>
         </label>
+        <div className="sm:col-span-2 -mt-2">
+          <ControlFieldHelp>
+            فعّل الاختيار ده لو عايز كل طلب جديد يروح كمان لنظام خارجي عندك.
+          </ControlFieldHelp>
+        </div>
 
         <div className="sm:col-span-2">
           <label className="text-sm font-medium" htmlFor="order-forwarding-api-url">
-            API URL
+            رابط الجهة المستقبلة
           </label>
+          <ControlFieldHelp>
+            حط هنا رابط النظام الخارجي اللي هيستقبل بيانات الطلب بعد ما العميل يكمّل الشراء.
+          </ControlFieldHelp>
           <input
             id="order-forwarding-api-url"
             type="url"
@@ -153,32 +161,20 @@ export function OrderForwardingSettingsTab() {
           />
         </div>
 
-        <div>
-          <label className="text-sm font-medium" htmlFor="order-forwarding-header">
-            Secret header name
-          </label>
-          <input
-            id="order-forwarding-header"
-            value={secretHeaderName}
-            onChange={(e) => setSecretHeaderName(e.target.value)}
-            placeholder={DEFAULT_ORDER_FORWARDING_SECRET_HEADER_NAME}
-            className="mt-1 w-full rounded-lg border border-border px-3 py-2 font-mono text-sm ltr"
-            dir="ltr"
-            autoComplete="off"
-          />
-        </div>
-
-        <div>
+        <div className="sm:col-span-2">
           <label className="text-sm font-medium" htmlFor="order-forwarding-secret">
-            Secret
+            مفتاح الحماية
           </label>
+          <ControlFieldHelp>
+            هذا المفتاح بين الموقع والنظام الخارجي للتأكد أن الطلب المرسل حقيقي وجاي من عندك.
+          </ControlFieldHelp>
           <div className="mt-1 flex flex-col gap-2 sm:flex-row">
             <input
               id="order-forwarding-secret"
               type="text"
               value={secret}
               onChange={(e) => setSecret(e.target.value)}
-              placeholder={settings.hasSecret ? "اتركه فارغًا للحفاظ على السر الحالي" : "secret"}
+              placeholder={settings.hasSecret ? "اتركه فارغًا للحفاظ على المفتاح الحالي" : "أنشئ مفتاحًا أو اكتب واحدًا"}
               className="min-w-0 flex-1 rounded-lg border border-border px-3 py-2 font-mono text-sm ltr"
               dir="ltr"
               autoComplete="off"
@@ -192,25 +188,47 @@ export function OrderForwardingSettingsTab() {
                 setClearSecret(false);
               }}
             >
-              إنشاء secret
+              إنشاء مفتاح
             </Button>
           </div>
           <p className="mt-1 text-xs text-muted-foreground">
-            الحالة الحالية: {settings.hasSecret ? "secret محفوظ" : "لا يوجد secret محفوظ"}.
-            بعد إنشاء secret جديد اضغط حفظ لتفعيله.
+            الحالة الحالية: {settings.hasSecret ? "يوجد مفتاح محفوظ" : "لا يوجد مفتاح محفوظ"}.
+            بعد إنشاء مفتاح جديد اضغط حفظ لتفعيله.
           </p>
         </div>
 
-        {settings.hasSecret ? (
-          <label className="flex items-center gap-2 text-sm sm:col-span-2">
-            <input
-              type="checkbox"
-              checked={clearSecret}
-              onChange={(e) => setClearSecret(e.target.checked)}
-            />
-            <span>مسح السر الحالي عند الحفظ</span>
-          </label>
-        ) : null}
+        <div className="sm:col-span-2">
+          <ControlAdvancedDetails summary="إعدادات متقدمة">
+            <div>
+              <label className="text-sm font-medium" htmlFor="order-forwarding-header">
+                اسم خانة الأمان
+              </label>
+              <ControlFieldHelp>
+                غيّره فقط لو النظام الخارجي طلب اسمًا معينًا للمفتاح. لو غير متأكد، اتركه كما هو.
+              </ControlFieldHelp>
+              <input
+                id="order-forwarding-header"
+                value={secretHeaderName}
+                onChange={(e) => setSecretHeaderName(e.target.value)}
+                placeholder={DEFAULT_ORDER_FORWARDING_SECRET_HEADER_NAME}
+                className="mt-1 w-full rounded-lg border border-border px-3 py-2 font-mono text-sm ltr"
+                dir="ltr"
+                autoComplete="off"
+              />
+            </div>
+
+            {settings.hasSecret ? (
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={clearSecret}
+                  onChange={(e) => setClearSecret(e.target.checked)}
+                />
+                <span>مسح المفتاح الحالي عند الحفظ</span>
+              </label>
+            ) : null}
+          </ControlAdvancedDetails>
+        </div>
 
         <div className="flex flex-wrap gap-2 sm:col-span-2">
           <Button type="submit" disabled={saving}>
@@ -226,6 +244,6 @@ export function OrderForwardingSettingsTab() {
           </Button>
         </div>
       </form>
-    </section>
+    </ControlFormSection>
   );
 }

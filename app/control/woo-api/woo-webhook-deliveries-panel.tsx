@@ -31,6 +31,17 @@ function shortHash(hex: string) {
   return `${hex.slice(0, 6)}…${hex.slice(-4)}`;
 }
 
+function formatDeliveryTime(value: string) {
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return value;
+  }
+  return parsed.toLocaleString("ar-EG", {
+    dateStyle: "short",
+    timeStyle: "short",
+  });
+}
+
 /**
  * سجل تسليمات ‎Woo (موقّعة) كما تُسجّل في ‎Firestore من الخادم.
  */
@@ -128,12 +139,10 @@ export function WooWebhookDeliveriesPanel() {
     return (
       <div className="overflow-hidden rounded-xl border border-slate-200/90 bg-white p-5 shadow-sm ring-1 ring-slate-900/5">
         <h2 className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-          سجل التسليمات (Woo)
+          سجل آخر التحديثات
         </h2>
         <p className="mt-2 text-sm text-slate-600">
-          {data.message ?? "التسجيل في قاعدة البيانات غير مفعّل."} أضف ‎
-          <code className="rounded bg-slate-100 px-1" dir="ltr">FIREBASE_SERVICE_ACCOUNT_JSON</code>{" "}
-          ليظهر سجل آخر التسليمات الموقّعة هنا.
+          {data.message ?? "حفظ السجل غير مفعل حاليًا، لذلك لن تظهر التحديثات الواردة هنا."}
         </p>
       </div>
     );
@@ -144,12 +153,10 @@ export function WooWebhookDeliveriesPanel() {
       <div className="flex flex-col gap-2 border-b border-slate-100 bg-slate-50/80 px-5 py-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-            سجل التسليمات
+            سجل آخر التحديثات
           </h2>
           <p className="mt-0.5 text-xs text-slate-600">
-            آخر أحداث وصلت إلى ‎<span dir="ltr" className="font-mono text-[11px]">POST /api/webhooks/woocommerce</span>{" "}
-            بعد التحقق من التوقيع. الحالة <strong>تمت المعالجة</strong> تعني إن إعادة توليد الكاش اكتملت
-            دون خطأ.
+            هنا نرى آخر ما وصل من Woo إلى الموقع، وهل تم التعامل معه بنجاح أم حدثت مشكلة.
           </p>
         </div>
         <Button
@@ -162,18 +169,18 @@ export function WooWebhookDeliveriesPanel() {
         </Button>
       </div>
       {allItems.length === 0 ? (
-        <div className="p-5 text-sm text-slate-600">لا تسليمات مسجّلة بعد.</div>
+        <div className="p-5 text-sm text-slate-600">لا توجد تحديثات مسجلة بعد.</div>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full min-w-[320px] text-right text-sm">
             <thead>
               <tr className="border-b border-slate-200 bg-slate-50/50 text-xs text-slate-600">
-                <th className="px-3 py-2.5 font-medium sm:px-4">الوقت (UTC)</th>
-                <th className="px-3 py-2.5 font-medium sm:px-4">الموضوع</th>
-                <th className="px-3 py-2.5 font-medium sm:px-4">مورد</th>
+                <th className="px-3 py-2.5 font-medium sm:px-4">وقت الوصول</th>
+                <th className="px-3 py-2.5 font-medium sm:px-4">نوع التحديث</th>
+                <th className="px-3 py-2.5 font-medium sm:px-4">العنصر</th>
                 <th className="px-3 py-2.5 font-medium sm:px-4">الحالة</th>
                 <th className="hidden px-3 py-2.5 font-medium sm:table-cell sm:px-4" dir="ltr">
-                  body SHA-256
+                  مرجع فني
                 </th>
               </tr>
             </thead>
@@ -184,7 +191,7 @@ export function WooWebhookDeliveriesPanel() {
                   className="border-b border-slate-100 last:border-0"
                 >
                   <td className="whitespace-nowrap px-3 py-2.5 align-top font-mono text-[11px] text-slate-700 sm:px-4">
-                    {row.receivedAt}
+                    {formatDeliveryTime(row.receivedAt)}
                   </td>
                   <td
                     className="max-w-[10rem] truncate px-3 py-2.5 align-top font-mono text-xs text-slate-800 ltr:font-mono sm:max-w-none"
@@ -198,8 +205,8 @@ export function WooWebhookDeliveriesPanel() {
                       {row.resourceId ?? "—"}
                     </div>
                     {row.wcWebhookId ? (
-                      <div className="text-[10px] text-slate-500" title="X-WC-Webhook-ID">
-                        wh #{row.wcWebhookId}
+                      <div className="text-[10px] text-slate-500" title="Webhook ID">
+                        رقم الربط: {row.wcWebhookId}
                       </div>
                     ) : null}
                   </td>

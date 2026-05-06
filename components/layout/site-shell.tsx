@@ -10,6 +10,7 @@ import { StorefrontHeaderCategoryStrip } from "@/components/layout/storefront-he
 import { Navbar } from "@/components/Navbar";
 import { DesktopCartDrawer } from "@/features/cart/components/DesktopCartDrawer";
 import { CatalogFilterDrawer } from "@/features/catalog/components/CatalogFilterDrawer";
+import { ProductMerchandisingProvider } from "@/features/products/components/product-merchandising-context";
 import { DesktopWishlistDrawer } from "@/features/wishlist/components/DesktopWishlistDrawer";
 import type { CmsHeaderCategoryStrip, CmsTopAnnouncementBar } from "@/schemas/cms";
 import type { ResolvedSiteBranding } from "@/lib/site-branding";
@@ -33,7 +34,12 @@ export function SiteShell({
   headerCategoryStrip,
 }: SiteShellProps) {
   return (
-    <>
+    <ProductMerchandisingProvider
+      value={{
+        productCardBadgeEnabled: branding.productCardBadgeEnabled,
+        productCardBadgeText: branding.productCardBadgeText,
+      }}
+    >
       <MobileHeroLimeAtmosphere />
       <div
         id="site-sticky-header-stack"
@@ -79,6 +85,6 @@ export function SiteShell({
       <MobileScrollCollapseController />
       <MobileCommerceChrome />
       <PwaEngagementStack />
-    </>
+    </ProductMerchandisingProvider>
   );
 }

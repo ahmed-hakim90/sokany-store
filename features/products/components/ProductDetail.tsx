@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ProductDetailInfoColumn } from "@/features/products/components/product-detail-info-column";
 import { ProductDetailStickyCart } from "@/features/products/components/product-detail-sticky-cart";
 import { ProductGallery } from "@/features/products/components/ProductGallery";
+import type { ProductTrustSummary } from "@/components/pages/ProductDetailPageContent";
 import type { ProductSpecItem } from "@/features/products/components/ProductSpecsList";
 import { getProductGalleryBadge } from "@/features/products/lib/product-gallery-badge";
 import type { Product } from "@/features/products/types";
@@ -17,12 +18,14 @@ export function ProductDetail({
   onBuyNow,
   specs,
   canInteractCart = true,
+  trustSummary,
 }: {
   product: Product;
   onAddToCart: (product: Product, quantity: number) => void;
   onBuyNow?: (product: Product, quantity: number) => void;
   specs?: ProductSpecItem[];
   canInteractCart?: boolean;
+  trustSummary?: ProductTrustSummary;
 }) {
   const [quantity, setQuantity] = useState(1);
   const [flyImageSrc, setFlyImageSrc] = useState(
@@ -86,6 +89,7 @@ export function ProductDetail({
           }
           specs={specs ?? []}
           canInteractCart={canInteractCart}
+          trustSummary={trustSummary}
         />
       </div>
 

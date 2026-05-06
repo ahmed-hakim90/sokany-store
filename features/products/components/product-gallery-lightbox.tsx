@@ -1,18 +1,21 @@
 "use client";
 
 import { FocusTrap } from "focus-trap-react";
-import { useEffect, useLayoutEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   TransformComponent,
   TransformWrapper,
   useControls,
 } from "react-zoom-pan-pinch";
 import { toAbsoluteSiteUrl } from "@/lib/site";
+import { cn } from "@/lib/utils";
+import type { ProductImage } from "@/features/products/types";
 
 type ProductGalleryLightboxProps = {
   open: boolean;
   onClose: () => void;
-  activeSrc: string;
+  images: ProductImage[];
+  initialIndex: number;
   productName: string;
   titleId: string;
 };
@@ -20,11 +23,18 @@ type ProductGalleryLightboxProps = {
 export function ProductGalleryLightbox({
   open,
   onClose,
-  activeSrc,
+  images,
+  initialIndex,
   productName,
   titleId,
 }: ProductGalleryLightboxProps) {
-  const lightboxImageSrc = toAbsoluteSiteUrl(activeSrc);
+  const [index, setIndex] = useState(initialIndex);
+  const list = useMemo(
+    () => (images.length > 0 ? images : [{ id: 0, src: "", alt: productName }]),
+    [images, productName],
+  );
+  const active = list[Math.min(index, list.length - 1)] ?? list[0]!;
+  const lightboxImageSrc = toAbsoluteSiteUrl(active.src);
 
   /**
    * نفس الضغطة تفتح من صورة المنتج: بعد الرسم يكون «إغلاق» الخلفية فوق مكان المؤشر
@@ -38,7 +48,7 @@ export function ProductGalleryLightbox({
       backdropCloseArmedRef.current = true;
     }, 250);
     return () => window.clearTimeout(id);
-  }, [open, activeSrc]);
+  }, [open, active.src]);
 
   /**
    * لا نمرّر onClose لـ onDeactivate في focus-trap: عند unmount (ومنها Strict Mode
@@ -50,10 +60,16 @@ export function ProductGalleryLightbox({
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
+      if (e.key === "ArrowLeft") {
+        setIndex((i) => (i >= list.length - 1 ? 0 : i + 1));
+      }
+      if (e.key === "ArrowRight") {
+        setIndex((i) => (i <= 0 ? list.length - 1 : i - 1));
+      }
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [open, onClose]);
+  }, [list.length, open, onClose]);
 
   if (!open || typeof document === "undefined") return null;
 
@@ -103,7 +119,7 @@ export function ProductGalleryLightbox({
           <div className="flex min-h-0 flex-1 items-stretch justify-center px-3 pb-2 sm:px-4">
             <div className="pointer-events-auto flex h-[min(78dvh,760px)] w-full max-w-5xl min-h-[min(78dvh,760px)] flex-col">
               <TransformWrapper
-                key={activeSrc}
+                key={active.src}
                 initialScale={1}
                 minScale={1}
                 maxScale={6}
@@ -129,7 +145,7 @@ export function ProductGalleryLightbox({
                     {/* eslint-disable-next-line @next/next/no-img-element -- zoom/pan يحتاج img عادي */}
                     <img
                       src={lightboxImageSrc}
-                      alt={productName}
+                      alt={active.alt || productName}
                       className="max-h-full max-w-full object-contain select-none"
                       draggable={false}
                     />
@@ -141,17 +157,81 @@ export function ProductGalleryLightbox({
                       downloadLabel={productName}
                     />
                   </div>
+                  {list.length > 1 ? (
+                    <>
+                      <button
+                        type="button"
+                        aria-label="الصورة السابقة"
+                        className="pointer-events-auto absolute start-2 top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-black/55 text-white ring-1 ring-white/20 backdrop-blur-sm transition-colors hover:bg-black/70"
+                        onClick={() => setIndex((i) => (i <= 0 ? list.length - 1 : i - 1))}
+                      >
+                        <ChevronIcon direction="prev" />
+                      </button>
+                      <button
+                        type="button"
+                        aria-label="الصورة التالية"
+                        className="pointer-events-auto absolute end-2 top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-black/55 text-white ring-1 ring-white/20 backdrop-blur-sm transition-colors hover:bg-black/70"
+                        onClick={() => setIndex((i) => (i >= list.length - 1 ? 0 : i + 1))}
+                      >
+                        <ChevronIcon direction="next" />
+                      </button>
+                      <div className="pointer-events-auto absolute inset-x-0 bottom-2 z-20 flex justify-center px-2">
+                        <div className="flex max-w-full gap-2 overflow-x-auto rounded-2xl bg-black/50 p-2 ring-1 ring-white/15 backdrop-blur-sm">
+                          {list.map((img, i) => (
+                            <button
+                              key={`${img.id}-${img.src}`}
+                              type="button"
+                              aria-label={`عرض صورة ${i + 1}`}
+                              className={cn(
+                                "relative h-14 w-14 shrink-0 overflow-hidden rounded-xl border bg-white/10",
+                                i === index ? "border-brand-400 ring-2 ring-brand-400/40" : "border-white/20",
+                              )}
+                              onClick={() => setIndex(i)}
+                            >
+                              {/* eslint-disable-next-line @next/next/no-img-element -- thumbnails داخل lightbox لا تحتاج optimizer */}
+                              <img
+                                src={toAbsoluteSiteUrl(img.src)}
+                                alt=""
+                                className="h-full w-full object-contain"
+                                draggable={false}
+                              />
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </>
+                  ) : null}
                 </div>
               </TransformWrapper>
             </div>
           </div>
 
           <p className="pointer-events-auto pb-[max(1rem,env(safe-area-inset-bottom))] text-center text-xs text-white/75">
+            {list.length > 1 ? `${index + 1} / ${list.length} · ` : ""}
             أزرار +/− أو قرص الفأرة · إصبعين للتكبير على الموبايل · ضعف النقر للتبديل
           </p>
         </div>
       </div>
     </FocusTrap>
+  );
+}
+
+function ChevronIcon({ direction }: { direction: "prev" | "next" }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className={cn("h-6 w-6", direction === "next" ? "-rotate-90" : "rotate-90")}
+      fill="none"
+      aria-hidden
+    >
+      <path
+        d="M6 9l6 6 6-6"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }
 

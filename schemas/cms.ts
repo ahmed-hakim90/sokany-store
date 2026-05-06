@@ -70,6 +70,8 @@ export const cmsSiteBrandingSchema = z.object({
   organizationName: z.string().min(1).max(200).optional(),
   organizationLogoUrl: z.string().min(1).max(800).optional(),
   supportPhoneDisplay: z.string().min(1).max(80).optional(),
+  productCardBadgeEnabled: z.boolean().optional(),
+  productCardBadgeText: z.string().min(1).max(80).optional(),
 });
 
 export type CmsSiteBranding = z.infer<typeof cmsSiteBrandingSchema>;
@@ -206,6 +208,32 @@ export const cmsStorefrontIntegrationsSchema = z.object({
 
 export type CmsStorefrontIntegrations = z.infer<typeof cmsStorefrontIntegrationsSchema>;
 
+/** وضع أقسام المنتجات على الصفحة الرئيسية: تلقائي / مخصص / الاثنين معاً. */
+export const cmsHomeProductSectionsModeSchema = z.enum(["auto", "custom", "hybrid"]);
+export type CmsHomeProductSectionsMode = z.infer<typeof cmsHomeProductSectionsModeSchema>;
+
+export const CMS_DEFAULT_HOME_PRODUCT_SECTIONS_MODE: CmsHomeProductSectionsMode = "auto";
+export const CMS_MAX_HOME_PRODUCT_SECTIONS = 24;
+
+/** قسم منتجات مخصص على الهوم — البانر إلزامي عند الحفظ؛ العنوان للعميل من اسم التصنيف فقط. */
+export const cmsHomeProductSectionSchema = z.object({
+  id: z.string().min(1).max(80),
+  active: z.boolean(),
+  order: z.number().int(),
+  categoryId: z.number().int().positive(),
+  bannerImageUrl: z.string().min(1).max(800),
+  layout: z.enum(["horizontal", "vertical"]),
+  productCount: z.number().int().min(1).max(100).default(8),
+});
+
+export type CmsHomeProductSection = z.infer<typeof cmsHomeProductSectionSchema>;
+
+export const cmsHomeProductSectionsArraySchema = z
+  .array(cmsHomeProductSectionSchema)
+  .max(CMS_MAX_HOME_PRODUCT_SECTIONS);
+
+export const CMS_DEFAULT_HOME_PRODUCT_SECTIONS: CmsHomeProductSection[] = [];
+
 export const cmsSiteConfigDocSchema = z.object({
   promoFlash: cmsPromoFlashSchema,
   topAnnouncementBar: cmsTopAnnouncementBarSchema.optional(),
@@ -214,6 +242,8 @@ export const cmsSiteConfigDocSchema = z.object({
   searchQuickKeywords: cmsSearchQuickKeywordsSchema,
   headerCategoryStrip: z.any().optional(),
   homeCategoryScroller: z.any().optional(),
+  homeProductSectionsMode: cmsHomeProductSectionsModeSchema.optional(),
+  homeProductSections: cmsHomeProductSectionsArraySchema.optional(),
   /** عناوين وقراءة عامة مدارة من `/control` — بلا أسرار. */
   storefrontIntegrations: cmsStorefrontIntegrationsSchema.optional(),
   updatedAt: z.unknown().optional(),

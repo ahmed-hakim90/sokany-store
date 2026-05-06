@@ -29,6 +29,7 @@ export function revalidateWooReviewTags(): void {
 export function revalidateProductListingPaths(productId?: number): void {
   revalidatePath("/");
   revalidatePath("/products");
+  revalidatePath("/offers");
   revalidatePath("/search");
   revalidatePath("/categories");
   if (productId !== undefined && Number.isFinite(productId)) {
@@ -39,6 +40,7 @@ export function revalidateProductListingPaths(productId?: number): void {
 export function revalidateCategoryListingPathsAfterHook(): void {
   revalidatePath("/");
   revalidatePath("/products");
+  revalidatePath("/offers");
   revalidatePath("/search");
   revalidatePath("/categories", "page");
   revalidatePath("/categories", "layout");

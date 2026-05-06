@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { AppImage } from "@/components/AppImage";
 import { Button } from "@/components/Button";
+import { ControlFieldHelp } from "@/features/control/components/control-field-help";
 import { CATEGORY_ICON_SLUGS, type CategoryIconSlug } from "@/lib/category-icon-slugs";
 import { ROUTES } from "@/lib/constants";
 import { HEADER_NAV_ROUTE_CHOICES, HEADER_NAV_ROUTE_CUSTOM } from "@/lib/header-nav-route-choices";
@@ -34,6 +35,7 @@ const ACCEPT_IMAGES = "image/jpeg,image/png,image/webp,image/gif,image/avif";
 export async function uploadControlImageToStorage(
   file: File,
   options?: { replacePath?: string; storageSubfolder?: string },
+  onProgress?: (percent: number) => void,
 ): Promise<{ url: string; path: string }> {
   const form = new FormData();
   form.set("file", file);
@@ -46,68 +48,148 @@ export async function uploadControlImageToStorage(
   if (sub) {
     form.set("subfolder", sub);
   }
-  const res = await fetch("/api/control/upload", { method: "POST", body: form });
-  const j = (await res.json()) as { url?: string; path?: string; error?: string };
-  if (!res.ok) throw new Error(j.error ?? "رفع فاشل");
-  if (!j.url?.trim()) throw new Error("لم يُرجع الخادم رابطًا للعنوان العام");
-  return { url: j.url.trim(), path: (j.path ?? "").trim() || "cms/unknown" };
+
+  return await new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", "/api/control/upload");
+
+    xhr.upload.onprogress = (event) => {
+      if (!event.lengthComputable) return;
+      onProgress?.(Math.max(0, Math.min(100, Math.round((event.loaded / event.total) * 100))));
+    };
+
+    xhr.onerror = () => reject(new Error("فشل الرفع"));
+    xhr.onabort = () => reject(new Error("تم إلغاء الرفع"));
+    xhr.onload = () => {
+      let payload: { url?: string; path?: string; error?: string } = {};
+      try {
+        payload = JSON.parse(xhr.responseText || "{}") as {
+          url?: string;
+          path?: string;
+          error?: string;
+        };
+      } catch {
+        payload = {};
+      }
+      if (xhr.status < 200 || xhr.status >= 300) {
+        reject(new Error(payload.error ?? "رفع فاشل"));
+        return;
+      }
+      if (!payload.url?.trim()) {
+        reject(new Error("لم يُرجع الخادم رابطًا للصورة"));
+        return;
+      }
+      onProgress?.(100);
+      resolve({
+        url: payload.url.trim(),
+        path: (payload.path ?? "").trim() || "cms/unknown",
+      });
+    };
+
+    xhr.send(form);
+  });
 }
 
-export async function uploadControlImage(file: File): Promise<string> {
-  const { url } = await uploadControlImageToStorage(file);
+export async function uploadControlImage(
+  file: File,
+  onProgress?: (percent: number) => void,
+): Promise<string> {
+  const { url } = await uploadControlImageToStorage(file, undefined, onProgress);
   return url;
 }
 
-/** حقل رابط صورة لنماذج `FormData`: نص + رفع يملأ القيمة + `hidden` بنفس `name` للإرسال. */
-export function ControlImageUrlField({
-  name,
-  label,
-  defaultValue = "",
-  placeholder,
-  disabled,
-  className,
+function UploadProgressBar({
+  progress,
+  label = "جاري الرفع",
 }: {
-  name: string;
-  label: string;
-  defaultValue?: string;
-  placeholder?: string;
-  disabled?: boolean;
-  className?: string;
+  progress: number;
+  label?: string;
 }) {
-  const [value, setValue] = useState(defaultValue);
+  return (
+    <div className="mt-2 space-y-1">
+      <div className="flex items-center justify-between gap-3 text-xs text-slate-600">
+        <span>{label}</span>
+        <span className="font-mono tabular-nums">{progress}%</span>
+      </div>
+      <div className="h-2 overflow-hidden rounded-full bg-slate-200">
+        <div
+          className="h-full rounded-full bg-brand-500 transition-[width]"
+          style={{ width: `${progress}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
+export function ManagedImageUploadField({
+  label,
+  value,
+  onChange,
+  disabled,
+  placeholder,
+  helper,
+  hiddenName,
+  buttonLabel = "رفع صورة",
+  previewClassName = "max-h-36 max-w-md",
+  previewImageClassName = "mx-auto h-auto max-h-32 w-full object-contain",
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  disabled?: boolean;
+  placeholder?: string;
+  helper?: React.ReactNode;
+  hiddenName?: string;
+  buttonLabel?: string;
+  previewClassName?: string;
+  previewImageClassName?: string;
+}) {
   const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [localPreviewUrl, setLocalPreviewUrl] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    setValue(defaultValue);
-  }, [defaultValue]);
+    return () => {
+      if (localPreviewUrl) {
+        URL.revokeObjectURL(localPreviewUrl);
+      }
+    };
+  }, [localPreviewUrl]);
 
   async function onFile(file: File | undefined) {
     if (!file) return;
     setUploading(true);
+    setProgress(0);
+    setLocalPreviewUrl((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return URL.createObjectURL(file);
+    });
     try {
-      const url = await uploadControlImage(file);
-      setValue(url);
+      const url = await uploadControlImage(file, setProgress);
+      onChange(url);
       toast.success("تم رفع الصورة");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "فشل الرفع");
     } finally {
       setUploading(false);
+      setProgress(0);
     }
   }
 
   const trimmed = value.trim();
-  const showPreview = trimmed.length > 0;
+  const previewSrc = localPreviewUrl ?? (trimmed.length > 0 ? trimmed : null);
 
   return (
-    <div className={className}>
+    <div>
       <label className="text-sm font-medium">{label}</label>
-      <input type="hidden" name={name} value={value} />
+      {helper ? <ControlFieldHelp>{helper}</ControlFieldHelp> : null}
+      {hiddenName ? <input type="hidden" name={hiddenName} value={value} /> : null}
       <div className="mt-1 flex flex-col gap-2 sm:flex-row sm:items-start sm:gap-2">
         <input
           type="text"
           value={value}
-          onChange={(e) => setValue(e.target.value)}
+          onChange={(e) => onChange(e.target.value)}
           dir="ltr"
           disabled={disabled}
           placeholder={placeholder}
@@ -134,21 +216,64 @@ export function ControlImageUrlField({
           disabled={disabled || uploading}
           onClick={() => fileRef.current?.click()}
         >
-          {uploading ? "جاري الرفع…" : "اختيار ملف"}
+          {uploading ? "جاري الرفع…" : buttonLabel}
         </Button>
       </div>
-      {showPreview ? (
-        <div className="mt-2 max-h-36 max-w-md overflow-hidden rounded-lg border border-border bg-surface-muted/40 p-1">
+      {uploading ? <UploadProgressBar progress={progress} /> : null}
+      {previewSrc ? (
+        <div
+          className={`mt-2 overflow-hidden rounded-lg border border-border bg-surface-muted/40 p-1 ${previewClassName}`}
+        >
           <AppImage
-            src={trimmed}
+            src={previewSrc}
             alt=""
             width={400}
             height={160}
-            className="mx-auto h-auto max-h-32 w-full object-contain"
+            className={previewImageClassName}
             sizes="(max-width: 28rem) 100vw, 28rem"
           />
         </div>
       ) : null}
+    </div>
+  );
+}
+
+/** حقل رابط صورة لنماذج `FormData`: نص + رفع يملأ القيمة + `hidden` بنفس `name` للإرسال. */
+export function ControlImageUrlField({
+  name,
+  label,
+  defaultValue = "",
+  placeholder,
+  helper,
+  disabled,
+  className,
+}: {
+  name: string;
+  label: string;
+  defaultValue?: string;
+  placeholder?: string;
+  helper?: React.ReactNode;
+  disabled?: boolean;
+  className?: string;
+}) {
+  const [value, setValue] = useState(defaultValue);
+
+  useEffect(() => {
+    setValue(defaultValue);
+  }, [defaultValue]);
+
+  return (
+    <div className={className}>
+      <ManagedImageUploadField
+        label={label}
+        value={value}
+        onChange={setValue}
+        disabled={disabled}
+        placeholder={placeholder}
+        helper={helper}
+        hiddenName={name}
+        buttonLabel="اختيار صورة"
+      />
     </div>
   );
 }
@@ -215,7 +340,7 @@ export function AnnouncementBarForm({
     <section className="space-y-4 rounded-2xl border border-border bg-white p-5 shadow-sm">
       <h2 className="font-display text-lg font-bold">شريط الإعلانات فوق الهيدر</h2>
       <p className="text-sm text-muted-foreground">
-        يظهر فوق شريط التنقل؛ مارquee أو كاروسيل. اترك النصوص فارغة أو عطّل التفعيل لإخفاء الشريط.
+        هذا الشريط يظهر أعلى الموقع لتنبيه سريع أو عرض مهم. لو أوقفته، يختفي بالكامل.
       </p>
       <div className="flex flex-wrap items-center gap-4">
         <label className="flex items-center gap-2">
@@ -267,6 +392,7 @@ export function AnnouncementBarForm({
             >
               <div>
                 <label className="text-xs text-muted-foreground">النص</label>
+                <ControlFieldHelp>الجملة القصيرة اللي هتظهر فوق الموقع.</ControlFieldHelp>
                 <input
                   value={row.text}
                   onChange={(e) => updateRow(i, { text: e.target.value })}
@@ -276,6 +402,7 @@ export function AnnouncementBarForm({
               </div>
               <div>
                 <label className="text-xs text-muted-foreground">رابط (اختياري)</label>
+                <ControlFieldHelp>لو حد ضغط على الرسالة، يروح لفين؟</ControlFieldHelp>
                 <input
                   value={row.href}
                   onChange={(e) => updateRow(i, { href: e.target.value })}
@@ -373,6 +500,7 @@ export function SocialLinksForm({
           >
             <div>
               <label className="text-xs text-muted-foreground">الأيقونة</label>
+              <ControlFieldHelp>اختار شكل الأيقونة المناسب للرابط.</ControlFieldHelp>
               <select
                 value={iconSelectValue}
                 onChange={(e) => updateRow(i, "key", e.target.value)}
@@ -392,6 +520,7 @@ export function SocialLinksForm({
             </div>
             <div>
               <label className="text-xs text-muted-foreground">العنوان الظاهر</label>
+              <ControlFieldHelp>الاسم اللي المستخدم هيقرأه للرابط ده.</ControlFieldHelp>
               <input
                 value={row.label}
                 onChange={(e) => updateRow(i, "label", e.target.value)}
@@ -401,6 +530,7 @@ export function SocialLinksForm({
             <div className="flex gap-2 sm:col-span-1">
               <div className="min-w-0 flex-1">
                 <label className="text-xs text-muted-foreground">الرابط</label>
+                <ControlFieldHelp>الصق رابط الصفحة أو الحساب كاملًا.</ControlFieldHelp>
                 <input
                   value={row.href}
                   onChange={(e) => updateRow(i, "href", e.target.value)}
@@ -458,15 +588,6 @@ export function SectionBannersForm({
       ? initial.items.map((x) => ({ imageUrl: x.imageUrl, href: x.href ?? "" }))
       : [{ imageUrl: "", href: "" }],
   );
-  const [uploadingIdx, setUploadingIdx] = useState<number | null>(null);
-
-  useEffect(() => {
-    setItems(
-      initial.items.length > 0
-        ? initial.items.map((x) => ({ imageUrl: x.imageUrl, href: x.href ?? "" }))
-        : [{ imageUrl: "", href: "" }],
-    );
-  }, [initial]);
 
   function updateRow(i: number, field: "imageUrl" | "href", value: string) {
     setItems((prev) => {
@@ -482,20 +603,6 @@ export function SectionBannersForm({
 
   function removeRow(i: number) {
     setItems((s) => (s.length <= 1 ? [{ imageUrl: "", href: "" }] : s.filter((_, j) => j !== i)));
-  }
-
-  async function onPickFile(i: number, file: File | undefined) {
-    if (!file) return;
-    setUploadingIdx(i);
-    try {
-      const url = await uploadControlImage(file);
-      updateRow(i, "imageUrl", url);
-      toast.success("تم رفع الصورة");
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "فشل الرفع");
-    } finally {
-      setUploadingIdx(null);
-    }
   }
 
   function handleSave() {
@@ -544,36 +651,21 @@ export function SectionBannersForm({
             </div>
             <div className="grid gap-3">
               <div>
-                <label className="text-xs font-medium text-muted-foreground">رابط الصورة</label>
-                <div className="mt-1 flex flex-col gap-2 sm:flex-row sm:items-center">
-                  <input
-                    value={it.imageUrl}
-                    onChange={(e) => updateRow(i, "imageUrl", e.target.value)}
-                    dir="ltr"
-                    className="min-w-0 flex-1 rounded-lg border border-border px-3 py-2 font-mono text-sm"
-                    placeholder="https://..."
-                  />
-                  <label className="inline-flex cursor-pointer">
-                    <input
-                      type="file"
-                      accept={ACCEPT_IMAGES}
-                      className="sr-only"
-                      disabled={disabled || uploadingIdx === i}
-                      onChange={(e) => {
-                        void onPickFile(i, e.target.files?.[0]);
-                        e.target.value = "";
-                      }}
-                    />
-                    <span className="inline-flex items-center justify-center rounded-lg border border-border bg-white px-3 py-2 text-sm font-semibold hover:bg-surface-muted/50">
-                      {uploadingIdx === i ? "جاري الرفع…" : "رفع صورة"}
-                    </span>
-                  </label>
-                </div>
+                <ManagedImageUploadField
+                  label="صورة البانر"
+                  value={it.imageUrl}
+                  onChange={(value) => updateRow(i, "imageUrl", value)}
+                  disabled={disabled}
+                  placeholder="https://..."
+                  helper="ارفع الصورة اللي هتظهر كبانر داخل الصفحة الرئيسية."
+                  buttonLabel="رفع صورة"
+                />
               </div>
               <div>
                 <label className="text-xs font-medium text-muted-foreground">
                   رابط عند النقر (اختياري)
                 </label>
+                <ControlFieldHelp>لو العميل ضغط على البانر، افتحله أي صفحة أو قسم من هنا.</ControlFieldHelp>
                 <input
                   value={it.href}
                   onChange={(e) => updateRow(i, "href", e.target.value)}
@@ -605,8 +697,6 @@ export function RetailersForm({
 }) {
   const [mapHeroSrc, setMapHeroSrc] = useState(initial.mapHeroSrc);
   const [retailers, setRetailers] = useState(initial.retailers);
-  const [uploadingMap, setUploadingMap] = useState(false);
-  const [uploadingRetailerIdx, setUploadingRetailerIdx] = useState<number | null>(null);
 
   useEffect(() => {
     setMapHeroSrc(initial.mapHeroSrc);
@@ -625,36 +715,6 @@ export function RetailersForm({
         googleMapsUrl: "",
       },
     ]);
-  }
-
-  async function uploadMapHero(file: File | undefined) {
-    if (!file) return;
-    setUploadingMap(true);
-    try {
-      const url = await uploadControlImage(file);
-      setMapHeroSrc(url);
-      toast.success("تم رفع صورة الخريطة");
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "فشل الرفع");
-    } finally {
-      setUploadingMap(false);
-    }
-  }
-
-  async function uploadRetailerImage(i: number, file: File | undefined) {
-    if (!file) return;
-    setUploadingRetailerIdx(i);
-    try {
-      const url = await uploadControlImage(file);
-      setRetailers((prev) =>
-        prev.map((row, j) => (j === i ? { ...row, imageSrc: url } : row)),
-      );
-      toast.success("تم رفع الصورة");
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "فشل الرفع");
-    } finally {
-      setUploadingRetailerIdx(null);
-    }
   }
 
   function handleSave() {
@@ -684,28 +744,15 @@ export function RetailersForm({
       <section className="rounded-2xl border border-border bg-white p-5 shadow-sm">
         <h2 className="font-display text-lg font-bold">صورة خريطة الموزعين (أعلى الصفحة)</h2>
         <p className="mt-1 text-sm text-muted-foreground">مطلوبة — رابط الصورة الكامل.</p>
-        <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">
-          <input
+        <div className="mt-3">
+          <ManagedImageUploadField
+            label="صورة الخريطة"
             value={mapHeroSrc}
-            onChange={(e) => setMapHeroSrc(e.target.value)}
-            dir="ltr"
-            className="min-w-0 flex-1 rounded-lg border border-border px-3 py-2 font-mono text-sm"
+            onChange={setMapHeroSrc}
+            disabled={disabled}
+            helper="دي الصورة اللي بتظهر أعلى صفحة الموزعين."
+            buttonLabel="رفع صورة"
           />
-          <label className="inline-flex cursor-pointer shrink-0">
-            <input
-              type="file"
-              accept={ACCEPT_IMAGES}
-              className="sr-only"
-              disabled={disabled || uploadingMap}
-              onChange={(e) => {
-                void uploadMapHero(e.target.files?.[0]);
-                e.target.value = "";
-              }}
-            />
-            <span className="inline-flex rounded-lg border border-border bg-white px-3 py-2 text-sm font-semibold hover:bg-surface-muted/50">
-              {uploadingMap ? "جاري الرفع…" : "رفع"}
-            </span>
-          </label>
         </div>
       </section>
 
@@ -740,6 +787,7 @@ export function RetailersForm({
                   }
                   className="rounded-lg border border-border px-3 py-2 text-sm"
                 />
+                <ControlFieldHelp>اسم الموزع أو اسم المعرض.</ControlFieldHelp>
                 <input
                   placeholder="المحافظة"
                   value={row.governorate}
@@ -750,6 +798,7 @@ export function RetailersForm({
                   }
                   className="rounded-lg border border-border px-3 py-2 text-sm"
                 />
+                <ControlFieldHelp>اسم المحافظة اللي الموزع موجود فيها.</ControlFieldHelp>
                 <input
                   placeholder="الموقع / المنطقة"
                   value={row.location}
@@ -760,6 +809,7 @@ export function RetailersForm({
                   }
                   className="sm:col-span-2 rounded-lg border border-border px-3 py-2 text-sm"
                 />
+                <ControlFieldHelp>اكتب المنطقة أو العنوان المختصر للموزع.</ControlFieldHelp>
                 <input
                   placeholder="الهاتف"
                   value={row.phone}
@@ -770,6 +820,7 @@ export function RetailersForm({
                   }
                   className="rounded-lg border border-border px-3 py-2 text-sm"
                 />
+                <ControlFieldHelp>رقم التواصل اللي العميل يقدر يكلم عليه.</ControlFieldHelp>
                 <input
                   placeholder="رابط خرائط Google (اختياري)"
                   value={row.googleMapsUrl ?? ""}
@@ -783,37 +834,22 @@ export function RetailersForm({
                   dir="ltr"
                   className="rounded-lg border border-border px-3 py-2 font-mono text-sm"
                 />
+                <ControlFieldHelp>لو عندك موقع الموزع على الخريطة، الصق الرابط هنا.</ControlFieldHelp>
                 <div className="sm:col-span-2">
-                  <label className="text-xs text-muted-foreground">صورة الموزع</label>
-                  <div className="mt-1 flex flex-col gap-2 sm:flex-row sm:items-center">
-                    <input
-                      value={row.imageSrc}
-                      onChange={(e) =>
-                        setRetailers((r) =>
-                          r.map((x, j) =>
-                            j === i ? { ...x, imageSrc: e.target.value } : x,
-                          ),
-                        )
-                      }
-                      dir="ltr"
-                      className="min-w-0 flex-1 rounded-lg border border-border px-3 py-2 font-mono text-sm"
-                    />
-                    <label className="inline-flex cursor-pointer">
-                      <input
-                        type="file"
-                        accept={ACCEPT_IMAGES}
-                        className="sr-only"
-                        disabled={disabled || uploadingRetailerIdx === i}
-                        onChange={(e) => {
-                          void uploadRetailerImage(i, e.target.files?.[0]);
-                          e.target.value = "";
-                        }}
-                      />
-                      <span className="inline-flex rounded-lg border border-border bg-white px-3 py-2 text-sm font-semibold">
-                        {uploadingRetailerIdx === i ? "…" : "رفع"}
-                      </span>
-                    </label>
-                  </div>
+                  <ManagedImageUploadField
+                    label="صورة الموزع"
+                    value={row.imageSrc}
+                    onChange={(value) =>
+                      setRetailers((r) =>
+                        r.map((x, j) => (j === i ? { ...x, imageSrc: value } : x)),
+                      )
+                    }
+                    disabled={disabled}
+                    helper="صورة المعرض أو الشعار الخاص بالموزع."
+                    buttonLabel="رفع صورة"
+                    previewClassName="max-h-28 max-w-[260px]"
+                    previewImageClassName="h-[84px] w-full object-cover"
+                  />
                 </div>
               </div>
             </li>
@@ -880,27 +916,6 @@ export function SpotlightsForm({
           },
         ],
   );
-  const [uploadingIdx, setUploadingIdx] = useState<number | null>(null);
-
-  useEffect(() => {
-    setItems(
-      initial.items.length > 0
-        ? initial.items.map(spotlightToRow)
-        : [
-            {
-              type: "product",
-              branchId: "",
-              productId: "",
-              imageUrl: "",
-              href: "",
-              active: true,
-              title: "",
-              subtitle: "",
-              ctaLabel: "",
-            },
-          ],
-    );
-  }, [initial]);
 
   function updateRow(i: number, patch: Partial<SpotlightRow>) {
     setItems((prev) => prev.map((row, j) => (j === i ? { ...row, ...patch } : row)));
@@ -925,20 +940,6 @@ export function SpotlightsForm({
 
   function removeRow(i: number) {
     setItems((s) => (s.length <= 1 ? s : s.filter((_, j) => j !== i)));
-  }
-
-  async function onPickFile(i: number, file: File | undefined) {
-    if (!file) return;
-    setUploadingIdx(i);
-    try {
-      const url = await uploadControlImage(file);
-      updateRow(i, { imageUrl: url });
-      toast.success("تم رفع الصورة");
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "فشل الرفع");
-    } finally {
-      setUploadingIdx(null);
-    }
   }
 
   function handleSave() {
@@ -1012,6 +1013,7 @@ export function SpotlightsForm({
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
                 <label className="text-xs text-muted-foreground">النوع</label>
+                <ControlFieldHelp>حدد الإعلان ده لمنتج ولا لفرع.</ControlFieldHelp>
                 <select
                   value={row.type}
                   onChange={(e) =>
@@ -1028,6 +1030,7 @@ export function SpotlightsForm({
               {row.type === "branch" ? (
                 <div>
                   <label className="text-xs text-muted-foreground">معرّف الفرع (اختياري)</label>
+                  <ControlFieldHelp>لو الإعلان لفرع معيّن، اكتب معرفه هنا لو عندك.</ControlFieldHelp>
                   <input
                     value={row.branchId}
                     onChange={(e) => updateRow(i, { branchId: e.target.value })}
@@ -1038,6 +1041,7 @@ export function SpotlightsForm({
               ) : (
                 <div>
                   <label className="text-xs text-muted-foreground">رقم المنتج (Woo)</label>
+                  <ControlFieldHelp>لو الإعلان لمنتج معيّن، اكتب رقم المنتج.</ControlFieldHelp>
                   <input
                     value={row.productId}
                     onChange={(e) => updateRow(i, { productId: e.target.value })}
@@ -1048,33 +1052,18 @@ export function SpotlightsForm({
                 </div>
               )}
               <div className="sm:col-span-2">
-                <label className="text-xs text-muted-foreground">رابط الصورة</label>
-                <div className="mt-1 flex flex-col gap-2 sm:flex-row sm:items-center">
-                  <input
-                    value={row.imageUrl}
-                    onChange={(e) => updateRow(i, { imageUrl: e.target.value })}
-                    dir="ltr"
-                    className="min-w-0 flex-1 rounded-lg border border-border px-3 py-2 font-mono text-sm"
-                  />
-                  <label className="inline-flex cursor-pointer">
-                    <input
-                      type="file"
-                      accept={ACCEPT_IMAGES}
-                      className="sr-only"
-                      disabled={disabled || uploadingIdx === i}
-                      onChange={(e) => {
-                        void onPickFile(i, e.target.files?.[0]);
-                        e.target.value = "";
-                      }}
-                    />
-                    <span className="inline-flex rounded-lg border border-border bg-white px-3 py-2 text-sm font-semibold">
-                      {uploadingIdx === i ? "جاري الرفع…" : "رفع"}
-                    </span>
-                  </label>
-                </div>
+                <ManagedImageUploadField
+                  label="صورة الإعلان"
+                  value={row.imageUrl}
+                  onChange={(value) => updateRow(i, { imageUrl: value })}
+                  disabled={disabled}
+                  helper="الصورة الأساسية اللي هتظهر في الإعلان ده."
+                  buttonLabel="رفع صورة"
+                />
               </div>
               <div className="sm:col-span-2">
                 <label className="text-xs text-muted-foreground">رابط مخصص (اختياري)</label>
+                <ControlFieldHelp>لو عايز الإعلان يفتح صفحة محددة، حط الرابط هنا.</ControlFieldHelp>
                 <input
                   value={row.href}
                   onChange={(e) => updateRow(i, { href: e.target.value })}
@@ -1084,6 +1073,7 @@ export function SpotlightsForm({
               </div>
               <div>
                 <label className="text-xs text-muted-foreground">عنوان</label>
+                <ControlFieldHelp>العنوان الرئيسي للإعلان.</ControlFieldHelp>
                 <input
                   value={row.title}
                   onChange={(e) => updateRow(i, { title: e.target.value })}
@@ -1092,6 +1082,7 @@ export function SpotlightsForm({
               </div>
               <div>
                 <label className="text-xs text-muted-foreground">نص فرعي</label>
+                <ControlFieldHelp>سطر صغير يشرح الإعلان أو العرض.</ControlFieldHelp>
                 <input
                   value={row.subtitle}
                   onChange={(e) => updateRow(i, { subtitle: e.target.value })}
@@ -1100,6 +1091,7 @@ export function SpotlightsForm({
               </div>
               <div className="sm:col-span-2">
                 <label className="text-xs text-muted-foreground">نص الزر</label>
+                <ControlFieldHelp>الكلمة اللي هتظهر على زرار الإعلان.</ControlFieldHelp>
                 <input
                   value={row.ctaLabel}
                   onChange={(e) => updateRow(i, { ctaLabel: e.target.value })}
@@ -1138,8 +1130,6 @@ export function HeroSlidesForm({
     setUseFileFallbackWhenEmpty(initial.useFileFallbackWhenEmpty !== false);
   }, [initial]);
 
-  const [uploadingIdx, setUploadingIdx] = useState<number | null>(null);
-
   function addSlide() {
     setSlides((s) => [...s, { imageUrl: "", alt: "", href: "" }]);
   }
@@ -1159,20 +1149,6 @@ export function HeroSlidesForm({
       next[i] = row;
       return next;
     });
-  }
-
-  async function onPickFile(i: number, file: File | undefined) {
-    if (!file) return;
-    setUploadingIdx(i);
-    try {
-      const url = await uploadControlImage(file);
-      updateSlide(i, "imageUrl", url);
-      toast.success("تم رفع الصورة");
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "فشل الرفع");
-    } finally {
-      setUploadingIdx(null);
-    }
   }
 
   function handleSave() {
@@ -1251,36 +1227,19 @@ export function HeroSlidesForm({
             </div>
             <div className="grid gap-3 sm:grid-cols-1">
               <div>
-                <label className="text-xs font-medium text-muted-foreground">
-                  رابط الصورة (URL)
-                </label>
-                <div className="mt-1 flex flex-col gap-2 sm:flex-row sm:items-center">
-                  <input
-                    value={slide.imageUrl}
-                    onChange={(e) => updateSlide(i, "imageUrl", e.target.value)}
-                    className="min-w-0 flex-1 rounded-lg border border-border px-3 py-2 text-sm"
-                    placeholder="https://..."
-                    dir="ltr"
-                  />
-                  <label className="inline-flex cursor-pointer">
-                    <input
-                      type="file"
-                      accept={ACCEPT_IMAGES}
-                      className="sr-only"
-                      disabled={disabled || uploadingIdx === i}
-                      onChange={(e) => {
-                        void onPickFile(i, e.target.files?.[0]);
-                        e.target.value = "";
-                      }}
-                    />
-                    <span className="inline-flex items-center justify-center rounded-lg border border-border bg-white px-3 py-2 text-sm font-semibold hover:bg-surface-muted/50">
-                      {uploadingIdx === i ? "جاري الرفع…" : "رفع صورة"}
-                    </span>
-                  </label>
-                </div>
+                <ManagedImageUploadField
+                  label="صورة الشريحة"
+                  value={slide.imageUrl}
+                  onChange={(value) => updateSlide(i, "imageUrl", value)}
+                  disabled={disabled}
+                  placeholder="https://..."
+                  helper="الصورة الأساسية اللي هتظهر في السلايدر أعلى الصفحة."
+                  buttonLabel="رفع صورة"
+                />
               </div>
               <div>
                 <label className="text-xs font-medium text-muted-foreground">وصف للصورة (alt)</label>
+                <ControlFieldHelp>وصف بسيط للصورة، مفيد للوصول ومحركات البحث.</ControlFieldHelp>
                 <input
                   value={slide.alt ?? ""}
                   onChange={(e) => updateSlide(i, "alt", e.target.value)}
@@ -1291,6 +1250,7 @@ export function HeroSlidesForm({
                 <label className="text-xs font-medium text-muted-foreground">
                   رابط عند النقر (اختياري)
                 </label>
+                <ControlFieldHelp>لو المستخدم ضغط على الشريحة، يروح لفين؟</ControlFieldHelp>
                 <input
                   value={slide.href ?? ""}
                   onChange={(e) => updateSlide(i, "href", e.target.value)}
@@ -1414,6 +1374,7 @@ export function HeaderCategoryStripForm({
             >
               <div>
                 <label className="text-xs font-medium text-muted-foreground">المسار</label>
+                <ControlFieldHelp>اختار الصفحة أو القسم اللي الأيقونة هتفتح عليه.</ControlFieldHelp>
                 <select
                   className="mt-1 w-full rounded-lg border border-border px-2 py-2 text-sm"
                   disabled={disabled}
@@ -1448,6 +1409,7 @@ export function HeaderCategoryStripForm({
               </div>
               <div>
                 <label className="text-xs font-medium text-muted-foreground">الأيقونة</label>
+                <ControlFieldHelp>اختار شكل الأيقونة المناسب للقسم.</ControlFieldHelp>
                 <select
                   className="mt-1 w-full rounded-lg border border-border px-2 py-2 text-sm"
                   disabled={disabled}
@@ -1467,6 +1429,7 @@ export function HeaderCategoryStripForm({
                 <label className="text-xs font-medium text-muted-foreground">
                   وصف لقارئ الشاشة (اختياري)
                 </label>
+                <ControlFieldHelp>وصف بسيط إضافي، يفيد الوصول وممكن تسيبه فاضي.</ControlFieldHelp>
                 <input
                   type="text"
                   className="mt-1 w-full rounded-lg border border-border px-2 py-2 text-sm"
@@ -1528,84 +1491,25 @@ function HomeCategoryScrollerImageRow({
   disabled: boolean;
 }) {
   const [local, setLocal] = useState(imageUrl);
-  const [uploading, setUploading] = useState(false);
-  const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setLocal(imageUrl);
   }, [imageUrl]);
-
-  async function onFile(file: File | undefined) {
-    if (!file) return;
-    setUploading(true);
-    try {
-      const url = await uploadControlImage(file);
-      setLocal(url);
-      onImageUrlChange(url);
-      toast.success("تم رفع الصورة");
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "فشل الرفع");
-    } finally {
-      setUploading(false);
-    }
-  }
-
-  const trimmed = local.trim();
   return (
-    <div>
-      <label className="text-xs font-medium text-muted-foreground">
-        صورة (اختياري) — الظهور يعتمد على صورة التصنيف في وو
-      </label>
-      <div className="mt-1 flex flex-col gap-2 sm:flex-row sm:items-start sm:gap-2">
-        <input
-          type="text"
-          value={local}
-          onChange={(e) => {
-            setLocal(e.target.value);
-            onImageUrlChange(e.target.value);
-          }}
-          dir="ltr"
-          disabled={disabled}
-          placeholder="https://…"
-          autoComplete="off"
-          className="min-w-0 flex-1 rounded-lg border border-border px-3 py-2 font-mono text-sm"
-        />
-        <input
-          ref={fileRef}
-          type="file"
-          accept={ACCEPT_IMAGES}
-          className="sr-only"
-          tabIndex={-1}
-          disabled={disabled || uploading}
-          onChange={(e) => {
-            void onFile(e.target.files?.[0]);
-            e.target.value = "";
-          }}
-        />
-        <Button
-          type="button"
-          variant="secondary"
-          size="sm"
-          className="shrink-0"
-          disabled={disabled || uploading}
-          onClick={() => fileRef.current?.click()}
-        >
-          {uploading ? "جاري الرفع…" : "اختيار ملف"}
-        </Button>
-      </div>
-      {trimmed ? (
-        <div className="mt-2 max-h-24 max-w-[240px] overflow-hidden rounded-lg border border-border bg-surface-muted/40 p-0.5">
-          <AppImage
-            src={trimmed}
-            alt=""
-            width={240}
-            height={120}
-            className="h-[60px] w-full object-cover"
-            sizes="240px"
-          />
-        </div>
-      ) : null}
-    </div>
+    <ManagedImageUploadField
+      label="صورة (اختياري) — لو حبيت تخصّص الصورة بدل الاعتماد على صورة التصنيف"
+      value={local}
+      onChange={(value) => {
+        setLocal(value);
+        onImageUrlChange(value);
+      }}
+      disabled={disabled}
+      placeholder="https://…"
+      helper="ممكن ترفع صورة مخصصة للعنصر ده أو تسيبه يعتمد على الصورة الأصلية."
+      buttonLabel="اختيار صورة"
+      previewClassName="max-h-24 max-w-[240px]"
+      previewImageClassName="h-[60px] w-full object-cover"
+    />
   );
 }
 
@@ -1676,11 +1580,10 @@ export function HomeCategoryScrollerForm({
   return (
     <section className="space-y-4 rounded-2xl border border-border bg-white p-5 shadow-sm">
       <div>
-        <h2 className="font-display text-lg font-bold">سكroller صور تحت بانر الهيرو</h2>
+        <h2 className="font-display text-lg font-bold">شرائح التصنيفات تحت الهيرو</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          «إظهار الشريح» يُتحكم من أول مربع. عند تفعيله: الصور من ووكومرس — يُستبعد أي قسم
-          بلا صورة. عند «تقييد ببلاطاتي» تُعرض فقط المسارات المسجّلة بالترتيب؛ بلا التقييد:
-          تصنيفات الأب (ذات صورة) بترتيب أبجدي.
+          الجزء ده بيعرض صور تصنيفات تحت الهيرو في الصفحة الرئيسية. تقدر تشغله أو تقفله،
+          وكمان تحدد بنفسك العناصر اللي تظهر والترتيب بتاعها.
         </p>
       </div>
 
@@ -1691,7 +1594,7 @@ export function HomeCategoryScrollerForm({
           disabled={disabled}
           onChange={(e) => setSectionVisible(e.target.checked)}
         />
-        <span className="text-sm font-medium">إظهار شريح صور التصنيفات على الصفحة الرئيسية</span>
+        <span className="text-sm font-medium">إظهار شرائح التصنيفات في الصفحة الرئيسية</span>
       </label>
 
       <label className="flex items-center gap-2">
@@ -1701,7 +1604,7 @@ export function HomeCategoryScrollerForm({
           disabled={disabled}
           onChange={(e) => setEnabled(e.target.checked)}
         />
-        <span className="text-sm font-medium">تقييد الشريح ببلاطاتي المحددة (مسار `/categories/...` فقط)</span>
+        <span className="text-sm font-medium">عرض العناصر التي أحددها أنا فقط</span>
       </label>
 
       <ul className="space-y-4">
@@ -1720,6 +1623,7 @@ export function HomeCategoryScrollerForm({
               <div className="space-y-2">
                 <div>
                   <label className="text-xs font-medium text-muted-foreground">المسار</label>
+                  <ControlFieldHelp>اختار الصفحة أو القسم اللي البلاطة دي تفتح عليه.</ControlFieldHelp>
                   <select
                     className="mt-1 w-full rounded-lg border border-border px-2 py-2 text-sm"
                     disabled={disabled}
@@ -1754,6 +1658,7 @@ export function HomeCategoryScrollerForm({
                 </div>
                 <div>
                   <label className="text-xs font-medium text-muted-foreground">نص بديل (alt) اختياري</label>
+                  <ControlFieldHelp>وصف قصير للصورة، وممكن تسيبه فاضي لو مش محتاجه.</ControlFieldHelp>
                   <input
                     type="text"
                     className="mt-1 w-full rounded-lg border border-border px-2 py-2 text-sm"
@@ -1795,10 +1700,10 @@ export function HomeCategoryScrollerForm({
             ])
           }
         >
-          + إضافة بلاطة
+          + إضافة عنصر
         </Button>
         <Button type="button" disabled={disabled} onClick={() => void handleSave()}>
-          {disabled ? "جاري الحفظ…" : "حفظ سكroller التصنيفات"}
+          {disabled ? "جاري الحفظ…" : "حفظ شرائح التصنيفات"}
         </Button>
       </div>
     </section>

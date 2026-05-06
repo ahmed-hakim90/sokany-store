@@ -2,7 +2,14 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import { Activity, Database, ShieldAlert, Workflow } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  ControlActionTile,
+  ControlMiniGuide,
+  ControlSectionIntro,
+  ControlStatCard,
+} from "@/features/control/components/control-page-chrome";
 import { cn } from "@/lib/utils";
 
 type HealthRes = {
@@ -218,20 +225,96 @@ export function CommandCenter({
   const hLabel = health?.healthLabel;
   const livePulse =
     hLabel === "ok" ? pulseOk : hLabel === "degraded" ? "bg-amber-500" : pulseBad;
+  const overviewStats = [
+    {
+      label: "نبض Woo",
+      value:
+        health?.woo?.products?.latencyMs != null
+          ? `${health.woo.products.latencyMs} ms`
+          : "—",
+      hint: "زمن آخر استجابة تقريبية من Woo عند فحص المنتجات.",
+      tone:
+        health?.woo?.products?.latencyMs != null &&
+        health.woo.products.latencyMs < 1200
+          ? "emerald"
+          : "amber",
+      icon: Activity,
+    },
+    {
+      label: "نجاح الويبهوك",
+      value:
+        agg?.successRatePercent != null ? `${agg.successRatePercent.toFixed(0)}%` : "—",
+      hint: "نسبة معالجة أحداث الويبهوك بنجاح خلال آخر 24 ساعة.",
+      tone:
+        agg?.successRatePercent != null && agg.successRatePercent >= 85
+          ? "emerald"
+          : "amber",
+      icon: Workflow,
+    },
+    {
+      label: "آخر حدث",
+      value: agg?.lastEventAt ? "مسجل" : "لا يوجد",
+      hint: agg?.lastEventAt
+        ? new Date(agg.lastEventAt).toLocaleString("ar-EG", {
+            dateStyle: "short",
+            timeStyle: "medium",
+          })
+        : "لم يصل حدث جديد أو السجل غير مفعل.",
+      tone: agg?.lastEventAt ? "brand" : "slate",
+      icon: Database,
+    },
+    {
+      label: "تقييم الصحة",
+      value: health != null ? `${health.healthScore}%` : "—",
+      hint: "درجة مركبة تعتمد على Firestore وWoo وتوافق البيانات.",
+      tone:
+        (health?.healthScore ?? 0) >= 85
+          ? "emerald"
+          : (health?.healthScore ?? 0) >= 50
+            ? "amber"
+            : "rose",
+      icon: ShieldAlert,
+    },
+  ] as const;
+  const actionTiles = [
+    {
+      key: "webhook",
+      title: "تجربة وصول تحديث جديد",
+      description: "شغّلها بعد تعديل الربط أو إذا أردت التأكد أن التحديثات تصل للموقع.",
+      buttonLabel: actionBusy === "webhook" ? "جارٍ التنفيذ..." : "تشغيل التجربة",
+      onClick: () => void runTestWebhook(),
+      primary: true,
+    },
+    {
+      key: "reval",
+      title: "تحديث الواجهة بعد التعديل",
+      description: "استخدمها لو البيانات تغيّرت لكن الموقع ما زال يعرض النسخة القديمة.",
+      buttonLabel: actionBusy === "reval" ? "جارٍ التحديث..." : "تحديث الواجهة",
+      onClick: () => void runRevalidate(),
+      primary: false,
+    },
+    {
+      key: "schema",
+      title: "فحص شكل البيانات القادمة",
+      description: "يتأكد أن البيانات الواصلة من المصدر مناسبة لعرضها داخل الموقع.",
+      buttonLabel: actionBusy === "schema" ? "جارٍ الفحص..." : "تشغيل الفحص",
+      onClick: () => void runSchema(),
+      primary: false,
+    },
+  ] as const;
 
   return (
     <div className="mx-auto w-full min-w-0 max-w-5xl px-4 py-6 sm:px-5 sm:py-8">
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
-            Command center
+            متابعة وتشخيص
           </p>
           <h1 className="font-display text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
-            Site Health
+            حالة الموقع والربط
           </h1>
           <p className="mt-1 max-w-2xl text-sm text-slate-600">
-            نبض التكامل مع Woo: الكاش، سجل الويبهوك، واختبارات الاتصال. المفاتيح معروضة
-            مموّهة فقط.
+            من هنا نعرف هل الموقع يستقبل التحديثات بشكل سليم، وهل الواجهة تتحدث، وهل هناك شيء يحتاج تدخل سريع.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -254,13 +337,13 @@ export function CommandCenter({
             onClick={() => void load()}
             disabled={loading}
           >
-            استعادة
+            تحديث الحالة
           </Button>
           <Link
             href="/control/woo-api"
             className="inline-flex h-10 items-center justify-center rounded-md border border-slate-200 bg-white px-4 text-sm font-medium text-indigo-700 shadow-sm transition-colors hover:bg-slate-50/80"
           >
-            Woo &amp; API
+            صفحة الربط
           </Link>
           {process.env.NODE_ENV === "development" ? (
             <a
@@ -269,10 +352,56 @@ export function CommandCenter({
               rel="noopener noreferrer"
               className="inline-flex h-10 items-center justify-center rounded-md border border-dashed border-slate-300 bg-white px-3 text-xs font-medium text-slate-600 shadow-sm hover:bg-slate-50/80"
             >
-              JSON خام
+              عرض التشخيص الخام
             </a>
           ) : null}
         </div>
+      </div>
+
+      <div className="mb-6 space-y-6">
+        <ControlSectionIntro
+          eyebrow="فهم الصفحة"
+          title="لوحة متابعة صحة الموقع"
+          description="ابدأ من الأرقام في الأعلى، ثم استخدم الإجراء المناسب، وبعدها راجع آخر التحديثات لمعرفة ما حدث."
+          bullets={[
+            "الأعلى للحكم السريع",
+            "الوسط للإجراءات المهمة",
+            "الأسفل لآخر ما وصل",
+          ]}
+          tone="brand"
+          icon={Activity}
+        />
+
+        <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {overviewStats.map((item) => (
+            <ControlStatCard
+              key={item.label}
+              label={item.label}
+              value={item.value}
+              hint={item.hint}
+              tone={item.tone}
+              icon={item.icon}
+            />
+          ))}
+        </section>
+
+        <section className="grid gap-3 md:grid-cols-3">
+          <ControlMiniGuide
+            title="متى أجرّب تحديثًا؟"
+            badge="تجربة"
+            description="بعد أي تعديل في الربط، شغّل التجربة لتتأكد أن الموقع يستقبل التحديث بدون انتظار حدث حقيقي."
+          />
+          <ControlMiniGuide
+            title="متى أحدّث الواجهة؟"
+            badge="نشر"
+            description="لو عدّلت بيانات أو صورًا وما زالت الواجهة قديمة، استخدم هذا الإجراء ليظهر الجديد بسرعة."
+          />
+          <ControlMiniGuide
+            title="كيف أعرف أين المشكلة؟"
+            badge="متابعة"
+            description="اللون الأخضر يعني أن التحديث مرّ بشكل جيد، أما الأحمر فيعني أن هناك خطوة فشلت وتحتاج مراجعة."
+          />
+        </section>
       </div>
 
       {err ? (
@@ -331,9 +460,44 @@ export function CommandCenter({
         </p>
       </div>
 
-      <div className="mb-4 rounded-xl border border-slate-200/80 bg-slate-50/80 p-4 text-sm text-slate-800">
-        <p className="text-[11px] font-semibold uppercase text-slate-500">مفاتيح ‎(قناع)‎</p>
-        <div className="mt-2 space-y-1.5 font-mono text-xs">
+      <section className="mb-6 grid gap-3 lg:grid-cols-3">
+        {actionTiles.map((tile) => (
+          <ControlActionTile
+            key={tile.key}
+            title={tile.title}
+            description={tile.description}
+            cta={(
+              <Button
+                type="button"
+                onClick={tile.onClick}
+                disabled={actionBusy != null}
+                variant={tile.primary ? undefined : "secondary"}
+                className={tile.primary ? "bg-indigo-600 text-white hover:bg-indigo-700" : "border-slate-200"}
+              >
+                {tile.buttonLabel}
+              </Button>
+            )}
+          />
+        ))}
+      </section>
+
+      {(lastActions.webhook || lastActions.reval || lastActions.schema || lastActions.detail) && (
+        <div className="mb-6 rounded-xl border border-slate-200/80 bg-white p-4 text-sm text-slate-700 shadow-sm ring-1 ring-slate-900/5">
+          <p className="font-semibold text-slate-900">آخر نتيجة</p>
+          <p className="mt-2 text-xs leading-6 text-slate-500">
+            {lastActions.webhook && `تجربة التحديث: ${lastActions.webhook}. `}
+            {lastActions.reval && `تحديث الواجهة: ${lastActions.reval}. `}
+            {lastActions.schema && `فحص شكل البيانات: ${lastActions.schema}. `}
+            {lastActions.detail && `فتح التفاصيل: ${lastActions.detail}. `}
+          </p>
+        </div>
+      )}
+
+      <details className="mb-8 rounded-xl border border-slate-200/80 bg-slate-50/80 p-4 text-sm text-slate-800">
+        <summary className="cursor-pointer font-semibold text-slate-900">
+          معلومات تقنية إضافية
+        </summary>
+        <div className="mt-3 space-y-1.5 font-mono text-xs">
           <p>
             Consumer:{" "}
             {maskedHint.consumerKeyDisplay === null || !maskedHint.hasConsumerKey
@@ -342,46 +506,9 @@ export function CommandCenter({
           </p>
           <p>Secret: {maskedHint.hasConsumerSecret ? "cs_****" : "غير مضبوط"}</p>
         </div>
-      </div>
+      </details>
 
-      <div className="mb-8 flex flex-wrap gap-2">
-        <Button
-          type="button"
-          onClick={() => void runTestWebhook()}
-          disabled={actionBusy != null}
-          className="bg-indigo-600 text-white hover:bg-indigo-700"
-        >
-          {actionBusy === "webhook" ? "…" : "اختبار ويبهوك"}
-        </Button>
-        <Button
-          type="button"
-          variant="secondary"
-          onClick={() => void runRevalidate()}
-          disabled={actionBusy != null}
-          className="border-slate-200"
-        >
-          {actionBusy === "reval" ? "…" : "تنظيف/إبطال الكاش"}
-        </Button>
-        <Button
-          type="button"
-          variant="secondary"
-          onClick={() => void runSchema()}
-          disabled={actionBusy != null}
-          className="border-slate-200"
-        >
-          {actionBusy === "schema" ? "…" : "مُدقق سكيما (منتج عشوائي)"}
-        </Button>
-        {(lastActions.webhook || lastActions.reval || lastActions.schema || lastActions.detail) && (
-          <p className="w-full text-xs text-slate-500">
-            {lastActions.webhook && `ويبهوك: ${lastActions.webhook} ‎. `}
-            {lastActions.reval && `كاش: ${lastActions.reval} ‎. `}
-            {lastActions.schema && `سكيما: ${lastActions.schema} ‎. `}
-            {lastActions.detail && `تفاصيل: ${lastActions.detail} ‎. `}
-          </p>
-        )}
-      </div>
-
-      <h2 className="mb-3 text-sm font-bold text-slate-900">تدفق الويبهوك</h2>
+      <h2 className="mb-3 text-sm font-bold text-slate-900">آخر التحديثات الواردة</h2>
       {loading ? (
         <p className="text-sm text-slate-500">جاري التحميل…</p>
       ) : !feed || feed.items.length === 0 ? (

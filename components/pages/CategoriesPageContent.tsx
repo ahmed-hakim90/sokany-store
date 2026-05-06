@@ -156,6 +156,7 @@ export function CategoriesPageContent() {
 
   return (
     <>
+      <h1 className="sr-only lg:hidden">تصنيفات سوكاني المصرية</h1>
       <div className="hidden lg:block">
         <ScrollReveal>
           <CategoriesIntro />

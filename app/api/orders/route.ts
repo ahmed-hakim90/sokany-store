@@ -7,11 +7,18 @@ import { ROUTES } from "@/lib/constants";
 import { toAbsoluteSiteUrl } from "@/lib/site";
 import { revalidateWooOrderTags } from "@/lib/woocommerce-revalidate-broadcast";
 import { forwardOrderCreatedToExternalApi } from "@/features/orders/services/forward-order-to-external-api";
+import { applyWooPaymentGatewayEnvToOrderBody } from "@/lib/woo-order-payment-env";
 
 function messageFromWooErrorBody(data: unknown): string {
-  if (data && typeof data === "object" && "message" in data) {
-    const m = (data as { message: unknown }).message;
-    if (typeof m === "string" && m.trim()) return m;
+  if (data && typeof data === "object") {
+    const o = data as { message?: unknown; code?: unknown };
+    if (typeof o.message === "string" && o.message.trim()) {
+      let msg = o.message.trim();
+      if (typeof o.code === "string" && o.code.trim()) {
+        msg += ` (${o.code})`;
+      }
+      return msg;
+    }
   }
   return "Failed to create order";
 }
@@ -66,6 +73,9 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body: unknown = await request.json();
+    if (body && typeof body === "object" && !Array.isArray(body)) {
+      applyWooPaymentGatewayEnvToOrderBody(body as Record<string, unknown>);
+    }
     const woo = await createWooClient();
     const response = await woo.post("/orders", body);
     const responseOrder = enrichWooOrderForStorefront(response.data);

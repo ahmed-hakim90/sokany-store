@@ -27,8 +27,14 @@ import {
   cmsSpotlightsDocSchema,
   CMS_DEFAULT_HEADER_CATEGORY_STRIP,
   CMS_DEFAULT_HOME_CATEGORY_SCROLLER,
+  CMS_DEFAULT_HOME_PRODUCT_SECTIONS,
+  CMS_DEFAULT_HOME_PRODUCT_SECTIONS_MODE,
+  cmsHomeProductSectionsArraySchema,
+  cmsHomeProductSectionsModeSchema,
   type CmsHeaderCategoryStrip,
   type CmsHomeCategoryScroller,
+  type CmsHomeProductSection,
+  type CmsHomeProductSectionsMode,
   type CmsPromoFlash,
   type CmsTopAnnouncementBar,
   type CmsSiteBranding,
@@ -65,6 +71,9 @@ export type PublicSiteContent = {
    * البلاطة بلا صورة أو ليست أباً. بلا تقييد: أبٌ (له منتجات) وله ‎`image` فقط. يُحرّر في ‎/control.
    */
   homeCategoryScroller: CmsHomeCategoryScroller;
+  /** أقسام منتجات الهوم من `site_config` — الوضع الافتراضي `auto`. */
+  homeProductSectionsMode: CmsHomeProductSectionsMode;
+  homeProductSections: CmsHomeProductSection[];
   /**
    * رابط HTTPS علني مُدار من `site_config.storefrontIntegrations` (لوحة التحكم).
    * المفاتيح السرية تبقى في env — انظر `INTEGRATION_SERVER_SECRET` في المثال.
@@ -173,6 +182,22 @@ function mergeHomeCategoryScroller(
   };
 }
 
+function mergeHomeProductSectionsMode(
+  raw: unknown,
+  fallback: CmsHomeProductSectionsMode,
+): CmsHomeProductSectionsMode {
+  const r = cmsHomeProductSectionsModeSchema.safeParse(raw);
+  return r.success ? r.data : fallback;
+}
+
+function mergeHomeProductSections(
+  raw: unknown,
+  fallback: CmsHomeProductSection[],
+): CmsHomeProductSection[] {
+  const r = cmsHomeProductSectionsArraySchema.safeParse(raw);
+  return r.success ? r.data : fallback;
+}
+
 function mapHeroFromCms(
   slides: { imageUrl: string; alt?: string; href?: string }[],
 ): HomeHeroSlide[] {
@@ -209,6 +234,8 @@ async function fetchPublicSiteContentUncached(): Promise<PublicSiteContent> {
     searchQuickKeywords: [...DEFAULT_SEARCH_QUICK_KEYWORDS],
     headerCategoryStrip: { ...CMS_DEFAULT_HEADER_CATEGORY_STRIP },
     homeCategoryScroller: { ...CMS_DEFAULT_HOME_CATEGORY_SCROLLER },
+    homeProductSectionsMode: CMS_DEFAULT_HOME_PRODUCT_SECTIONS_MODE,
+    homeProductSections: [...CMS_DEFAULT_HOME_PRODUCT_SECTIONS],
     publicReadBaseUrl: null,
     externalDataWebhookUrl: null,
     cmsWooBaseUrl: null,
@@ -283,6 +310,19 @@ async function fetchPublicSiteContentUncached(): Promise<PublicSiteContent> {
         ? (siteParsed.data as { homeCategoryScroller?: unknown }).homeCategoryScroller
         : undefined,
       staticBundle.homeCategoryScroller,
+    );
+
+    const homeProductSectionsMode = mergeHomeProductSectionsMode(
+      siteParsed?.success
+        ? (siteParsed.data as { homeProductSectionsMode?: unknown }).homeProductSectionsMode
+        : undefined,
+      staticBundle.homeProductSectionsMode,
+    );
+    const homeProductSections = mergeHomeProductSections(
+      siteParsed?.success
+        ? (siteParsed.data as { homeProductSections?: unknown }).homeProductSections
+        : undefined,
+      staticBundle.homeProductSections,
     );
 
     const publicReadBaseUrl = (() => {
@@ -386,6 +426,8 @@ async function fetchPublicSiteContentUncached(): Promise<PublicSiteContent> {
       searchQuickKeywords,
       headerCategoryStrip,
       homeCategoryScroller,
+      homeProductSectionsMode,
+      homeProductSections,
       publicReadBaseUrl,
       externalDataWebhookUrl,
       cmsWooBaseUrl,
@@ -403,7 +445,7 @@ async function fetchPublicSiteContentUncached(): Promise<PublicSiteContent> {
 
 const getCachedPublicSiteContent = unstable_cache(
   async () => fetchPublicSiteContentUncached(),
-  ["storefront-cms-v2"],
+  ["storefront-cms-v3"],
   { revalidate: 60, tags: [CMS_CACHE_TAG] },
 );
 

@@ -99,6 +99,8 @@ export async function GET(request: NextRequest) {
       searchParams.get("include_children") === "true";
     const featured =
       searchParams.get("featured") === "true" ? true : undefined;
+    const onSale =
+      searchParams.get("on_sale") === "true" ? true : undefined;
     const search = searchParams.get("search")?.trim() || undefined;
     const catRaw = searchParams.get("category");
     let category: string | number | undefined;
@@ -106,7 +108,7 @@ export async function GET(request: NextRequest) {
       const asNum = Number.parseInt(catRaw, 10);
       category = Number.isFinite(asNum) ? asNum : catRaw;
     }
-    const filterOpts = { featured, search };
+    const filterOpts = { featured, on_sale: onSale, search };
     const sourceProducts = getSnapshotProducts() ?? undefined;
     const sourceCategories = getSnapshotCategories() ?? mockCategories;
     let all = listMockProductsMatching(filterOpts, sourceProducts);

@@ -1,8 +1,11 @@
 import type { CmsSiteConfigDoc, CmsStorefrontIntegrations } from "@/schemas/cms";
 import {
   CMS_DEFAULT_HOME_CATEGORY_SCROLLER,
+  CMS_DEFAULT_HOME_PRODUCT_SECTIONS,
+  CMS_DEFAULT_HOME_PRODUCT_SECTIONS_MODE,
   CMS_DEFAULT_HEADER_CATEGORY_STRIP,
   CMS_DEFAULT_TOP_ANNOUNCEMENT_BAR,
+  cmsHomeProductSectionsArraySchema,
   cmsSiteConfigDocSchema,
 } from "@/schemas/cms";
 
@@ -78,6 +81,15 @@ export function mergeSiteConfigPatch(
       patch.homeCategoryScroller !== undefined
         ? patch.homeCategoryScroller
         : current?.homeCategoryScroller ?? CMS_DEFAULT_HOME_CATEGORY_SCROLLER,
+    homeProductSectionsMode:
+      patch.homeProductSectionsMode ??
+      current?.homeProductSectionsMode ??
+      CMS_DEFAULT_HOME_PRODUCT_SECTIONS_MODE,
+    homeProductSections: cmsHomeProductSectionsArraySchema.parse(
+      patch.homeProductSections !== undefined
+        ? patch.homeProductSections
+        : (current?.homeProductSections ?? CMS_DEFAULT_HOME_PRODUCT_SECTIONS),
+    ),
     storefrontIntegrations: mergeStorefrontIntegrations(
       current?.storefrontIntegrations,
       patch.storefrontIntegrations,

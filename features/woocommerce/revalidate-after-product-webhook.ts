@@ -67,6 +67,7 @@ export function revalidateAfterWooCommerceWebhook(
   }
 
   revalidatePath("/products");
+  revalidatePath("/offers");
   revalidatePath("/categories");
 }
 

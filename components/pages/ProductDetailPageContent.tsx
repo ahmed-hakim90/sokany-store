@@ -24,7 +24,18 @@ import { useAuthSession } from "@/hooks/useAuthSession";
  * كتلة المنتج (معرض + معلومات/شراء) بعرض كامل داخل الحاوية؛ شريط «أضف للسلة» ثابت عند التمرير بعد كتلة الشراء.
  * التقييمات: نموذج «أضف تقييماً» يظهر فقط لمسجّل اشترى نفس ‎`id`‎ بطلب ‎`completed`‎ (بدون تكرار)؛ باقي المسجّلين/الزوّار يرون القائمة إن وُجدت. على الشاشة الضيقة (أقل من md) سلايد؛ من ‎`md`‎ فما فوق قائمة. «ذات صلة» داخل ‎`max-w-7xl`‎.
  */
-export function ProductDetailPageContent({ id }: { id: number }) {
+export type ProductTrustSummary = {
+  salesBranchesCount: number;
+  serviceBranchesCount: number;
+};
+
+export function ProductDetailPageContent({
+  id,
+  trustSummary,
+}: {
+  id: number;
+  trustSummary?: ProductTrustSummary;
+}) {
   const router = useTransitionRouter();
   const {
     productQuery,
@@ -93,6 +104,7 @@ export function ProductDetailPageContent({ id }: { id: number }) {
             onBuyNow={buyNow}
             specs={specs}
             canInteractCart={hasHydrated}
+            trustSummary={trustSummary}
           />
 
           {/* أسفل المنتج: التقييمات داخل عمود max-w-7xl متمركز */}

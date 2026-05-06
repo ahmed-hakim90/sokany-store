@@ -9,16 +9,16 @@ export const GUEST_ORDER_AMEND_ENABLED =
 export const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000";
 export const SITE_NAME =
-  process.env.NEXT_PUBLIC_SITE_NAME ?? "Sokany-Eg";
+  process.env.NEXT_PUBLIC_SITE_NAME ?? "Sokany EG";
 /** Arabic brand line for SEO titles (product/category pages). Override via env for «سوكانى مصر» vs legal name. */
 export const SITE_BRAND_TITLE_AR =
-  process.env.NEXT_PUBLIC_SITE_BRAND_TITLE_AR ?? "سوكانى المغربى";
+  process.env.NEXT_PUBLIC_SITE_BRAND_TITLE_AR ?? "سوكاني المصرية";
 /** Compact mobile header wordmark (Latin mark; override via env). */
 export const SITE_WORDMARK =
-  process.env.NEXT_PUBLIC_SITE_WORDMARK ?? "SOKANY-Eg";
+  process.env.NEXT_PUBLIC_SITE_WORDMARK ?? "SOKANY EG";
 /** Latin label for installable PWA (`manifest` name / short_name). Override via env. */
 export const PWA_INSTALL_NAME =
-  process.env.NEXT_PUBLIC_PWA_INSTALL_NAME?.trim() || "Sokany-EG";
+  process.env.NEXT_PUBLIC_PWA_INSTALL_NAME?.trim() || "Sokany EG";
 const rawSiteLogoPath = process.env.NEXT_PUBLIC_SITE_LOGO_PATH;
 /** Set `NEXT_PUBLIC_SITE_LOGO_PATH=` (empty) to use the site name instead of a logo image where supported. */
 export const SITE_LOGO_DISABLED =
@@ -72,6 +72,8 @@ export const STORE_HERO_VIDEO_URL =
 export const ROUTES = {
   HOME: "/",
   PRODUCTS: "/products",
+  /** صفحة العروض: تعرض منتجات WooCommerce التي عليها خصم فعلي (`on_sale=true`). */
+  OFFERS: "/offers",
   /** Dedicated search results (query param `q`). */
   SEARCH: "/search",
   PRODUCT: (id: number | string) => `/products/${id}`,

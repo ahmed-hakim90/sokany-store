@@ -8,6 +8,7 @@ export const HEADER_NAV_ROUTE_CHOICES: { value: string; label: string }[] = [
   { value: ROUTES.HOME, label: "الرئيسية" },
   { value: ROUTES.SEARCH, label: "البحث" },
   { value: ROUTES.PRODUCTS, label: "كل المنتجات" },
+  { value: ROUTES.OFFERS, label: "العروض" },
   { value: ROUTES.CATEGORIES, label: "كل التصنيفات" },
   { value: ROUTES.CART, label: "السلة" },
   { value: ROUTES.ABOUT, label: "من نحن" },

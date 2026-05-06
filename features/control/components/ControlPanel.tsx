@@ -1,12 +1,30 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import type { ControlPanelTabId } from "@/features/control/lib/control-tabs";
-import { isControlPanelTabId } from "@/features/control/lib/control-tabs";
+import { CONTROL_TAB_GROUPS, isControlPanelTabId } from "@/features/control/lib/control-tabs";
 import { ControlAccessTab } from "@/features/control/components/ControlAccessTab";
 import { OrderForwardingSettingsTab } from "@/features/control/components/OrderForwardingSettingsTab";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
+import {
+  BellRing,
+  Eye,
+  Home,
+  Globe,
+  FolderKanban,
+  ImageUp,
+  LayoutDashboard,
+  MapPinned,
+  Megaphone,
+  MonitorPlay,
+  Palette,
+  ShieldCheck,
+  Sparkles,
+  Store,
+  Waypoints,
+} from "lucide-react";
 import { Button } from "@/components/Button";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -55,11 +73,19 @@ import {
   SocialLinksForm,
   SpotlightsForm,
 } from "@/features/control/components/control-panel-forms";
+import { HomeProductSectionsForm } from "@/features/control/components/HomeProductSectionsForm";
 import { ControlMediaTab } from "@/features/control/components/ControlMediaTab";
 import { putCmsRequest } from "@/features/control/lib/control-cms-put";
 import {
   mergeSiteConfigPatch,
 } from "@/features/control/lib/site-config-merge";
+import {
+  ControlActionTile,
+  ControlMiniGuide,
+  ControlSectionIntro,
+  ControlStatCard,
+} from "@/features/control/components/control-page-chrome";
+import { ControlFieldHelp } from "@/features/control/components/control-field-help";
 
 type CmsBundle = {
   site_config: unknown;
@@ -81,6 +107,7 @@ const BASE_TAB_LIST: { id: ControlPanelTabId; label: string }[] = [
   { id: "general", label: "عام" },
   { id: "branding", label: "هوية الموقع" },
   { id: "hero", label: "الهيرو" },
+  { id: "home", label: "الصفحة الرئيسية" },
   { id: "branches", label: "الفروع" },
   { id: "banners", label: "بانرات الأقسام" },
   { id: "retailers", label: "الموزعون" },
@@ -91,6 +118,136 @@ const BASE_TAB_LIST: { id: ControlPanelTabId; label: string }[] = [
   { id: "orderForwarding", label: "تكامل الطلبات" },
   { id: "access", label: "الصلاحيات" },
 ];
+
+const TAB_EXPLAINERS: Record<
+  ControlPanelTabId,
+  {
+    eyebrow: string;
+    title: string;
+    description: string;
+    bullets: string[];
+    badge: string;
+    icon: typeof LayoutDashboard;
+  }
+> = {
+  general: {
+    eyebrow: "تشغيل يومي",
+    title: "الإعدادات العامة للمتجر",
+    description:
+      "من هنا نتحكم في الرسائل السريعة، الروابط الأساسية، وما يظهر للعميل بشكل متكرر في أكثر من صفحة.",
+    bullets: ["عدّل البيانات المشتركة مرة واحدة", "أي حفظ ينعكس على الواجهة بسرعة", "مناسب للرسائل والعناوين اليومية"],
+    badge: "أساسيات المتجر",
+    icon: LayoutDashboard,
+  },
+  branding: {
+    eyebrow: "هوية بصرية",
+    title: "اسم المتجر وصورته وبياناته التعريفية",
+    description:
+      "هذا القسم مسؤول عن الاسم العربي واللاتيني، الأيقونات، صور المشاركة، وأساس الهوية التي يراها العميل ومحركات البحث.",
+    bullets: ["يوحّد الاسم والشعار", "يضبط صور الأيقونات وOG", "يحافظ على ثبات شكل العلامة"],
+    badge: "الهوية",
+    icon: Palette,
+  },
+  hero: {
+    eyebrow: "الواجهة الأولى",
+    title: "سلايدر الهيرو والعناصر البارزة",
+    description:
+      "هنا نعدّل أول مساحة يراها الزائر عند فتح الموقع: الصور الرئيسية، العناوين، والأزرار التي تدفعه للتصفح أو الشراء.",
+    bullets: ["أول انطباع بصري", "مفيد للعروض والمواسم", "غيّره عند إطلاق حملة جديدة"],
+    badge: "الصفحة الرئيسية",
+    icon: Sparkles,
+  },
+  home: {
+    eyebrow: "كتالوج الهوم",
+    title: "أقسام المنتجات والشرائح تحت الهيرو",
+    description:
+      "اضبط أقسام المنتجات المعروضة في أسفل الصفحة الرئيسية: وضع تلقائي أو مخصص أو الاثنين، مع بانر وتصنيف وعدد واتجاه لكل قسم. شرائح التصنيفات تحت الهيرو تُدار من هنا أيضاً.",
+    bullets: ["تحكم كامل بأقسام المنتجات", "ربط أي تصنيف بالقسم", "بانر مخصص لكل قسم"],
+    badge: "الهوم",
+    icon: Home,
+  },
+  branches: {
+    eyebrow: "ما بعد البيع",
+    title: "بيانات الفروع ومراكز الخدمة",
+    description:
+      "يجمع هذا القسم عناوين الفروع وأرقام التواصل والخريطة وروابط الخدمة حتى يجد العميل أقرب نقطة دعم بسهولة.",
+    bullets: ["يرفع الثقة", "يسهّل الوصول للفروع", "يحسّن تجربة ما بعد البيع"],
+    badge: "الفروع",
+    icon: MapPinned,
+  },
+  banners: {
+    eyebrow: "ترويج الأقسام",
+    title: "بانرات الأقسام والروابط السريعة",
+    description:
+      "الجزء ده لعرض صور دعائية صغيرة داخل المتجر تربط العميل مباشرة بأقسام أو حملات معينة.",
+    bullets: ["يوجّه العميل بسرعة", "ممتاز للعروض القصيرة", "يحافظ على حركة واضحة داخل الكتالوج"],
+    badge: "الكتالوج",
+    icon: ImageUp,
+  },
+  retailers: {
+    eyebrow: "انتشار العلامة",
+    title: "الموزعون ونقاط البيع",
+    description:
+      "نستخدمه لعرض أماكن الشراء المعتمدة أو شركاء البيع، مع بيانات تساعد العميل يعرف أين يجد المنتجات خارج الموقع.",
+    bullets: ["يبني الثقة", "يعرّف العميل بالموزعين", "يناسب التوسع الجغرافي"],
+    badge: "الموزعون",
+    icon: Store,
+  },
+  spotlights: {
+    eyebrow: "رسائل مركزة",
+    title: "إعلانات مميزة ومحتوى لافت",
+    description:
+      "هذا القسم مخصص للرسائل القصيرة أو الكروت المميزة التي نريد إبرازها في نقاط معينة داخل الواجهة.",
+    bullets: ["يسلّط الضوء على نقطة محددة", "مفيد للعروض أو المزايا", "يعطي واجهة المتجر نبضًا تسويقيًا"],
+    badge: "إبراز المحتوى",
+    icon: Megaphone,
+  },
+  media: {
+    eyebrow: "المكتبة",
+    title: "رفع الصور والملفات وإدارتها",
+    description:
+      "من هنا نرفع الصور والملفات المستخدمة داخل لوحة التحكم، ونستبدلها أو نحذفها بدون لمس الكود.",
+    bullets: ["يحفظ الملفات في مكان واحد", "يسهّل النسخ والاستبدال", "مناسب للمحتوى المتغير باستمرار"],
+    badge: "الوسائط",
+    icon: FolderKanban,
+  },
+  preview: {
+    eyebrow: "مراجعة قبل النشر",
+    title: "معاينة شكل المتجر بعد التعديلات",
+    description:
+      "هذا التبويب يتيح التأكد من أن التغيير ظاهر بشكل جيد قبل الانتقال لباقي المهام، خاصة على واجهة العميل الحقيقية.",
+    bullets: ["يشبه النتيجة النهائية", "يسهّل اكتشاف الأخطاء البصرية", "أفضل خطوة قبل إنهاء التحديث"],
+    badge: "معاينة",
+    icon: Eye,
+  },
+  notifications: {
+    eyebrow: "التفاعل",
+    title: "إشعارات الويب والتنبيهات",
+    description:
+      "القسم الخاص بإرسال أو ضبط إشعارات تصل للمستخدمين المشتركين، حتى نعلن عن عرض أو تحديث مهم بسرعة.",
+    bullets: ["مفيد للعروض العاجلة", "يزيد عودة الزوار", "يخدم الحملات القصيرة"],
+    badge: "إشعارات",
+    icon: BellRing,
+  },
+  orderForwarding: {
+    eyebrow: "تكاملات",
+    title: "إرسال بيانات الطلبات إلى نظام خارجي",
+    description:
+      "هنا نربط الطلبات الصادرة من المتجر بسيرفر أو API خارجي حتى تتكامل مع أنظمة تشغيل أو تقارير أخرى.",
+    bullets: ["مهم للتشغيل", "لا يغيّر تجربة العميل مباشرة", "يفيد الربط مع الأنظمة الداخلية"],
+    badge: "ربط الطلبات",
+    icon: Waypoints,
+  },
+  access: {
+    eyebrow: "إدارة الفريق",
+    title: "صلاحيات الدخول إلى لوحة التحكم",
+    description:
+      "هذا الجزء يحدد من يدخل اللوحة وماذا يمكنه أن يرى أو يعدّل، حتى تبقى إدارة المحتوى آمنة ومنظمة.",
+    bullets: ["يحمي البيانات الحساسة", "يحدد صلاحيات كل شخص", "يسهّل فصل الأدوار داخل الفريق"],
+    badge: "أمان",
+    icon: ShieldCheck,
+  },
+};
 
 function buildNavTabList(
   s: ClientControlSession | null,
@@ -166,10 +323,9 @@ function SearchQuickKeywordsSection({
 
   return (
     <section className="space-y-4 rounded-2xl border border-border bg-white p-5 shadow-sm">
-      <h2 className="font-display text-lg font-bold">كلمات البحث السريعة (الهيدر)</h2>
+      <h2 className="font-display text-lg font-bold">اقتراحات البحث السريعة</h2>
       <p className="text-sm text-muted-foreground">
-        تظهر عند فتح حقل البحث قبل كتابة ٣ أحرف. إن لم تُحفظ كلمات في CMS يُستخدم الافتراضي من
-        الكود.
+        الكلمات دي تظهر للمستخدم أول ما يفتح البحث، قبل ما يبدأ يكتب.
       </p>
       <ul className="space-y-2">
         {rows.map((row, i) => (
@@ -199,7 +355,7 @@ function SearchQuickKeywordsSection({
           إضافة سطر
         </Button>
         <Button type="button" variant="secondary" disabled={disabled} onClick={fillFromDefaults}>
-          ملء من الافتراضي (الكود)
+          استخدام الاقتراحات الجاهزة
         </Button>
         <Button type="button" disabled={disabled} onClick={handleSave}>
           {disabled ? "جاري الحفظ…" : "حفظ الكلمات"}
@@ -210,7 +366,7 @@ function SearchQuickKeywordsSection({
           disabled={disabled}
           onClick={() => onSave([])}
         >
-          مسح من CMS (الموقع يستخدم الافتراضي)
+          حذف التعديل والرجوع للجاهز
         </Button>
       </div>
     </section>
@@ -242,7 +398,9 @@ function brandingFromForm(fd: FormData): CmsSiteBranding {
   setIf("organizationName", "organizationName");
   setIf("organizationLogoUrl", "organizationLogoUrl");
   setIf("supportPhoneDisplay", "supportPhoneDisplay");
+  setIf("productCardBadgeText", "productCardBadgeText");
   b.logoDisabled = fd.get("logoDisabled") === "on";
+  b.productCardBadgeEnabled = fd.get("productCardBadgeEnabled") === "on";
   return b;
 }
 
@@ -640,6 +798,85 @@ export function ControlPanel() {
     : { items: [] };
 
   const currentTabLabel = navTabs.find((t) => t.id === tab)?.label ?? "المحتوى";
+  const currentTabInfo = TAB_EXPLAINERS[tab];
+  const navTabsSet = new Set(navTabs.map((item) => item.id));
+  const groupedNavTabs = CONTROL_TAB_GROUPS.map((group) => ({
+    ...group,
+    ids: group.ids.filter((id) => navTabsSet.has(id)),
+  })).filter((group) => group.ids.length > 0);
+  const overviewStats = [
+    {
+      label: "شرائح الهيرو",
+      value: String(homeHero.slides.length),
+      hint: "عدد الشرائح الرئيسية المعروضة الآن في واجهة المتجر.",
+      tone: "brand" as const,
+      icon: Sparkles,
+    },
+    {
+      label: "الفروع والخدمة",
+      value: String(branches.sales.length + branches.service.length),
+      hint: "إجمالي نقاط البيع ومراكز الخدمة المخزنة داخل اللوحة.",
+      tone: "emerald" as const,
+      icon: MapPinned,
+    },
+    {
+      label: "بانرات وإعلانات",
+      value: String(sectionBanners.items.length + spotlightsDoc.items.length),
+      hint: "كل الوحدات الدعائية التي تساعدنا نوجّه العميل داخل المتجر.",
+      tone: "amber" as const,
+      icon: Megaphone,
+    },
+    {
+      label: "موزعون",
+      value: String(retailersDoc.retailers.length),
+      hint: "عدد نقاط البيع أو الموزعين المعروضة حاليًا للعميل.",
+      tone: "slate" as const,
+      icon: Store,
+    },
+  ];
+  const quickGuides = [
+    {
+      title: "من أين أبدأ؟",
+      badge: "للعمل اليومي",
+      description:
+        "ابدأ من «عام» لو تريد تعديل رسالة أو رابط مشترك، ومن «الهيرو» لو لديك حملة أو عرض جديد على الصفحة الرئيسية.",
+    },
+    {
+      title: "متى أستخدم الوسائط؟",
+      badge: "رفع ملفات",
+      description:
+        "إذا أردت صورة جديدة أو استبدال ملف قديم بدون لمس الريبو، استخدم تبويب «الوسائط» ثم انسخ الرابط داخل القسم المطلوب.",
+    },
+    {
+      title: "كيف أتأكد من النتيجة؟",
+      badge: "قبل النشر",
+      description:
+        "بعد أي تعديل بصري، افتح «معاينة الموقع» أو صفحات التشخيص للتأكد أن البيانات ظهرت بالشكل الصحيح وبسرعة تحميل مناسبة.",
+    },
+  ];
+  const generalActionTiles = [
+    {
+      title: "تعديل أول واجهة تظهر للعميل",
+      description: "ادخل على الهيرو لو عندك بانر جديد أو عرض عايز يبان أول ما الموقع يفتح.",
+      href: "/control?tab=hero",
+      cta: "فتح الهيرو",
+      icon: Sparkles,
+    },
+    {
+      title: "رفع صورة أو ملف بسرعة",
+      description: "من الوسائط تقدر ترفع الصور وتنسخ الرابط وتستخدمه في أي جزء داخل التحكم.",
+      href: "/control?tab=media",
+      cta: "فتح الوسائط",
+      icon: FolderKanban,
+    },
+    {
+      title: "مراجعة شكل الموقع قبل النشر",
+      description: "لو خلصت التعديلات وعايز تتأكد من النتيجة، افتح المعاينة المباشرة.",
+      href: "/control?tab=preview",
+      cta: "فتح المعاينة",
+      icon: MonitorPlay,
+    },
+  ] as const;
 
   /*
    * غلاف تطبيق: عمود جانبي + منطقة رئيسية (bg-page) قابلة للتمرير؛
@@ -647,7 +884,15 @@ export function ControlPanel() {
    */
   return (
     <div className="flex w-full min-h-0 min-h-dvh max-w-full flex-1 flex-col md:flex-row">
-      <aside className="shrink-0 border-b border-slate-200/90 bg-white p-3 sm:p-4 md:min-h-dvh md:w-60 md:shrink-0 md:overflow-y-auto md:self-stretch md:border-b-0 md:py-5 md:ps-4 md:pe-3">
+      <aside className="shrink-0 border-b border-slate-200/90 bg-white p-3 sm:p-4 md:min-h-dvh md:w-72 md:shrink-0 md:overflow-y-auto md:self-stretch md:border-b-0 md:py-5 md:ps-4 md:pe-3">
+        <div className="mb-4 hidden rounded-2xl border border-slate-200 bg-slate-50/70 p-3 md:block">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">
+            لوحة الإدارة
+          </p>
+          <p className="mt-2 text-sm leading-6 text-slate-700">
+            اختار القسم من هنا، وكل قسم فيه الحقول الخاصة به فقط بدون تشتيت.
+          </p>
+        </div>
         <label
           htmlFor="control-tab-jump"
           className="mb-2 block text-sm font-medium text-slate-800 md:hidden"
@@ -667,30 +912,56 @@ export function ControlPanel() {
             </option>
           ))}
         </select>
-        <nav
-          className="mt-0 hidden min-w-0 flex-col gap-1 md:mt-0 md:flex"
-          role="tablist"
-          aria-label="أقسام لوحة التحكم"
-        >
-          {navTabs.map((t) => (
-            <button
-              key={t.id}
-              type="button"
-              id={`control-tab-${t.id}`}
-              role="tab"
-              aria-selected={tab === t.id}
-              aria-controls="control-panel-body"
-              className={cn(
-                "min-h-10 w-full rounded-md border px-3 py-2.5 text-start text-sm font-medium transition-colors sm:px-3.5",
-                tab === t.id
-                  ? "border-slate-200 bg-white text-slate-900 shadow-sm"
-                  : "border-transparent text-slate-600 hover:border-transparent hover:bg-slate-100/80 hover:text-slate-900",
-              )}
-              onClick={() => onSelectTab(t.id)}
-            >
-              {t.label}
-            </button>
+        <nav className="mt-0 hidden min-w-0 flex-col gap-4 md:flex" role="tablist" aria-label="أقسام لوحة التحكم">
+          {groupedNavTabs.map((group) => (
+            <div key={group.label}>
+              <p className="mb-2 px-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+                {group.label}
+              </p>
+              <div className="space-y-1">
+                {group.ids.map((id) => {
+                  const info = TAB_EXPLAINERS[id];
+                  return (
+                    <button
+                      key={id}
+                      type="button"
+                      id={`control-tab-${id}`}
+                      role="tab"
+                      aria-selected={tab === id}
+                      aria-controls="control-panel-body"
+                      className={cn(
+                        "w-full rounded-2xl border px-3 py-3 text-start transition-colors",
+                        tab === id
+                          ? "border-brand-300 bg-brand-50 text-slate-950 shadow-sm"
+                          : "border-transparent text-slate-600 hover:bg-slate-100/80 hover:text-slate-900",
+                      )}
+                      onClick={() => onSelectTab(id)}
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="text-sm font-semibold">{info.badge}</span>
+                        <span className="text-[11px] text-slate-400">{BASE_TAB_LIST.find((item) => item.id === id)?.label}</span>
+                      </div>
+                      <p className="mt-1 text-xs leading-5 text-slate-500">
+                        {info.title}
+                      </p>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           ))}
+
+          <div className="space-y-2 rounded-2xl border border-slate-200 bg-slate-50/60 p-3">
+            <p className="text-xs font-semibold text-slate-600">روابط سريعة</p>
+            <Link href="/" target="_blank" className="flex items-center gap-2 text-sm text-slate-700 hover:text-slate-950">
+              <Globe className="h-4 w-4" />
+              فتح المتجر
+            </Link>
+            <Link href="/control/dev" className="flex items-center gap-2 text-sm text-slate-700 hover:text-slate-950">
+              <MonitorPlay className="h-4 w-4" />
+              متابعة الحالة
+            </Link>
+          </div>
         </nav>
       </aside>
 
@@ -699,25 +970,35 @@ export function ControlPanel() {
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div className="min-w-0">
               <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
-                الإعدادات
+                {currentTabInfo.eyebrow}
               </p>
               <h1 className="font-display text-2xl font-bold tracking-tight text-slate-900">
-                إعدادات المتجر
+                {BASE_TAB_LIST.find((item) => item.id === tab)?.label ?? "إعدادات المتجر"}
               </h1>
-              <p className="text-sm text-slate-600">
-                المصدر: Firestore. الصفحات العامة تُخزَّن مؤقتًا نحو دقيقة؛ حفظ أي تبويب من
-                هنا يُحدّث العرض فورًا عبر الخادم. إعدادات ‎Woo/API وعناوين التكامل
-                التشغيلية موجودة في تبويبات التحكم وصفحات التشخيص.
-              </p>
+              <p className="text-sm text-slate-600">{currentTabInfo.description}</p>
             </div>
-            <Button
-              type="button"
-              variant="secondary"
-              className="shrink-0 border-slate-200 bg-white text-slate-800 shadow-sm hover:bg-slate-50"
-              onClick={() => void logout()}
-            >
-              خروج
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <Link
+                href="/control?tab=preview"
+                className="inline-flex h-10 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-800 shadow-sm transition-colors hover:bg-slate-50"
+              >
+                معاينة
+              </Link>
+              <Link
+                href="/control/dev"
+                className="inline-flex h-10 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-800 shadow-sm transition-colors hover:bg-slate-50"
+              >
+                حالة الموقع
+              </Link>
+              <Button
+                type="button"
+                variant="secondary"
+                className="shrink-0 border-slate-200 bg-white text-slate-800 shadow-sm hover:bg-slate-50"
+                onClick={() => void logout()}
+              >
+                خروج
+              </Button>
+            </div>
           </div>
         </header>
 
@@ -732,6 +1013,68 @@ export function ControlPanel() {
           role="tabpanel"
           aria-label={currentTabLabel}
         >
+          <div className={cn("space-y-6", tab === "preview" && "flex min-h-0 flex-1 flex-col")}>
+            {tab !== "preview" ? (
+              <ControlSectionIntro
+                eyebrow={currentTabInfo.eyebrow}
+                title={currentTabInfo.title}
+                description={currentTabInfo.description}
+                bullets={currentTabInfo.bullets}
+                tone={tab === "access" ? "slate" : tab === "orderForwarding" ? "amber" : "brand"}
+                icon={currentTabInfo.icon}
+                compact
+              />
+            ) : null}
+
+            {tab === "general" ? (
+              <>
+                <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                  {overviewStats.map((item) => (
+                    <ControlStatCard
+                      key={item.label}
+                      label={item.label}
+                      value={item.value}
+                      hint={item.hint}
+                      tone={item.tone}
+                      icon={item.icon}
+                    />
+                  ))}
+                </section>
+
+                <section className="grid gap-4 xl:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+                  <div className="grid gap-3">
+                    {generalActionTiles.map((tile) => (
+                      <ControlActionTile
+                        key={tile.title}
+                        title={tile.title}
+                        description={tile.description}
+                        icon={tile.icon}
+                        cta={
+                          <Link
+                            href={tile.href}
+                            className="inline-flex h-10 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm font-medium text-slate-800 transition-colors hover:bg-slate-100"
+                          >
+                            {tile.cta}
+                          </Link>
+                        }
+                      />
+                    ))}
+                  </div>
+
+                  <div className="grid gap-3">
+                    {quickGuides.map((guide) => (
+                      <ControlMiniGuide
+                        key={guide.title}
+                        title={guide.title}
+                        description={guide.description}
+                        badge={guide.badge}
+                      />
+                    ))}
+                  </div>
+                </section>
+              </>
+            ) : null}
+
             {tab === "general" ? (
         <section className="space-y-6">
           <section className="space-y-4 rounded-2xl border border-border bg-white p-5 shadow-sm">
@@ -766,6 +1109,9 @@ export function ControlPanel() {
               </label>
               <div>
                 <label className="text-sm font-medium">نهاية العد (محلي)</label>
+                <ControlFieldHelp>
+                  لو العرض له وقت نهاية، اختاره من هنا. لو مفيش وقت انتهاء سيبه فاضي.
+                </ControlFieldHelp>
                 <input
                   type="datetime-local"
                   name="endsAt"
@@ -779,6 +1125,9 @@ export function ControlPanel() {
               </div>
               <div className="sm:col-span-2">
                 <label className="text-sm font-medium">عنوان رئيسي</label>
+                <ControlFieldHelp>
+                  ده العنوان الكبير اللي هيظهر للعميل في جزء العروض.
+                </ControlFieldHelp>
                 <input
                   name="headline"
                   defaultValue={promo.headline ?? ""}
@@ -787,6 +1136,9 @@ export function ControlPanel() {
               </div>
               <div className="sm:col-span-2">
                 <label className="text-sm font-medium">نص فرعي</label>
+                <ControlFieldHelp>
+                  اكتب جملة قصيرة توضّح العرض أو الفايدة بشكل بسيط.
+                </ControlFieldHelp>
                 <textarea
                   name="subline"
                   defaultValue={promo.subline ?? ""}
@@ -837,19 +1189,6 @@ export function ControlPanel() {
             onSave={(doc) => void saveSiteConfig({ headerCategoryStrip: doc })}
           />
 
-          <HomeCategoryScrollerForm
-            key={JSON.stringify((site as { homeCategoryScroller?: unknown })?.homeCategoryScroller ?? null)}
-            initial={(() => {
-              const r = cmsHomeCategoryScrollerSchema.safeParse(
-                (site as { homeCategoryScroller?: unknown } | null)?.homeCategoryScroller ??
-                  CMS_DEFAULT_HOME_CATEGORY_SCROLLER,
-              );
-              return r.success ? r.data : CMS_DEFAULT_HOME_CATEGORY_SCROLLER;
-            })()}
-            disabled={saving === "site_config"}
-            onSave={(doc) => void saveSiteConfig({ homeCategoryScroller: doc })}
-          />
-
           <section className="rounded-2xl border border-amber-200/80 bg-amber-50/50 p-5">
             <h2 className="font-display text-lg font-bold">استيراد سريع</h2>
             <p className="mt-1 text-sm text-muted-foreground">
@@ -896,6 +1235,9 @@ export function ControlPanel() {
           >
             <div className="sm:col-span-2">
               <label className="text-sm font-medium">اسم الموقع (واجهة)</label>
+              <ControlFieldHelp>
+                الاسم الأساسي اللي يظهر للعميل داخل الموقع.
+              </ControlFieldHelp>
               <input
                 name="siteName"
                 defaultValue={site?.branding?.siteName ?? ""}
@@ -905,6 +1247,9 @@ export function ControlPanel() {
             </div>
             <div>
               <label className="text-sm font-medium">العنوان العربي (قالب SEO)</label>
+              <ControlFieldHelp>
+                الاسم العربي الرسمي اللي تحب يظهر في العناوين والمشاركة.
+              </ControlFieldHelp>
               <input
                 name="siteBrandTitleAr"
                 defaultValue={site?.branding?.siteBrandTitleAr ?? ""}
@@ -914,6 +1259,9 @@ export function ControlPanel() {
             </div>
             <div>
               <label className="text-sm font-medium">العلامة اللاتينية المختصرة</label>
+              <ControlFieldHelp>
+                الاسم الإنجليزي أو المختصر اللي يظهر في أماكن صغيرة مثل الهيدر.
+              </ControlFieldHelp>
               <input
                 name="siteWordmark"
                 defaultValue={site?.branding?.siteWordmark ?? ""}
@@ -921,10 +1269,35 @@ export function ControlPanel() {
                 className="mt-1 w-full rounded-lg border border-border px-3 py-2"
               />
             </div>
+            <div className="sm:col-span-2 rounded-xl border border-border/80 bg-surface-muted/20 p-4">
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  name="productCardBadgeEnabled"
+                  defaultChecked={site?.branding?.productCardBadgeEnabled ?? true}
+                />
+                <span className="text-sm font-medium">
+                  إظهار ليبول الاعتماد على كارت المنتج وصفحة المنتج
+                </span>
+              </label>
+              <div className="mt-3">
+                <label className="text-sm font-medium">نص الليبول</label>
+                <ControlFieldHelp>
+                  يظهر فوق صورة كارت المنتج وداخل شريط الثقة في صفحة المنتج. اتركه فارغًا لاستخدام النص الافتراضي.
+                </ControlFieldHelp>
+                <input
+                  name="productCardBadgeText"
+                  defaultValue={site?.branding?.productCardBadgeText ?? ""}
+                  placeholder={`Official ${site?.branding?.siteWordmark ?? SITE_WORDMARK}`}
+                  className="mt-1 w-full rounded-lg border border-border px-3 py-2"
+                />
+              </div>
+            </div>
             <ControlImageUrlField
               className="sm:col-span-2"
               name="logoPath"
-              label="مسار شعار الصورة (public أو URL)"
+              label="صورة الشعار"
+              helper="ارفع لوجو المتجر هنا، وهو اللي هيظهر بدل الاسم في أغلب الأماكن."
               defaultValue={site?.branding?.logoPath ?? ""}
               placeholder="/images/logo.png"
               disabled={saving === "site_config"}
@@ -935,31 +1308,37 @@ export function ControlPanel() {
                 name="logoDisabled"
                 defaultChecked={site?.branding?.logoDisabled ?? SITE_LOGO_DISABLED}
               />
-              <span>إخفاء صورة الشعار وعرض الاسم نصًا (مثل تعطيل NEXT_PUBLIC_SITE_LOGO_PATH)</span>
+              <span>إخفاء صورة الشعار وعرض اسم المتجر نصيًا بدلًا منها</span>
             </label>
             <ControlImageUrlField
               name="icon192"
-              label="أيقونة ١٩٢ (مسار)"
+              label="أيقونة التطبيق الصغيرة"
+              helper="دي الأيقونة الصغيرة اللي تظهر عند تثبيت الموقع أو في بعض الأجهزة."
               defaultValue={site?.branding?.icon192 ?? ""}
               placeholder="/images/icon-192.png"
               disabled={saving === "site_config"}
             />
             <ControlImageUrlField
               name="icon512"
-              label="أيقونة ٥١٢ (مسار)"
+              label="أيقونة التطبيق الكبيرة"
+              helper="دي النسخة الأكبر من أيقونة التطبيق، وبعض الأجهزة تعتمد عليها."
               defaultValue={site?.branding?.icon512 ?? ""}
               placeholder="/images/icon-512.png"
               disabled={saving === "site_config"}
             />
             <ControlImageUrlField
               name="appleTouchIcon"
-              label="Apple touch icon (مسار، ١٨٠×١٨٠)"
+              label="أيقونة أجهزة iPhone و iPad"
+              helper="الصورة اللي تظهر لو حد حفظ الموقع على شاشة iPhone أو iPad."
               defaultValue={site?.branding?.appleTouchIcon ?? ""}
               placeholder="/apple-touch-icon.png"
               disabled={saving === "site_config"}
             />
             <div>
               <label className="text-sm font-medium">اسم تطبيق PWA</label>
+              <ControlFieldHelp>
+                الاسم الكامل اللي يظهر لو العميل ثبّت الموقع كتطبيق على الموبايل.
+              </ControlFieldHelp>
               <input
                 name="pwaName"
                 defaultValue={site?.branding?.pwaName ?? ""}
@@ -969,6 +1348,9 @@ export function ControlPanel() {
             </div>
             <div>
               <label className="text-sm font-medium">الاسم المختصر (PWA)</label>
+              <ControlFieldHelp>
+                اسم أقصر يظهر تحت أيقونة التطبيق لو المساحة صغيرة.
+              </ControlFieldHelp>
               <input
                 name="pwaShortName"
                 defaultValue={site?.branding?.pwaShortName ?? ""}
@@ -978,6 +1360,9 @@ export function ControlPanel() {
             </div>
             <div className="sm:col-span-2">
               <label className="text-sm font-medium">وصف الموقع / PWA</label>
+              <ControlFieldHelp>
+                وصف قصير جدًا يشرح المتجر بيبيع إيه أو بيقدّم إيه.
+              </ControlFieldHelp>
               <textarea
                 name="pwaDescription"
                 defaultValue={site?.branding?.pwaDescription ?? ""}
@@ -987,29 +1372,68 @@ export function ControlPanel() {
               />
             </div>
             <div>
-              <label className="text-sm font-medium">لون السمة (#RRGGBB)</label>
-              <input
-                name="themeColor"
-                defaultValue={normalizeStorefrontThemeColor(
-                  site?.branding?.themeColor,
-                )}
-                dir="ltr"
-                className="mt-1 w-full rounded-lg border border-border px-3 py-2 font-mono text-sm"
-                placeholder={DEFAULT_BRAND_THEME_COLOR}
-              />
+              <label className="text-sm font-medium">لون الواجهة الأساسي</label>
+              <ControlFieldHelp>
+                اللون الأساسي اللي يعبر عن هوية المتجر في المتصفح وبعض الشاشات.
+              </ControlFieldHelp>
+              <div className="mt-1 flex items-center gap-3">
+                <input
+                  type="color"
+                  aria-label="لون الواجهة الأساسي"
+                  defaultValue={normalizeStorefrontThemeColor(
+                    site?.branding?.themeColor,
+                  )}
+                  className="h-12 w-16 rounded-lg border border-border bg-white p-1"
+                  onChange={(e) => {
+                    const form = e.currentTarget.form;
+                    const hidden = form?.elements.namedItem("themeColor");
+                    if (hidden instanceof HTMLInputElement) hidden.value = e.target.value;
+                  }}
+                />
+                <input
+                  type="text"
+                  name="themeColor"
+                  defaultValue={normalizeStorefrontThemeColor(
+                    site?.branding?.themeColor,
+                  )}
+                  dir="ltr"
+                  className="w-full rounded-lg border border-border px-3 py-2 font-mono text-sm"
+                  placeholder={DEFAULT_BRAND_THEME_COLOR}
+                />
+              </div>
             </div>
             <div>
-              <label className="text-sm font-medium">لون الخلفية (#RRGGBB)</label>
-              <input
-                name="backgroundColor"
-                defaultValue={site?.branding?.backgroundColor ?? ""}
-                dir="ltr"
-                className="mt-1 w-full rounded-lg border border-border px-3 py-2 font-mono text-sm"
-                placeholder="#2F3D4E"
-              />
+              <label className="text-sm font-medium">لون خلفية التطبيق</label>
+              <ControlFieldHelp>
+                لون الخلفية العامة للتطبيق أو الشاشة الافتتاحية.
+              </ControlFieldHelp>
+              <div className="mt-1 flex items-center gap-3">
+                <input
+                  type="color"
+                  aria-label="لون خلفية التطبيق"
+                  defaultValue={site?.branding?.backgroundColor ?? "#2F3D4E"}
+                  className="h-12 w-16 rounded-lg border border-border bg-white p-1"
+                  onChange={(e) => {
+                    const form = e.currentTarget.form;
+                    const hidden = form?.elements.namedItem("backgroundColor");
+                    if (hidden instanceof HTMLInputElement) hidden.value = e.target.value;
+                  }}
+                />
+                <input
+                  type="text"
+                  name="backgroundColor"
+                  defaultValue={site?.branding?.backgroundColor ?? "#2F3D4E"}
+                  dir="ltr"
+                  className="w-full rounded-lg border border-border px-3 py-2 font-mono text-sm"
+                  placeholder="#2F3D4E"
+                />
+              </div>
             </div>
             <div className="sm:col-span-2">
-              <label className="text-sm font-medium">عنوان الصفحة الافتراضي (metadata)</label>
+              <label className="text-sm font-medium">العنوان الافتراضي للمتجر</label>
+              <ControlFieldHelp>
+                العنوان الافتراضي اللي يستخدم لو الصفحة نفسها ما عندهاش عنوان خاص.
+              </ControlFieldHelp>
               <input
                 name="defaultMetadataTitle"
                 defaultValue={site?.branding?.defaultMetadataTitle ?? ""}
@@ -1020,12 +1444,16 @@ export function ControlPanel() {
             <ControlImageUrlField
               className="sm:col-span-2"
               name="defaultOgImageUrl"
-              label="صورة OG الافتراضية (URL)"
+              label="صورة المشاركة عند نشر رابط الموقع"
+              helper="الصورة اللي تظهر لما حد يشارك رابط الموقع على واتساب أو فيسبوك."
               defaultValue={site?.branding?.defaultOgImageUrl ?? ""}
               disabled={saving === "site_config"}
             />
             <div>
-              <label className="text-sm font-medium">اسم المنظمة (JSON-LD)</label>
+              <label className="text-sm font-medium">اسم النشاط التجاري</label>
+              <ControlFieldHelp>
+                الاسم التجاري الرسمي للنشاط أو الشركة.
+              </ControlFieldHelp>
               <input
                 name="organizationName"
                 defaultValue={site?.branding?.organizationName ?? ""}
@@ -1035,12 +1463,16 @@ export function ControlPanel() {
             </div>
             <ControlImageUrlField
               name="organizationLogoUrl"
-              label="شعار المنظمة (JSON-LD)"
+              label="شعار النشاط التجاري"
+              helper="شعار النشاط التجاري بصيغة واضحة، ويُستخدم في بيانات تعريف الموقع."
               defaultValue={site?.branding?.organizationLogoUrl ?? ""}
               disabled={saving === "site_config"}
             />
             <div className="sm:col-span-2">
-              <label className="text-sm font-medium">هاتف الدعم (للعرض و JSON-LD)</label>
+              <label className="text-sm font-medium">هاتف الدعم الظاهر للعملاء</label>
+              <ControlFieldHelp>
+                رقم خدمة العملاء اللي تحب الزبون يشوفه داخل الموقع.
+              </ControlFieldHelp>
               <input
                 name="supportPhoneDisplay"
                 defaultValue={site?.branding?.supportPhoneDisplay ?? ""}
@@ -1076,6 +1508,33 @@ export function ControlPanel() {
           disabled={saving === "home_hero"}
           onSave={(doc) => void saveHomeHero(doc)}
         />
+      ) : null}
+
+      {tab === "home" ? (
+        <section className="space-y-6">
+          <HomeProductSectionsForm
+            key={JSON.stringify({
+              m: site?.homeProductSectionsMode,
+              s: site?.homeProductSections,
+            })}
+            initialMode={site?.homeProductSectionsMode}
+            initialSections={site?.homeProductSections}
+            disabled={saving === "site_config"}
+            onSave={(patch) => void saveSiteConfig(patch)}
+          />
+          <HomeCategoryScrollerForm
+            key={JSON.stringify((site as { homeCategoryScroller?: unknown })?.homeCategoryScroller ?? null)}
+            initial={(() => {
+              const r = cmsHomeCategoryScrollerSchema.safeParse(
+                (site as { homeCategoryScroller?: unknown } | null)?.homeCategoryScroller ??
+                  CMS_DEFAULT_HOME_CATEGORY_SCROLLER,
+              );
+              return r.success ? r.data : CMS_DEFAULT_HOME_CATEGORY_SCROLLER;
+            })()}
+            disabled={saving === "site_config"}
+            onSave={(doc) => void saveSiteConfig({ homeCategoryScroller: doc })}
+          />
+        </section>
       ) : null}
 
       {tab === "branches" ? (
@@ -1177,6 +1636,7 @@ export function ControlPanel() {
         </div>
       </div>
     </div>
+    </div>
   );
 }
 
@@ -1234,6 +1694,7 @@ function BranchesForm({
                   }}
                   className="rounded-lg border border-border px-3 py-2 text-sm"
                 />
+                <ControlFieldHelp>اسم الفرع بالشكل اللي عايز العميل يشوفه.</ControlFieldHelp>
                 <textarea
                   placeholder="العنوان"
                   value={row.address}
@@ -1244,6 +1705,7 @@ function BranchesForm({
                   rows={2}
                   className="rounded-lg border border-border px-3 py-2 text-sm"
                 />
+                <ControlFieldHelp>اكتب العنوان بالتفصيل عشان الوصول يكون أسهل.</ControlFieldHelp>
                 <input
                   placeholder="رابط خرائط Google (https://...)"
                   value={row.googleMapsUrl}
@@ -1253,6 +1715,7 @@ function BranchesForm({
                   }}
                   className="rounded-lg border border-border px-3 py-2 text-sm"
                 />
+                <ControlFieldHelp>الصق رابط خرائط Google لو عايز الزبون يفتح الاتجاهات بضغطة.</ControlFieldHelp>
               </div>
             </li>
           ))}
@@ -1289,6 +1752,7 @@ function BranchesForm({
                   }}
                   className="rounded-lg border border-border px-3 py-2 text-sm"
                 />
+                <ControlFieldHelp>اسم مركز الصيانة أو اسم نقطة الخدمة.</ControlFieldHelp>
                 <textarea
                   placeholder="العنوان"
                   value={row.address}
@@ -1299,6 +1763,7 @@ function BranchesForm({
                   rows={2}
                   className="rounded-lg border border-border px-3 py-2 text-sm"
                 />
+                <ControlFieldHelp>اكتب العنوان بشكل واضح وسهل على العميل.</ControlFieldHelp>
                 <input
                   placeholder="واتساب (مثال 01xxxxxxxxx)"
                   value={row.whatsapp}
@@ -1308,6 +1773,7 @@ function BranchesForm({
                   }}
                   className="rounded-lg border border-border px-3 py-2 text-sm"
                 />
+                <ControlFieldHelp>رقم واتساب اللي العميل يقدر يتواصل عليه مباشرة.</ControlFieldHelp>
               </div>
             </li>
           ))}
@@ -1356,6 +1822,7 @@ function NotificationsSection() {
         className="w-full rounded-lg border border-border px-3 py-2"
         placeholder="العنوان"
       />
+      <ControlFieldHelp>عنوان قصير يظهر للمستخدم أول ما التنبيه يوصله.</ControlFieldHelp>
       <textarea
         value={body}
         onChange={(e) => setBody(e.target.value)}
@@ -1363,6 +1830,7 @@ function NotificationsSection() {
         className="w-full rounded-lg border border-border px-3 py-2"
         placeholder="نص الإشعار"
       />
+      <ControlFieldHelp>اكتب الرسالة نفسها بشكل واضح ومختصر.</ControlFieldHelp>
       <Button type="button" disabled={pending || !body.trim()} onClick={() => void send()}>
         {pending ? "جاري الإرسال…" : "إرسال"}
       </Button>

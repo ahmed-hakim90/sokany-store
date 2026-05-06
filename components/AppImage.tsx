@@ -13,6 +13,8 @@ const SHIMMER_BLOCK =
 
 function normalizeStringPath(trimmed: string): string {
   if (trimmed.startsWith("/")) return trimmed;
+  if (trimmed.startsWith("blob:")) return trimmed;
+  if (trimmed.startsWith("data:")) return trimmed;
   if (/^https?:\/\//i.test(trimmed)) return trimmed;
   return toAbsoluteSiteUrl(trimmed);
 }
@@ -114,7 +116,11 @@ function StringAppImageInner({
         sizes={sizes}
         priority={priority}
         fetchPriority={fetchPriority}
-        unoptimized={isWooHostedProductImageUrl(stringSrc)}
+        unoptimized={
+          isWooHostedProductImageUrl(stringSrc) ||
+          stringSrc.startsWith("blob:") ||
+          stringSrc.startsWith("data:")
+        }
         {...(priority ? {} : { loading: "lazy" as const })}
         width={width}
         height={height}

@@ -1,6 +1,10 @@
 import type { CartItem } from "@/features/cart/types";
 import type { CheckoutFormData } from "@/features/checkout/types";
 import type { CreateOrderPayload } from "@/features/orders/types";
+import {
+  billingEmailForWoo,
+  cityLineForWoo,
+} from "@/features/checkout/lib/woo-order-billing-fallbacks";
 
 const PAYMENT_METHOD_LABELS: Record<CheckoutFormData["paymentMethod"], string> = {
   cod: "الدفع عند الاستلام",
@@ -27,11 +31,13 @@ export function toCreateOrderPayload(
   options?: { customerId?: number; firebaseUid?: string },
 ): CreateOrderPayload {
   const postcode = values.shippingPostcode.trim() || "-";
+  const cityLine = cityLineForWoo(values.shippingCity, values.shippingState);
+  const billingEmail = billingEmailForWoo(values.contactEmail, values.contactPhone);
 
   const sharedLines = {
     address_1: values.shippingAddress1,
     address_2: values.shippingAddress2,
-    city: values.shippingCity,
+    city: cityLine,
     state: values.shippingState,
     postcode,
     country: values.shippingCountry,
@@ -63,7 +69,7 @@ export function toCreateOrderPayload(
       first_name: values.contactFirstName,
       last_name: values.contactLastName,
       ...sharedLines,
-      email: values.contactEmail.trim(),
+      email: billingEmail,
       phone: values.contactPhone,
     },
     shipping: {

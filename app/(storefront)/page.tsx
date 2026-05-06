@@ -116,6 +116,8 @@ export default async function Home() {
         }}
         homeBottomPromo={homeBottomPromo}
         homeCategoryScroller={content.homeCategoryScroller}
+        homeProductSectionsMode={content.homeProductSectionsMode}
+        homeProductSections={content.homeProductSections}
       />
     </HydrationBoundary>
   );

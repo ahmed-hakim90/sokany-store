@@ -158,7 +158,7 @@ export function DesktopCategoryMegaNav({
     }));
     const offers: PrimaryBarItem = {
       key: "offers",
-      href: ROUTES.PRODUCTS,
+      href: ROUTES.OFFERS,
       label: "العروض",
       mega: "offers",
       offersHighlight: true,
@@ -331,8 +331,16 @@ export function DesktopCategoryMegaNav({
         <ul className="space-y-1.5 text-sm">
           <li>
             <Link
-              href={productsFilteredUrl({ featured: true })}
+              href={ROUTES.OFFERS}
               className="block rounded-md px-1 py-1 font-medium text-red-700 transition-colors hover:bg-red-50 hover:text-red-800"
+            >
+              كل المنتجات المخفضة
+            </Link>
+          </li>
+          <li>
+            <Link
+              href={productsFilteredUrl({ featured: true })}
+              className="block rounded-md px-1 py-1 transition-colors hover:bg-surface-muted/60 hover:text-brand-950"
             >
               منتجات مميزة
             </Link>

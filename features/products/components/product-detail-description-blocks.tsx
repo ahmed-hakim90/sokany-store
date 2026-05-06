@@ -3,6 +3,12 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { cn } from "@/lib/utils";
 import type { Product } from "@/features/products/types";
+import {
+  getProductVideoUrl,
+  removeRawUrls,
+} from "@/features/products/lib/product-merchandising";
+
+type DetailRow = { label: string; value: string };
 
 const markdownComponents: Components = {
   p: ({ children }) => (
@@ -85,6 +91,41 @@ const markdownComponents: Components = {
   ),
 };
 
+function parseSimpleDetailRows(body: string): { rows: DetailRow[]; rest: string } {
+  const lines = body
+    .split(/\n+/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+  const rows: DetailRow[] = [];
+  const consumed = new Set<number>();
+
+  for (let i = 0; i < lines.length; i++) {
+    if (consumed.has(i)) continue;
+    const line = lines[i]!;
+    const colon = line.match(/^([^:：]{2,40})[:：]\s*(.+)$/);
+    if (colon?.[1] && colon[2]) {
+      rows.push({ label: colon[1].trim(), value: colon[2].trim() });
+      consumed.add(i);
+      continue;
+    }
+    const next = lines[i + 1];
+    if (
+      next &&
+      line.length <= 40 &&
+      !/[.!؟?]$/.test(line) &&
+      !/https?:\/\//i.test(line)
+    ) {
+      rows.push({ label: line, value: next });
+      consumed.add(i);
+      consumed.add(i + 1);
+      i++;
+    }
+  }
+
+  const rest = lines.filter((_, i) => !consumed.has(i)).join("\n\n");
+  return { rows, rest };
+}
+
 export function ProductDetailDescriptionBlocks({
   product,
   className,
@@ -92,9 +133,12 @@ export function ProductDetailDescriptionBlocks({
   product: Product;
   className?: string;
 }) {
-  const body = product.description.trim() || product.shortDescription.trim();
+  const rawBody = product.description.trim() || product.shortDescription.trim();
+  const body = removeRawUrls(rawBody);
+  const videoUrl = getProductVideoUrl(product);
+  const parsed = parseSimpleDetailRows(body);
 
-  if (!body) return null;
+  if (!body && !videoUrl) return null;
 
   return (
     <div className={cn(className)}>
@@ -102,12 +146,41 @@ export function ProductDetailDescriptionBlocks({
         className="rounded-2xl border border-border bg-white/95 p-5 text-start shadow-[0_8px_28px_-14px_rgba(15,23,42,0.12)]"
         dir="auto"
       >
-        <h2 className="font-display text-lg font-bold text-brand-950">عن المنتج</h2>
-        <div className="product-markdown mt-3 [&_>*:first-child]:mt-0">
-          <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
-            {body}
-          </ReactMarkdown>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="font-display text-lg font-bold text-brand-950">عن المنتج</h2>
+          {videoUrl ? (
+            <a
+              href={videoUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex h-9 items-center justify-center rounded-full border border-brand-200 bg-brand-50 px-3 text-xs font-bold text-brand-950 transition-colors hover:bg-brand-100"
+            >
+              شاهد فيديو المنتج
+            </a>
+          ) : null}
         </div>
+        {parsed.rows.length > 0 ? (
+          <div className="mt-4 overflow-hidden rounded-2xl border border-border/80 bg-white">
+            <dl className="divide-y divide-border/70">
+              {parsed.rows.map((row) => (
+                <div
+                  key={`${row.label}-${row.value}`}
+                  className="grid gap-1 px-4 py-3 text-sm sm:grid-cols-[12rem_minmax(0,1fr)] sm:gap-4"
+                >
+                  <dt className="font-bold text-slate-950">{row.label}</dt>
+                  <dd className="break-words leading-relaxed text-slate-700">{row.value}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        ) : null}
+        {parsed.rest ? (
+          <div className="product-markdown mt-3 [&_>*:first-child]:mt-0">
+            <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
+              {parsed.rest}
+            </ReactMarkdown>
+          </div>
+        ) : null}
       </section>
     </div>
   );

@@ -80,7 +80,7 @@ export function Footer({
     [categoryList],
   );
   return (
-    <footer className="mt-auto w-full border-t border-border/80 bg-zinc-50/95 backdrop-blur-sm">
+    <footer className="mt-auto hidden w-full border-t border-border/80 bg-zinc-50/95 backdrop-blur-sm lg:block">
       <Container
         className={cn(
           "mx-auto max-w-7xl py-8 md:py-12",

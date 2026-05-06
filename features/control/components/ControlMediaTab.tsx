@@ -4,18 +4,23 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { AppImage } from "@/components/AppImage";
 import { Button } from "@/components/Button";
+import { ControlFieldHelp } from "@/features/control/components/control-field-help";
+import {
+  ControlAdvancedDetails,
+  ControlFormSection,
+} from "@/features/control/components/control-page-chrome";
 import { uploadControlImageToStorage } from "@/features/control/components/control-panel-forms";
 import { toAbsoluteCmsFileUrlInBrowser } from "@/lib/cms-file-path";
 import { CMS_MEDIA_ROOT_PREFIX } from "@/lib/cms-media-path";
 import { cn } from "@/lib/utils";
 
 const FOLDER_PRESET_OPTIONS: { value: string; label: string }[] = [
-  { value: "general", label: "عام (general)" },
-  { value: "hero", label: "هيرو (hero)" },
-  { value: "banners", label: "بانرات (banners)" },
-  { value: "retailers", label: "موزعون (retailers)" },
-  { value: "spotlights", label: "إعلانات (spotlights)" },
-  { value: "documents", label: "مستندات (documents)" },
+  { value: "general", label: "عام" },
+  { value: "hero", label: "صور الواجهة الرئيسية" },
+  { value: "banners", label: "بانرات" },
+  { value: "retailers", label: "الموزعون" },
+  { value: "spotlights", label: "إعلانات مميزة" },
+  { value: "documents", label: "مستندات وملفات" },
 ];
 
 export type CmsMediaListItem = {
@@ -290,7 +295,7 @@ export function ControlMediaTab({
     try {
       const absolute = toAbsoluteCmsFileUrlInBrowser(url);
       await navigator.clipboard.writeText(absolute);
-      toast.success("تم نسخ الرابط الكامل لنفس واجهة الـ URL التي تعمل منها (شريط العنوان).");
+      toast.success("تم نسخ الرابط الجاهز للمشاركة");
     } catch {
       toast.error("تعذر النسخ");
     }
@@ -302,24 +307,17 @@ export function ControlMediaTab({
 
   return (
     <div className="space-y-6">
-      <section className="space-y-3 rounded-2xl border border-border bg-white p-5 shadow-sm">
-        <h2 className="font-display text-lg font-bold">إضافة صورة أو PDF</h2>
-        <p className="text-sm text-muted-foreground">
-          <strong>نسخ الرابط</strong> يلصق نفس <strong>عنوان النافذة الحالي</strong> (مثلاً معاينة Vercel أو
-          الـ localhost) + <code className="text-xs" dir="ltr">/api/m/…</code> — بدون دومين ثابت من الإعدادات.
-          يمكن <strong>استبدال</strong> الملف مع بقاء المسار. حتى ١٠ ميجابايت.
-        </p>
+      <ControlFormSection
+        title="رفع صورة أو ملف"
+        description="ارفع الصورة أو الملف هنا، ثم انسخ الرابط الجاهز واستخدمه في أي جزء داخل لوحة التحكم."
+      >
         <div className="space-y-2">
           <label className="text-sm font-medium" htmlFor="cms-media-subfolder">
-            المجلد الفرعي (جذر التخزين:{" "}
-            <span dir="ltr" className="font-mono text-xs">
-              {CMS_MEDIA_ROOT_PREFIX}/
-            </span>
-            )
-            {mediaFolderPolicy !== "all" && mediaFolderPolicy.length > 0 ? (
-              <span className="text-muted-foreground"> — مقيّد بإعدادات الصلاحية</span>
-            ) : null}
+            مكان حفظ الملف
           </label>
+          <ControlFieldHelp>
+            اختار القسم المناسب للملف حتى يبقى تنظيم الصور والملفات واضحًا بعد ذلك.
+          </ControlFieldHelp>
           <div className="flex max-w-2xl flex-col gap-2 sm:flex-row sm:items-center">
             {mediaFolderPolicy !== "all" && mediaFolderPolicy.length === 1 ? (
               <p
@@ -348,7 +346,7 @@ export function ControlMediaTab({
                 type="text"
                 dir="ltr"
                 className="w-full min-w-0 flex-1 rounded-lg border border-border px-3 py-2 font-mono text-sm"
-                placeholder="e.g. promos/2024"
+                placeholder="مثال: promos/2024"
                 value={customFolder}
                 onChange={(e) => setCustomFolder(e.target.value)}
                 disabled={uploading}
@@ -356,10 +354,6 @@ export function ControlMediaTab({
               />
             ) : null}
           </div>
-          <p className="text-xs text-muted-foreground" dir="ltr">
-            {CMS_MEDIA_ROOT_PREFIX}/{"{folder}"}/
-            {"{timestamp}"}-filename
-          </p>
         </div>
         <input
           ref={replaceFileRef}
@@ -385,6 +379,9 @@ export function ControlMediaTab({
             e.target.value = "";
           }}
         />
+        <ControlFieldHelp>
+          اختار صورة أو PDF من جهازك، وهتظهر هنا بعد الرفع مع رابط جاهز للنسخ.
+        </ControlFieldHelp>
         {uploading ? (
           <p className="text-sm text-muted-foreground">جاري الرفع…</p>
         ) : null}
@@ -402,10 +399,10 @@ export function ControlMediaTab({
                 </div>
                 <div className="flex flex-wrap gap-2">
                   <Button type="button" variant="secondary" size="sm" onClick={() => void copyUrl(lastUploadUrl!)}>
-                    نسخ رابط المشاركة
+                    نسخ الرابط
                   </Button>
                   <Button type="button" variant="secondary" size="sm" onClick={() => openUrlTab(lastUploadUrl!)}>
-                    فتح في تاب جديد
+                    فتح
                   </Button>
                 </div>
               </div>
@@ -466,17 +463,25 @@ export function ControlMediaTab({
             )}
           </div>
         ) : null}
-      </section>
-
-      <section className="space-y-3 rounded-2xl border border-border bg-white p-5 shadow-sm">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h2 className="font-display text-lg font-bold">الملفات المرفوعة</h2>
-            <p className="text-sm text-muted-foreground">
-              الروابط العامة من نطاق المتجر. استبدال يرفع محتوى جديدًا على <strong>نفس الرابط</strong>،
-              نسخ، فتح، أو حذف.
+        <ControlAdvancedDetails summary="تفاصيل إضافية">
+          <p className="text-xs text-slate-600">
+            عند استبدال الملف يبقى نفس الرابط كما هو، وهذا مفيد لو استخدمته مسبقًا داخل الموقع.
+          </p>
+          <p className="font-mono text-xs text-slate-500" dir="ltr">
+            {CMS_MEDIA_ROOT_PREFIX}/{"{folder}"}/{"{timestamp}"}-filename
+          </p>
+          {mediaFolderPolicy !== "all" && mediaFolderPolicy.length > 0 ? (
+            <p className="text-xs text-slate-600">
+              المجلدات الظاهرة هنا متأثرة بصلاحية الحساب الحالي.
             </p>
-          </div>
+          ) : null}
+        </ControlAdvancedDetails>
+      </ControlFormSection>
+
+      <ControlFormSection
+        title="الملفات المرفوعة"
+        description="من هنا تراجع كل ما تم رفعه، وتنسخ الرابط أو تفتح الملف أو تستبدله أو تحذفه."
+        actions={
           <Button
             type="button"
             variant="secondary"
@@ -486,7 +491,8 @@ export function ControlMediaTab({
           >
             تحديث القائمة
           </Button>
-        </div>
+        }
+      >
 
         {listError ? (
           <p className="text-sm text-red-600" role="alert">
@@ -610,7 +616,7 @@ export function ControlMediaTab({
             </Button>
           </div>
         ) : null}
-      </section>
+      </ControlFormSection>
     </div>
   );
 }

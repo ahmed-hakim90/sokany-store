@@ -5,12 +5,17 @@ import { toast } from "sonner";
 import { Button } from "@/components/Button";
 import { CONTROL_TABS_EXCLUDING_ACCESS, type ControlPanelTabId } from "@/features/control/lib/control-tabs";
 import {
+  ControlAdvancedDetails,
+  ControlFormSection,
+} from "@/features/control/components/control-page-chrome";
+import {
   allTabsDefaultSet,
   CONTROL_TAB_LABEL_AR,
   formatControlAccessSummary,
 } from "@/features/control/lib/control-access-labels";
 import { controlPanelAccessDocSchema, type ControlPanelAccessDoc } from "@/schemas/control-panel-access";
 import { cn } from "@/lib/utils";
+import { ControlFieldHelp } from "@/features/control/components/control-field-help";
 
 type Row = { uid: string; email: string | null; doc: unknown };
 
@@ -133,7 +138,7 @@ export function ControlAccessTab() {
       } else if (uidDirect.trim()) {
         body.uid = uidDirect.trim();
       } else {
-        toast.error("أدخل بريد المستخدم أو ‎`UID`‎ (أو اختر «تعديل» لقيد قائم).");
+        toast.error("اكتب بريد الشخص أولًا، أو استخدم المعرف الداخلي من الإعدادات الإضافية.");
         return;
       }
     }
@@ -148,9 +153,7 @@ export function ControlAccessTab() {
       if (!res.ok) {
         throw new Error(j.error ?? "فشل الحفظ");
       }
-      toast.success(
-        "تم حفظ الصلاحية. اطلب من المستخدم ‎`إعادة تسجيل الدخول`‎ إلى لوحة التحكم لتحديث الجلسة.",
-      );
+      toast.success("تم حفظ الصلاحية. اطلب من الشخص تسجيل الدخول مرة جديدة لظهور التغيير.");
       clearFormForNew();
       await reload();
     } catch (e) {
@@ -161,7 +164,7 @@ export function ControlAccessTab() {
   }
 
   async function onDeleteRow(uid: string) {
-    if (!confirm("إزالة صلاحية اللوحة لهذا المستخدم؟ (لا يحذف حساب Firebase)")) {
+    if (!confirm("هل تريد إزالة صلاحية هذا الشخص من لوحة التحكم؟")) {
       return;
     }
     setSaving(true);
@@ -199,20 +202,11 @@ export function ControlAccessTab() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-8">
-      <section className="rounded-2xl border border-border bg-white p-5 shadow-sm">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <h2 className="font-display text-lg font-bold">
-              {editingUid ? "تعديل صلاحية مستخدم" : "تعريف صلاحية جديدة"}
-            </h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              المستخدمون يجب أن يكونوا <strong>مسجلين مسبقاً</strong> في ‎`Firebase Auth` (بريد/كلمة مرور
-              مثل باقي المشرفين). تُحفَظ الصلاحيات في مجموعة ‎`controlPanelAccess`‎ (مستند لكل ‎`uid`‎) —
-              أولوية أعلى من قوائم ‎`env` الاحتياطية. بعد التغيير يعيد المستخدم <strong>تسجيل الدخول</strong>{" "}
-              لتحميل جلسة جديدة.
-            </p>
-          </div>
-          {editingUid || email || uidDirect ? (
+      <ControlFormSection
+        title={editingUid ? "تعديل صلاحية مستخدم" : "إضافة شخص للوحة التحكم"}
+        description="من هنا تحدد من يقدر يدخل لوحة التحكم، وما هي الأقسام التي يراها داخلها."
+        actions={
+          editingUid || email || uidDirect ? (
             <Button
               type="button"
               variant="secondary"
@@ -220,10 +214,11 @@ export function ControlAccessTab() {
               disabled={saving}
               onClick={clearFormForNew}
             >
-              مستخدم جديد
+              بدء إدخال جديد
             </Button>
-          ) : null}
-        </div>
+          ) : null
+        }
+      >
         {editingUid ? (
           <p className="mt-3 rounded-lg border border-amber-200/80 bg-amber-50/60 px-3 py-2 text-sm text-amber-950" dir="ltr">
             <span className="font-medium" dir="rtl">تعديل القيد: </span>
@@ -231,12 +226,21 @@ export function ControlAccessTab() {
             <span className="font-mono text-xs">({editingUid})</span>
           </p>
         ) : null}
-        <div className="mt-4 space-y-3">
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-sm font-semibold text-slate-950">1. اختيار الشخص</h3>
+            <p className="mt-1 text-xs text-slate-500">
+              الأفضل استخدام البريد. لو لا يوجد بريد، ستجد المعرف الداخلي داخل الإعدادات الإضافية.
+            </p>
+          </div>
           <div className={cn(!!editingUid && "pointer-events-none opacity-70")}>
             <div>
               <label className="text-sm font-medium" htmlFor="cp-email">
-                بريد (للمستخدم الموجود مسبقاً)
+                البريد
               </label>
+              <ControlFieldHelp>
+                اكتب إيميل الشخص لو عنده حساب جاهز وعايز توصله بصلاحية الدخول.
+              </ControlFieldHelp>
               <input
                 id="cp-email"
                 type="email"
@@ -249,27 +253,15 @@ export function ControlAccessTab() {
                 placeholder="user@example.com"
               />
             </div>
-            <p className="mt-1 text-xs text-muted-foreground">أو</p>
-            <div>
-              <label className="text-sm font-medium" htmlFor="cp-uid">
-                ‎`UID`‎
-              </label>
-              <input
-                id="cp-uid"
-                dir="ltr"
-                className="mt-1 w-full min-h-12 rounded-lg border border-border px-3 py-2 font-mono text-sm"
-                value={uidDirect}
-                onChange={(e) => setUidDirect(e.target.value)}
-                autoComplete="off"
-                disabled={saving || Boolean(editingUid)}
-                placeholder="firebase uid"
-              />
-            </div>
           </div>
           <div>
+            <h3 className="text-sm font-semibold text-slate-950">2. تحديد نوع الوصول</h3>
             <label className="text-sm font-medium" htmlFor="cp-mode">
               نطاق الوصول
             </label>
+            <ControlFieldHelp>
+              من هنا تحدد الشخص يدخل على كل اللوحة ولا على الوسائط فقط.
+            </ControlFieldHelp>
             <select
               id="cp-mode"
               className="mt-1 w-full min-h-12 rounded-lg border border-border bg-white px-3 py-2"
@@ -283,16 +275,15 @@ export function ControlAccessTab() {
               }}
               disabled={saving}
             >
-              <option value="full">لوحة كاملة (اختر التبويبات أدناه)</option>
-              <option value="media">مكتبة الوسائط فقط (تحت ‎`site-media/‎`‎)</option>
+              <option value="full">دخول لأقسام من اللوحة</option>
+              <option value="media">الوسائط فقط</option>
             </select>
           </div>
           {mode === "full" ? (
             <fieldset className="space-y-2">
-              <legend className="text-sm font-medium">تبويبات يراها المستخدم</legend>
+              <legend className="text-sm font-medium">3. الأقسام المسموح بها</legend>
               <p className="text-xs text-muted-foreground">
-                تبويب غير مُحدد = لن يرى القسم. زر &quot;تحديد كل التبويبات&quot; يسجّل في النظام كصلاحية
-                كاملة (مقابل ‎`null` في Firestore).
+                أي قسم غير محدد لن يظهر لهذا الشخص داخل لوحة التحكم.
               </p>
               <div className="flex flex-wrap gap-2">
                 <Button
@@ -302,7 +293,7 @@ export function ControlAccessTab() {
                   onClick={() => setTabPicks(allTabsDefaultSet())}
                   disabled={saving}
                 >
-                  تحديد كل التبويبات
+                  تحديد كل الأقسام
                 </Button>
                 <Button
                   type="button"
@@ -323,51 +314,69 @@ export function ControlAccessTab() {
                       checked={tabPicks.has(id)}
                       onChange={() => toggleTab(id)}
                     />
-                    {CONTROL_TAB_LABEL_AR[id] ?? id}{" "}
-                    <span className="font-mono text-xs text-muted-foreground" dir="ltr">
-                      ({id})
-                    </span>
+                    {CONTROL_TAB_LABEL_AR[id] ?? id}
                   </label>
                 ))}
               </div>
             </fieldset>
           ) : null}
-          <div>
-            <label className="text-sm font-medium" htmlFor="cp-mf">
-              مجلدات الوسائط المسموحة (اختياري)
-            </label>
-            <textarea
-              id="cp-mf"
-              dir="ltr"
-              className="mt-1 w-full min-h-20 rounded-lg border border-border px-3 py-2 font-mono text-sm"
-              value={mediaRaw}
-              onChange={(e) => setMediaRaw(e.target.value)}
-              disabled={saving}
-              placeholder="documents, hero  — فاصلة أو سطر. فاضي = كل المجلدات"
-            />
-            <p className="mt-1 text-xs text-muted-foreground">
-              ينطبق على محتوى ‎`cms/site-media/...`‎. للمحدود ‎`media` يُنصح بمثل ‎`documents` فقط.
-            </p>
-          </div>
+          <ControlAdvancedDetails summary="إعدادات إضافية">
+            <div>
+              <label className="text-sm font-medium" htmlFor="cp-uid">
+                المعرف الداخلي
+              </label>
+              <ControlFieldHelp>
+                استخدمه فقط لو لا يوجد بريد لهذا الشخص وتريد ربطه مباشرة بحسابه الداخلي.
+              </ControlFieldHelp>
+              <input
+                id="cp-uid"
+                dir="ltr"
+                className="mt-1 w-full min-h-12 rounded-lg border border-border px-3 py-2 font-mono text-sm"
+                value={uidDirect}
+                onChange={(e) => setUidDirect(e.target.value)}
+                autoComplete="off"
+                disabled={saving || Boolean(editingUid)}
+                placeholder="firebase uid"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium" htmlFor="cp-mf">
+                مجلدات الوسائط المسموحة
+              </label>
+              <ControlFieldHelp>
+                لو تريد حصر الشخص في مجلدات معينة داخل الوسائط، اكتب أسماءها هنا. لو تركتها فارغة، يرى كل المجلدات المسموح بها له.
+              </ControlFieldHelp>
+              <textarea
+                id="cp-mf"
+                dir="ltr"
+                className="mt-1 w-full min-h-20 rounded-lg border border-border px-3 py-2 font-mono text-sm"
+                value={mediaRaw}
+                onChange={(e) => setMediaRaw(e.target.value)}
+                disabled={saving}
+                placeholder="documents, hero"
+              />
+            </div>
+          </ControlAdvancedDetails>
           <div className="flex flex-wrap gap-2">
             <Button type="button" onClick={() => void onSave()} disabled={saving || loading}>
               {saving ? "جارٍ الحفظ…" : editingUid ? "حفظ التعديل" : "حفظ وربط المستخدم"}
             </Button>
           </div>
         </div>
-      </section>
+      </ControlFormSection>
 
-      <section className="rounded-2xl border border-border bg-white p-5 shadow-sm">
-        <h2 className="font-display text-lg font-bold">مستخدمون مع صلاحيات (Firestore)</h2>
+      <ControlFormSection
+        title="الأشخاص المسموح لهم بالدخول"
+        description="القائمة التالية تعرض من يمكنه استخدام لوحة التحكم حاليًا، وما نوع الوصول المسموح له."
+      >
         {loading ? (
-          <p className="mt-2 text-sm text-muted-foreground">جارٍ التحميل…</p>
+          <p className="text-sm text-muted-foreground">جارٍ التحميل…</p>
         ) : list.length === 0 ? (
-          <p className="mt-2 text-sm text-muted-foreground">
-            لا توجد وثائق بعد. أدخل بريد مستخدم <strong>موجود في Firebase</strong> واحفظ أول قيد
-            (أو استمر بالاعتماد فقط على ‎`CONTROL_PANEL_*_UIDS`‎ في البيئة).
+          <p className="text-sm text-muted-foreground">
+            لا يوجد أي شخص مضاف هنا بعد. أضف أول شخص من النموذج السابق.
           </p>
         ) : (
-          <ul className="mt-3 divide-y divide-border/70">
+          <ul className="divide-y divide-border/70">
             {list.map((r) => {
               const parsed = parseDoc(r.doc);
               const sum = parsed ? formatControlAccessSummary(parsed) : null;
@@ -376,9 +385,6 @@ export function ControlAccessTab() {
                   <div className="min-w-0 flex-1 space-y-1" dir="auto">
                     <div className="font-medium" dir="ltr">
                       {r.email ?? "— بلا بريد —"}
-                    </div>
-                    <div className="font-mono text-xs text-muted-foreground" dir="ltr">
-                      {r.uid}
                     </div>
                     {sum ? (
                       <>
@@ -390,6 +396,14 @@ export function ControlAccessTab() {
                     ) : (
                       <p className="text-sm text-amber-800">تعذر قراءة بيانات القيد (صيغة قديمة؟)</p>
                     )}
+                    <details className="pt-1">
+                      <summary className="cursor-pointer text-xs text-slate-500">
+                        عرض التفاصيل الداخلية
+                      </summary>
+                      <div className="pt-2 font-mono text-xs text-muted-foreground" dir="ltr">
+                        {r.uid}
+                      </div>
+                    </details>
                   </div>
                   <div className="flex shrink-0 flex-col gap-2 sm:w-40">
                     <Button
@@ -417,7 +431,7 @@ export function ControlAccessTab() {
             })}
           </ul>
         )}
-      </section>
+      </ControlFormSection>
     </div>
   );
 }

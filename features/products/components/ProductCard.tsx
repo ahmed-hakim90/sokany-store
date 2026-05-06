@@ -1,6 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { BadgeCheck, ShieldCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "next-view-transitions";
@@ -26,6 +27,7 @@ import {
   type HeartParticle,
 } from "@/features/products/components/wishlist-heart-burst";
 import { ProductRatingDisplay } from "@/features/products/components/product-rating-display";
+import { useProductMerchandising } from "@/features/products/components/product-merchandising-context";
 import { ProductStatusBadge } from "@/features/products/components/product-status-badge";
 import type { Product } from "@/features/products/types";
 
@@ -126,6 +128,7 @@ export function ProductCard({
   const prefetchProduct = usePrefetchProduct();
   const imageFlyRef = useRef<HTMLDivElement>(null);
   const reduceMotion = useReducedMotion();
+  const merchandising = useProductMerchandising();
   const addFeedbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const layout = variantLayout[variant];
   const compareAt =
@@ -150,9 +153,7 @@ export function ProductCard({
     ? "نفد"
     : justAdded
       ? "تم"
-      : isDetailed
-        ? "أضف للسلة"
-        : "أضف";
+      : "أضف للسلة";
   const addButtonAriaLabel = !product.inStock
     ? "المنتج غير متوفر حالياً"
     : justAdded
@@ -333,7 +334,7 @@ export function ProductCard({
       >
         <div
           className={cn(
-            "relative mx-auto overflow-hidden bg-slate-50/70",
+            "relative mx-auto overflow-hidden bg-white",
             isDetailed ? "rounded-t-xl" : "rounded-xl",
             layout.image,
           )}
@@ -346,7 +347,7 @@ export function ProductCard({
                 fill
                 sizes={imageSizes}
                 priority={imagePriority}
-                className="object-contain object-center transition-transform duration-200 ease-out group-hover/card:scale-105 group-active/card:scale-[0.97] motion-reduce:transition-none motion-reduce:group-hover/card:scale-100"
+                className="object-contain object-center p-2 transition-transform duration-200 ease-out group-hover/card:scale-105 group-active/card:scale-[0.97] motion-reduce:transition-none motion-reduce:group-hover/card:scale-100"
                 shimmerUntilLoaded
                 usePlaceholderOnError={false}
               />
@@ -369,7 +370,7 @@ export function ProductCard({
                     fill
                     sizes={imageSizes}
                     priority={imagePriority}
-                    className="object-contain object-center transition-transform duration-200 ease-out group-hover/card:scale-105 group-active/card:scale-[0.97] motion-reduce:transition-none motion-reduce:group-hover/card:scale-100"
+                    className="object-contain object-center p-2 transition-transform duration-200 ease-out group-hover/card:scale-105 group-active/card:scale-[0.97] motion-reduce:transition-none motion-reduce:group-hover/card:scale-100"
                     shimmerUntilLoaded
                     usePlaceholderOnError={false}
                   />
@@ -425,6 +426,12 @@ export function ProductCard({
               {wishlistSlot}
             </div>
           ) : null}
+          {!isDetailed && merchandising.productCardBadgeEnabled ? (
+            <span className="pointer-events-none absolute bottom-2 right-2 z-[3] inline-flex max-w-[calc(100%-1rem)] items-center gap-1 rounded-full bg-white/92 px-2 py-1 text-[9px] font-extrabold leading-none text-slate-950 shadow-sm ring-1 ring-slate-200/90 backdrop-blur-sm sm:text-[10px]">
+              <BadgeCheck className="h-3.5 w-3.5 shrink-0 text-brand-700" aria-hidden />
+              <span className="truncate">{merchandising.productCardBadgeText}</span>
+            </span>
+          ) : null}
 
           {PRODUCT_CARD_SHOW_QUICK_VIEW && isDetailed ? (
             <>
@@ -479,6 +486,12 @@ export function ProductCard({
           ) : null}
           {titleLink}
           {!isDetailed ? (
+            <div className="flex min-h-4 items-center gap-1 text-[10px] font-bold leading-none text-slate-600">
+              <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-brand-700" aria-hidden />
+              <span className="truncate">ضمان الوكيل في مصر</span>
+            </div>
+          ) : null}
+          {!isDetailed ? (
             <ProductRatingDisplay
               rating={product.rating}
               ratingCount={product.ratingCount}
@@ -516,7 +529,12 @@ export function ProductCard({
             )}
           >
             {showCartQty ? (
-              <div className="grid w-full min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-1.5 sm:gap-2">
+              <div
+                className={cn(
+                  "grid w-full min-w-0 items-center gap-1.5 sm:gap-2",
+                  isDetailed ? "grid-cols-[minmax(0,1fr)_auto]" : "grid-cols-1",
+                )}
+              >
                 <div className="min-w-0">
                   {priceBlock}
                 </div>
@@ -528,7 +546,7 @@ export function ProductCard({
                     "inline-flex shrink-0 items-center justify-center gap-1 rounded bg-brand-500 font-bold leading-none text-black shadow-[0_8px_18px_-12px_rgba(132,204,22,0.9)] ring-1 ring-black/[0.06] transition-all duration-200 ease-out hover:bg-brand-400 group-hover/card:scale-105 active:scale-[0.97] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 disabled:pointer-events-none disabled:opacity-45 disabled:group-hover/card:scale-100",
                     isDetailed
                       ? "h-9 px-2.5 text-[11px] sm:px-4 sm:text-xs"
-                      : "h-8 px-3 text-[11px] sm:h-8 sm:px-3.5 sm:text-xs",
+                      : "h-8 w-full px-2.5 text-[10px] sm:h-8 sm:px-3 sm:text-[11px]",
                   )}
                   onClick={(e) => {
                     e.preventDefault();

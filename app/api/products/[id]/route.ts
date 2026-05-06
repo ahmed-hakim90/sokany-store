@@ -21,10 +21,28 @@ const fetchWooProductByIdCached = unstable_cache(
   { revalidate: 300, tags: [WOO_CACHE_TAG_PRODUCTS] },
 );
 
+const fetchWooProductByIdFromCollectionCached = unstable_cache(
+  async (id: string): Promise<WCProduct | null> => {
+    const woo = await createWooClient();
+    const response = await woo.get("/products", {
+      params: { include: id, per_page: "1" },
+    });
+    const rows = Array.isArray(response.data) ? response.data : [];
+    return (rows[0] as WCProduct | undefined) ?? null;
+  },
+  ["woo-api-product-by-id-collection-v1"],
+  { revalidate: 300, tags: [WOO_CACHE_TAG_PRODUCTS] },
+);
+
 export async function GET(_request: Request, context: RouteContext) {
   const { id } = await context.params;
   try {
-    const body = await fetchWooProductByIdCached(id);
+    const body =
+      (await fetchWooProductByIdCached(id).catch(() => null)) ??
+      (await fetchWooProductByIdFromCollectionCached(id).catch(() => null));
+    if (!body) {
+      return NextResponse.json({ error: "Failed to fetch product" }, { status: 404 });
+    }
     if (isWcProductOutOfStockOnly(body)) {
       return NextResponse.json({ error: "Product not available" }, { status: 404 });
     }

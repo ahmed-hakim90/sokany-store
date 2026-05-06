@@ -6,6 +6,7 @@ export const CONTROL_TAB_LABEL_AR: Partial<Record<ControlPanelTabId, string>> = 
   general: "عام",
   branding: "هوية الموقع",
   hero: "الهيرو",
+  home: "الصفحة الرئيسية",
   branches: "الفروع",
   banners: "بانرات الأقسام",
   retailers: "الموزعون",

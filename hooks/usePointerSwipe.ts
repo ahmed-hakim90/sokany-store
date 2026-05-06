@@ -1,6 +1,6 @@
 import { useCallback, useRef, type PointerEvent } from "react";
 
-const SWIPE_THRESHOLD_PX = 48;
+const SWIPE_THRESHOLD_PX = 40;
 const TAP_MAX_MOVE_PX = 14;
 
 type UsePointerSwipeOptions = {

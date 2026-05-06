@@ -3,7 +3,13 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Link from "next/link";
+import { DatabaseZap, PackageSearch, Radar, Webhook } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  ControlMiniGuide,
+  ControlSectionIntro,
+  ControlStatCard,
+} from "@/features/control/components/control-page-chrome";
 import type { WooDiagnosticReport } from "@/lib/woo-diagnostics";
 import { EXTERNAL_DATA_WEBHOOK_SIGNATURE_HEADER_DEFAULT } from "@/lib/external-data-webhook-constants";
 import { cn } from "@/lib/utils";
@@ -67,16 +73,23 @@ function ProbeCard({
       <div className="px-5 py-4">
         <div className="mb-4 flex flex-wrap items-center gap-2">
           {probe.httpStatus != null ? (
-            <StatusPill ok={probe.ok} label={`HTTP ${probe.httpStatus}`} />
+            <StatusPill
+              ok={probe.ok}
+              label={
+                probe.ok
+                  ? `الاستجابة سليمة (${probe.httpStatus})`
+                  : `الاستجابة تحتاج مراجعة (${probe.httpStatus})`
+              }
+            />
           ) : (
             <span className="text-xs text-slate-500">— HTTP</span>
           )}
           <StatusPill
             ok={probe.schemaOk}
-            label={probe.schemaOk ? "Schema OK" : "Schema غير مطابق"}
+            label={probe.schemaOk ? "شكل البيانات سليم" : "شكل البيانات يحتاج ضبط"}
           />
           <span className="text-xs text-slate-500">
-            عيّنات: {probe.sampleCount}
+            عدد العينات: {probe.sampleCount}
           </span>
         </div>
         {probe.error ? (
@@ -109,7 +122,7 @@ function ProbeCard({
         {probe.sample && Object.keys(probe.sample).length > 0 ? (
           <div className="mt-4">
             <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-slate-500">
-              عيّنة أول سجل
+              مثال من البيانات القادمة
             </p>
             <div className="rounded-lg border border-slate-200/80 bg-slate-50/50">
               {Object.entries(probe.sample).map(([k, v]) => (
@@ -167,19 +180,59 @@ export function WooApiDashboard({
     setTimeout(() => setCopied(false), 2000);
   }
 
+  const overviewStats = [
+    {
+      label: "فحص المنتجات",
+      value: report.products.ok ? "سليم" : "يحتاج مراجعة",
+      hint:
+        report.products.httpStatus != null
+          ? `آخر استجابة HTTP ${report.products.httpStatus}`
+          : "لا توجد استجابة مؤكدة بعد.",
+      tone: report.products.ok ? "emerald" : "rose",
+      icon: PackageSearch,
+    },
+    {
+      label: "فحص التصنيفات",
+      value: report.categories.ok ? "سليم" : "يحتاج مراجعة",
+      hint:
+        report.categories.httpStatus != null
+          ? `آخر استجابة HTTP ${report.categories.httpStatus}`
+          : "الربط مع التصنيفات يحتاج تأكيد.",
+      tone: report.categories.ok ? "emerald" : "rose",
+      icon: Radar,
+    },
+    {
+      label: "مصدر البيانات",
+      value: report.wooEnvConfigured ? "مضبوط" : "غير مضبوط",
+      hint: report.wcBaseUrl
+        ? `العنوان الفعلي: ${report.wcBaseUrl}`
+        : "هذا هو العنوان الذي يعتمد عليه الموقع للوصول إلى المنتجات.",
+      tone: report.wooEnvConfigured ? "brand" : "amber",
+      icon: DatabaseZap,
+    },
+    {
+      label: "نوع القراءة",
+      value: report.useMock ? "تجريبية" : "مباشرة",
+      hint: report.useMock
+        ? "الموقع يعمل على بيانات تجريبية مؤقتًا."
+        : "القراءة الحالية من المصدر الفعلي.",
+      tone: report.useMock ? "amber" : "slate",
+      icon: Webhook,
+    },
+  ] as const;
+
   return (
     <div className="mx-auto w-full min-w-0 max-w-5xl px-4 py-6 sm:px-5 sm:py-8">
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
-            Developers
+            متابعة الربط
           </p>
           <h1 className="font-display text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
-            Woo &amp; API
+            ربط المنتجات والتحديثات
           </h1>
           <p className="mt-1 max-w-2xl text-sm text-slate-600">
-            حالة الاتصال بـ WooCommerce، توافق الـ schema، وعيّنات آمنة — بنفس أسلوب لوحات
-            الـ SaaS (بطاقات واضحة، حدود خفيفة).
+            راجع من هنا هل قراءة المنتجات والتصنيفات تعمل بشكل سليم، وخذ الروابط التي تحتاجها لأي ربط خارجي أو تحديث تلقائي.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -197,13 +250,13 @@ export function WooApiDashboard({
             className="shrink-0 border-slate-200 bg-white shadow-sm"
             onClick={copyJson}
           >
-            {copied ? "تم النسخ" : "نسخ JSON كامل"}
+            {copied ? "تم النسخ" : "نسخ ملخص الحالة"}
           </Button>
           <Link
             href="/control/dev"
             className="inline-flex h-10 items-center justify-center rounded-md border border-indigo-200 bg-indigo-50 px-4 text-sm font-medium text-indigo-800 shadow-sm transition-colors hover:bg-indigo-100/80"
           >
-            Site health
+            متابعة الحالة
           </Link>
           <Link
             href="/control"
@@ -214,59 +267,83 @@ export function WooApiDashboard({
         </div>
       </div>
 
+      <div className="mb-6 space-y-6">
+        <ControlSectionIntro
+          eyebrow="فهم الصفحة"
+          title="مراجعة الربط ونسخ الروابط المهمة"
+          description="ابدأ من حالة المنتجات والتصنيفات، ثم انسخ روابط التحديثات الجاهزة، وبعدها راجع التفاصيل فقط لو ظهر خلل."
+          bullets={[
+            "اعرف هل الربط سليم",
+            "انسخ الرابط الصحيح",
+            "راجع التفاصيل عند الحاجة فقط",
+          ]}
+          tone="brand"
+          icon={DatabaseZap}
+        />
+
+        <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {overviewStats.map((item) => (
+            <ControlStatCard
+              key={item.label}
+              label={item.label}
+              value={item.value}
+              hint={item.hint}
+              tone={item.tone}
+              icon={item.icon}
+            />
+          ))}
+        </section>
+
+        <section className="grid gap-3 md:grid-cols-3">
+          <ControlMiniGuide
+            title="لو كل شيء سليم"
+            badge="طمأنة"
+            description="هذا يعني أن الموقع يقرأ المنتجات بشكل طبيعي ويمكنك الاكتفاء بالمتابعة الدورية فقط."
+          />
+          <ControlMiniGuide
+            title="لو الرابط خطأ"
+            badge="مراجعة"
+            description="راجع روابط الربط في الإعدادات العامة وتأكد أن رابط المصدر الفعلي هو نفسه المستخدم الآن."
+          />
+          <ControlMiniGuide
+            title="لو شكل البيانات فيه مشكلة"
+            badge="فحص"
+            description="ستظهر ملاحظات أسفل بطاقات الفحص لتوضح أي جزء قادم من المصدر يحتاج ضبط أو مراجعة."
+          />
+        </section>
+      </div>
+
       <div className="mb-8 overflow-hidden rounded-xl border border-slate-200/90 bg-white p-5 shadow-sm ring-1 ring-slate-900/5">
         <h2 className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-          البيئة
+          بيانات الربط الحالية
         </h2>
         <div className="mt-3 space-y-2 text-sm">
           <DataRow k="توقيت الفحص" v={new Date(report.at).toLocaleString("ar-EG")} />
-          <DataRow k="NEXT_PUBLIC_USE_MOCK" v={String(report.useMock)} />
-          <DataRow k="Woo مُكوّن (WC_*)" v={String(report.wooEnvConfigured)} />
-          <DataRow
-            k="أصل Woo (فعلي — من CMS أو env)"
-            v={report.wcBaseUrl ?? "—"}
-          />
-          <DataRow
-            k="wooBaseUrl (حقل CMS فقط)"
-            v={cmsWooBaseUrl ?? "—"}
-          />
-          <DataRow
-            k="publicStorefrontBaseUrl (من CMS)"
-            v={cmsPublicStorefrontBaseUrl ?? "—"}
-          />
-          <DataRow
-            k="publicReadBaseUrl (من CMS)"
-            v={publicReadBaseUrl ?? "—"}
-          />
-          <DataRow
-            k="externalDataWebhookUrl (من CMS)"
-            v={cmsExternalDataWebhookUrl ?? "—"}
-          />
+          <DataRow k="نوع القراءة الحالية" v={report.useMock ? "تجريبية" : "مباشرة"} />
+          <DataRow k="رابط مصدر المنتجات المستخدم الآن" v={report.wcBaseUrl ?? "—"} />
+          <DataRow k="رابط المصدر المحفوظ داخل التحكم" v={cmsWooBaseUrl ?? "—"} />
+          <DataRow k="رابط الموقع المحفوظ داخل التحكم" v={cmsPublicStorefrontBaseUrl ?? "—"} />
+          <DataRow k="رابط مصدر إضافي" v={publicReadBaseUrl ?? "—"} />
+          <DataRow k="رابط استقبال التحديثات" v={cmsExternalDataWebhookUrl ?? "—"} />
         </div>
         <p className="mt-3 text-xs text-slate-500">
-          تعديل <code className="rounded bg-slate-100 px-1 font-mono">publicReadBaseUrl</code> و
-          <code className="mx-1 rounded bg-slate-100 px-1 font-mono">externalDataWebhookUrl</code>{" "}
-          من{" "}
+          يمكنك تعديل هذه الروابط من{" "}
           <Link
             href="/control?tab=general"
             className="font-medium text-emerald-700 underline underline-offset-2"
           >
-            تبويب «عام» — تكاملات
+            تبويب «عام»
           </Link>
-          . المفاتيح السرية في env فقط.
+          .
         </p>
       </div>
 
       <div className="mb-8 overflow-hidden rounded-xl border border-slate-200/90 bg-white p-5 shadow-sm ring-1 ring-slate-900/5">
         <h2 className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-          Webhook — تحديث سعر / كمية / منتج / تصنيف
+          رابط التحديثات القادمة من Woo
         </h2>
         <p className="mt-2 text-sm text-slate-600">
-          وُهندَس الـ Webhook: عند وصول حدث موقّع من ووردبريس، يُبطَّل كاش المنتجات
-          ووسوم السايت-ماب ويُعاد توليد صفحات الكتالوج. انسخ الرابط في Woo →
-          <strong className="text-slate-900"> الإعدادات → متقدم → Webhooks</strong>،
-          وضع نفس <code className="rounded bg-slate-100 px-1">WC_WEBHOOK_SECRET</code>{" "}
-          الـ Secret في الـ env وفي الـ Webhook.
+          هذا هو الرابط الذي تضعه داخل Woo حتى يعرف الموقع بوجود تحديث جديد في منتج أو تصنيف أو طلب.
         </p>
         <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <code className="block min-w-0 break-all rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-left text-xs text-slate-800 ltr" dir="ltr">
@@ -285,63 +362,44 @@ export function WooApiDashboard({
             {copiedHook ? "تم" : "نسخ الرابط"}
           </Button>
         </div>
-        <p className="mt-3 text-xs text-slate-500">
-          <strong>مواضيع مُوصى بها:</strong>{" "}
-          <span dir="ltr" className="font-mono">product.created</span>،
-          <span className="mx-1" />
-          <span dir="ltr" className="font-mono">product.updated</span>،
-          <span className="mx-1" />
-          <span dir="ltr" className="font-mono">product.deleted</span>،
-          <span className="mx-1" />
-          <span dir="ltr" className="font-mono">product.restored</span> — وللأقسام:{" "}
-          <span dir="ltr" className="font-mono">product_cat.*</span>، وطلبات: <span dir="ltr" className="font-mono">order.*</span>.{" "}
-          (يمكنك أيضاً إنشاءها تلقائياً من القسم أدناه). التوصيل: <strong>Title</strong> اختياري.
-        </p>
+        <details className="mt-3 rounded-lg border border-slate-200/80 bg-slate-50/60 p-3 text-xs text-slate-600">
+          <summary className="cursor-pointer font-medium text-slate-900">
+            تفاصيل فنية إضافية
+          </summary>
+          <p className="mt-2">
+            لو كنت تضبط الربط يدويًا، فالأحداث المفضلة عادة تكون الخاصة بالمنتجات والتصنيفات والطلبات.
+          </p>
+        </details>
       </div>
 
       <div className="mb-8 overflow-hidden rounded-xl border border-slate-200/90 bg-white p-5 shadow-sm ring-1 ring-slate-900/5">
         <h2 className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-          Webhook — API / سيرفر خارجي (HMAC على الجسم)
+          رابط استقبال التحديثات من نظام خارجي
         </h2>
         <p className="mt-2 text-sm text-slate-600">
-          لربط <strong className="text-slate-900">السيرفر التاني</strong> أو مصدر بيانات يدفع
-          عند تغيّر الكتالوج: أرسل <code className="rounded bg-slate-100 px-1" dir="ltr">POST</code>{" "}
-          بجسم خام (مثلاً JSON)، ووضع توقيع ‎<strong>Base64(HMAC-SHA256(rawBody, secret))</strong>{" "}
-          في الهيدر — مثل منطق Woo. اضبط <code className="rounded bg-slate-100 px-1" dir="ltr">EXTERNAL_DATA_WEBHOOK_SECRET</code>{" "}
-          في الـ env على الطرفين؛ (اختياري) اسم الهيدر عبر{" "}
-          <code className="rounded bg-slate-100 px-1" dir="ltr">EXTERNAL_DATA_WEBHOOK_HEADER</code>{" "}
-          (الافتراضي: <span dir="ltr" className="font-mono text-xs">{EXTERNAL_DATA_WEBHOOK_SIGNATURE_HEADER_DEFAULT}</span>).
+          لو عندك نظام آخر يرسل تحديثات للموقع، فهذا هو الرابط الذي تضعه هناك.
         </p>
         <p className="mt-2 text-xs text-slate-600">
           {cmsExternalDataWebhookUrl ? (
             <>
-              الرابط أدناه <strong className="text-slate-800">من</strong> حقل{" "}
-              <code className="rounded bg-slate-100 px-1 font-mono text-[11px]" dir="ltr">
-                externalDataWebhookUrl
-              </code>{" "}
-              في{" "}
+              الرابط أدناه محفوظ يدويًا داخل{" "}
               <Link
                 href="/control?tab=general"
                 className="font-medium text-emerald-700 underline underline-offset-2"
               >
-                تبويب «عام» — تكاملات
+                تبويب «عام»
               </Link>
               .
             </>
           ) : (
             <>
-              الرابط أدناه <strong className="text-slate-800">مُشتق تلقائياً</strong> من نطاق
-              الستور؛ لعرض رابط تكتبه بنفسك احفظه في{" "}
+              الرابط أدناه تم توليده تلقائيًا من رابط الموقع الحالي. إذا أردت كتابة رابط مخصص، احفظه من{" "}
               <Link
                 href="/control?tab=general"
                 className="font-medium text-emerald-700 underline underline-offset-2"
               >
-                تبويب «عام» — تكاملات
-              </Link>{" "}
-              (<code className="rounded bg-slate-100 px-1 font-mono text-[11px]" dir="ltr">
-                externalDataWebhookUrl
-              </code>
-              ).
+                تبويب «عام»
+              </Link>.
             </>
           )}
         </p>
@@ -365,13 +423,14 @@ export function WooApiDashboard({
             {copiedExternalHook ? "تم" : "نسخ الرابط"}
           </Button>
         </div>
-        <p className="mt-3 text-xs text-slate-500" dir="ltr">
-          <span className="text-slate-600">مثال للطرف المُرسل (قيمة الهيدر = ناتج HMAC بصيغة Base64): </span>
-          <br />
-          <code className="text-[11px] break-all">
-            {EXTERNAL_DATA_WEBHOOK_SIGNATURE_HEADER_DEFAULT}: [base64 from HMAC-SHA256 of raw body bytes]
-          </code>
-        </p>
+        <details className="mt-3 rounded-lg border border-slate-200/80 bg-slate-50/60 p-3 text-xs text-slate-600">
+          <summary className="cursor-pointer font-medium text-slate-900">
+            تفاصيل فنية إضافية
+          </summary>
+          <p className="mt-2" dir="ltr">
+            Header default: {EXTERNAL_DATA_WEBHOOK_SIGNATURE_HEADER_DEFAULT}
+          </p>
+        </details>
       </div>
 
       <div className="mb-8">
@@ -385,21 +444,21 @@ export function WooApiDashboard({
       <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2">
         <ProbeCard
           title="المنتجات"
-          endpoint="GET …/wc/v3/products?per_page=1"
+          endpoint="فحص قراءة المنتجات"
           probe={report.products}
         />
         <ProbeCard
           title="التصنيفات"
-          endpoint="GET …/wc/v3/products/categories?per_page=1"
+          endpoint="فحص قراءة التصنيفات"
           probe={report.categories}
         />
       </div>
 
       <div className="overflow-hidden rounded-xl border border-slate-200/90 bg-white shadow-sm ring-1 ring-slate-900/5">
         <div className="border-b border-slate-100 bg-slate-50/80 px-5 py-3">
-          <h2 className="font-display text-sm font-bold text-slate-900">خريطة الـ API</h2>
+          <h2 className="font-display text-sm font-bold text-slate-900">مسارات الربط</h2>
           <p className="mt-0.5 text-xs text-slate-500">
-            مسار Next → تلميح المورد الريموت
+            هذا الجدول يوضح المسار الداخلي وما يقابله في المصدر الخارجي.
           </p>
         </div>
         <div className="overflow-x-auto">
@@ -439,7 +498,7 @@ export function WooApiDashboard({
             target="_blank"
             rel="noopener noreferrer"
           >
-            فتح الاستجابة JSON الخام
+            فتح بيانات التشخيص الخام
           </a>
         </p>
       ) : null}

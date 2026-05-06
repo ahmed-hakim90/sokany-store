@@ -137,7 +137,7 @@ export function HomeFlashSaleCountdownStrip({
       </div>
 
       <Link
-        href={ROUTES.PRODUCTS}
+        href={ROUTES.OFFERS}
         className="relative z-10 flex h-11 w-full max-w-sm items-center justify-center rounded-xl border-2 border-yellow-400/90 bg-slate-950/80 px-6 text-sm font-bold text-yellow-400 shadow-[0_0_24px_-8px_rgba(250,204,21,0.45)] transition-colors hover:bg-slate-900/90 hover:text-yellow-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-yellow-400 sm:max-w-md"
       >
         تسوق الآن

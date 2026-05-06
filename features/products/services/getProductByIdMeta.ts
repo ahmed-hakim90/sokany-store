@@ -20,6 +20,20 @@ const fetchWooProductByIdMetaCached = unstable_cache(
   { revalidate: 300, tags: [WOO_CACHE_TAG_PRODUCTS] },
 );
 
+const fetchWooProductByIdFromCollectionCached = unstable_cache(
+  async (id: number) => {
+    const woo = await createWooClient();
+    const res = await woo.get("/products", {
+      params: { include: String(id), per_page: "1" },
+    });
+    const rows = Array.isArray(res.data) ? res.data : [];
+    const first = rows[0];
+    return first ? wpProductSchema.parse(first) : null;
+  },
+  ["woo-product-meta-by-id-collection-v1"],
+  { revalidate: 300, tags: [WOO_CACHE_TAG_PRODUCTS] },
+);
+
 export async function getProductByIdMeta(
   id: number,
 ): Promise<Product | null> {
@@ -31,7 +45,12 @@ export async function getProductByIdMeta(
     return mapProduct(wpProductSchema.parse(raw));
   }
   try {
-    const raw = await fetchWooProductByIdMetaCached(id);
+    const raw =
+      (await fetchWooProductByIdMetaCached(id).catch(() => null)) ??
+      (await fetchWooProductByIdFromCollectionCached(id).catch(() => null));
+    if (!raw) {
+      return null;
+    }
     if (isWcProductOutOfStockOnly(raw)) {
       return null;
     }

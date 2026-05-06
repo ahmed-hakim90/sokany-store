@@ -4,6 +4,7 @@ import { ProductDetailPageContent } from "@/components/pages/ProductDetailPageCo
 import { BreadcrumbJsonLd } from "@/components/seo/BreadcrumbJsonLd";
 import { ProductJsonLd } from "@/components/seo/ProductJsonLd";
 import { mockProducts } from "@/features/products/mock";
+import { getPublicSiteContent } from "@/features/cms/services/getPublicSiteContent";
 import { getProductByIdMeta } from "@/features/products/services/getProductByIdMeta";
 import { toProductViewFromProduct } from "@/features/products/product-view";
 import { formatPriceEgp } from "@/lib/format";
@@ -68,7 +69,10 @@ export default async function ProductPage({ params }: PageProps) {
   const numericId = Number(id);
   if (!Number.isFinite(numericId)) notFound();
 
-  const product = await getProductByIdMeta(numericId);
+  const [product, publicContent] = await Promise.all([
+    getProductByIdMeta(numericId),
+    getPublicSiteContent(),
+  ]);
   if (!product) notFound();
 
   const view = toProductViewFromProduct(product);
@@ -91,7 +95,13 @@ export default async function ProductPage({ params }: PageProps) {
           { name: product.name },
         ]}
       />
-      <ProductDetailPageContent id={numericId} />
+      <ProductDetailPageContent
+        id={numericId}
+        trustSummary={{
+          salesBranchesCount: publicContent.branches.sales.length,
+          serviceBranchesCount: publicContent.branches.service.length,
+        }}
+      />
     </>
   );
 }

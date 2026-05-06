@@ -40,7 +40,7 @@ export function StickyBelowHeaderRail({ children, className }: StickyBelowHeader
   return (
     <div
       className={cn(
-        "sticky z-40 bg-transparent",
+        "sticky z-40 min-w-0 max-w-full overflow-hidden bg-transparent",
         className,
       )}
       style={

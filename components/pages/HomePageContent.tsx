@@ -22,15 +22,19 @@ import { ROUTES } from "@/lib/constants";
 import { useCategories } from "@/features/categories/hooks/useCategories";
 import { HomeFlashSaleCountdownStrip } from "@/features/home/components/home-flash-sale-countdown";
 import { useProducts } from "@/features/products/hooks/useProducts";
-import type { CmsHomeCategoryScroller } from "@/schemas/cms";
+import type {
+  CmsHomeCategoryScroller,
+  CmsHomeProductSection,
+  CmsHomeProductSectionsMode,
+} from "@/schemas/cms";
+import { HomeCustomProductSections } from "@/features/home/components/home-custom-product-sections";
 
 /*
  * الصفحة الرئيسية (/): عمود واحد داخل Container بمسافات رأسية تتسع تدريجياً (sm → md).
  * ‎`max-lg`‎: أثناء ‎`HomePageContent` بلا ‎`bg` تظهر ‎`MobileHeroLimeAtmosphere` (خلف ‎`main`‎) لوناً خلف
- * بانر الهيرو/الهوامس. التسلسل: هيرو (سكروول أفقي + auto-rotate) → (اختياري من ‎`site_config.homeCategoryScroller.sectionVisible`‎) شريط
- * صور التصنيفات (٢٤٠×١٢٠ من وو) → عروض سريعة (بانر أزرق + عداد + CTA ثم شبكة on_sale) → كبسولة خدمات
- * (٤ عناصر في سطر واحد على كل الشاشات) → بطاقة ترويج «حصرياً» (افتراضي أو spotlight) → الأكثر مبيعاً
- * (كل المتجر ‎+‎ ‎`orderby: popularity`‎) → وصل حديثاً → أقسام الأب. فشل جلب التصنيفات: بطاقة ‎`ErrorState`‎ (عربي + إعادة المحاولة) بدل إخفاء القسم.
+ * بانر الهيرو/الهوامس. التسلسل: هيرو → عروض سريعة → كبسولة خدمات → بطاقة ترويج → الأكثر مبيعاً → وصل حديثاً
+ * → حسب ‎`homeProductSectionsMode`‎: ‎`auto`‎ أقسام أب فقط؛ ‎`custom`‎ أقسام CMS مخصصة فقط؛ ‎`hybrid`‎ المخصصة ثم الأب.
+ * فشل جلب التصنيفات لأقسام الأب: ‎`ErrorState`‎. فشل منتجات قسم مخصص: ‎`ErrorState`‎ داخل ذلك القسم فقط.
  */
 export type HomeBottomPromo = {
   eyebrow?: string;
@@ -60,6 +64,9 @@ export type HomePageContentProps = {
    * سكroller صور التصنيفات تحت الهيرو — ‎`sectionVisible`‎ من ‎/control يتحكم في الإظهار.
    */
   homeCategoryScroller?: CmsHomeCategoryScroller;
+  /** من ‎`site_config`‎ — الافتراضي ‎`auto`‎ عند الغياب. */
+  homeProductSectionsMode?: CmsHomeProductSectionsMode;
+  homeProductSections?: CmsHomeProductSection[];
 };
 
 const DEFAULT_BOTTOM_PROMO: HomeBottomPromo = {
@@ -76,6 +83,8 @@ export function HomePageContent({
   flashSaleSectionEnabled = true,
   promoFlash,
   homeBottomPromo = DEFAULT_BOTTOM_PROMO,
+  homeProductSectionsMode = "auto",
+  homeProductSections = [],
 }: HomePageContentProps) {
   const router = useTransitionRouter();
   const flashSales = useProducts({
@@ -100,6 +109,7 @@ export function HomePageContent({
   return (
     <div className="animate-fade-in bg-page max-lg:!bg-transparent">
       <Container className="space-y-5 pb-8  sm:space-y-6 sm:pb-10">
+        <h1 className="sr-only">سوكاني المصرية - متجر أجهزة سوكاني في مصر</h1>
         {/* أعلى الصفحة: شرائح هيرو ديناميكية تُقرأ من /public/images/hero */}
         {heroSlides.length > 0 ? <HomeHeroBanner slides={heroSlides} /> : null}
 
@@ -287,28 +297,39 @@ export function HomePageContent({
           </ScrollReveal>
         ) : null}
 
-        {/* أقسام رأسية لكل تصنيف أب: شبكات/سكك — أو سكليتون أو خطأ جلب التصنيفات */}
-        {categories.isPending ? (
-          <ScrollReveal>
-            <HomeParentCategorySectionsSkeleton
-              getCartLineQuantity={getCartLineQuantity}
-              onCartLineQuantityChange={setProductLineQuantity}
-            />
-          </ScrollReveal>
-        ) : categories.isError ? (
-          <ScrollReveal>
-            <ErrorState
-              message={categories.error.message}
-              onRetry={() => void categories.refetch()}
-            />
-          </ScrollReveal>
-        ) : categories.data && categories.data.length > 0 ? (
-          <HomeParentCategorySections
-            categories={categories.data}
-            sectionBanners={sectionBanners}
+        {/* أقسام منتجات الهوم: مخصصة (CMS) و/أو أقسام أب تلقائية حسب الوضع */}
+        {homeProductSectionsMode === "custom" || homeProductSectionsMode === "hybrid" ? (
+          <HomeCustomProductSections
+            sections={homeProductSections}
+            categories={categories.data ?? []}
             getCartLineQuantity={getCartLineQuantity}
             onCartLineQuantityChange={setProductLineQuantity}
           />
+        ) : null}
+
+        {homeProductSectionsMode === "auto" || homeProductSectionsMode === "hybrid" ? (
+          categories.isPending ? (
+            <ScrollReveal>
+              <HomeParentCategorySectionsSkeleton
+                getCartLineQuantity={getCartLineQuantity}
+                onCartLineQuantityChange={setProductLineQuantity}
+              />
+            </ScrollReveal>
+          ) : categories.isError ? (
+            <ScrollReveal>
+              <ErrorState
+                message={categories.error.message}
+                onRetry={() => void categories.refetch()}
+              />
+            </ScrollReveal>
+          ) : categories.data && categories.data.length > 0 ? (
+            <HomeParentCategorySections
+              categories={categories.data}
+              sectionBanners={sectionBanners}
+              getCartLineQuantity={getCartLineQuantity}
+              onCartLineQuantityChange={setProductLineQuantity}
+            />
+          ) : null
         ) : null}
       </Container>
     </div>

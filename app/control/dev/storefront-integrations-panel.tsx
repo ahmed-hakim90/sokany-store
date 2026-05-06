@@ -77,13 +77,13 @@ export function StorefrontIntegrationsPanel() {
     >
       <div className="mb-4 border-t border-slate-200/90 pt-8">
         <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
-          عناوين البنية و API
+          إعدادات الربط
         </p>
         <h2 className="font-display mt-1 text-xl font-bold tracking-tight text-slate-900">
-          تكاملات الواجهة والووردبريس
+          روابط الربط الأساسية
         </h2>
         <p className="mt-1 max-w-2xl text-sm text-slate-600">
-          نفس الحقول التي كانت في تبويب «عام» — مخصّصة للمسؤولين التقنيين ضمن صفحة التشخيص.
+          نفس الإعدادات الموجودة داخل لوحة التحكم، لكن هنا تظهر ضمن صفحة المتابعة حتى يسهل مراجعتها عند فحص الربط.
         </p>
       </div>
       <StorefrontIntegrationsForm
