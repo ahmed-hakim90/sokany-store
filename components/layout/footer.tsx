@@ -41,7 +41,7 @@ const footerLegalLinks = [
 /** أقصى عدد تصنيفات يُعرَض في الفوتر؛ الباقي عبر رابط «كل التصنيفات». */
 const FOOTER_CATEGORY_LIMIT = 8;
 
-// const FOOTER_DEV_CREDIT_HREF = "https://hakimo-cv.vercel.app/hakimo" as const;
+const FOOTER_DEV_CREDIT_HREF = "" as const;
 
 export type FooterProps = {
   socialLinks: SocialLink[];
