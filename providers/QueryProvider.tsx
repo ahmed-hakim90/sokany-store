@@ -15,8 +15,8 @@ import {
 
 export function QueryProvider({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
-    () => {
-      const client = new QueryClient({
+    () =>
+      new QueryClient({
         defaultOptions: {
           queries: {
             staleTime: 5 * 60 * 1000,
@@ -24,11 +24,18 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
             refetchOnWindowFocus: false,
           },
         },
-      });
-      restoreStorefrontQueryCache(client);
-      return client;
-    },
+      }),
   );
+
+  /**
+   * استعادة ‎`localStorage`‎ بعد أول commit وليس في ‎`useState`‎:
+   * ‎`HydrationBoundary`‎ يدمج بيانات RSC في أول render فقط للاستعلامات «الجديدة» في الكاش.
+   * إذا مُلئ الكاش من ‎`restoreStorefrontQueryCache`‎ قبل ذلك، يُؤجَّل الـ hydrate إلى ‎`useEffect`‎
+   * في ‎`HydrationBoundary`‎ → ‎`useQuery`‎ يبقى ‎`pending`‎ لإطار أو أكثر وتظهر شبكات الـ skeleton على الهوم.
+   */
+  useEffect(() => {
+    restoreStorefrontQueryCache(queryClient);
+  }, [queryClient]);
 
   useEffect(() => {
     return subscribeStorefrontQueryCachePersistence(queryClient);

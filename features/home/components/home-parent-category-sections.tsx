@@ -47,6 +47,7 @@ export function HomeParentCategorySectionsSkeleton({
               products={[]}
               skeletonCount={12}
               priorityImageSlots={0}
+              imageMotion={false}
               getCartLineQuantity={getCartLineQuantity}
               onCartLineQuantityChange={onCartLineQuantityChange}
               cardVariant="mobileCompact"
@@ -135,6 +136,7 @@ export function HomeParentCategorySections({
                   products={q.data ?? []}
                   skeletonCount={12}
                   priorityImageSlots={0}
+                  imageMotion={false}
                   getCartLineQuantity={getCartLineQuantity}
                   onCartLineQuantityChange={onCartLineQuantityChange}
                   cardVariant="mobileCompact"

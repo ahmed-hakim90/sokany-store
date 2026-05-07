@@ -1,17 +1,13 @@
 "use client";
 
-import { motion, type HTMLMotionProps } from "framer-motion";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type ComponentPropsWithoutRef,
+  type ComponentRef,
+} from "react";
 import { cn } from "@/lib/utils";
-
-const motionProps: Pick<
-  HTMLMotionProps<"div">,
-  "initial" | "whileInView" | "viewport" | "transition"
-> = {
-  initial: { opacity: 0, y: 18 },
-  whileInView: { opacity: 1, y: 0 },
-  viewport: { once: true, amount: 0.12, margin: "0px 0px -48px 0px" },
-  transition: { duration: 0.45, ease: [0.25, 0.1, 0.25, 1] },
-};
 
 export type ScrollRevealProps = {
   children: React.ReactNode;
@@ -19,21 +15,73 @@ export type ScrollRevealProps = {
   /** ‎`section`‎ عند الحاجة للدلالة الدلاليّة. */
   as?: "div" | "section";
 } & Pick<
-  HTMLMotionProps<"div">,
+  ComponentPropsWithoutRef<"div">,
   "id" | "aria-labelledby" | "aria-label" | "role"
 >;
 
 /**
- * يلتقط القسم عند اقترابه من نافذة العرض (سكرول) ويُظهره بانتقال خفيف.
- * نحافظ على نفس عنصر الـ motion في SSR وأول render للعميل لتجنب hydration mismatch.
- * Framer Motion يتعامل مع تقليل الحركة عبر إعداداته العامة إن وُجدت.
+ * يُظهر القسم عند اقترابه من نافذة العرض — CSS transition + IntersectionObserver
+ * (بدون framer-motion لتقليل حجم الحزمة على الصفحة الرئيسية).
  */
-export function ScrollReveal({ children, className, as = "div", ...a11y }: ScrollRevealProps) {
-  const Motion = as === "section" ? motion.section : motion.div;
+export function ScrollReveal({
+  children,
+  className,
+  as = "div",
+  ...a11y
+}: ScrollRevealProps) {
+  const divRef = useRef<HTMLDivElement>(null);
+  const sectionRef = useRef<ComponentRef<"section">>(null);
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const el = as === "section" ? sectionRef.current : divRef.current;
+    if (!el) return;
+
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    if (mq.matches) {
+      setVisible(true);
+      return;
+    }
+
+    const obs = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) {
+            setVisible(true);
+            obs.disconnect();
+            return;
+          }
+        }
+      },
+      {
+        root: null,
+        rootMargin: "0px 0px -48px 0px",
+        threshold: [0, 0.12, 0.25, 0.5, 1],
+      },
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [as]);
+
+  const merged = cn(
+    "transition-[opacity,transform] duration-[450ms] ease-[cubic-bezier(0.25,0.1,0.25,1)] motion-reduce:transition-none",
+    visible
+      ? "translate-y-0 opacity-100"
+      : "translate-y-[18px] opacity-0 motion-reduce:translate-y-0 motion-reduce:opacity-100",
+    className,
+  );
+
+  if (as === "section") {
+    return (
+      <section ref={sectionRef} className={merged} {...a11y}>
+        {children}
+      </section>
+    );
+  }
 
   return (
-    <Motion className={cn("will-change-[opacity,transform]", className)} {...a11y} {...motionProps}>
+    <div ref={divRef} className={merged} {...a11y}>
       {children}
-    </Motion>
+    </div>
   );
 }

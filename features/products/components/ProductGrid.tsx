@@ -26,6 +26,8 @@ export type ProductGridProps = {
   skeletonCount?: number;
   /** First N cards request eager LCP-style image loading (`next/image` priority). @default 5 */
   priorityImageSlots?: number;
+  /** Pass false on home to avoid Framer `AnimatePresence` per card image. @default true */
+  imageMotion?: boolean;
   loading?: ReactNode;
   empty?: ReactNode;
   products?: Product[];
@@ -48,6 +50,7 @@ export function ProductGrid({
   status: statusProp,
   skeletonCount = 8,
   priorityImageSlots = 5,
+  imageMotion = true,
   loading,
   empty,
   renderItem,
@@ -94,6 +97,7 @@ export function ProductGrid({
             key={product.id}
             product={product}
             imagePriority={index < priorityImageSlots}
+            imageMotion={imageMotion}
             getCartLineQuantity={getCartLineQuantity}
             onCartLineQuantityChange={onCartLineQuantityChange}
             variant={resolvedVariant}

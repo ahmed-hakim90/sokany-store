@@ -98,6 +98,8 @@ export function HomeCustomProductSections({
                 <ProductHorizontalRail
                   status={railStatus}
                   products={products}
+                  priorityImageSlots={0}
+                  imageMotion={false}
                   getCartLineQuantity={getCartLineQuantity}
                   onCartLineQuantityChange={onCartLineQuantityChange}
                   errorMessage={
@@ -126,6 +128,7 @@ export function HomeCustomProductSections({
                     q.isPending ? "loading" : products.length === 0 ? "empty" : "ready"
                   }
                   products={products}
+                  imageMotion={false}
                   getCartLineQuantity={getCartLineQuantity}
                   onCartLineQuantityChange={onCartLineQuantityChange}
                   cardVariant="mobileCompact"

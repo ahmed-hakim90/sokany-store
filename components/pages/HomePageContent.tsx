@@ -250,6 +250,7 @@ export function HomePageContent({
               products={flashSales.data?.items ?? []}
               skeletonCount={12}
               priorityImageSlots={0}
+              imageMotion={false}
               getCartLineQuantity={getCartLineQuantity}
               onCartLineQuantityChange={setProductLineQuantity}
               cardVariant="mobileCompact"
@@ -320,6 +321,7 @@ export function HomePageContent({
               products={homeBestsellers.data?.items ?? []}
               skeletonCount={12}
               priorityImageSlots={0}
+              imageMotion={false}
               getCartLineQuantity={getCartLineQuantity}
               onCartLineQuantityChange={setProductLineQuantity}
               cardVariant="mobileCompact"
@@ -374,6 +376,7 @@ export function HomePageContent({
               products={newArrivals.data?.items ?? []}
               skeletonCount={12}
               priorityImageSlots={0}
+              imageMotion={false}
               getCartLineQuantity={getCartLineQuantity}
               onCartLineQuantityChange={setProductLineQuantity}
               cardVariant="mobileCompact"

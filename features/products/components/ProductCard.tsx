@@ -44,6 +44,8 @@ export type ProductCardProps = {
   variant?: ProductCardVariant;
   /** First visible grid cells: pass `true` for LCP-friendly image loading. */
   imagePriority?: boolean;
+  /** When false, skip Framer image crossfade (lighter grids e.g. home). @default true */
+  imageMotion?: boolean;
   getCartLineQuantity?: (productId: number) => number;
   onCartLineQuantityChange?: (product: Product, next: number) => void;
   /** Renders over the image corner (e.g. wishlist IconButton). */
@@ -120,6 +122,7 @@ export function ProductCard({
   product,
   variant = "desktopCatalog",
   imagePriority = false,
+  imageMotion = true,
   getCartLineQuantity,
   onCartLineQuantityChange,
   wishlistSlot,
@@ -275,7 +278,7 @@ export function ProductCard({
   const imageSizes =
     isDetailed
       ? "(max-width: 768px) 50vw, 25vw"
-      : "(max-width: 768px) 42vw, 10rem";
+      : "(max-width: 768px) 48vw, 10rem";
 
   const handleCardClick = (e: React.MouseEvent<HTMLDivElement>) => {
     const target = e.target;
@@ -345,7 +348,7 @@ export function ProductCard({
           )}
         >
           <div ref={imageFlyRef} className="absolute inset-0 z-0">
-            {reduceMotion ? (
+            {reduceMotion || !imageMotion ? (
               <AppImage
                 src={activeSlide.src}
                 alt={activeSlide.alt}

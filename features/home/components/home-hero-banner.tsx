@@ -222,7 +222,7 @@ function HeroImageCard({
         src={slide.imageSrc}
         alt={heroSlideAlt(slide, categoryNamesBySlug)}
         fill
-        sizes="330px"
+        sizes="300px"
         className="object-cover"
         priority={priority}
         fetchPriority={fetchPriority}

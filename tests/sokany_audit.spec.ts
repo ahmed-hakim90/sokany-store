@@ -103,6 +103,19 @@ test.describe("Sokany storefront audit", () => {
     }
   });
 
+  test("الفوتر على الموبايل: روابط الشريط السفلي مخفية داخل «روابط» (لا تكرار بصري)", async ({
+    page,
+  }) => {
+    await page.goto(ROUTES.HOME, { waitUntil: "domcontentloaded" });
+    await page.locator("footer").getByText("روابط", { exact: true }).click();
+    const footer = page.locator("footer");
+    await expect(footer.getByRole("link", { name: "إتمام الطلب" })).toBeVisible();
+    await expect(footer.getByRole("link", { name: "الرئيسية", exact: true })).toBeHidden();
+    await expect(footer.getByRole("link", { name: "المنتجات", exact: true })).toBeHidden();
+    await expect(footer.getByRole("link", { name: "السلة", exact: true })).toBeHidden();
+    await expect(footer.getByRole("link", { name: "من نحن", exact: true })).toBeHidden();
+  });
+
   test("التنقل: روابط درج القائمة (نفس مسارات Navbar) ترجع 200", async ({
     request,
   }) => {
