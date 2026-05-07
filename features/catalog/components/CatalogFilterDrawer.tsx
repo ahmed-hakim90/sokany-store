@@ -52,23 +52,28 @@ export function CatalogFilterDrawer() {
         <Drawer.Content
           id="catalog-filter-drawer-panel"
           className={cn(
-            "fixed left-0 top-0 z-[100] flex h-dvh min-h-0 w-[min(20rem,92vw)] max-w-lg flex-col border-s border-y border-border/80 bg-page shadow-2xl outline-none",
-            "max-h-[100dvh] sm:w-[22rem] sm:max-w-md",
+            "fixed left-0 top-0 z-[100] flex h-dvh min-h-0 w-[min(22rem,92vw)] max-w-lg flex-col border-s border-y border-border/80 bg-page shadow-2xl outline-none",
+            "max-h-[100dvh] sm:w-96 sm:max-w-md",
             "pt-[max(0.5rem,env(safe-area-inset-top))] pb-[max(0.5rem,env(safe-area-inset-bottom))]",
           )}
         >
-          <div className="shrink-0 border-b border-border/80 px-2 pb-2 pt-1">
-            <Drawer.Title className="px-2 py-1 text-center font-display text-base font-semibold text-brand-950">
+          <div className="shrink-0 border-b border-border/80 px-3 pb-2 pt-1">
+            <Drawer.Title className="py-1 text-center font-display text-base font-semibold text-brand-950">
               تصفية المنتجات
             </Drawer.Title>
+            <p className="text-center text-[11px] leading-snug text-muted-foreground">
+              ترتيب وسعر أولاً، ثم اختر التصنيف
+            </p>
           </div>
           <Drawer.Description className="sr-only">
             اختر التصنيف والسعر والترتيب ثم اعرض نتائج الكتالوج.
           </Drawer.Description>
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-4 pb-2 pt-2">
-            <Suspense fallback={<CatalogFilterFormFallback />}>
-              <CatalogFilterForm key={resetKey} />
-            </Suspense>
+          <div className="flex min-h-0 flex-1 flex-col">
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-4 pt-3">
+              <Suspense fallback={<CatalogFilterFormFallback />}>
+                <CatalogFilterForm key={resetKey} />
+              </Suspense>
+            </div>
           </div>
         </Drawer.Content>
       </Drawer.Portal>

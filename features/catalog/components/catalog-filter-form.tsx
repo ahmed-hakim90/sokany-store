@@ -39,7 +39,7 @@ function parseSortFromSearchParams(sp: URLSearchParams): string {
 
 function chipClass(active: boolean) {
   return cn(
-    "rounded-xl border px-3 py-2 text-start text-sm transition-colors",
+    "rounded-lg border px-2.5 py-1.5 text-start text-sm transition-colors",
     active
       ? "border-brand-950 bg-brand-950 font-bold text-accent shadow-sm"
       : "border-border/80 bg-white/95 font-medium text-muted-foreground hover:bg-black/[0.03]",
@@ -124,71 +124,20 @@ export function CatalogFilterForm() {
     [categoriesQuery.data],
   );
 
+  /*
+   * درج التصفية (موبايل/ضيق): ترتيب + سعر في الأعلى (أكثر استخداماً)، ثم تصنيفات
+   * داخل صندوق بارتفاع محدود وسكرول لتقصير المسار البصري. زر التطبيق لاصق أسفل منطقة السكرول.
+   */
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-6">
-      <section className="space-y-2">
-        <h3 className="text-xs font-bold text-muted-foreground">التصنيف</h3>
-        {categoriesQuery.isPending ? (
-          <div className="space-y-2" aria-busy="true">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="h-10 animate-shimmer rounded-xl bg-surface-muted" />
-            ))}
-          </div>
-        ) : categoriesQuery.isError ? (
-          <ErrorState
-            message={categoriesQuery.error.message}
-            onRetry={() => void categoriesQuery.refetch()}
-          />
-        ) : (
-          <div className="flex flex-col gap-2">
-            <button
-              type="button"
-              className={chipClass(!featured && categoryId == null)}
-              onClick={() => {
-                setFeatured(false);
-                setCategoryId(null);
-              }}
-            >
-              الكل
-            </button>
-            <button
-              type="button"
-              className={chipClass(featured)}
-              onClick={() => {
-                setFeatured(true);
-                setCategoryId(null);
-              }}
-            >
-              مميز
-            </button>
-            {categories.map((c) => {
-              const active = !featured && categoryId === c.id;
-              return (
-                <button
-                  key={c.id}
-                  type="button"
-                  className={chipClass(active)}
-                  onClick={() => {
-                    setFeatured(false);
-                    setCategoryId(c.id);
-                  }}
-                >
-                  {c.name}
-                </button>
-              );
-            })}
-          </div>
-        )}
-      </section>
-
-      <section className="space-y-2">
-        <h3 className="text-xs font-bold text-muted-foreground">ترتيب حسب</h3>
+    <div className="flex min-h-0 flex-1 flex-col gap-5">
+      <section className="space-y-2 rounded-xl border border-border/70 bg-white/80 p-3 shadow-sm">
+        <h3 className="text-xs font-bold text-muted-foreground">ترتيب وعرض</h3>
         <label className="sr-only" htmlFor="catalog-drawer-sort">
           ترتيب المنتجات
         </label>
         <select
           id="catalog-drawer-sort"
-          className="h-10 w-full rounded-xl border border-border bg-white px-3 text-sm font-semibold text-foreground outline-none focus-visible:ring-2 focus-visible:ring-brand-500/35"
+          className="h-10 w-full rounded-lg border border-border bg-white px-3 text-sm font-semibold text-foreground outline-none focus-visible:ring-2 focus-visible:ring-brand-500/35"
           value={sortValue}
           onChange={(e) => setSortValue(e.target.value)}
         >
@@ -200,13 +149,14 @@ export function CatalogFilterForm() {
         </select>
       </section>
 
-      <section className="space-y-2">
+      <section className="space-y-2 rounded-xl border border-border/70 bg-white/80 p-3 shadow-sm">
         <h3 className="text-xs font-bold text-muted-foreground">نطاق السعر</h3>
         <PriceRangeFilter
           key="price"
           minPrice={priceMin}
           maxPrice={priceMax}
           showActionButtons={false}
+          hideBuiltInHeading
           onValuesChange={(min, max) => {
             setPriceMin(min);
             setPriceMax(max);
@@ -215,7 +165,68 @@ export function CatalogFilterForm() {
         />
       </section>
 
-      <div className="mt-auto border-t border-border/70 pt-4 sticky bottom-0 bg-page">
+      <section className="min-h-0 space-y-2">
+        <h3 className="text-xs font-bold text-muted-foreground">التصنيف</h3>
+        {categoriesQuery.isPending ? (
+          <div className="space-y-2" aria-busy="true">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="h-9 animate-shimmer rounded-lg bg-surface-muted" />
+            ))}
+          </div>
+        ) : categoriesQuery.isError ? (
+          <ErrorState
+            message={categoriesQuery.error.message}
+            onRetry={() => void categoriesQuery.refetch()}
+          />
+        ) : (
+          <div className="rounded-xl border border-border/60 bg-surface-muted/25 p-2">
+            <div
+              className="max-h-[min(42dvh,15rem)] space-y-1.5 overflow-y-auto overscroll-y-contain pe-0.5"
+              role="group"
+              aria-label="قائمة التصنيفات"
+            >
+              <button
+                type="button"
+                className={chipClass(!featured && categoryId == null)}
+                onClick={() => {
+                  setFeatured(false);
+                  setCategoryId(null);
+                }}
+              >
+                الكل
+              </button>
+              <button
+                type="button"
+                className={chipClass(featured)}
+                onClick={() => {
+                  setFeatured(true);
+                  setCategoryId(null);
+                }}
+              >
+                مميز
+              </button>
+              {categories.map((c) => {
+                const active = !featured && categoryId === c.id;
+                return (
+                  <button
+                    key={c.id}
+                    type="button"
+                    className={chipClass(active)}
+                    onClick={() => {
+                      setFeatured(false);
+                      setCategoryId(c.id);
+                    }}
+                  >
+                    <span className="line-clamp-2">{c.name}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </section>
+
+      <div className="mt-auto border-t border-border/70 bg-page pt-3 pb-1 supports-[backdrop-filter]:backdrop-blur-[2px]">
         <Button
           type="button"
           variant="primary"

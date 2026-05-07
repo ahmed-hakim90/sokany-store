@@ -14,6 +14,8 @@ export type PriceRangeFilterProps = {
   showActionButtons?: boolean;
   /** Fires when min/max inputs change (for draft + parent CTA). */
   onValuesChange?: (min: number, max: number) => void;
+  /** إخفاء عنوان «نطاق السعر» الداخلي عندما يعرض الأب عنوان القسم. */
+  hideBuiltInHeading?: boolean;
 };
 
 export function PriceRangeFilter({
@@ -22,23 +24,28 @@ export function PriceRangeFilter({
   onApply,
   showActionButtons = true,
   onValuesChange,
+  hideBuiltInHeading = false,
 }: PriceRangeFilterProps) {
   const [min, setMin] = useState(() => minPrice ?? 0);
   const [max, setMax] = useState(() => maxPrice ?? DEFAULT_MAX);
 
   return (
-    <div className="space-y-3">
-      <p className="text-xs font-semibold text-foreground">نطاق السعر (ج.م)</p>
-      <div className="flex flex-wrap items-center gap-2">
+    <div className="space-y-2">
+      {hideBuiltInHeading ? null : (
+        <p className="text-xs font-semibold text-foreground">نطاق السعر (ج.م)</p>
+      )}
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 text-sm">
+        <span className="text-muted-foreground">من</span>
         <label className="sr-only" htmlFor="catalog-price-min">
-          الحد الأدنى
+          الحد الأدنى للسعر بالجنيه
         </label>
         <input
           id="catalog-price-min"
           type="number"
           min={0}
           inputMode="numeric"
-          className="h-9 w-[5.5rem] rounded-lg border border-border bg-white px-2 text-sm font-medium text-foreground outline-none ring-brand-500/0 focus-visible:ring-2"
+          placeholder="0"
+          className="h-9 min-w-[4.5rem] flex-1 rounded-lg border border-border bg-white px-2 text-sm font-semibold tabular-nums text-foreground outline-none ring-brand-500/0 focus-visible:ring-2 sm:max-w-[6.5rem] sm:flex-none"
           value={min || ""}
           onChange={(e) => {
             const next = Number.parseInt(e.target.value, 10) || 0;
@@ -46,16 +53,16 @@ export function PriceRangeFilter({
             onValuesChange?.(next, max);
           }}
         />
-        <span className="text-xs text-muted-foreground">—</span>
+        <span className="text-muted-foreground">إلى</span>
         <label className="sr-only" htmlFor="catalog-price-max">
-          الحد الأقصى
+          الحد الأقصى للسعر بالجنيه
         </label>
         <input
           id="catalog-price-max"
           type="number"
           min={0}
           inputMode="numeric"
-          className="h-9 w-[5.5rem] rounded-lg border border-border bg-white px-2 text-sm font-medium text-foreground outline-none ring-brand-500/0 focus-visible:ring-2"
+          className="h-9 min-w-[4.5rem] flex-1 rounded-lg border border-border bg-white px-2 text-sm font-semibold tabular-nums text-foreground outline-none ring-brand-500/0 focus-visible:ring-2 sm:max-w-[6.5rem] sm:flex-none"
           value={max || ""}
           onChange={(e) => {
             const next = Number.parseInt(e.target.value, 10) || DEFAULT_MAX;
@@ -63,6 +70,7 @@ export function PriceRangeFilter({
             onValuesChange?.(min, next);
           }}
         />
+        <span className="text-xs font-medium text-muted-foreground">ج.م</span>
       </div>
       {showActionButtons ? (
       <div className="flex flex-wrap gap-2">
