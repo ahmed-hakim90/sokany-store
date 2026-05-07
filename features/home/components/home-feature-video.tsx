@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Pause, Play, Volume2, VolumeX } from "lucide-react";
+import { AppImage } from "@/components/AppImage";
 import type { CmsHomeFeatureVideo } from "@/schemas/cms";
 import { cn } from "@/lib/utils";
 
@@ -78,6 +79,7 @@ interface YouTubeApi {
       events?: {
         onReady?: (e: { target: YouTubePlayer }) => void;
         onStateChange?: (e: { data: number; target: YouTubePlayer }) => void;
+        onError?: (e: { data: number; target: YouTubePlayer }) => void;
       };
     },
   ) => YouTubePlayer;
@@ -113,7 +115,13 @@ function loadYouTubeApi(): Promise<YouTubeApi> {
 
 /* ───────────────────────────  YouTube embed  ───────────────────────────── */
 
-function YouTubeEmbed({ videoId }: { videoId: string }) {
+function YouTubeEmbed({
+  videoId,
+  onError,
+}: {
+  videoId: string;
+  onError?: () => void;
+}) {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<YouTubePlayer | null>(null);
   /*
@@ -124,6 +132,9 @@ function YouTubeEmbed({ videoId }: { videoId: string }) {
   const [muted, setMuted] = useState(true);
   const [playing, setPlaying] = useState(true);
   const [ready, setReady] = useState(false);
+  /* نخزن أحدث callback في ref عشان التغيير ميعملش re-mount للـ player. */
+  const onErrorRef = useRef(onError);
+  onErrorRef.current = onError;
 
   useEffect(() => {
     const wrapper = wrapperRef.current;
@@ -158,6 +169,8 @@ function YouTubeEmbed({ videoId }: { videoId: string }) {
             disablekb: 1,
             fs: 0,
             playsinline: 1,
+            /* يطابق نطاق الصفحة مع توثيق YouTube IFrame API ويقلّل أخطاء postMessage على localhost. */
+            origin: window.location.origin,
           },
           events: {
             onReady: (e) => {
@@ -183,11 +196,16 @@ function YouTubeEmbed({ videoId }: { videoId: string }) {
               if (e.data === 1) setPlaying(true);
               else if (e.data === 2 || e.data === 0) setPlaying(false);
             },
+            /*
+             * أكواد الأخطاء من يوتيوب: 2 (ID خاطئ)، 5 (مشكلة بالـ HTML5 player)،
+             * 100 (محذوف/مش موجود)، 101 و150 (الناشر منع التضمين). كلها نعتبرها فشل.
+             */
+            onError: () => onErrorRef.current?.(),
           },
         });
         playerRef.current = player;
       })
-      .catch(() => undefined);
+      .catch(() => onErrorRef.current?.());
 
     return () => {
       cancelled = true;
@@ -227,8 +245,12 @@ function YouTubeEmbed({ videoId }: { videoId: string }) {
           const p = playerRef.current;
           if (!p) return;
           const next = !muted;
-          if (next) p.mute();
-          else p.unMute();
+          if (next) {
+            p.mute();
+          } else {
+            p.setVolume(DEFAULT_VOLUME_PERCENT);
+            p.unMute();
+          }
           setMuted(next);
         }}
       />
@@ -238,10 +260,18 @@ function YouTubeEmbed({ videoId }: { videoId: string }) {
 
 /* ────────────────────  Vimeo embed (postMessage API)  ──────────────────── */
 
-function VimeoEmbed({ videoId }: { videoId: string }) {
+function VimeoEmbed({
+  videoId,
+  onError,
+}: {
+  videoId: string;
+  onError?: () => void;
+}) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [muted, setMuted] = useState(true);
   const [playing, setPlaying] = useState(true);
+  const onErrorRef = useRef(onError);
+  onErrorRef.current = onError;
 
   const send = (method: string, value?: unknown) => {
     const win = iframeRef.current?.contentWindow;
@@ -263,6 +293,7 @@ function VimeoEmbed({ videoId }: { videoId: string }) {
       const data = parsed as { event?: string };
       if (data.event === "play") setPlaying(true);
       else if (data.event === "pause") setPlaying(false);
+      else if (data.event === "error") onErrorRef.current?.();
     };
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);
@@ -292,11 +323,23 @@ function VimeoEmbed({ videoId }: { videoId: string }) {
         title="فيديو مميز"
         allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
         allowFullScreen
-        loading="lazy"
+        /* lazy يؤخر تحميل الـ iframe فـ autoplay من فيميو يبقى غير موثوق للفيديو البارز */
+        loading="eager"
         referrerPolicy="strict-origin-when-cross-origin"
         onLoad={() => {
           send("addEventListener", "play");
           send("addEventListener", "pause");
+          send("addEventListener", "error");
+          /*
+           * نحاول فك الكتم بعد ما الـ play يبتدي. فيميو postMessage مش بيرد
+           * بنتيجة فعلية، فبنفترض النجاح. لو المتصفح رفض هيفضل مكتوم
+           * والمستخدم يضغط زرار 🔊 يدوياً.
+           */
+          window.setTimeout(() => {
+            send("setVolume", DEFAULT_VOLUME_PERCENT / 100);
+            send("setMuted", false);
+            setMuted(false);
+          }, 200);
         }}
       />
       <ClickShield />
@@ -309,6 +352,7 @@ function VimeoEmbed({ videoId }: { videoId: string }) {
         }}
         onToggleMute={() => {
           const next = !muted;
+          if (!next) send("setVolume", DEFAULT_VOLUME_PERCENT / 100);
           send("setMuted", next);
           setMuted(next);
         }}
@@ -319,11 +363,59 @@ function VimeoEmbed({ videoId }: { videoId: string }) {
 
 /* ─────────────────────────  Direct video file  ─────────────────────────── */
 
-function DirectVideoEmbed({ src, poster }: { src: string; poster?: string }) {
+function DirectVideoEmbed({
+  src,
+  poster,
+  onError,
+}: {
+  src: string;
+  poster?: string;
+  onError?: () => void;
+}) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  /*
+   * نبدأ مكتوم لضمان autoplay، وبعد ما الفيديو يبدأ play بنحاول نفك الكتم
+   * ونضبط الصوت على 30٪. لو المتصفح رفض (موبايل/سفاري) بنرجّع state إلى
+   * muted=true عشان الـ UI يعكس الواقع الفعلي.
+   */
   const [muted, setMuted] = useState(true);
-  const [playing, setPlaying] = useState(true);
-  const [loadError, setLoadError] = useState(false);
+  const [playing, setPlaying] = useState(false);
+  const onErrorRef = useRef(onError);
+  onErrorRef.current = onError;
+
+  const attemptAutoplay = useCallback(() => {
+    const el = videoRef.current;
+    if (!el) return;
+    el.volume = DEFAULT_VOLUME_PERCENT / 100;
+    el.muted = true;
+    setMuted(true);
+    void el
+      .play()
+      .then(() => {
+        setPlaying(true);
+        el.muted = false;
+        setMuted(false);
+        window.setTimeout(() => {
+          if (el.muted) setMuted(true);
+        }, 80);
+      })
+      .catch(() => {
+        /*
+         * سياسات autoplay: أحياناً لازم يفضل مكتوم حتى ينجح play().
+         * لو فشل حتى وهو مكتوم (توفير بيانات/تبويب خلفي) نعرض زر التشغيل.
+         */
+        el.muted = true;
+        setMuted(true);
+        void el
+          .play()
+          .then(() => setPlaying(true))
+          .catch(() => setPlaying(false));
+      });
+  }, []);
+
+  useEffect(() => {
+    attemptAutoplay();
+  }, [src, attemptAutoplay]);
 
   return (
     <>
@@ -336,26 +428,17 @@ function DirectVideoEmbed({ src, poster }: { src: string; poster?: string }) {
         loop
         muted={muted}
         playsInline
-        preload="metadata"
-        onLoadedData={() => {
-          setLoadError(false);
-          void videoRef.current
-            ?.play()
-            .then(() => setPlaying(true))
-            .catch(() => setPlaying(false));
-        }}
+        /* metadata فقط كانت تؤخر تحميل أول إطار فـ loadeddata/canplay يتأخران و autoplay يفشل */
+        preload="auto"
+        onLoadedMetadata={() => attemptAutoplay()}
+        onCanPlay={() => attemptAutoplay()}
         onError={() => {
-          setLoadError(true);
           setPlaying(false);
+          onErrorRef.current?.();
         }}
         onPlay={() => setPlaying(true)}
         onPause={() => setPlaying(false)}
       />
-      {loadError ? (
-        <div className="absolute inset-x-4 top-4 z-20 rounded-xl border border-white/15 bg-black/62 px-3 py-2 text-sm font-semibold text-white shadow-lg backdrop-blur-md">
-          تعذر تشغيل الفيديو. تأكد أن الرابط ملف فيديو مباشر بصيغة MP4 أو WebM، أو استخدم رابط يوتيوب/فيميو.
-        </div>
-      ) : null}
       <CustomControls
         playing={playing}
         muted={muted}
@@ -375,9 +458,11 @@ function DirectVideoEmbed({ src, poster }: { src: string; poster?: string }) {
         onToggleMute={() => {
           const next = !muted;
           setMuted(next);
-          if (videoRef.current) {
-            videoRef.current.muted = next;
-            if (!next) void videoRef.current.play().catch(() => undefined);
+          const el = videoRef.current;
+          if (el) {
+            if (!next) el.volume = DEFAULT_VOLUME_PERCENT / 100;
+            el.muted = next;
+            if (!next) void el.play().catch(() => undefined);
           }
         }}
       />
@@ -458,27 +543,58 @@ export function HomeFeatureVideo({
   const src = video.videoUrl.trim();
   const poster = video.posterImageUrl.trim();
   const embed = useMemo(() => parseEmbed(src), [src]);
+  /* لو فشل التشغيل لأي سبب: نعرض الصورة فقط، أو نخفي البوكس بالكامل لو مفيش صورة. */
+  const [hasError, setHasError] = useState(false);
+  const [posterFailed, setPosterFailed] = useState(false);
+  /* نرجّع state لو حضرتك غيّرت الرابط من /control. */
+  useEffect(() => {
+    setHasError(false);
+    setPosterFailed(false);
+  }, [src, poster]);
+
+  const handleError = useCallback(() => setHasError(true), []);
 
   if (!video.enabled || !src) return null;
+  /* فشل + (مفيش poster أو الـposter نفسه فشل) = نخفي البوكس خالص. */
+  if (hasError && (!poster || posterFailed)) return null;
 
   return (
     <section
       className={cn(
-        "min-w-0 overflow-hidden rounded-2xl bg-black shadow-[0_16px_42px_-30px_rgba(15,23,42,0.65)]",
+        /*
+         * عرض كامل على الموبايل/التابلت، وعلى الشاشات الكبيرة بنحدّد سقف
+         * عرض (1100px) ونوسطه عشان الفيديو ميكبرش لدرجة تظهر فيها مساحات سودا
+         * حواليه (pillarbox).
+         */
+        "mx-auto min-w-0 w-full max-w-[1100px] overflow-hidden rounded-2xl bg-black shadow-[0_16px_42px_-30px_rgba(15,23,42,0.65)]",
         className,
       )}
       aria-label="فيديو مميز"
     >
-      <div className="relative aspect-[16/9] w-full overflow-hidden bg-black sm:aspect-[21/9]">
-        {embed?.kind === "youtube" ? (
-          <YouTubeEmbed videoId={embed.videoId} />
+      {/* aspect-video = 16:9 يطابق نسبة فيديوهات يوتيوب فمافيش شرايط سودا داخل البلاير. */}
+      <div className="relative aspect-video w-full overflow-hidden bg-black">
+        {hasError ? (
+          /* فشل التشغيل + فيه poster → نعرض الصورة بس بدون أي تحكم. لو الصورة كمان فشلت بنخفي البوكس فوق. */
+          <AppImage
+            src={poster}
+            alt=""
+            fill
+            className="object-cover"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1100px"
+            usePlaceholderOnError={false}
+            onLoadError={() => setPosterFailed(true)}
+          />
+        ) : embed?.kind === "youtube" ? (
+          <YouTubeEmbed videoId={embed.videoId} onError={handleError} />
         ) : embed?.kind === "vimeo" ? (
-          <VimeoEmbed videoId={embed.videoId} />
+          <VimeoEmbed videoId={embed.videoId} onError={handleError} />
         ) : (
-          <DirectVideoEmbed src={src} poster={poster} />
+          <DirectVideoEmbed src={src} poster={poster} onError={handleError} />
         )}
         {/* تدرّج خفيف فوق البلاير لتحسين تباين الزراير. لا يعترض النقرات. */}
-        <div className="pointer-events-none absolute inset-0 z-[10] bg-gradient-to-t from-black/28 via-transparent to-black/10" />
+        {!hasError ? (
+          <div className="pointer-events-none absolute inset-0 z-[10] bg-gradient-to-t from-black/28 via-transparent to-black/10" />
+        ) : null}
       </div>
     </section>
   );

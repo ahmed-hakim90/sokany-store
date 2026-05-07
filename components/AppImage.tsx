@@ -121,7 +121,7 @@ function StringAppImageInner({
           stringSrc.startsWith("blob:") ||
           stringSrc.startsWith("data:")
         }
-        {...(priority ? {} : { loading: "lazy" as const })}
+        loading={priority ? "eager" : "lazy"}
         width={width}
         height={height}
         onLoad={() => {
@@ -176,7 +176,7 @@ export function AppImage({
         sizes={sizes}
         priority={priority}
         fetchPriority={fetchPriority}
-        {...(priority ? {} : { loading: "lazy" as const })}
+        loading={priority ? "eager" : "lazy"}
         width={width}
         height={height}
       />

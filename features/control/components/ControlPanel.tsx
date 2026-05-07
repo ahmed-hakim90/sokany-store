@@ -1605,6 +1605,51 @@ export function ControlPanel() {
               </div>
             </form>
           </section>
+          <section className="space-y-4 rounded-2xl border border-border bg-white p-5 shadow-sm">
+            <div>
+              <h2 className="font-display text-lg font-bold">صورة بطاقة الترويج (قبل قسم الأكثر مبيعاً)</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                البانر العريض اللي يظهر قبل قسم «الأكثر مبيعاً». لو فاضي يستخدم الصورة الافتراضية أو من «إعلانات مميزة».
+              </p>
+            </div>
+            <form
+              key={String(
+                (site as { homeBottomPromoImageUrl?: string } | null)?.homeBottomPromoImageUrl ?? "",
+              )}
+              className="space-y-3"
+              onSubmit={(e) => {
+                e.preventDefault();
+                const fd = new FormData(e.currentTarget);
+                const imageUrl = String(fd.get("homeBottomPromoImageUrl") ?? "").trim();
+                /* نبعت string دايماً (حتى لو فاضي) عشان merge function تتعرّف على نية المسح. */
+                void saveSiteConfig({ homeBottomPromoImageUrl: imageUrl });
+              }}
+            >
+              <ControlImageUrlField
+                name="homeBottomPromoImageUrl"
+                label="صورة البانر"
+                helper="ينصح بمقاس 1100×400 بكسل (نسبة عرض/ارتفاع تقريباً 11:4). صيغ مدعومة: JPG / PNG / WebP."
+                defaultValue={
+                  (site as { homeBottomPromoImageUrl?: string } | null)?.homeBottomPromoImageUrl ?? ""
+                }
+                placeholder="/images/hero-banner.jpg"
+                disabled={saving === "site_config"}
+              />
+              <div className="flex flex-wrap gap-2">
+                <Button type="submit" disabled={saving === "site_config"}>
+                  {saving === "site_config" ? "جاري الحفظ…" : "حفظ صورة البانر"}
+                </Button>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  disabled={saving === "site_config"}
+                  onClick={() => void saveSiteConfig({ homeBottomPromoImageUrl: "" })}
+                >
+                  استعادة الافتراضي
+                </Button>
+              </div>
+            </form>
+          </section>
           <HomeProductSectionsForm
             key={JSON.stringify({
               m: site?.homeProductSectionsMode,

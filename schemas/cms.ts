@@ -294,6 +294,8 @@ export const cmsSiteConfigDocSchema = z.object({
   headerCategoryStrip: z.any().optional(),
   homeCategoryScroller: z.any().optional(),
   homeFeatureVideo: cmsHomeFeatureVideoSchema.optional(),
+  /** صورة بطاقة الترويج اللي قبل قسم «الأكثر مبيعاً» — لو فاضي يستخدم spotlight أو الصورة الافتراضية. */
+  homeBottomPromoImageUrl: publicAssetOrUrlSchema.optional(),
   homeProductSectionsMode: cmsHomeProductSectionsModeSchema.optional(),
   homeProductSections: cmsHomeProductSectionsArraySchema.optional(),
   /** عناوين وقراءة عامة مدارة من `/control` — بلا أسرار. */
@@ -372,6 +374,23 @@ export const cmsRetailersDocSchema = z.object({
 
 export type CmsRetailersDoc = z.infer<typeof cmsRetailersDocSchema>;
 
+/** موضع بطاقة «إعلان مميز» في الصفحة الرئيسية (تبويب إبراز المحتوى). */
+export const cmsHomeSpotlightPlacementSchema = z.enum([
+  "top",
+  "afterHero",
+  "afterFlashSales",
+  "afterServices",
+  "afterBestsellers",
+  "afterNewArrivals",
+]);
+
+export type CmsHomeSpotlightPlacement = z.infer<
+  typeof cmsHomeSpotlightPlacementSchema
+>;
+
+export const CMS_DEFAULT_HOME_SPOTLIGHT_PLACEMENT: CmsHomeSpotlightPlacement =
+  "afterServices";
+
 export const cmsSpotlightItemSchema = z.object({
   type: z.enum(["branch", "product"]),
   branchId: z.string().optional(),
@@ -382,6 +401,7 @@ export const cmsSpotlightItemSchema = z.object({
   title: z.string().optional(),
   subtitle: z.string().optional(),
   ctaLabel: z.string().optional(),
+  homePlacement: cmsHomeSpotlightPlacementSchema.optional(),
 });
 
 export const cmsSpotlightsDocSchema = z.object({

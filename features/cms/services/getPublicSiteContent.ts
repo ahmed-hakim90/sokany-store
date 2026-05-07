@@ -76,6 +76,11 @@ export type PublicSiteContent = {
   homeCategoryScroller: CmsHomeCategoryScroller;
   /** فيديو تسويقي قابل للتحكم في موضعه من لوحة التحكم. */
   homeFeatureVideo: CmsHomeFeatureVideo;
+  /**
+   * صورة بطاقة الترويج اللي قبل قسم «الأكثر مبيعاً» — مدارة من `/control`.
+   * فاضية = استعمل صورة الـspotlight لو موجود، وإلا الافتراضي.
+   */
+  homeBottomPromoImageUrl: string | null;
   /** أقسام منتجات الهوم من `site_config` — الوضع الافتراضي `auto`. */
   homeProductSectionsMode: CmsHomeProductSectionsMode;
   homeProductSections: CmsHomeProductSection[];
@@ -249,6 +254,7 @@ async function fetchPublicSiteContentUncached(): Promise<PublicSiteContent> {
     headerCategoryStrip: { ...CMS_DEFAULT_HEADER_CATEGORY_STRIP },
     homeCategoryScroller: { ...CMS_DEFAULT_HOME_CATEGORY_SCROLLER },
     homeFeatureVideo: { ...CMS_DEFAULT_HOME_FEATURE_VIDEO },
+    homeBottomPromoImageUrl: null,
     homeProductSectionsMode: CMS_DEFAULT_HOME_PRODUCT_SECTIONS_MODE,
     homeProductSections: [...CMS_DEFAULT_HOME_PRODUCT_SECTIONS],
     publicReadBaseUrl: null,
@@ -333,6 +339,15 @@ async function fetchPublicSiteContentUncached(): Promise<PublicSiteContent> {
         : undefined,
       staticBundle.homeFeatureVideo,
     );
+
+    const homeBottomPromoImageUrl = (() => {
+      if (!siteParsed?.success) return null;
+      const raw = (siteParsed.data as { homeBottomPromoImageUrl?: unknown })
+        .homeBottomPromoImageUrl;
+      if (typeof raw !== "string") return null;
+      const t = raw.trim();
+      return t.length > 0 ? t : null;
+    })();
 
     const homeProductSectionsMode = mergeHomeProductSectionsMode(
       siteParsed?.success
@@ -449,6 +464,7 @@ async function fetchPublicSiteContentUncached(): Promise<PublicSiteContent> {
       headerCategoryStrip,
       homeCategoryScroller,
       homeFeatureVideo,
+      homeBottomPromoImageUrl,
       homeProductSectionsMode,
       homeProductSections,
       publicReadBaseUrl,

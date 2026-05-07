@@ -100,6 +100,17 @@ export default async function Home() {
       href,
       ctaLabel: spotlight.ctaLabel ?? "اكتشف الآن",
       imageSrc: spotlight.imageUrl,
+      homePlacement: spotlight.homePlacement,
+    };
+  }
+  /*
+   * أولوية صورة بطاقة الترويج قبل «الأكثر مبيعاً»:
+   * site_config.homeBottomPromoImageUrl  ←  spotlight.imageUrl  ←  الصورة الافتراضية في HomePromoCard.
+   */
+  if (content.homeBottomPromoImageUrl) {
+    homeBottomPromo = {
+      ...homeBottomPromo,
+      imageSrc: content.homeBottomPromoImageUrl,
     };
   }
 

@@ -14,12 +14,14 @@ import type {
   CmsHeaderCategoryStrip,
   CmsHomeCategoryScroller,
   CmsHomeHeroDoc,
+  CmsHomeSpotlightPlacement,
   CmsRetailersDoc,
   CmsSectionBannersDoc,
   CmsSpotlightsDoc,
   CmsTopAnnouncementBar,
 } from "@/schemas/cms";
 import {
+  CMS_DEFAULT_HOME_SPOTLIGHT_PLACEMENT,
   cmsHeaderCategoryStripSchema,
   cmsHomeCategoryScrollerSchema,
   cmsRetailersDocSchema,
@@ -874,6 +876,7 @@ type SpotlightRow = {
   title: string;
   subtitle: string;
   ctaLabel: string;
+  homePlacement: CmsHomeSpotlightPlacement;
 };
 
 function spotlightToRow(item: CmsSpotlightsDoc["items"][number]): SpotlightRow {
@@ -887,6 +890,7 @@ function spotlightToRow(item: CmsSpotlightsDoc["items"][number]): SpotlightRow {
     title: item.title ?? "",
     subtitle: item.subtitle ?? "",
     ctaLabel: item.ctaLabel ?? "",
+    homePlacement: item.homePlacement ?? CMS_DEFAULT_HOME_SPOTLIGHT_PLACEMENT,
   };
 }
 
@@ -913,6 +917,7 @@ export function SpotlightsForm({
             title: "",
             subtitle: "",
             ctaLabel: "",
+            homePlacement: CMS_DEFAULT_HOME_SPOTLIGHT_PLACEMENT,
           },
         ],
   );
@@ -934,6 +939,7 @@ export function SpotlightsForm({
         title: "",
         subtitle: "",
         ctaLabel: "",
+        homePlacement: CMS_DEFAULT_HOME_SPOTLIGHT_PLACEMENT,
       },
     ]);
   }
@@ -960,6 +966,7 @@ export function SpotlightsForm({
           title: row.title.trim() || undefined,
           subtitle: row.subtitle.trim() || undefined,
           ctaLabel: row.ctaLabel.trim() || undefined,
+          homePlacement: row.homePlacement,
         };
       }),
     };
@@ -975,9 +982,9 @@ export function SpotlightsForm({
     <section className="space-y-4 rounded-2xl border border-border bg-white p-5 shadow-sm">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="font-display text-lg font-bold">إعلان مميز (أسفل الصفحة الرئيسية)</h2>
+          <h2 className="font-display text-lg font-bold">إعلان مميز في الصفحة الرئيسية</h2>
           <p className="text-sm text-muted-foreground">
-            يُعرَض أول عنصر عليه «نشط». املأ الصورة والعناوين لظهور أفضل.
+            يُعرَض أول عنصر عليه «نشط». اختر موضع البطقة في الهوم، واملأ الصورة والعناوين لظهور أفضل.
           </p>
         </div>
         <Button type="button" variant="secondary" size="sm" onClick={addRow}>
@@ -1060,6 +1067,28 @@ export function SpotlightsForm({
                   helper="الصورة الأساسية اللي هتظهر في الإعلان ده."
                   buttonLabel="رفع صورة"
                 />
+              </div>
+              <div className="sm:col-span-2">
+                <label className="text-xs text-muted-foreground">موضع العرض في الهوم</label>
+                <ControlFieldHelp>
+                  أين تظهر بطاقة الإعلان في الصفحة الرئيسية بالنسبة للهيرو والعروض والأقسام.
+                </ControlFieldHelp>
+                <select
+                  value={row.homePlacement}
+                  onChange={(e) =>
+                    updateRow(i, {
+                      homePlacement: e.target.value as CmsHomeSpotlightPlacement,
+                    })
+                  }
+                  className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm"
+                >
+                  <option value="top">بداية الصفحة قبل الهيرو</option>
+                  <option value="afterHero">بعد الهيرو مباشرة</option>
+                  <option value="afterFlashSales">بعد قسم العروض السريعة</option>
+                  <option value="afterServices">بعد كبسولة الخدمات (الافتراضي السابق)</option>
+                  <option value="afterBestsellers">بعد قسم الأكثر مبيعاً</option>
+                  <option value="afterNewArrivals">بعد قسم وصل حديثاً</option>
+                </select>
               </div>
               <div className="sm:col-span-2">
                 <label className="text-xs text-muted-foreground">رابط مخصص (اختياري)</label>

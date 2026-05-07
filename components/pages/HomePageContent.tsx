@@ -23,11 +23,13 @@ import { ROUTES } from "@/lib/constants";
 import { useCategories } from "@/features/categories/hooks/useCategories";
 import { HomeFlashSaleCountdownStrip } from "@/features/home/components/home-flash-sale-countdown";
 import { useProducts } from "@/features/products/hooks/useProducts";
-import type {
-  CmsHomeFeatureVideo,
-  CmsHomeCategoryScroller,
-  CmsHomeProductSection,
-  CmsHomeProductSectionsMode,
+import {
+  CMS_DEFAULT_HOME_SPOTLIGHT_PLACEMENT,
+  type CmsHomeCategoryScroller,
+  type CmsHomeFeatureVideo,
+  type CmsHomeProductSection,
+  type CmsHomeProductSectionsMode,
+  type CmsHomeSpotlightPlacement,
 } from "@/schemas/cms";
 import { HomeCustomProductSections } from "@/features/home/components/home-custom-product-sections";
 import { HomeFeatureVideo } from "@/features/home/components/home-feature-video";
@@ -47,7 +49,8 @@ function getServerHydrationSnapshot() {
 /*
  * الصفحة الرئيسية (/): عمود واحد داخل Container بمسافات رأسية تتسع تدريجياً (sm → md).
  * ‎`max-lg`‎: أثناء ‎`HomePageContent` بلا ‎`bg` تظهر ‎`MobileHeroLimeAtmosphere` (خلف ‎`main`‎) لوناً خلف
- * بانر الهيرو/الهوامس. التسلسل: هيرو → عروض سريعة → كبسولة خدمات → بطاقة ترويج → الأكثر مبيعاً → وصل حديثاً
+ * بانر الهيرو/الهوامس. التسلسل: هيرو → عروض سريعة → كبسولة خدمات → بطاقة ترويج (موضعها من CMS «إعلان مميز»)
+ * → الأكثر مبيعاً → وصل حديثاً
  * → حسب ‎`homeProductSectionsMode`‎: ‎`auto`‎ أقسام أب فقط؛ ‎`custom`‎ أقسام CMS مخصصة فقط؛ ‎`hybrid`‎ المخصصة ثم الأب.
  * فشل جلب التصنيفات لأقسام الأب: ‎`ErrorState`‎. فشل منتجات قسم مخصص: ‎`ErrorState`‎ داخل ذلك القسم فقط.
  */
@@ -58,6 +61,8 @@ export type HomeBottomPromo = {
   href: string;
   ctaLabel: string;
   imageSrc?: string;
+  /** موضع بطاقة الترويج في عمود الهوم؛ الافتراضي بعد كبسولة الخدمات. */
+  homePlacement?: CmsHomeSpotlightPlacement;
 };
 
 export type HomePageContentProps = {
@@ -135,14 +140,34 @@ export function HomePageContent({
       </ScrollReveal>
     ) : null;
 
+  const promoPlacement =
+    homeBottomPromo.homePlacement ?? CMS_DEFAULT_HOME_SPOTLIGHT_PLACEMENT;
+  const renderHomePromo = (slot: CmsHomeSpotlightPlacement) =>
+    promoPlacement === slot ? (
+      <ScrollReveal>
+        <HomePromoCard
+          eyebrow={homeBottomPromo.eyebrow}
+          title={homeBottomPromo.title}
+          subtitle={homeBottomPromo.subtitle}
+          href={homeBottomPromo.href}
+          ctaLabel={homeBottomPromo.ctaLabel}
+          imageSrc={homeBottomPromo.imageSrc}
+          /* Full-width 70dvh: often competes with narrow hero slides for LCP — eager avoids dev warning. */
+          imagePriority
+        />
+      </ScrollReveal>
+    ) : null;
+
   return (
     <div className="animate-fade-in bg-page max-lg:!bg-transparent">
       <Container className="space-y-5 pb-8  sm:space-y-6 sm:pb-10">
         <h1 className="sr-only">سوكاني المصرية - متجر أجهزة سوكاني في مصر</h1>
         {renderFeatureVideo("top")}
+        {renderHomePromo("top")}
         {/* أعلى الصفحة: شرائح هيرو ديناميكية تُقرأ من /public/images/hero */}
         {heroSlides.length > 0 ? <HomeHeroBanner slides={heroSlides} /> : null}
         {renderFeatureVideo("afterHero")}
+        {renderHomePromo("afterHero")}
 
         {/* {homeCategoryScroller.sectionVisible ? (
           <ScrollReveal>
@@ -202,26 +227,16 @@ export function HomePageContent({
           </ScrollReveal>
         ) : null}
         {renderFeatureVideo("afterFlashSales")}
+        {renderHomePromo("afterFlashSales")}
 
         {/* كبسولة خدمات: أربع عناصر في سطر واحد — نفس الشكل على كل الشاشات */}
         <ScrollReveal>
           <HomeMobileServicesCapsule />
         </ScrollReveal>
         {renderFeatureVideo("afterServices")}
+        {renderHomePromo("afterServices")}
 
-        {/* بعد المميزات: بطاقة ترويج كاملة العرض (حصرياً) — باقي أقسام الصفحة تليها */}
-        <ScrollReveal>
-          <HomePromoCard
-            eyebrow={homeBottomPromo.eyebrow}
-            title={homeBottomPromo.title}
-            subtitle={homeBottomPromo.subtitle}
-            href={homeBottomPromo.href}
-            ctaLabel={homeBottomPromo.ctaLabel}
-            imageSrc={homeBottomPromo.imageSrc}
-            /* Full-width 70dvh: often competes with narrow hero slides for LCP — eager avoids dev warning. */
-            imagePriority
-          />
-        </ScrollReveal>
+        {/* بطاقة ترويج كاملة العرض — الموضع يُضبط من «إعلان مميز» في لوحة التحكم (افتراضياً بعد الخدمات). */}
         {renderFeatureVideo("afterPromo")}
 
         {/* قسم الأكثر مبيعاً: عنوان وسطي + شبكة منتجات (٢ / ٣ / ٤ أعمدة حسب الشاشة) */}
@@ -279,6 +294,7 @@ export function HomePageContent({
             />
           )}
         </ScrollReveal>
+        {renderHomePromo("afterBestsellers")}
 
         {/* وصل حديثاً: أحدث المنتجات حسب التاريخ */}
         {newArrivals.isError ? (
@@ -330,6 +346,7 @@ export function HomePageContent({
             />
           </ScrollReveal>
         ) : null}
+        {renderHomePromo("afterNewArrivals")}
 
         {/* أقسام منتجات الهوم: مخصصة (CMS) و/أو أقسام أب تلقائية حسب الوضع */}
         {homeProductSectionsMode === "custom" || homeProductSectionsMode === "hybrid" ? (
