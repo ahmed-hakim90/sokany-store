@@ -27,12 +27,15 @@ import {
   cmsSpotlightsDocSchema,
   CMS_DEFAULT_HEADER_CATEGORY_STRIP,
   CMS_DEFAULT_HOME_CATEGORY_SCROLLER,
+  CMS_DEFAULT_HOME_FEATURE_VIDEO,
   CMS_DEFAULT_HOME_PRODUCT_SECTIONS,
   CMS_DEFAULT_HOME_PRODUCT_SECTIONS_MODE,
   cmsHomeProductSectionsArraySchema,
   cmsHomeProductSectionsModeSchema,
+  cmsHomeFeatureVideoSchema,
   type CmsHeaderCategoryStrip,
   type CmsHomeCategoryScroller,
+  type CmsHomeFeatureVideo,
   type CmsHomeProductSection,
   type CmsHomeProductSectionsMode,
   type CmsPromoFlash,
@@ -71,6 +74,8 @@ export type PublicSiteContent = {
    * البلاطة بلا صورة أو ليست أباً. بلا تقييد: أبٌ (له منتجات) وله ‎`image` فقط. يُحرّر في ‎/control.
    */
   homeCategoryScroller: CmsHomeCategoryScroller;
+  /** فيديو تسويقي قابل للتحكم في موضعه من لوحة التحكم. */
+  homeFeatureVideo: CmsHomeFeatureVideo;
   /** أقسام منتجات الهوم من `site_config` — الوضع الافتراضي `auto`. */
   homeProductSectionsMode: CmsHomeProductSectionsMode;
   homeProductSections: CmsHomeProductSection[];
@@ -182,6 +187,15 @@ function mergeHomeCategoryScroller(
   };
 }
 
+function mergeHomeFeatureVideo(
+  raw: unknown,
+  fallback: CmsHomeFeatureVideo,
+): CmsHomeFeatureVideo {
+  const r = cmsHomeFeatureVideoSchema.safeParse(raw);
+  if (!r.success) return fallback;
+  return r.data;
+}
+
 function mergeHomeProductSectionsMode(
   raw: unknown,
   fallback: CmsHomeProductSectionsMode,
@@ -234,6 +248,7 @@ async function fetchPublicSiteContentUncached(): Promise<PublicSiteContent> {
     searchQuickKeywords: [...DEFAULT_SEARCH_QUICK_KEYWORDS],
     headerCategoryStrip: { ...CMS_DEFAULT_HEADER_CATEGORY_STRIP },
     homeCategoryScroller: { ...CMS_DEFAULT_HOME_CATEGORY_SCROLLER },
+    homeFeatureVideo: { ...CMS_DEFAULT_HOME_FEATURE_VIDEO },
     homeProductSectionsMode: CMS_DEFAULT_HOME_PRODUCT_SECTIONS_MODE,
     homeProductSections: [...CMS_DEFAULT_HOME_PRODUCT_SECTIONS],
     publicReadBaseUrl: null,
@@ -310,6 +325,13 @@ async function fetchPublicSiteContentUncached(): Promise<PublicSiteContent> {
         ? (siteParsed.data as { homeCategoryScroller?: unknown }).homeCategoryScroller
         : undefined,
       staticBundle.homeCategoryScroller,
+    );
+
+    const homeFeatureVideo = mergeHomeFeatureVideo(
+      siteParsed?.success
+        ? (siteParsed.data as { homeFeatureVideo?: unknown }).homeFeatureVideo
+        : undefined,
+      staticBundle.homeFeatureVideo,
     );
 
     const homeProductSectionsMode = mergeHomeProductSectionsMode(
@@ -426,6 +448,7 @@ async function fetchPublicSiteContentUncached(): Promise<PublicSiteContent> {
       searchQuickKeywords,
       headerCategoryStrip,
       homeCategoryScroller,
+      homeFeatureVideo,
       homeProductSectionsMode,
       homeProductSections,
       publicReadBaseUrl,

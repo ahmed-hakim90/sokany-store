@@ -2,7 +2,7 @@
 
 import { Link } from "next-view-transitions";
 import { usePathname } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { AppImage } from "@/components/AppImage";
 import { MobileNavDrawer } from "@/components/layout/mobile-nav-drawer";
 import {
@@ -16,6 +16,8 @@ import { useMobileChromeCollapsedStore } from "@/components/layout/mobile-chrome
 import { DesktopCategoryMegaNav } from "@/components/layout/desktop-category-mega-nav";
 import { TopHeader } from "@/components/layout/top-header";
 import { useCategories } from "@/features/categories/hooks/useCategories";
+import { mockCategories } from "@/features/categories/mock";
+import type { Category } from "@/features/categories/types";
 import { useCartDrawerOpenStore } from "@/features/cart/store/useCartDrawerOpenStore";
 import { useWishlistDrawerOpenStore } from "@/features/wishlist/store/useWishlistDrawerOpenStore";
 import { useCart } from "@/hooks/useCart";
@@ -24,6 +26,18 @@ import { ROUTES, SITE_LOGO_DISABLED, SITE_LOGO_PATH, SITE_NAME } from "@/lib/con
 import { DEFAULT_SEARCH_QUICK_KEYWORDS } from "@/lib/search-quick-keywords";
 import { SOCIAL_LINKS, type SocialLink } from "@/lib/social-links";
 import { cn } from "@/lib/utils";
+
+function subscribeHydrationSnapshot() {
+  return () => {};
+}
+
+function getHydratedSnapshot() {
+  return true;
+}
+
+function getServerHydrationSnapshot() {
+  return false;
+}
 
 /** روابط تظهر في صف الديسكتوب بعد «العروض» (ليست داخل «خدماتنا»). */
 const desktopPrimaryBarExtraLinks = [
@@ -39,7 +53,7 @@ const servicesDropdownLinks = [
   { href: ROUTES.CONTACT, label: "تواصل معنا" },
   { href: ROUTES.TERMS, label: "الشروط والأحكام" },
   { href: ROUTES.RETURNS_POLICY, label: "سياسة الاسترجاع والاستبدال" },
-  { href: ROUTES.WARRANTY, label: "الصيانة والضمان" },
+  { href: ROUTES.WARRANTY, label: "طرق الاستخدام" },
   { href: ROUTES.PRIVACY, label: "سياسة الخصوصية" },
 ] as const;
 
@@ -79,7 +93,7 @@ const mobileDrawerPolicyLinks = [
   { href: ROUTES.CONTACT, label: "تواصل معنا" },
   { href: ROUTES.TERMS, label: "الشروط والأحكام" },
   { href: ROUTES.RETURNS_POLICY, label: "سياسة الاسترجاع والاستبدال" },
-  { href: ROUTES.WARRANTY, label: "الصيانة والضمان" },
+  { href: ROUTES.WARRANTY, label: "طرق الاستخدام" },
   { href: ROUTES.PRIVACY, label: "سياسة الخصوصية" },
 ] as const;
 
@@ -148,9 +162,31 @@ export function Navbar({
   const { totalItems } = useCart();
   const { totalCount: wishlistCount } = useWishlist();
   const categoriesQuery = useCategories({ per_page: 100 });
+  const hasMounted = useSyncExternalStore(
+    subscribeHydrationSnapshot,
+    getHydratedSnapshot,
+    getServerHydrationSnapshot,
+  );
+  const fallbackCategories = useMemo<Category[]>(
+    () =>
+      mockCategories.map((c) => ({
+        id: c.id,
+        name: c.name,
+        slug: c.slug,
+        description: c.description,
+        image: c.image?.src ?? null,
+        count: c.count,
+        parentId: c.parent,
+      })),
+    [],
+  );
   const navCategories = useMemo(
-    () => (categoriesQuery.data ?? []).filter((c) => c.count > 0),
-    [categoriesQuery.data],
+    () =>
+      (hasMounted && categoriesQuery.data && categoriesQuery.data.length > 0
+        ? categoriesQuery.data
+        : fallbackCategories
+      ).filter((c) => c.count > 0),
+    [categoriesQuery.data, fallbackCategories, hasMounted],
   );
   const openDesktopCartDrawer = useCartDrawerOpenStore((s) => s.openDrawer);
   const closeDesktopCartDrawer = useCartDrawerOpenStore((s) => s.closeDrawer);

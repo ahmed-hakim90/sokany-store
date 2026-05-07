@@ -235,6 +235,26 @@ html::-webkit-scrollbar-thumb:hover {
 
 /* محتوى ووردبريس/Elementor في صفحات الشروط — يكمّل `prose` للجداول والخرائط */
 @layer components {
+  .legal-wp-prose {
+    direction: rtl;
+    text-align: right;
+    unicode-bidi: plaintext;
+  }
+  .legal-wp-prose :is(h1, h2, h3, h4, h5, h6, p, li, blockquote, figcaption) {
+    direction: rtl;
+    text-align: right;
+  }
+  .legal-wp-prose :is(ul, ol) {
+    direction: rtl;
+    padding-inline-start: 0;
+    padding-inline-end: 1.35em;
+  }
+  .legal-wp-prose :is([style*="text-align: left"], [style*="text-align:left"]) {
+    text-align: right !important;
+  }
+  .legal-wp-prose :is([style*="direction: ltr"], [style*="direction:ltr"]) {
+    direction: rtl !important;
+  }
   .legal-wp-prose iframe {
     width: 100%;
     max-width: 100%;

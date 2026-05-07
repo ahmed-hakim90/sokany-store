@@ -1,6 +1,7 @@
 import type { CmsSiteConfigDoc, CmsStorefrontIntegrations } from "@/schemas/cms";
 import {
   CMS_DEFAULT_HOME_CATEGORY_SCROLLER,
+  CMS_DEFAULT_HOME_FEATURE_VIDEO,
   CMS_DEFAULT_HOME_PRODUCT_SECTIONS,
   CMS_DEFAULT_HOME_PRODUCT_SECTIONS_MODE,
   CMS_DEFAULT_HEADER_CATEGORY_STRIP,
@@ -81,6 +82,10 @@ export function mergeSiteConfigPatch(
       patch.homeCategoryScroller !== undefined
         ? patch.homeCategoryScroller
         : current?.homeCategoryScroller ?? CMS_DEFAULT_HOME_CATEGORY_SCROLLER,
+    homeFeatureVideo:
+      patch.homeFeatureVideo !== undefined
+        ? patch.homeFeatureVideo
+        : current?.homeFeatureVideo ?? CMS_DEFAULT_HOME_FEATURE_VIDEO,
     homeProductSectionsMode:
       patch.homeProductSectionsMode ??
       current?.homeProductSectionsMode ??

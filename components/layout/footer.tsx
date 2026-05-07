@@ -1,7 +1,7 @@
 "use client";
 
 import { Link } from "next-view-transitions";
-import { useId, useMemo, useState } from "react";
+import { useId, useMemo, useState, useSyncExternalStore } from "react";
 import { AppImage } from "@/components/AppImage";
 import { Container } from "@/components/Container";
 import { MobileAccordionSection } from "@/components/ui/mobile-accordion-section";
@@ -34,7 +34,7 @@ const footerLegalLinks = [
   { href: ROUTES.CONTACT, label: "تواصل معنا" },
   { href: ROUTES.TERMS, label: "الشروط والأحكام" },
   { href: ROUTES.RETURNS_POLICY, label: "سياسة الاسترجاع والاستبدال" },
-  { href: ROUTES.WARRANTY, label: "الصيانة والضمان" },
+  { href: ROUTES.WARRANTY, label: "طرق الاستخدام" },
   { href: ROUTES.PRIVACY, label: "سياسة الخصوصية" },
 ] as const;
 
@@ -42,6 +42,18 @@ const footerLegalLinks = [
 const FOOTER_CATEGORY_LIMIT = 8;
 
 const FOOTER_DEV_CREDIT_HREF = "" as const;
+
+function subscribeHydrationSnapshot() {
+  return () => {};
+}
+
+function getHydratedSnapshot() {
+  return true;
+}
+
+function getServerHydrationSnapshot() {
+  return false;
+}
 
 export type FooterProps = {
   socialLinks: SocialLink[];
@@ -59,8 +71,17 @@ export function Footer({
 }: FooterProps) {
   const year = new Date().getFullYear();
   const categoriesQuery = useCategories({ per_page: 100 });
+  /** Persisted TanStack cache restores only in the browser; defer live categories until after mount. */
+  const hasMounted = useSyncExternalStore(
+    subscribeHydrationSnapshot,
+    getHydratedSnapshot,
+    getServerHydrationSnapshot,
+  );
+
   const categoryList =
-    categoriesQuery.data && categoriesQuery.data.length > 0
+    hasMounted &&
+    categoriesQuery.data &&
+    categoriesQuery.data.length > 0
       ? categoriesQuery.data.filter((c) => c.count > 0)
       : mockCategories.map((c) => ({
           id: c.id,
@@ -263,7 +284,7 @@ export function Footer({
                     dir="ltr"
                     lang="en"
                   >
-                    Sokany Technology
+                    Sokany-Eg
                   </span>
                 </span>
               </a>

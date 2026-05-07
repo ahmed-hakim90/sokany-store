@@ -3,9 +3,9 @@ import { OfficialWpPageContent } from "@/components/pages/OfficialWpPageContent"
 import { SITE_BRAND_TITLE_AR } from "@/lib/constants";
 import { getSiteUrl } from "@/lib/site";
 
-const title = `الصيانة والضمان | ${SITE_BRAND_TITLE_AR}`;
+const title = `طرق الاستخدام | ${SITE_BRAND_TITLE_AR}`;
 const description =
-  "معلومات الصيانة والضمان — نص معتمد من الموقع الرسمي لوكيل سوكاني في مصر.";
+  "مدونة طرق استخدام أجهزة سوكاني ونصائح العناية بها — محتوى معتمد من الموقع الرسمي لوكيل سوكاني في مصر.";
 
 export const metadata: Metadata = {
   title,
@@ -24,6 +24,10 @@ export const metadata: Metadata = {
 
 export default function WarrantyPage() {
   return (
-    <OfficialWpPageContent slug="warranty-and-maintenance" heading="الصيانة والضمان" />
+    <OfficialWpPageContent
+      slug="warranty-and-maintenance"
+      heading="طرق الاستخدام"
+      internalPostBasePath="/warranty"
+    />
   );
 }

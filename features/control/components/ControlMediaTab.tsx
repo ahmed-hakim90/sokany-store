@@ -38,7 +38,7 @@ function formatSize(n: number): string {
 }
 
 const ACCEPT_CMS =
-  "image/jpeg,image/png,image/webp,image/gif,image/avif,application/pdf,.pdf";
+  "image/jpeg,image/png,image/webp,image/gif,image/avif,video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov,application/pdf,.pdf";
 
 function shortName(path: string): string {
   const base = path.replace(/^cms\//, "");
@@ -54,9 +54,19 @@ function isImageContentType(contentType: string): boolean {
   return contentType.startsWith("image/");
 }
 
+function isVideoContentType(contentType: string, path: string): boolean {
+  if (contentType.startsWith("video/")) return true;
+  return /\.(mp4|webm|mov)$/i.test(path);
+}
+
 function isPdfFile(file: File): boolean {
   if (file.type === "application/pdf") return true;
   return file.name.toLowerCase().endsWith(".pdf");
+}
+
+function isVideoFile(file: File): boolean {
+  if (file.type.startsWith("video/")) return true;
+  return /\.(mp4|webm|mov)$/i.test(file.name);
 }
 
 async function fetchMediaPage(
@@ -110,8 +120,10 @@ export function ControlMediaTab({
   const [lastUploadUrl, setLastUploadUrl] = useState<string | null>(null);
   const [lastUploadPath, setLastUploadPath] = useState<string | null>(null);
   const [lastUploadIsPdf, setLastUploadIsPdf] = useState(false);
+  const [lastUploadIsVideo, setLastUploadIsVideo] = useState(false);
   const [uploadLocalPreviewUrl, setUploadLocalPreviewUrl] = useState<string | null>(null);
   const [uploadLocalIsPdf, setUploadLocalIsPdf] = useState(false);
+  const [uploadLocalIsVideo, setUploadLocalIsVideo] = useState(false);
   const [replacing, setReplacing] = useState<string | null>(null);
   const [replaceForPath, setReplaceForPath] = useState<string | null>(null);
   const replaceFileRef = useRef<HTMLInputElement | null>(null);
@@ -213,8 +225,11 @@ export function ControlMediaTab({
     setLastUploadUrl(null);
     setLastUploadPath(null);
     setLastUploadIsPdf(false);
+    setLastUploadIsVideo(false);
     const localIsPdf = isPdfFile(f);
+    const localIsVideo = isVideoFile(f);
     setUploadLocalIsPdf(localIsPdf);
+    setUploadLocalIsVideo(localIsVideo);
     setUploadLocalPreviewUrl((prev) => {
       if (prev) URL.revokeObjectURL(prev);
       return URL.createObjectURL(f);
@@ -226,11 +241,13 @@ export function ControlMediaTab({
       setLastUploadUrl(url);
       setLastUploadPath(path);
       setLastUploadIsPdf(isPdfFile(f) || path.toLowerCase().endsWith(".pdf"));
+      setLastUploadIsVideo(isVideoFile(f) || /\.(mp4|webm|mov)$/i.test(path));
       setUploadLocalPreviewUrl((prev) => {
         if (prev) URL.revokeObjectURL(prev);
         return null;
       });
       setUploadLocalIsPdf(false);
+      setUploadLocalIsVideo(false);
       toast.success("تم رفع الملف");
       onRemoteMediaChanged?.();
       await reloadFirstPage();
@@ -241,6 +258,7 @@ export function ControlMediaTab({
         return null;
       });
       setUploadLocalIsPdf(false);
+      setUploadLocalIsVideo(false);
     } finally {
       setUploading(false);
     }
@@ -261,6 +279,7 @@ export function ControlMediaTab({
       if (path === lastUploadPath) {
         setLastUploadUrl(url);
         setLastUploadIsPdf(isPdfFile(f) || path.toLowerCase().endsWith(".pdf"));
+        setLastUploadIsVideo(isVideoFile(f) || /\.(mp4|webm|mov)$/i.test(path));
       }
       toast.success("تم استبدال الملف — الرابط العام لموقعك لم يتغيّر");
       onRemoteMediaChanged?.();
@@ -380,7 +399,7 @@ export function ControlMediaTab({
           }}
         />
         <ControlFieldHelp>
-          اختار صورة أو PDF من جهازك، وهتظهر هنا بعد الرفع مع رابط جاهز للنسخ.
+          اختار صورة أو فيديو أو PDF من جهازك، وهتظهر هنا بعد الرفع مع رابط جاهز للنسخ.
         </ControlFieldHelp>
         {uploading ? (
           <p className="text-sm text-muted-foreground">جاري الرفع…</p>
@@ -388,7 +407,15 @@ export function ControlMediaTab({
         {lastUploadUrl ? (
           <div className="space-y-2">
             <p className="text-sm font-medium text-brand-950">آخر رفع ناجح</p>
-            {lastUploadIsPdf ? (
+            {lastUploadIsVideo ? (
+              <div className="w-full max-w-2xl overflow-hidden rounded-xl border border-border bg-black">
+                <video
+                  src={lastUploadUrl}
+                  controls
+                  className="max-h-[min(20rem,60vh)] w-full"
+                />
+              </div>
+            ) : lastUploadIsPdf ? (
               <div className="w-full max-w-2xl space-y-2">
                 <div className="overflow-hidden rounded-xl border border-border bg-surface-muted/40">
                   <iframe
@@ -428,7 +455,14 @@ export function ControlMediaTab({
         ) : null}
         {uploadLocalPreviewUrl && uploading ? (
           <div className="w-full max-w-2xl overflow-hidden rounded-xl border border-border bg-surface-muted/40">
-            {uploadLocalIsPdf ? (
+            {uploadLocalIsVideo ? (
+              <video
+                src={uploadLocalPreviewUrl}
+                controls
+                muted
+                className="max-h-[min(16rem,50vh)] w-full bg-black"
+              />
+            ) : uploadLocalIsPdf ? (
               <iframe
                 title="جاري رفع PDF"
                 src={uploadLocalPreviewUrl}
@@ -447,7 +481,14 @@ export function ControlMediaTab({
         {uploadLocalPreviewUrl && !uploading && !lastUploadUrl ? (
           <div className="w-full max-w-2xl overflow-hidden rounded-xl border border-amber-200 bg-amber-50/50">
             <p className="p-2 text-sm text-amber-900">فشل الرفع — يمكنك اختيار ملف آخر</p>
-            {uploadLocalIsPdf ? (
+            {uploadLocalIsVideo ? (
+              <video
+                src={uploadLocalPreviewUrl}
+                controls
+                muted
+                className="max-h-[min(14rem,45vh)] w-full bg-black"
+              />
+            ) : uploadLocalIsPdf ? (
               <iframe
                 title="معاينة"
                 src={uploadLocalPreviewUrl}
@@ -512,6 +553,7 @@ export function ControlMediaTab({
           >
             {items.map((it) => {
               const isImage = isImageContentType(it.contentType);
+              const isVideo = isVideoContentType(it.contentType, it.path);
               const isPdf = isPdfContentType(it.contentType, it.path);
               return (
                 <li
@@ -533,6 +575,14 @@ export function ControlMediaTab({
                         height={300}
                         className="max-h-36 w-auto max-w-full object-contain"
                         sizes="(max-width: 640px) 100vw, 33vw"
+                      />
+                    ) : isVideo ? (
+                      <video
+                        key={`${it.path}-${it.updated ?? ""}`}
+                        src={it.url}
+                        controls
+                        muted
+                        className="max-h-36 w-full bg-black"
                       />
                     ) : isPdf ? (
                       <iframe

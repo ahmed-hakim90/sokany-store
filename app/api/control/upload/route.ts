@@ -15,13 +15,16 @@ import { getAdminStorageBucket } from "@/lib/firebase-admin";
 
 export const runtime = "nodejs";
 
-const MAX_BYTES = 10 * 1024 * 1024;
+const MAX_BYTES = 100 * 1024 * 1024;
 const ALLOWED = new Set([
   "image/jpeg",
   "image/png",
   "image/webp",
   "image/gif",
   "image/avif",
+  "video/mp4",
+  "video/webm",
+  "video/quicktime",
   "application/pdf",
 ]);
 
@@ -67,6 +70,18 @@ export async function POST(request: NextRequest) {
   let type = file.type || "application/octet-stream";
   if (type === "application/octet-stream" && safeLower.endsWith(".pdf")) {
     type = "application/pdf";
+  }
+  if (type === "application/octet-stream" && safeLower.endsWith(".mp4")) {
+    type = "video/mp4";
+  }
+  if (type === "application/octet-stream" && safeLower.endsWith(".webm")) {
+    type = "video/webm";
+  }
+  if (
+    type === "application/octet-stream" &&
+    (safeLower.endsWith(".mov") || safeLower.endsWith(".qt"))
+  ) {
+    type = "video/quicktime";
   }
   if (!ALLOWED.has(type)) {
     return NextResponse.json({ error: "Unsupported file type" }, { status: 400 });

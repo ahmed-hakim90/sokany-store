@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { Readable } from "node:stream";
 import { getAdminStorageBucket } from "@/lib/firebase-admin";
 import { isSafeCmsObjectPath } from "@/lib/cms-file-path";
 
@@ -10,7 +11,7 @@ type RouteContext = { params: Promise<{ path?: string[] }> };
  * بث الملفات المرفوعة عبر تخزين الـ CMS بروابط الموقع:
  * `GET /api/m/<بعد-cms/>`  ← يوافق المسار `cms/<...>` في التخزين
  */
-export async function GET(_request: Request, context: RouteContext) {
+export async function GET(request: Request, context: RouteContext) {
   if (!process.env.FIREBASE_SERVICE_ACCOUNT_JSON?.trim()) {
     return NextResponse.json({ error: "Service unavailable" }, { status: 503 });
   }
@@ -47,12 +48,41 @@ export async function GET(_request: Request, context: RouteContext) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
     const [metadata] = await file.getMetadata();
-    const [buf] = await file.download();
     const contentType = metadata.contentType || "application/octet-stream";
+    const size = Number(metadata.size ?? 0);
+    const range = request.headers.get("range");
+
+    if (range && Number.isFinite(size) && size > 0) {
+      const match = range.match(/bytes=(\d*)-(\d*)/);
+      if (match) {
+        const start = match[1] ? Number(match[1]) : 0;
+        const end = match[2] ? Number(match[2]) : size - 1;
+        const safeStart = Math.max(0, Math.min(start, size - 1));
+        const safeEnd = Math.max(safeStart, Math.min(end, size - 1));
+        const stream = Readable.toWeb(
+          file.createReadStream({ start: safeStart, end: safeEnd }),
+        );
+        return new NextResponse(stream as BodyInit, {
+          status: 206,
+          headers: {
+            "Content-Type": contentType,
+            "Content-Length": String(safeEnd - safeStart + 1),
+            "Content-Range": `bytes ${safeStart}-${safeEnd}/${size}`,
+            "Accept-Ranges": "bytes",
+            "Cache-Control": "public, max-age=0, must-revalidate",
+            "X-Content-Type-Options": "nosniff",
+          },
+        });
+      }
+    }
+
+    const [buf] = await file.download();
     return new NextResponse(new Uint8Array(buf), {
       status: 200,
       headers: {
         "Content-Type": contentType,
+        ...(Number.isFinite(size) && size > 0 ? { "Content-Length": String(size) } : {}),
+        "Accept-Ranges": "bytes",
         // نفس المسار قد يُستبدل بمحتوى جديد
         "Cache-Control": "public, max-age=0, must-revalidate",
         "X-Content-Type-Options": "nosniff",

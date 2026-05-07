@@ -1,5 +1,6 @@
 "use client";
 
+import { useSyncExternalStore } from "react";
 import { useTransitionRouter } from "next-view-transitions";
 import { Button } from "@/components/Button";
 import { Container } from "@/components/Container";
@@ -23,11 +24,25 @@ import { useCategories } from "@/features/categories/hooks/useCategories";
 import { HomeFlashSaleCountdownStrip } from "@/features/home/components/home-flash-sale-countdown";
 import { useProducts } from "@/features/products/hooks/useProducts";
 import type {
+  CmsHomeFeatureVideo,
   CmsHomeCategoryScroller,
   CmsHomeProductSection,
   CmsHomeProductSectionsMode,
 } from "@/schemas/cms";
 import { HomeCustomProductSections } from "@/features/home/components/home-custom-product-sections";
+import { HomeFeatureVideo } from "@/features/home/components/home-feature-video";
+
+function subscribeHydrationSnapshot() {
+  return () => {};
+}
+
+function getHydratedSnapshot() {
+  return true;
+}
+
+function getServerHydrationSnapshot() {
+  return false;
+}
 
 /*
  * الصفحة الرئيسية (/): عمود واحد داخل Container بمسافات رأسية تتسع تدريجياً (sm → md).
@@ -64,6 +79,8 @@ export type HomePageContentProps = {
    * سكroller صور التصنيفات تحت الهيرو — ‎`sectionVisible`‎ من ‎/control يتحكم في الإظهار.
    */
   homeCategoryScroller?: CmsHomeCategoryScroller;
+  /** فيديو مميز من لوحة التحكم مع موضع قابل للتغيير. */
+  homeFeatureVideo?: CmsHomeFeatureVideo;
   /** من ‎`site_config`‎ — الافتراضي ‎`auto`‎ عند الغياب. */
   homeProductSectionsMode?: CmsHomeProductSectionsMode;
   homeProductSections?: CmsHomeProductSection[];
@@ -83,6 +100,7 @@ export function HomePageContent({
   flashSaleSectionEnabled = true,
   promoFlash,
   homeBottomPromo = DEFAULT_BOTTOM_PROMO,
+  homeFeatureVideo,
   homeProductSectionsMode = "auto",
   homeProductSections = [],
 }: HomePageContentProps) {
@@ -99,19 +117,32 @@ export function HomePageContent({
     order: "desc",
   });
   const categories = useCategories({ per_page: 100 });
+  const hasMounted = useSyncExternalStore(
+    subscribeHydrationSnapshot,
+    getHydratedSnapshot,
+    getServerHydrationSnapshot,
+  );
   const homeBestsellers = useProducts({
     per_page: 12,
     orderby: "popularity",
     order: "desc",
   });
   const { getCartLineQuantity, setProductLineQuantity } = useCart();
+  const renderFeatureVideo = (placement: CmsHomeFeatureVideo["placement"]) =>
+    homeFeatureVideo?.enabled && homeFeatureVideo.placement === placement ? (
+      <ScrollReveal>
+        <HomeFeatureVideo video={homeFeatureVideo} />
+      </ScrollReveal>
+    ) : null;
 
   return (
     <div className="animate-fade-in bg-page max-lg:!bg-transparent">
       <Container className="space-y-5 pb-8  sm:space-y-6 sm:pb-10">
         <h1 className="sr-only">سوكاني المصرية - متجر أجهزة سوكاني في مصر</h1>
+        {renderFeatureVideo("top")}
         {/* أعلى الصفحة: شرائح هيرو ديناميكية تُقرأ من /public/images/hero */}
         {heroSlides.length > 0 ? <HomeHeroBanner slides={heroSlides} /> : null}
+        {renderFeatureVideo("afterHero")}
 
         {/* {homeCategoryScroller.sectionVisible ? (
           <ScrollReveal>
@@ -170,11 +201,13 @@ export function HomePageContent({
             />
           </ScrollReveal>
         ) : null}
+        {renderFeatureVideo("afterFlashSales")}
 
         {/* كبسولة خدمات: أربع عناصر في سطر واحد — نفس الشكل على كل الشاشات */}
         <ScrollReveal>
           <HomeMobileServicesCapsule />
         </ScrollReveal>
+        {renderFeatureVideo("afterServices")}
 
         {/* بعد المميزات: بطاقة ترويج كاملة العرض (حصرياً) — باقي أقسام الصفحة تليها */}
         <ScrollReveal>
@@ -189,6 +222,7 @@ export function HomePageContent({
             imagePriority
           />
         </ScrollReveal>
+        {renderFeatureVideo("afterPromo")}
 
         {/* قسم الأكثر مبيعاً: عنوان وسطي + شبكة منتجات (٢ / ٣ / ٤ أعمدة حسب الشاشة) */}
         <ScrollReveal
@@ -301,14 +335,14 @@ export function HomePageContent({
         {homeProductSectionsMode === "custom" || homeProductSectionsMode === "hybrid" ? (
           <HomeCustomProductSections
             sections={homeProductSections}
-            categories={categories.data ?? []}
+            categories={hasMounted ? (categories.data ?? []) : []}
             getCartLineQuantity={getCartLineQuantity}
             onCartLineQuantityChange={setProductLineQuantity}
           />
         ) : null}
 
         {homeProductSectionsMode === "auto" || homeProductSectionsMode === "hybrid" ? (
-          categories.isPending ? (
+          !hasMounted || categories.isPending ? (
             <ScrollReveal>
               <HomeParentCategorySectionsSkeleton
                 getCartLineQuantity={getCartLineQuantity}

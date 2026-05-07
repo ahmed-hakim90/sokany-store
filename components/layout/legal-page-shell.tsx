@@ -5,14 +5,25 @@ type LegalPageShellProps = {
   children: React.ReactNode;
   /** عرض العمود (افتراضي: نفس صفحات الشروط). */
   containerClassName?: string;
-};
+} & React.HTMLAttributes<HTMLDivElement>;
 
 /**
  * غلاف موحّد لصفحات المعلومات القانونية و«تواصل معنا»: خلفية الصفحة بتدرج خفيف + بطاقة بيضاء بحدود وظل.
  */
-export function LegalPageShell({ children, containerClassName }: LegalPageShellProps) {
+export function LegalPageShell({
+  children,
+  containerClassName,
+  className,
+  ...props
+}: LegalPageShellProps) {
   return (
-    <div className="bg-page bg-gradient-to-b from-page via-[#e8edf5] to-page pb-10 pt-6 md:pb-16 md:pt-10">
+    <div
+      className={cn(
+        "bg-page bg-gradient-to-b from-page via-[#e8edf5] to-page pb-10 pt-6 md:pb-16 md:pt-10",
+        className,
+      )}
+      {...props}
+    >
       <Container className={cn("mx-auto", containerClassName ?? "max-w-3xl")}>
         <div
           className={cn(

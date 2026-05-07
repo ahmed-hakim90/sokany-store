@@ -8,6 +8,8 @@ type OfficialWpPageContentProps = {
   slug: string;
   /** Override H1 when WP title is English but we want Arabic SEO label. */
   heading?: string;
+  /** Convert official WP post links in imported HTML to local storefront routes. */
+  internalPostBasePath?: string;
 };
 
 /*
@@ -17,14 +19,20 @@ type OfficialWpPageContentProps = {
  * — الجسم: `prose` (Typography) + `dir="rtl"`؛ جدول/خرائط داخل حاوية `overflow-x-auto` لتجنب السكرول الأفقي للصفحة.
  * — الاستجابة: حشو البطاقة `p-5 sm:p-8 md:p-10`؛ نص المقال `prose-sm sm:prose-base`.
  */
-export async function OfficialWpPageContent({ slug, heading }: OfficialWpPageContentProps) {
-  const page = await fetchSokanyWpPage(slug);
+export async function OfficialWpPageContent({
+  slug,
+  heading,
+  internalPostBasePath,
+}: OfficialWpPageContentProps) {
+  const page = await fetchSokanyWpPage(slug, { internalPostBasePath });
   const title = heading ?? page?.title ?? "المحتوى";
 
   if (!page?.html) {
     return (
-      <LegalPageShell>
-        <h1 className="font-display text-2xl font-bold text-brand-950 md:text-3xl">{title}</h1>
+      <LegalPageShell dir="rtl" lang="ar">
+        <h1 className="text-right font-display text-2xl font-bold text-brand-950 md:text-3xl">
+          {title}
+        </h1>
         <p className="mt-4 text-[15px] leading-relaxed text-muted-foreground sm:text-base">
           تعذّر تحميل المحتوى من الموقع الرسمي مؤقتاً. يمكنك{" "}
           <a
@@ -42,9 +50,11 @@ export async function OfficialWpPageContent({ slug, heading }: OfficialWpPageCon
   }
 
   return (
-    <LegalPageShell>
+    <LegalPageShell dir="rtl" lang="ar">
       <header className="mb-6 border-b border-border/80 pb-6 sm:mb-8">
-        <h1 className="font-display text-2xl font-bold text-brand-950 md:text-3xl">{title}</h1>
+        <h1 className="text-right font-display text-2xl font-bold text-brand-950 md:text-3xl">
+          {title}
+        </h1>
       </header>
 
       <div className="min-w-0 overflow-x-auto [-webkit-overflow-scrolling:touch]">

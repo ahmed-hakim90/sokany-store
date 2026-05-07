@@ -4,7 +4,7 @@ import remarkGfm from "remark-gfm";
 import { cn } from "@/lib/utils";
 import type { Product } from "@/features/products/types";
 import {
-  getProductVideoUrl,
+  getProductVideoEmbed,
   removeRawUrls,
 } from "@/features/products/lib/product-merchandising";
 
@@ -135,10 +135,10 @@ export function ProductDetailDescriptionBlocks({
 }) {
   const rawBody = product.description.trim() || product.shortDescription.trim();
   const body = removeRawUrls(rawBody);
-  const videoUrl = getProductVideoUrl(product);
+  const video = getProductVideoEmbed(product);
   const parsed = parseSimpleDetailRows(body);
 
-  if (!body && !videoUrl) return null;
+  if (!body && !video) return null;
 
   return (
     <div className={cn(className)}>
@@ -148,17 +148,44 @@ export function ProductDetailDescriptionBlocks({
       >
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="font-display text-lg font-bold text-brand-950">عن المنتج</h2>
-          {videoUrl ? (
+          {video ? (
             <a
-              href={videoUrl}
+              href={video.sourceUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex h-9 items-center justify-center rounded-full border border-brand-200 bg-brand-50 px-3 text-xs font-bold text-brand-950 transition-colors hover:bg-brand-100"
             >
-              شاهد فيديو المنتج
+              فتح الفيديو
             </a>
           ) : null}
         </div>
+        {video ? (
+          <div className="mt-4 overflow-hidden rounded-2xl border border-slate-200 bg-black shadow-[0_12px_34px_-22px_rgba(15,23,42,0.45)]">
+            {video.kind === "video" ? (
+              <video
+                className="aspect-video h-auto w-full bg-black"
+                controls
+                autoPlay
+                muted
+                playsInline
+                preload="metadata"
+                aria-label="فيديو المنتج"
+              >
+                <source src={video.embedUrl} />
+                متصفحك لا يدعم تشغيل الفيديو.
+              </video>
+            ) : (
+              <iframe
+                className="aspect-video w-full bg-black"
+                src={video.embedUrl}
+                title={video.title}
+                loading="eager"
+                allow="autoplay; encrypted-media; picture-in-picture; fullscreen; clipboard-write"
+                allowFullScreen
+              />
+            )}
+          </div>
+        ) : null}
         {parsed.rows.length > 0 ? (
           <div className="mt-4 overflow-hidden rounded-2xl border border-border/80 bg-white">
             <dl className="divide-y divide-border/70">

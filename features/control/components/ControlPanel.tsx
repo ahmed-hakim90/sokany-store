@@ -48,11 +48,14 @@ import type {
   CmsSectionBannersDoc,
   CmsRetailersDoc,
   CmsSpotlightsDoc,
+  CmsHomeFeatureVideo,
 } from "@/schemas/cms";
 import {
+  CMS_DEFAULT_HOME_FEATURE_VIDEO,
   CMS_DEFAULT_TOP_ANNOUNCEMENT_BAR,
   CMS_DEFAULT_HEADER_CATEGORY_STRIP,
   CMS_DEFAULT_HOME_CATEGORY_SCROLLER,
+  cmsHomeFeatureVideoSchema,
   cmsHeaderCategoryStripSchema,
   cmsHomeCategoryScrollerSchema,
   cmsHomeHeroDocSchema,
@@ -763,6 +766,12 @@ export function ControlPanel() {
     subline: "",
   };
   const ann = site?.topAnnouncementBar ?? CMS_DEFAULT_TOP_ANNOUNCEMENT_BAR;
+  const homeFeatureVideoParsed = cmsHomeFeatureVideoSchema.safeParse(
+    site?.homeFeatureVideo ?? CMS_DEFAULT_HOME_FEATURE_VIDEO,
+  );
+  const homeFeatureVideo: CmsHomeFeatureVideo = homeFeatureVideoParsed.success
+    ? homeFeatureVideoParsed.data
+    : CMS_DEFAULT_HOME_FEATURE_VIDEO;
 
   const homeHeroParsed = cmsHomeHeroDocSchema.safeParse(bundle.home_hero ?? { slides: [] });
   const homeHero: CmsHomeHeroDoc = homeHeroParsed.success
@@ -1512,6 +1521,90 @@ export function ControlPanel() {
 
       {tab === "home" ? (
         <section className="space-y-6">
+          <section className="space-y-4 rounded-2xl border border-border bg-white p-5 shadow-sm">
+            <div>
+              <h2 className="font-display text-lg font-bold">فيديو الصفحة الرئيسية</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                فيديو يعمل تلقائياً مكتوماً. ادعم رابط ملف مباشر (mp4/webm) — أو رابط يوتيوب/فيميو وسيتم عرضه ببلاير المنصّة.
+              </p>
+            </div>
+            <form
+              className="grid gap-3 sm:grid-cols-2"
+              onSubmit={(e) => {
+                e.preventDefault();
+                const fd = new FormData(e.currentTarget);
+                const doc = {
+                  enabled: fd.get("enabled") === "on",
+                  videoUrl: String(fd.get("videoUrl") ?? "").trim(),
+                  posterImageUrl: String(fd.get("posterImageUrl") ?? "").trim(),
+                  placement: String(fd.get("placement") ?? "afterHero"),
+                };
+                const parsed = cmsHomeFeatureVideoSchema.safeParse(doc);
+                if (!parsed.success) {
+                  toast.error(parsed.error.issues.map((i) => i.message).join(" — "));
+                  return;
+                }
+                void saveSiteConfig({ homeFeatureVideo: parsed.data });
+              }}
+            >
+              <label className="flex items-center gap-2 sm:col-span-2">
+                <input
+                  type="checkbox"
+                  name="enabled"
+                  defaultChecked={homeFeatureVideo.enabled}
+                />
+                <span>إظهار الفيديو في الصفحة الرئيسية</span>
+              </label>
+              <div className="sm:col-span-2">
+                <label className="text-sm font-medium">رابط الفيديو</label>
+                <ControlFieldHelp>
+                  ملف فيديو مباشر (mp4/webm) من الوسائط أو CDN — أو رابط يوتيوب (youtu.be / youtube.com) أو فيميو (vimeo.com). روابط يوتيوب/فيميو تعرض ببلاير المنصّة لتشغيل الصوت.
+                </ControlFieldHelp>
+                <input
+                  name="videoUrl"
+                  defaultValue={homeFeatureVideo.videoUrl}
+                  dir="ltr"
+                  placeholder="https://.../video.mp4 أو https://youtu.be/..."
+                  className="mt-1 w-full rounded-lg border border-border px-3 py-2 font-mono text-sm"
+                />
+              </div>
+              <ControlImageUrlField
+                className="sm:col-span-2"
+                name="posterImageUrl"
+                label="صورة قبل تحميل الفيديو"
+                helper="اختياري: صورة تظهر قبل تحميل أول فريم من الفيديو."
+                defaultValue={homeFeatureVideo.posterImageUrl}
+                disabled={saving === "site_config"}
+              />
+              <div className="sm:col-span-2">
+                <label className="text-sm font-medium">مكان الفيديو</label>
+                <select
+                  name="placement"
+                  defaultValue={homeFeatureVideo.placement}
+                  className="mt-1 min-h-11 w-full rounded-lg border border-border bg-white px-3 py-2"
+                >
+                  <option value="top">بداية الصفحة قبل الهيرو</option>
+                  <option value="afterHero">بعد الهيرو مباشرة</option>
+                  <option value="afterFlashSales">بعد العروض السريعة</option>
+                  <option value="afterServices">بعد كبسولة الخدمات</option>
+                  <option value="afterPromo">بعد البانر الترويجي</option>
+                </select>
+              </div>
+              <div className="flex flex-wrap gap-2 sm:col-span-2">
+                <Button type="submit" disabled={saving === "site_config"}>
+                  {saving === "site_config" ? "جاري الحفظ…" : "حفظ إعدادات الفيديو"}
+                </Button>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  disabled={saving === "site_config"}
+                  onClick={() => void saveSiteConfig({ homeFeatureVideo: CMS_DEFAULT_HOME_FEATURE_VIDEO })}
+                >
+                  إخفاء ومسح الفيديو
+                </Button>
+              </div>
+            </form>
+          </section>
           <HomeProductSectionsForm
             key={JSON.stringify({
               m: site?.homeProductSectionsMode,

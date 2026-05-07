@@ -28,8 +28,6 @@ export type ProductGalleryProps = {
   onActiveImageChange?: (src: string) => void;
 };
 
-const THUMB_MAX_INLINE = 4;
-
 export const ProductGallery = forwardRef<HTMLDivElement, ProductGalleryProps>(
   function ProductGallery(
     {
@@ -82,10 +80,6 @@ export const ProductGallery = forwardRef<HTMLDivElement, ProductGalleryProps>(
       onTap: () => setLightboxOpen(true),
     });
 
-    const overflowCount = list.length > THUMB_MAX_INLINE ? list.length - (THUMB_MAX_INLINE - 1) : 0;
-    const showOverflowTile = overflowCount > 0;
-    const thumbSlice = showOverflowTile ? list.slice(0, THUMB_MAX_INLINE - 1) : list;
-
     const lightbox =
       lightboxOpen && typeof document !== "undefined"
         ? createPortal(
@@ -106,28 +100,18 @@ export const ProductGallery = forwardRef<HTMLDivElement, ProductGalleryProps>(
       <div
         className={cn(
           "flex touch-pan-x gap-2 overflow-x-auto scroll-smooth pb-1 [-ms-overflow-style:none] [scrollbar-width:none] snap-x snap-mandatory [&::-webkit-scrollbar]:hidden",
-          "lg:h-full lg:min-h-0 lg:w-[4.5rem] lg:snap-none lg:flex-col lg:touch-pan-y lg:overflow-y-auto lg:overflow-x-hidden lg:pb-0 lg:pt-0",
+          "lg:flex-col lg:h-full lg:max-h-full lg:min-h-0 lg:w-[5rem] lg:snap-none lg:touch-pan-y lg:overflow-y-auto lg:overflow-x-hidden lg:pb-0 lg:pt-0",
         )}
         style={{ WebkitOverflowScrolling: "touch" }}
         aria-label="معاينات صور المنتج"
       >
-        {showOverflowTile ? (
-          <button
-            type="button"
-            aria-label={`عرض ${overflowCount} صور إضافية`}
-            className="relative h-[4.25rem] w-[4.25rem] shrink-0 snap-start overflow-hidden rounded-xl border-2 border-dashed border-brand-400/70 bg-brand-50/90 text-[0.95rem] font-bold text-brand-900 transition-[border-color,ring] hover:border-brand-500 hover:bg-brand-100 lg:w-full"
-            onClick={() => setActiveSrc(list[THUMB_MAX_INLINE - 1]?.src ?? list[0].src)}
-          >
-            <span className="flex h-full items-center justify-center">+{overflowCount}</span>
-          </button>
-        ) : null}
-        {thumbSlice.map((img) => (
+        {list.map((img) => (
           <button
             key={img.id}
             type="button"
             aria-label={`عرض صورة ${img.alt || productName}`}
             className={cn(
-              "relative h-[4.25rem] w-[4.25rem] shrink-0 snap-start overflow-hidden rounded-xl border border-border bg-image-well transition-[border-color,ring] lg:w-full",
+              "relative h-[4.25rem] w-[4.25rem] shrink-0 snap-start overflow-hidden rounded-xl border border-border bg-image-well transition-[border-color,ring] lg:h-[5rem] lg:w-full",
               activeSrc === img.src
                 ? "border-brand-900 ring-2 ring-brand-500/40"
                 : "border-brand-100 hover:border-brand-300",

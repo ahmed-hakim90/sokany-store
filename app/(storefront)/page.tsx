@@ -114,6 +114,7 @@ export default async function Home() {
           headline: content.promoFlash.headline,
           subline: content.promoFlash.subline,
         }}
+        homeFeatureVideo={content.homeFeatureVideo}
         homeBottomPromo={homeBottomPromo}
         homeCategoryScroller={content.homeCategoryScroller}
         homeProductSectionsMode={content.homeProductSectionsMode}

@@ -87,7 +87,7 @@ export const ROUTES = {
   TERMS: "/terms",
   /** سياسة الإرجاع — slug: returns. */
   RETURNS_POLICY: "/returns",
-  /** الصيانة والضمان — slug: warranty-and-maintenance. */
+  /** طرق الاستخدام — WP page slug: warranty-and-maintenance. */
   WARRANTY: "/warranty",
   /** سياسة الخصوصية — slug: privcy-policy (إملاء الموقع الأصلي). */
   PRIVACY: "/privacy",

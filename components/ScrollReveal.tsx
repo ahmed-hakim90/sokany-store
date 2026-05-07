@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useReducedMotion, type HTMLMotionProps } from "framer-motion";
+import { motion, type HTMLMotionProps } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 const motionProps: Pick<
@@ -25,20 +25,10 @@ export type ScrollRevealProps = {
 
 /**
  * يلتقط القسم عند اقترابه من نافذة العرض (سكرول) ويُظهره بانتقال خفيف.
- * عند ‎`prefers-reduced-motion`‎ يُعرض المحتوى ثابتاً.
+ * نحافظ على نفس عنصر الـ motion في SSR وأول render للعميل لتجنب hydration mismatch.
+ * Framer Motion يتعامل مع تقليل الحركة عبر إعداداته العامة إن وُجدت.
  */
 export function ScrollReveal({ children, className, as = "div", ...a11y }: ScrollRevealProps) {
-  const reduceMotion = useReducedMotion();
-
-  if (reduceMotion) {
-    const Static = as;
-    return (
-      <Static className={className} {...a11y}>
-        {children}
-      </Static>
-    );
-  }
-
   const Motion = as === "section" ? motion.section : motion.div;
 
   return (

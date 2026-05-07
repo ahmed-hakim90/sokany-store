@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { BadgeCheck, ShieldCheck } from "lucide-react";
+import { BadgeCheck, CirclePlay, ShieldCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "next-view-transitions";
@@ -17,6 +17,7 @@ import {
   ROUTES,
 } from "@/lib/constants";
 import { getProductCardSalesCountText } from "@/features/products/lib/product-card-sales-count";
+import { getProductVideoEmbed } from "@/features/products/lib/product-merchandising";
 import { playCartFlyAnimation } from "@/lib/cart-fly-animation";
 import { usePrefetchProduct } from "@/features/products/hooks/usePrefetchProduct";
 import { ProductQuickViewModal } from "@/features/products/components/product-quick-view-modal";
@@ -138,6 +139,10 @@ export function ProductCard({
   const isDetailed = variant === "detailed";
   const priceCompact = !isDetailed;
   const saleDiscount = saleDiscountPercent(product);
+  const hasProductVideo = useMemo(
+    () => getProductVideoEmbed(product) !== null,
+    [product],
+  );
   const salesCountLine = useMemo(
     () => getProductCardSalesCountText(product, PRODUCT_CARD_SHOW_SALES_COUNT),
     [product],
@@ -425,6 +430,22 @@ export function ProductCard({
             <div className="absolute right-2 top-2 z-[4]">
               {wishlistSlot}
             </div>
+          ) : null}
+          {hasProductVideo ? (
+            <span
+              className={cn(
+                "pointer-events-none absolute z-[4] inline-flex h-7 items-center gap-1 rounded-full border border-white/70 bg-slate-950/88 px-2 text-[10px] font-extrabold leading-none text-white shadow-md shadow-slate-900/20 backdrop-blur-sm",
+                isDetailed
+                  ? wishlistSlot
+                    ? "bottom-2 right-2"
+                    : "right-2 top-2"
+                  : "bottom-2 left-2",
+              )}
+              aria-label="هذا المنتج له فيديو"
+            >
+              <CirclePlay className="h-3.5 w-3.5 shrink-0 text-brand-300" aria-hidden />
+              <span>فيديو</span>
+            </span>
           ) : null}
           {!isDetailed && merchandising.productCardBadgeEnabled ? (
             <span className="pointer-events-none absolute bottom-2 right-2 z-[3] inline-flex max-w-[calc(100%-1rem)] items-center gap-1 rounded-full bg-white/92 px-2 py-1 text-[9px] font-extrabold leading-none text-slate-950 shadow-sm ring-1 ring-slate-200/90 backdrop-blur-sm sm:text-[10px]">

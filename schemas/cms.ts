@@ -177,6 +177,57 @@ export const CMS_DEFAULT_HOME_CATEGORY_SCROLLER: CmsHomeCategoryScroller = {
   items: [],
 };
 
+export const cmsHomeFeatureVideoPlacementSchema = z.enum([
+  "top",
+  "afterHero",
+  "afterFlashSales",
+  "afterServices",
+  "afterPromo",
+]);
+
+export type CmsHomeFeatureVideoPlacement = z.infer<
+  typeof cmsHomeFeatureVideoPlacementSchema
+>;
+
+const publicAssetOrUrlSchema = z
+  .string()
+  .max(800)
+  .refine(
+    (value) => {
+      const t = value.trim();
+      if (!t) return true;
+      if (t.startsWith("/") && !t.startsWith("//") && !t.includes("..")) return true;
+      try {
+        const url = new URL(t);
+        return url.protocol === "https:" || url.protocol === "http:";
+      } catch {
+        return false;
+      }
+    },
+    "استخدم رابط URL صالح أو مسار داخلي يبدأ بـ /",
+  );
+
+export const cmsHomeFeatureVideoSchema = z
+  .object({
+    enabled: z.boolean(),
+    videoUrl: publicAssetOrUrlSchema.default(""),
+    posterImageUrl: publicAssetOrUrlSchema.default(""),
+    placement: cmsHomeFeatureVideoPlacementSchema.default("afterHero"),
+  })
+  .refine((value) => !value.enabled || value.videoUrl.trim().length > 0, {
+    path: ["videoUrl"],
+    message: "رابط الفيديو مطلوب عند تفعيل الفيديو",
+  });
+
+export type CmsHomeFeatureVideo = z.infer<typeof cmsHomeFeatureVideoSchema>;
+
+export const CMS_DEFAULT_HOME_FEATURE_VIDEO: CmsHomeFeatureVideo = {
+  enabled: false,
+  videoUrl: "",
+  posterImageUrl: "",
+  placement: "afterHero",
+};
+
 /**
  * `site_config` عبر `safeParse` — `headerCategoryStrip` / `homeCategoryScroller` يُتحققان لاحقاً
  * بـ schemata منفصلة حتى لا تفسد قيمة قديمة باقي الحقول.
@@ -242,6 +293,7 @@ export const cmsSiteConfigDocSchema = z.object({
   searchQuickKeywords: cmsSearchQuickKeywordsSchema,
   headerCategoryStrip: z.any().optional(),
   homeCategoryScroller: z.any().optional(),
+  homeFeatureVideo: cmsHomeFeatureVideoSchema.optional(),
   homeProductSectionsMode: cmsHomeProductSectionsModeSchema.optional(),
   homeProductSections: cmsHomeProductSectionsArraySchema.optional(),
   /** عناوين وقراءة عامة مدارة من `/control` — بلا أسرار. */

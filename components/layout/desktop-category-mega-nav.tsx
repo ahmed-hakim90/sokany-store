@@ -1,7 +1,7 @@
 "use client";
 
 /*
- * شريط تصنيفات الديسكتوب (صف ثانٍ تحت اللوجو/البحث) + ميجا مينو عند الـ hover.
+ * شريط تصنيفات الديسكتوب (صف ثانٍ تحت اللوجو/البحث) + ميجا مينو للأقسام عند الـ hover؛ «خدماتنا» تفتح بالضغط فقط.
  * — الصف: «الرئيسية» ثم **تصنيفات جذرية من API** (parent=0 وعدّ منتجات >0، مُحدّاة) ثم «العروض» ثم روابط ثابتة؛ يمين: سوشيال + «تواصل معنا» + «خدماتنا».
  * — الميجا: شبكة ثلاثية (فرعية · أولوية تسوق · صورة) مبنيّة من نفس ‎`categories`‎ (بالـ slug) أو لوحة عروض.
  * — الـ lg فقط؛ الموبايل يبقى على الدرج.
@@ -426,10 +426,12 @@ export function DesktopCategoryMegaNav({
               <div
                 className="relative"
                 onMouseEnter={() => {
+                  setMoreOpen(false);
                   if (isMega) setOpenKey(item.key);
                   else setOpenKey(null);
                 }}
                 onFocus={() => {
+                  setMoreOpen(false);
                   if (isMega) setOpenKey(item.key);
                   else setOpenKey(null);
                 }}
@@ -501,12 +503,7 @@ export function DesktopCategoryMegaNav({
           >
             تواصل معنا
           </Link>
-          <div
-            ref={moreRef}
-            className="relative py-1.5"
-            onMouseEnter={() => setMoreOpen(true)}
-            onMouseLeave={() => setMoreOpen(false)}
-          >
+          <div ref={moreRef} className="relative py-1.5">
             <button
               type="button"
               className={cn(
@@ -515,14 +512,21 @@ export function DesktopCategoryMegaNav({
               )}
               aria-expanded={moreOpen}
               aria-haspopup="menu"
-              onClick={() => setMoreOpen((v) => !v)}
+              aria-controls={moreOpen ? `${baseId}-services-menu` : undefined}
+              id={`${baseId}-services-trigger`}
+              onClick={() => {
+                setOpenKey(null);
+                setMoreOpen((v) => !v);
+              }}
             >
               خدماتنا
               <ChevronDownGlyph className="h-4 w-4 opacity-70" />
             </button>
             {moreOpen ? (
               <div
+                id={`${baseId}-services-menu`}
                 role="menu"
+                aria-labelledby={`${baseId}-services-trigger`}
                 className="absolute end-0 top-full z-[60] mt-1 min-w-[12rem] rounded-xl border border-border/80 bg-white py-1.5 shadow-lg"
               >
                 {moreLinks.map((l) => (

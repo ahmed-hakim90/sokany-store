@@ -17,6 +17,7 @@ import { PriceText } from "@/components/ui/price-text";
 import { QtyControl } from "@/components/ui/qty-control";
 import { ProductDetailBreadcrumbs } from "@/features/products/components/product-detail-breadcrumbs";
 import { ProductDetailDescriptionBlocks } from "@/features/products/components/product-detail-description-blocks";
+import { ProductDetailImageGallery } from "@/features/products/components/product-detail-image-gallery";
 import {
   ProductSpecsList,
   type ProductSpecItem,
@@ -33,6 +34,12 @@ function savePercent(product: Product): number | null {
   if (product.regularPrice <= product.price) return null;
   return Math.round((1 - product.price / product.regularPrice) * 100);
 }
+
+const policyIconClass =
+  "flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl shadow-sm";
+const policyTitleClass =
+  "font-display text-sm font-extrabold leading-snug text-brand-950 sm:text-[15px]";
+const policyBodyClass = "mt-1 block text-xs leading-5 text-slate-600";
 
 export const ProductDetailInfoColumn = forwardRef<
   HTMLDivElement,
@@ -196,10 +203,10 @@ export const ProductDetailInfoColumn = forwardRef<
 
         {merchandising.productCardBadgeEnabled ? (
           <div className="flex items-center gap-3 border-b border-slate-100 bg-brand-50/40 px-4 py-3">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-brand-500 text-black shadow-sm">
+            <span className={cn(policyIconClass, "bg-brand-500 text-black")}>
               <BadgeCheck className="h-5 w-5" aria-hidden />
             </span>
-            <span className="min-w-0 text-sm font-black text-brand-950">
+            <span className={cn("min-w-0", policyTitleClass)}>
               {merchandising.productCardBadgeText}
             </span>
           </div>
@@ -207,20 +214,26 @@ export const ProductDetailInfoColumn = forwardRef<
 
         <div className="grid grid-cols-2 divide-x divide-x-reverse divide-slate-100 border-b border-slate-100 bg-slate-50/50">
           <div className="flex min-w-0 items-center gap-2.5 p-3 sm:p-4">
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-brand-900 shadow-sm ring-1 ring-slate-200/80">
+            <span
+              className={cn(
+                policyIconClass,
+                "bg-white text-brand-950 ring-1 ring-slate-200/80",
+              )}
+            >
               <Banknote className="h-[18px] w-[18px]" aria-hidden />
             </span>
-            <span className="text-xs font-bold leading-tight text-slate-900 sm:text-[13px]">
-              دفع عند الاستلام
-            </span>
+            <span className={policyTitleClass}>دفع عند الاستلام</span>
           </div>
           <div className="flex min-w-0 items-center gap-2.5 p-3 sm:p-4">
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-brand-900 shadow-sm ring-1 ring-slate-200/80">
+            <span
+              className={cn(
+                policyIconClass,
+                "bg-white text-brand-950 ring-1 ring-slate-200/80",
+              )}
+            >
               <Truck className="h-[18px] w-[18px]" aria-hidden />
             </span>
-            <span className="text-xs font-bold leading-tight text-slate-900 sm:text-[13px]">
-              شحن لجميع المحافظات
-            </span>
+            <span className={policyTitleClass}>شحن لجميع المحافظات</span>
           </div>
         </div>
 
@@ -229,14 +242,14 @@ export const ProductDetailInfoColumn = forwardRef<
             href={ROUTES.WARRANTY}
             className="group flex min-w-0 gap-3 p-4 transition-colors hover:bg-slate-50"
           >
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-brand-500 text-black shadow-sm">
+            <span className={cn(policyIconClass, "bg-brand-500 text-black")}>
               <ShieldCheck className="h-5 w-5" aria-hidden />
             </span>
             <span className="min-w-0">
-              <span className="block text-sm font-black text-slate-950">
+              <span className={cn("block", policyTitleClass)}>
                 ضمان الوكيل سنة ضد عيوب الصناعة
               </span>
-              <span className="mt-1 block text-xs leading-5 text-slate-600">
+              <span className={policyBodyClass}>
                 التفاصيل الكاملة في سياسة الضمان.
               </span>
             </span>
@@ -246,14 +259,14 @@ export const ProductDetailInfoColumn = forwardRef<
             href={ROUTES.RETURNS_POLICY}
             className="group flex min-w-0 gap-3 p-4 transition-colors hover:bg-slate-50"
           >
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-white shadow-sm">
+            <span className={cn(policyIconClass, "bg-brand-950 text-white")}>
               <RotateCcw className="h-5 w-5" aria-hidden />
             </span>
             <span className="min-w-0">
-              <span className="block text-sm font-black text-slate-950">
+              <span className={cn("block", policyTitleClass)}>
                 استبدال واسترجاع
               </span>
-              <span className="mt-1 block text-xs leading-5 text-slate-600">
+              <span className={policyBodyClass}>
                 حسب الشروط والحالة المذكورة في السياسة.
               </span>
             </span>
@@ -263,14 +276,21 @@ export const ProductDetailInfoColumn = forwardRef<
             href={ROUTES.SERVICE_CENTERS}
             className="group flex min-w-0 gap-3 p-4 transition-colors hover:bg-slate-50"
           >
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white text-brand-950 shadow-sm ring-1 ring-brand-200">
+            <span
+              className={cn(
+                policyIconClass,
+                "bg-white text-brand-950 ring-1 ring-brand-200",
+              )}
+            >
               <Building2 className="h-5 w-5" aria-hidden />
             </span>
             <span className="min-w-0">
-              <span className="block text-sm font-black text-slate-950">
-                {branchTotal > 0 ? `${branchTotal} فرع ومركز خدمة` : "فروع ومراكز خدمة"}
+              <span className={cn("block", policyTitleClass)}>
+                {branchTotal > 0
+                  ? `${branchTotal} فرع ومركز خدمة`
+                  : "فروع ومراكز خدمة"}
               </span>
-              <span className="mt-1 block text-xs leading-5 text-slate-600">
+              <span className={policyBodyClass}>
                 بيع وصيانة ودعم داخل مصر.
               </span>
             </span>
@@ -324,6 +344,8 @@ export const ProductDetailInfoColumn = forwardRef<
       />
 
       <ProductDetailDescriptionBlocks product={product} className="pt-2" />
+
+      <ProductDetailImageGallery product={product} />
     </div>
   );
 });
