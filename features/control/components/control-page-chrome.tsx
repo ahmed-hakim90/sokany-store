@@ -1,11 +1,216 @@
 "use client";
 
+import { useState } from "react";
 import type { LucideIcon } from "lucide-react";
 import { CheckCircle2, CircleDashed, Info } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 type Tone = "brand" | "emerald" | "amber" | "rose" | "slate";
+
+/**
+ * غلاف منطقة المحتوى الأساسية في صفحات /control الفرعية (max-w + spacing).
+ * كل من /control/dev و/control/woo-api كانت تكرر نفس الـwrapper يدويًا.
+ */
+export function ControlPageShell({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <div
+      className={cn(
+        "mx-auto w-full min-w-0 max-w-5xl px-4 py-6 sm:px-5 sm:py-8",
+        className,
+      )}
+    >
+      {children}
+    </div>
+  );
+}
+
+/**
+ * رأس صفحة موحّد: eyebrow + h1 + description + actions.
+ * يُستخدم في ControlPanel/CommandCenter/WooApiDashboard ليُعطي ثبات بصري واحد.
+ */
+export function ControlPageHeader({
+  eyebrow,
+  title,
+  description,
+  actions,
+  meta,
+  compact = false,
+  className,
+}: {
+  eyebrow: string;
+  title: string;
+  description?: string;
+  actions?: React.ReactNode;
+  /** عنصر إضافي قبل الأزرار (مثل شارة حالة). */
+  meta?: React.ReactNode;
+  /** نسخة مدمجة تستعمل داخل header بار `/control` (نفس البلاغة بحجم أصغر). */
+  compact?: boolean;
+  className?: string;
+}) {
+  return (
+    <div
+      className={cn(
+        "flex flex-col sm:flex-row sm:items-start sm:justify-between",
+        compact ? "gap-3" : "gap-4",
+        className,
+      )}
+    >
+      <div className="min-w-0">
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+          {eyebrow}
+        </p>
+        <h1
+          className={cn(
+            "font-display font-bold tracking-tight text-slate-900",
+            compact ? "text-2xl" : "text-2xl sm:text-3xl",
+          )}
+        >
+          {title}
+        </h1>
+        {description ? (
+          <p
+            className={cn(
+              "mt-1 text-sm text-slate-600",
+              compact ? undefined : "max-w-2xl",
+            )}
+          >
+            {description}
+          </p>
+        ) : null}
+      </div>
+      {actions || meta ? (
+        <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+          {meta}
+          {actions}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+/**
+ * كرت "كود + زر نسخ" — كان مكرر 4 مرات بـ useState/timeout خاص لكل مرة.
+ */
+export function CopyableCode({
+  value,
+  label,
+  description,
+  className,
+  buttonClassName,
+}: {
+  value: string;
+  /** نص الزر الافتراضي (قبل النسخ). */
+  label?: string;
+  description?: string;
+  className?: string;
+  buttonClassName?: string;
+}) {
+  const [copied, setCopied] = useCopyState();
+  const buttonLabel = label ?? "نسخ الرابط";
+  return (
+    <div
+      className={cn(
+        "flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between",
+        className,
+      )}
+    >
+      <div className="min-w-0">
+        {description ? (
+          <p className="text-xs font-medium text-slate-900">{description}</p>
+        ) : null}
+        <code
+          className="ltr mt-1 block min-w-0 break-all rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-left text-xs text-slate-800"
+          dir="ltr"
+        >
+          {value}
+        </code>
+      </div>
+      <Button
+        type="button"
+        variant="secondary"
+        className={cn(
+          "shrink-0 border-slate-200 bg-white text-sm shadow-sm",
+          buttonClassName,
+        )}
+        onClick={() => {
+          void navigator.clipboard.writeText(value);
+          setCopied();
+        }}
+      >
+        {copied ? "تم النسخ" : buttonLabel}
+      </Button>
+    </div>
+  );
+}
+
+function useCopyState(timeoutMs = 1500) {
+  const [copied, setCopiedState] = useState(false);
+  const setCopied = () => {
+    setCopiedState(true);
+    setTimeout(() => setCopiedState(false), timeoutMs);
+  };
+  return [copied, setCopied] as const;
+}
+
+/**
+ * نمط loading/error/empty للـpanels — كان متكرر بنفس النص ("جاري التحميل…")
+ * في 4 مواضع. غير ذلك المكوّن ينقل المسؤولية إلى children.
+ */
+export function ControlAsyncState({
+  loading,
+  error,
+  empty,
+  loadingLabel = "جاري التحميل…",
+  emptyLabel,
+  onRetry,
+  retryLabel = "إعادة المحاولة",
+  children,
+}: {
+  loading?: boolean;
+  error?: string | null;
+  empty?: boolean;
+  loadingLabel?: string;
+  emptyLabel?: string;
+  onRetry?: () => void;
+  retryLabel?: string;
+  children?: React.ReactNode;
+}) {
+  if (loading) {
+    return <p className="text-sm text-slate-500">{loadingLabel}</p>;
+  }
+  if (error) {
+    return (
+      <div className="rounded-lg border border-amber-200 bg-amber-50/60 p-3 text-sm text-amber-950">
+        {error}
+        {onRetry ? (
+          <div className="mt-2">
+            <Button
+              type="button"
+              size="sm"
+              variant="secondary"
+              onClick={onRetry}
+              className="border-slate-200 bg-white text-xs"
+            >
+              {retryLabel}
+            </Button>
+          </div>
+        ) : null}
+      </div>
+    );
+  }
+  if (empty) {
+    return <p className="text-sm text-slate-500">{emptyLabel ?? "لا توجد بيانات."}</p>;
+  }
+  return <>{children}</>;
+}
 
 const toneClasses: Record<Tone, string> = {
   brand: "border-brand-200/80 bg-brand-50/70 text-brand-950",

@@ -2,6 +2,10 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import {
+  ControlAsyncState,
+  CopyableCode,
+} from "@/features/control/components/control-page-chrome";
 import { SOKANY_WOO_WEBHOOK_RECIPES } from "@/features/woocommerce/woo-webhook-topics";
 
 type SwhRow = {
@@ -41,7 +45,6 @@ export function WooWebhooksPanel() {
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [syncResult, setSyncResult] = useState<PostRes | null>(null);
-  const [copied, setCopied] = useState(false);
 
   const load = useCallback(async () => {
     setErr(null);
@@ -100,22 +103,14 @@ export function WooWebhooksPanel() {
   const requiredTopics = SOKANY_WOO_WEBHOOK_RECIPES.map((r) => r.topic);
   const missing = requiredTopics.filter((t) => !topicsCovered.has(t));
 
-  if (loading) {
+  if (loading || err || !data) {
     return (
-      <p className="text-sm text-slate-500">جاري جلب الـ webhooks…</p>
+      <ControlAsyncState
+        loading={loading}
+        error={err}
+        loadingLabel="جاري جلب الـ webhooks…"
+      />
     );
-  }
-
-  if (err) {
-    return (
-      <div className="rounded-lg border border-amber-200 bg-amber-50/60 p-3 text-sm text-amber-950">
-        {err}
-      </div>
-    );
-  }
-
-  if (!data) {
-    return null;
   }
 
   return (
@@ -185,26 +180,11 @@ export function WooWebhooksPanel() {
         </div>
       ) : null}
 
-      <div className="mt-3 flex flex-col gap-2 rounded-xl border border-slate-200/80 bg-slate-50/70 p-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="min-w-0">
-          <p className="text-xs font-medium text-slate-900">الرابط الذي تستقبل عليه التحديثات</p>
-          <p className="mt-1 break-all font-mono text-[11px] text-slate-500" dir="ltr">
-            {data.deliveryUrl}
-          </p>
-        </div>
-        <Button
-          type="button"
-          variant="secondary"
-          className="border-slate-200 bg-white"
-          onClick={() => {
-            void navigator.clipboard.writeText(data.deliveryUrl);
-            setCopied(true);
-            setTimeout(() => setCopied(false), 1500);
-          }}
-        >
-          {copied ? "تم النسخ" : "نسخ الرابط"}
-        </Button>
-      </div>
+      <CopyableCode
+        className="mt-3 rounded-xl border border-slate-200/80 bg-slate-50/70 p-3"
+        description="الرابط الذي تستقبل عليه التحديثات"
+        value={data.deliveryUrl}
+      />
 
       <div className="mt-4 overflow-x-auto">
         <table className="w-full min-w-[300px] text-right text-sm">

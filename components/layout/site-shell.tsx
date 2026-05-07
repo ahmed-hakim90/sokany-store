@@ -40,8 +40,7 @@ export function SiteShell({
         productCardBadgeText: branding.productCardBadgeText,
       }}
     >
-      <MobileHeroLimeAtmosphere />
-      <div
+      <header
         id="site-sticky-header-stack"
         className="sticky top-0 z-50 pt-[env(safe-area-inset-top)] max-lg:bg-transparent"
       >
@@ -56,7 +55,7 @@ export function SiteShell({
           />
         </Suspense>
         <StorefrontHeaderCategoryStrip config={headerCategoryStrip} />
-      </div>
+      </header>
       <Suspense fallback={null}>
         <DesktopCartDrawer />
       </Suspense>
@@ -67,13 +66,13 @@ export function SiteShell({
         <CatalogFilterDrawer />
       </Suspense>
       {/*
-        ‎`MobileHeroLimeAtmosphere`‎: ‎`z-0` ليكون **خلف** ‎`main`‎ (‎`max-lg:z-1`‎)؛ ‎`main`‎ موبايل ‎`bg`‎ شفاف
-        حتى تظهر الهالة **خلف** المحتوى (مثل بانر الرئيسية). موبايل: هالة تتناقص مع السكرول/طي الشعار.
-        كتلة ‎`site-sticky-header-stack`‎: إعلان + Navbar + شريط اختصارات التصنيفات — لاصقة معاً (‎`sticky top-0 z-50`‎).
-        أول محتوى بعد الكتلة: pt-2 خفيف على أول طفل لـ main.
+        معالم الصفحة: ‎`<header>`‎ ثم ‎`<main>`‎ ثم الفوتر (‎`FooterGate`‎ → ‎`<footer>`‎).
+        ‎`MobileHeroLimeAtmosphere`‎ أول طفل داخل ‎`main`‎: ‎`fixed`‎ + ‎`aria-hidden`‎، ‎`z-0`‎ خلف المحتوى (‎`max-lg:z-1`‎).
+        موبايل: ‎`main`‎ بلا ‎`bg`‎ حتى تُرى الهالة خلف الهيرو؛ ‎`pt-2`‎ على غلاف المحتوى (وليس على الهالة).
       */}
-      <main className="flex min-h-0 min-w-0 max-w-none flex-1 flex-col max-lg:relative max-lg:z-[1] max-lg:!bg-transparent bg-page pb-mobile-commerce lg:pb-0 [&>*:first-child]:pt-2">
-        {children}
+      <main className="flex min-h-0 min-w-0 max-w-none flex-1 flex-col max-lg:relative max-lg:z-[1] max-lg:!bg-transparent bg-page pb-mobile-commerce lg:pb-0">
+        <MobileHeroLimeAtmosphere />
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col pt-2">{children}</div>
       </main>
       <FooterGate
         socialLinks={socialLinks}

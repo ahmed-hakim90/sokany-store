@@ -2,6 +2,7 @@ import "server-only";
 import axios, { isAxiosError, type AxiosError, type InternalAxiosRequestConfig } from "axios";
 import { WC_REST_BASE_PATH } from "@/lib/constants";
 import { resolveWooBaseUrlForServer } from "@/lib/resolve-woo-base-url";
+import { WOO_ENV_NOT_CONFIGURED_MESSAGE } from "@/lib/woo-env-errors";
 
 /** Avoid hanging until OS TCP gives up (often 60s+). */
 const WOO_REQUEST_TIMEOUT_MS = 25_000;
@@ -50,7 +51,7 @@ export async function createWooClient() {
   const key = process.env.WC_CONSUMER_KEY;
   const secret = process.env.WC_CONSUMER_SECRET;
   if (!baseURL || !key || !secret) {
-    throw new Error("WooCommerce server environment is not configured");
+    throw new Error(WOO_ENV_NOT_CONFIGURED_MESSAGE);
   }
   const token = Buffer.from(`${key}:${secret}`).toString("base64");
   const baseUrlForClient = new URL(WC_REST_BASE_PATH, baseURL).toString();

@@ -22,6 +22,10 @@ export type ProductGridProps = {
   gridClassName?: string;
   /** When set, overrides inferred behavior from `products` / slots. */
   status?: ProductGridStatus;
+  /** Placeholder cell count when `status === "loading"` — align with `per_page` to limit layout shift. @default 8 */
+  skeletonCount?: number;
+  /** First N cards request eager LCP-style image loading (`next/image` priority). @default 5 */
+  priorityImageSlots?: number;
   loading?: ReactNode;
   empty?: ReactNode;
   products?: Product[];
@@ -42,6 +46,8 @@ export function ProductGrid({
   className,
   gridClassName,
   status: statusProp,
+  skeletonCount = 8,
+  priorityImageSlots = 5,
   loading,
   empty,
   renderItem,
@@ -54,6 +60,7 @@ export function ProductGrid({
   const mdUp = useMinMd();
   const resolvedVariant =
     cardVariantMd !== undefined ? (mdUp ? cardVariantMd : cardVariant) : cardVariant;
+  const nSkeleton = Math.max(1, skeletonCount);
 
   if (status === "loading") {
     return (
@@ -61,7 +68,7 @@ export function ProductGrid({
         {leadingSlot ? <div className="min-w-0">{leadingSlot}</div> : null}
         {loading ?? (
           <>
-            {Array.from({ length: 8 }).map((_, i) => (
+            {Array.from({ length: nSkeleton }).map((_, i) => (
               <ProductSkeleton key={i} />
             ))}
           </>
@@ -86,7 +93,7 @@ export function ProductGrid({
           <ProductCard
             key={product.id}
             product={product}
-            imagePriority={index < 5}
+            imagePriority={index < priorityImageSlots}
             getCartLineQuantity={getCartLineQuantity}
             onCartLineQuantityChange={onCartLineQuantityChange}
             variant={resolvedVariant}

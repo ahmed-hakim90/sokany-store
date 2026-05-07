@@ -11,6 +11,7 @@ const FIREBASE_JS = "12.12.0";
  * لا نعترض طلبات التصفح (`navigate`) — الاعتراض + `respondWith(fetch)` يكسر بث React Server
  * Components في Safari/iOS ويظهر أحيانًا صفحة خطأ Vercel («This page couldn't load»).
  * صفحة `/offline` تُخزَّن للاستخدام اليدوي فقط إن لزم.
+ * الاستجابة تُخدم بـ ‎`Cache-Control: no-store`‎ حتى لا يبقى ‎`sw.js`‎ قديماً في المتصفح بعد النشر.
  */
 export async function GET() {
   const firebaseConfig = {

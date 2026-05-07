@@ -121,8 +121,8 @@ Component requirements:
 - Brand story / copy-first content block
 - Supports title, paragraphs, and optional media
 
-17. AboutFeatureBlock
-- Reusable row or card set for trust pillars, quality promises, and support guarantees
+17. AboutTrustQualityCard / AboutValueFeatureBlock
+- Reusable card grids for trust pillars (3 tiles) and value propositions (4 tiles) on `/about`
 
 Integration rules:
 - Product components should work with existing normalized product types whenever possible.

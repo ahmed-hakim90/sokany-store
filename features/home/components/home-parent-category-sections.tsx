@@ -45,6 +45,8 @@ export function HomeParentCategorySectionsSkeleton({
             <ProductGrid
               status="loading"
               products={[]}
+              skeletonCount={12}
+              priorityImageSlots={0}
               getCartLineQuantity={getCartLineQuantity}
               onCartLineQuantityChange={onCartLineQuantityChange}
               cardVariant="mobileCompact"
@@ -131,6 +133,8 @@ export function HomeParentCategorySections({
                 <ProductGrid
                   status={status === "loading" ? "loading" : "ready"}
                   products={q.data ?? []}
+                  skeletonCount={12}
+                  priorityImageSlots={0}
                   getCartLineQuantity={getCartLineQuantity}
                   onCartLineQuantityChange={onCartLineQuantityChange}
                   cardVariant="mobileCompact"

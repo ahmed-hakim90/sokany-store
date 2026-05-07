@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { AboutPageContent } from "@/components/pages/AboutPageContent";
+import { BreadcrumbJsonLd } from "@/components/seo/BreadcrumbJsonLd";
 import { SITE_BRAND_TITLE_AR } from "@/lib/constants";
 import { getSiteUrl } from "@/lib/site";
 
@@ -23,5 +24,10 @@ export const metadata: Metadata = {
 };
 
 export default function AboutPage() {
-  return <AboutPageContent />;
+  return (
+    <>
+      <BreadcrumbJsonLd items={[{ name: "الرئيسية", href: "/" }, { name: "من نحن" }]} />
+      <AboutPageContent />
+    </>
+  );
 }

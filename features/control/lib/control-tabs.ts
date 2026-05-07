@@ -15,6 +15,8 @@ export const CONTROL_TAB_ORDER = [
   "preview",
   "notifications",
   "orderForwarding",
+  "health",
+  "wooApi",
   "access",
 ] as const;
 
@@ -33,6 +35,8 @@ export const CONTROL_TABS_EXCLUDING_ACCESS: ControlPanelTabId[] = [
   "preview",
   "notifications",
   "orderForwarding",
+  "health",
+  "wooApi",
 ];
 
 export type ControlTabGroup = {
@@ -44,6 +48,7 @@ export const CONTROL_TAB_GROUPS: ControlTabGroup[] = [
   { label: "المتجر", ids: ["general", "branding"] },
   { label: "الصفحة والمحتوى", ids: ["hero", "home", "branches", "banners", "retailers", "spotlights"] },
   { label: "الوسائط والنشر", ids: ["media", "preview", "notifications", "orderForwarding"] },
+  { label: "صحة وربط", ids: ["health", "wooApi"] },
   { label: "الإدارة", ids: ["access"] },
 ];
 

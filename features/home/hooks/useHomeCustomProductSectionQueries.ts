@@ -3,6 +3,7 @@
 import { useQueries } from "@tanstack/react-query";
 import { STALE_TIME } from "@/lib/constants";
 import { getProducts } from "@/features/products/services/getProducts";
+import { homeCustomSectionProductParams } from "@/features/home/lib/home-page-product-params";
 import type { CmsHomeProductSection } from "@/schemas/cms";
 
 /**
@@ -11,26 +12,13 @@ import type { CmsHomeProductSection } from "@/schemas/cms";
  */
 export function useHomeCustomProductSectionQueries(sections: CmsHomeProductSection[]) {
   return useQueries({
-    queries: sections.map((s) => ({
-      queryKey: [
-        "products",
-        {
-          category: s.categoryId,
-          include_children: true,
-          per_page: s.productCount,
-          orderby: "popularity",
-          order: "desc",
-        },
-      ] as const,
-      queryFn: () =>
-        getProducts({
-          category: s.categoryId,
-          include_children: true,
-          per_page: s.productCount,
-          orderby: "popularity",
-          order: "desc",
-        }),
-      staleTime: STALE_TIME.MEDIUM,
-    })),
+    queries: sections.map((s) => {
+      const params = homeCustomSectionProductParams(s.categoryId, s.productCount);
+      return {
+        queryKey: ["products", params] as const,
+        queryFn: () => getProducts(params),
+        staleTime: STALE_TIME.MEDIUM,
+      };
+    }),
   });
 }

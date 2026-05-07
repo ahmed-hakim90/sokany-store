@@ -3,8 +3,8 @@ import { unstable_cache } from "next/cache";
 import { mockCategories } from "@/features/categories/mock";
 import { getSnapshotCategories } from "@/features/data-snapshot/server";
 import { createWooClient } from "@/lib/create-woo-client";
-import { USE_MOCK } from "@/lib/constants";
 import { wooBff502Response } from "@/lib/woo-bff-catch-payload";
+import { shouldUseWooBffMockFallback } from "@/lib/woo-bff-mock-fallback";
 import {
   WOO_CACHE_TAG_PRODUCTS,
   WOO_CACHE_TAG_SITEMAP,
@@ -29,7 +29,7 @@ export async function GET(_request: Request, context: RouteContext) {
     const data = await fetchWooCategoryByIdCached(id);
     return NextResponse.json(data);
   } catch (error) {
-    if (!USE_MOCK) {
+    if (!shouldUseWooBffMockFallback(error)) {
       return await wooBff502Response(error);
     }
     const source = getSnapshotCategories() ?? mockCategories;

@@ -23,6 +23,12 @@ import { useWishlistDrawerOpenStore } from "@/features/wishlist/store/useWishlis
 import { useCart } from "@/hooks/useCart";
 import { useWishlist } from "@/hooks/useWishlist";
 import { ROUTES, SITE_LOGO_DISABLED, SITE_LOGO_PATH, SITE_NAME } from "@/lib/constants";
+import {
+  desktopPrimaryBarExtraLinks,
+  mobileDrawerLinkSections,
+  mobileDrawerPolicyLinks,
+  servicesDropdownLinks,
+} from "@/lib/storefront-nav-links";
 import { DEFAULT_SEARCH_QUICK_KEYWORDS } from "@/lib/search-quick-keywords";
 import { SOCIAL_LINKS, type SocialLink } from "@/lib/social-links";
 import { cn } from "@/lib/utils";
@@ -39,63 +45,10 @@ function getServerHydrationSnapshot() {
   return false;
 }
 
-/** روابط تظهر في صف الديسكتوب بعد «العروض» (ليست داخل «خدماتنا»). */
-const desktopPrimaryBarExtraLinks = [
-  { href: ROUTES.CATEGORIES, label: "كل التصنيفات" },
-  { href: ROUTES.ABOUT, label: "من نحن" },
-  { href: ROUTES.SERVICE_CENTERS, label: "الفروع" },
-  { href: ROUTES.RETAILERS, label: "الموزعون المعتمدون" },
-  { href: ROUTES.MY_ORDERS, label: "طلباتي" },
-] as const;
-
-/** باقي الروابط تحت زر «خدماتنا» على الديسكتوب. */
-const servicesDropdownLinks = [
-  { href: ROUTES.CONTACT, label: "تواصل معنا" },
-  { href: ROUTES.TERMS, label: "الشروط والأحكام" },
-  { href: ROUTES.RETURNS_POLICY, label: "سياسة الاسترجاع والاستبدال" },
-  { href: ROUTES.WARRANTY, label: "طرق الاستخدام" },
-  { href: ROUTES.PRIVACY, label: "سياسة الخصوصية" },
-] as const;
-
 /**
  * أقسام القائمة الجانبية للموبايل — الترتيب: بحث ← التصنيفات ← روابط سريعة ← أقسام ← عن المتجر ← سياسات (أكورديون) ← تواصل.
- * شريط الديسكتوب: `DesktopCategoryMegaNav` (أقسام جذرية من ‎`useCategories`‎ + «العروض») و`desktopPrimaryBarExtraLinks` / `servicesDropdownLinks`.
+ * شريط الديسكتوب: `DesktopCategoryMegaNav` + `desktopPrimaryBarExtraLinks` / `servicesDropdownLinks` من ‎`@/lib/storefront-nav-links`‎.
  */
-const mobileDrawerLinkSections = [
-  {
-    title: "روابط سريعة",
-    links: [
-      { href: ROUTES.HOME, label: "الرئيسية" },
-      { href: ROUTES.CATEGORIES, label: "كل التصنيفات" },
-      { href: ROUTES.PRODUCTS, label: "العروض والمنتجات" },
-    ],
-  },
-  {
-    title: "تسوق حسب القسم",
-    links: [
-      { href: ROUTES.CATEGORY("home-appliances"), label: "الأجهزة المنزلية" },
-      { href: ROUTES.CATEGORY("kitchen-supplies"), label: "المطبخ" },
-      { href: ROUTES.CATEGORY("personal-care"), label: "العناية الشخصية" },
-    ],
-  },
-  {
-    title: "عن سوكاني",
-    links: [
-      { href: ROUTES.ABOUT, label: "من نحن" },
-      { href: ROUTES.SERVICE_CENTERS, label: "الفروع ومراكز الصيانة" },
-      { href: ROUTES.RETAILERS, label: "الموزعون المعتمدون" },
-      { href: ROUTES.MY_ORDERS, label: "تتبع الطلب" },
-    ],
-  },
-] as const;
-
-const mobileDrawerPolicyLinks = [
-  { href: ROUTES.CONTACT, label: "تواصل معنا" },
-  { href: ROUTES.TERMS, label: "الشروط والأحكام" },
-  { href: ROUTES.RETURNS_POLICY, label: "سياسة الاسترجاع والاستبدال" },
-  { href: ROUTES.WARRANTY, label: "طرق الاستخدام" },
-  { href: ROUTES.PRIVACY, label: "سياسة الخصوصية" },
-] as const;
 
 /** أيقونات داخل كبسولة الهيدر الزجاجية — حدود خفيفة تندمج مع الطبقة. */
 const mobileIconTapClass =
@@ -199,6 +152,8 @@ export function Navbar({
   );
   const isCheckout = pathname === ROUTES.CHECKOUT;
   const isAbout = pathname === ROUTES.ABOUT;
+  const isHome = pathname === ROUTES.HOME;
+  const logoImagePriority = !isHome;
 
   useEffect(() => {
     if (isCheckout) closeDrawer();
@@ -228,7 +183,8 @@ export function Navbar({
             fill
             sizes="100%"
             className="object-contain"
-            priority
+            priority={logoImagePriority}
+            fetchPriority={isHome ? "low" : "high"}
             usePlaceholderOnError={false}
             onLoadError={() => setLogoLoadFailed(true)}
           />
@@ -359,7 +315,8 @@ export function Navbar({
             fill
             sizes="(max-width: 640px) 128px, 144px"
             className="object-contain"
-            priority
+            priority={logoImagePriority}
+            fetchPriority={isHome ? "low" : "high"}
             usePlaceholderOnError={false}
             onLoadError={() => setLogoLoadFailed(true)}
           />
@@ -389,7 +346,8 @@ export function Navbar({
             fill
             sizes="(max-width: 640px) 128px, 144px"
             className="object-contain"
-            priority
+            priority={logoImagePriority}
+            fetchPriority={isHome ? "low" : "high"}
             usePlaceholderOnError={false}
             onLoadError={() => setLogoLoadFailed(true)}
           />

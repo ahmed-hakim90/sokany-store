@@ -4,7 +4,8 @@ import { Link } from "next-view-transitions";
 import { useId, useMemo, useState, useSyncExternalStore } from "react";
 import { AppImage } from "@/components/AppImage";
 import { Container } from "@/components/Container";
-import { MobileAccordionSection } from "@/components/ui/mobile-accordion-section";
+import { FooterCollapsibleSection } from "@/components/layout/footer-collapsible-section";
+import { SocialGlyph } from "@/components/layout/social-glyph";
 import { useCategories } from "@/features/categories/hooks/useCategories";
 import { mockCategories } from "@/features/categories/mock";
 import {
@@ -15,28 +16,50 @@ import {
   SITE_NAME,
 } from "@/lib/constants";
 import type { SocialLink } from "@/lib/social-links";
-import { SocialGlyph } from "@/components/layout/social-glyph";
 import { cn } from "@/lib/utils";
 
-const footerLinks = [
-  { href: ROUTES.HOME, label: "الرئيسية" },
-  { href: ROUTES.PRODUCTS, label: "المنتجات" },
-  { href: ROUTES.CART, label: "السلة" },
-  { href: ROUTES.CHECKOUT, label: "إتمام الطلب" },
-  { href: ROUTES.MY_ORDERS, label: "طلباتي" },
-  { href: ROUTES.MY_REVIEWS, label: "تقييماتي" },
-  { href: ROUTES.ABOUT, label: "من نحن" },
-  { href: ROUTES.SERVICE_CENTERS, label: "مراكز الخدمة" },
-  { href: ROUTES.RETAILERS, label: "الموزعون المعتمدون" },
-] as const;
+/*
+ * تخطيط الفوتر (متجر Sokany)
+ * — عمود واحد على الشاشات الصغيرة/اللوحية: أقسام كـ ‎`<details>`‎ (أكورديون أصلي) بترتيب موبايل
+ *   (تصنيفات ← روابط/قانوني ← خدمة العملاء ← النشرة).
+ * — من ‎`lg`‎ فما فوق: شبكة ‎4 أعمدة‎ بنفس العقد في الـ DOM؛ تُفتح الأقسام تلقائيًا وتُعرض كأعمدة روابط.
+ * — الشريط السفلي الثابت (‎BottomNav‎) منفصل في ‎`MobileCommerceChrome`‎؛ لا دمج مع الفوتر.
+ */
 
-const footerLegalLinks = [
-  { href: ROUTES.CONTACT, label: "تواصل معنا" },
-  { href: ROUTES.TERMS, label: "الشروط والأحكام" },
-  { href: ROUTES.RETURNS_POLICY, label: "سياسة الاسترجاع والاستبدال" },
-  { href: ROUTES.WARRANTY, label: "طرق الاستخدام" },
-  { href: ROUTES.PRIVACY, label: "سياسة الخصوصية" },
-] as const;
+/** مجموعات الروابط الثابتة — مصدر واحد للعناوين والمسارات. */
+const FOOTER_LINK_GROUPS = {
+  quick: {
+    title: "روابط",
+    links: [
+      { href: ROUTES.HOME, label: "الرئيسية" },
+      { href: ROUTES.PRODUCTS, label: "المنتجات" },
+      { href: ROUTES.CART, label: "السلة" },
+      { href: ROUTES.CHECKOUT, label: "إتمام الطلب" },
+      { href: ROUTES.MY_ORDERS, label: "طلباتي" },
+      { href: ROUTES.MY_REVIEWS, label: "تقييماتي" },
+      { href: ROUTES.ABOUT, label: "من نحن" },
+      { href: ROUTES.SERVICE_CENTERS, label: "مراكز الخدمة" },
+      { href: ROUTES.RETAILERS, label: "الموزعون المعتمدون" },
+    ],
+  },
+  legal: {
+    title: "معلومات قانونية",
+    links: [
+      { href: ROUTES.CONTACT, label: "تواصل معنا" },
+      { href: ROUTES.TERMS, label: "الشروط والأحكام" },
+      { href: ROUTES.RETURNS_POLICY, label: "سياسة الاسترجاع والاستبدال" },
+      { href: ROUTES.WARRANTY, label: "طرق الاستخدام" },
+      { href: ROUTES.PRIVACY, label: "سياسة الخصوصية" },
+    ],
+  },
+} as const;
+
+/** عناوين أقسام إضافية (تصنيفات، خدمة، نشرة) — مصدر واحد للنصوص. */
+const FOOTER_SECTION_TITLES = {
+  categories: "التصنيفات",
+  customer: "خدمة العملاء",
+  newsletter: "النشرة الإخبارية",
+} as const;
 
 /** أقصى عدد تصنيفات يُعرَض في الفوتر؛ الباقي عبر رابط «كل التصنيفات». */
 const FOOTER_CATEGORY_LIMIT = 8;
@@ -100,126 +123,80 @@ export function Footer({
         .slice(0, FOOTER_CATEGORY_LIMIT),
     [categoryList],
   );
+
   return (
-    <footer className="mt-auto hidden w-full border-t border-border/80 bg-zinc-50/95 backdrop-blur-sm lg:block">
+    <footer className="mt-auto w-full border-t border-border/80 bg-zinc-50/95 backdrop-blur-sm">
       <Container
         className={cn(
           "mx-auto max-w-7xl py-8 md:py-12",
           "max-lg:pb-[calc(120px+env(safe-area-inset-bottom))]",
         )}
       >
-        {/* موبايل: أكورديونات؛ من md فما فوق: الشبكة الأربعية */}
-        <div className="space-y-0 md:hidden">
-          <MobileAccordionSection title="التصنيفات">
-            <ul className="space-y-2 text-sm text-muted-foreground">
-              {footerCategories.map((c) => (
-                <li key={c.id}>
-                  <Link className="hover:text-brand-900" href={ROUTES.CATEGORY(c.slug)}>
-                    {c.name}
+        {/* شبكة متجاوبة: أوامر أعمدة تختلف بين موبايل ولوحة وديسكتوب دون تكرار قوائم الروابط */}
+        <div className="grid grid-cols-1 gap-0 lg:grid-cols-4 lg:gap-10">
+          {/* موبايل: أولًا التصنيفات؛ ديسكتوب: العمود الثاني */}
+          <div className="order-1 min-w-0 lg:order-2">
+            <FooterCollapsibleSection title={FOOTER_SECTION_TITLES.categories}>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                {footerCategories.map((c) => (
+                  <li key={c.id}>
+                    <Link className="hover:text-brand-900" href={ROUTES.CATEGORY(c.slug)}>
+                      {c.name}
+                    </Link>
+                  </li>
+                ))}
+                <li className="pt-1">
+                  <Link
+                    className="text-sm font-semibold text-brand-900 hover:underline"
+                    href={ROUTES.CATEGORIES}
+                  >
+                    كل التصنيفات
                   </Link>
                 </li>
-              ))}
-              <li>
-                <Link
-                  className="font-semibold text-brand-900 hover:underline"
-                  href={ROUTES.CATEGORIES}
-                >
-                  كل التصنيفات
-                </Link>
-              </li>
-            </ul>
-          </MobileAccordionSection>
-          <MobileAccordionSection title="روابط سريعة">
-            <ul className="space-y-2 text-sm text-muted-foreground">
-              {footerLinks.map((l) => (
-                <li key={l.href}>
-                  <Link className="hover:text-brand-900" href={l.href}>
-                    {l.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </MobileAccordionSection>
-          <MobileAccordionSection title="معلومات قانونية">
-            <ul className="space-y-2 text-sm text-muted-foreground">
-              {footerLegalLinks.map((l) => (
-                <li key={l.href}>
-                  <Link className="hover:text-brand-900" href={l.href}>
-                    {l.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </MobileAccordionSection>
-          <MobileAccordionSection title="خدمة العملاء">
-            <div className="space-y-2 text-sm text-muted-foreground">
-              <p>
-                <a className="hover:text-brand-900" href={`mailto:${CONTACT_EMAIL}`}>
-                  {CONTACT_EMAIL}
-                </a>
-              </p>
-              <p>القاهرة، مصر — دعم العملاء 10:00–18:00.</p>
-            </div>
-          </MobileAccordionSection>
-          <MobileAccordionSection title="النشرة الإخبارية" noBorder>
-            <FooterNewsletter embedded />
-          </MobileAccordionSection>
+              </ul>
+            </FooterCollapsibleSection>
+          </div>
+
+          {/* موبايل: ثانيًا عمود الروابط + القانوني؛ ديسكتوب: العمود الأول */}
+          <div className="order-2 min-w-0 lg:order-1">
+            <FooterCollapsibleSection
+              title={FOOTER_LINK_GROUPS.quick.title}
+              titleClassName="lg:text-lg"
+            >
+              <FooterInlineLinks items={FOOTER_LINK_GROUPS.quick.links} />
+            </FooterCollapsibleSection>
+            <FooterCollapsibleSection
+              title={FOOTER_LINK_GROUPS.legal.title}
+              titleClassName="lg:mt-6 lg:text-sm"
+            >
+              <FooterInlineLinks items={FOOTER_LINK_GROUPS.legal.links} />
+            </FooterCollapsibleSection>
+          </div>
+
+          <div className="order-3 min-w-0 lg:order-3" id="service">
+            <FooterCollapsibleSection title={FOOTER_SECTION_TITLES.customer}>
+              <div className="space-y-2 text-sm text-muted-foreground">
+                <p>
+                  <a className="hover:text-brand-900" href={`mailto:${CONTACT_EMAIL}`}>
+                    {CONTACT_EMAIL}
+                  </a>
+                </p>
+                <p>القاهرة، مصر — دعم العملاء 10:00–18:00.</p>
+              </div>
+            </FooterCollapsibleSection>
+          </div>
+
+          <div className="order-4 min-w-0 lg:order-4">
+            <FooterCollapsibleSection
+              title={FOOTER_SECTION_TITLES.newsletter}
+              noBorder
+            >
+              <FooterNewsletter embedded />
+            </FooterCollapsibleSection>
+          </div>
         </div>
 
-        <div className="hidden gap-8 md:grid md:grid-cols-2 md:gap-10 lg:grid-cols-4">
-          <div>
-            <h3 className="font-display text-lg font-semibold text-brand-950">روابط</h3>
-            <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
-              {footerLinks.map((l) => (
-                <li key={l.href}>
-                  <Link className="hover:text-brand-900" href={l.href}>
-                    {l.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-            <h4 className="mt-6 font-display text-sm font-semibold text-brand-950">معلومات قانونية</h4>
-            <ul className="mt-2 space-y-2 text-sm text-muted-foreground">
-              {footerLegalLinks.map((l) => (
-                <li key={l.href}>
-                  <Link className="hover:text-brand-900" href={l.href}>
-                    {l.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div>
-            <h3 className="font-display text-lg font-semibold text-brand-950">التصنيفات</h3>
-            <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
-              {footerCategories.map((c) => (
-                <li key={c.id}>
-                  <Link className="hover:text-brand-900" href={ROUTES.CATEGORY(c.slug)}>
-                    {c.name}
-                  </Link>
-                </li>
-              ))}
-              <li className="pt-1">
-                <Link
-                  className="text-sm font-semibold text-brand-900 hover:underline"
-                  href={ROUTES.CATEGORIES}
-                >
-                  كل التصنيفات
-                </Link>
-              </li>
-            </ul>
-          </div>
-          <div id="service">
-            <h3 className="font-display text-lg font-semibold text-brand-950">خدمة العملاء</h3>
-            <p className="mt-3 text-sm text-muted-foreground">{CONTACT_EMAIL}</p>
-            <p className="mt-2 text-sm text-muted-foreground">
-              القاهرة، مصر — دعم العملاء 10:00–18:00.
-            </p>
-          </div>
-          <FooterNewsletter />
-        </div>
-
-        <div className="flex flex-col items-center gap-4 border-t border-border/80  mt-4 pt-4 sm:mt-8 sm:pt-6 ">
+        <div className="mt-4 flex flex-col items-center gap-4 border-t border-border/80 pt-4 sm:mt-8 sm:pt-6">
           <div className="flex flex-wrap items-center justify-center gap-4">
             {socialLinks.map((s) => (
               <a
@@ -258,7 +235,6 @@ export function Footer({
                 />
               </div>
             )}
-            {/* <p className="font-display text-xs font-semibold text-brand-950">{SITE_NAME}</p> */}
             <p className="text-xs text-muted-foreground">
               © {year} {siteName}. جميع الحقوق محفوظة.
             </p>
@@ -293,6 +269,24 @@ export function Footer({
         </div>
       </Container>
     </footer>
+  );
+}
+
+function FooterInlineLinks({
+  items,
+}: {
+  items: readonly { readonly href: string; readonly label: string }[];
+}) {
+  return (
+    <ul className="space-y-2 text-sm text-muted-foreground">
+      {items.map((l) => (
+        <li key={l.href}>
+          <Link className="hover:text-brand-900" href={l.href}>
+            {l.label}
+          </Link>
+        </li>
+      ))}
+    </ul>
   );
 }
 

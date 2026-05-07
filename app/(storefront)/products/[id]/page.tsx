@@ -1,28 +1,32 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { ProductDetailPageContent } from "@/components/pages/ProductDetailPageContent";
 import { BreadcrumbJsonLd } from "@/components/seo/BreadcrumbJsonLd";
 import { ProductJsonLd } from "@/components/seo/ProductJsonLd";
 import { mockProducts } from "@/features/products/mock";
 import { getPublicSiteContent } from "@/features/cms/services/getPublicSiteContent";
-import { getProductByIdMeta } from "@/features/products/services/getProductByIdMeta";
+import { getProductMetaBySlugOrId } from "@/features/products/services/getProductByIdMeta";
 import { toProductViewFromProduct } from "@/features/products/product-view";
 import { formatPriceEgp } from "@/lib/format";
 import { trimMetaDescription } from "@/lib/html";
-import { SITE_BRAND_TITLE_AR } from "@/lib/constants";
+import { ROUTES, SITE_BRAND_TITLE_AR } from "@/lib/constants";
 import { getSiteUrl } from "@/lib/site";
 
 type PageProps = { params: Promise<{ id: string }> };
 
 export async function generateStaticParams() {
-  return mockProducts.slice(0, 50).map((p) => ({ id: String(p.id) }));
+  const slice = mockProducts.slice(0, 50);
+  return [
+    ...slice.map((p) => ({ id: String(p.id) })),
+    ...slice.map((p) => ({ id: p.slug })),
+  ];
 }
 
 export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
   const { id } = await params;
-  const product = await getProductByIdMeta(Number(id));
+  const product = await getProductMetaBySlugOrId(id);
   if (!product) return { title: "منتج غير موجود" };
 
   const site = getSiteUrl();
@@ -66,14 +70,18 @@ export async function generateMetadata({
 
 export default async function ProductPage({ params }: PageProps) {
   const { id } = await params;
-  const numericId = Number(id);
-  if (!Number.isFinite(numericId)) notFound();
 
   const [product, publicContent] = await Promise.all([
-    getProductByIdMeta(numericId),
+    getProductMetaBySlugOrId(id),
     getPublicSiteContent(),
   ]);
   if (!product) notFound();
+
+  const requested = id.trim();
+  const canonicalSegment = String(product.id);
+  if (requested !== canonicalSegment) {
+    permanentRedirect(ROUTES.PRODUCT(product.id));
+  }
 
   const view = toProductViewFromProduct(product);
   const primaryCategory = product.categories[0];
@@ -96,7 +104,7 @@ export default async function ProductPage({ params }: PageProps) {
         ]}
       />
       <ProductDetailPageContent
-        id={numericId}
+        id={product.id}
         trustSummary={{
           salesBranchesCount: publicContent.branches.sales.length,
           serviceBranchesCount: publicContent.branches.service.length,

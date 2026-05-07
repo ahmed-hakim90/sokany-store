@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { ControlAsyncState } from "@/features/control/components/control-page-chrome";
 import { cn } from "@/lib/utils";
 
 type Item = {
@@ -26,6 +27,20 @@ type GetRes = {
   error?: string;
 };
 
+type DetailItem = {
+  id: string;
+  receivedAt: string;
+  status: "processed" | "failed";
+  topic: string | null;
+  eventType: string | null;
+  error: string | null;
+  payloadExcerpt: string | null;
+  zodValidationError: string | null;
+  processingTimeMs: number | null;
+  bodyBytes: number;
+  bodySha256: string;
+};
+
 function shortHash(hex: string) {
   if (hex.length <= 12) return hex;
   return `${hex.slice(0, 6)}…${hex.slice(-4)}`;
@@ -42,6 +57,14 @@ function formatDeliveryTime(value: string) {
   });
 }
 
+function formatJsonish(s: string) {
+  try {
+    return JSON.stringify(JSON.parse(s), null, 2);
+  } catch {
+    return s;
+  }
+}
+
 /**
  * سجل تسليمات ‎Woo (موقّعة) كما تُسجّل في ‎Firestore من الخادم.
  */
@@ -52,6 +75,34 @@ export function WooWebhookDeliveriesPanel() {
   const [moreLoading, setMoreLoading] = useState(false);
   const [cursor, setCursor] = useState<string | null>(null);
   const [allItems, setAllItems] = useState<Item[]>([]);
+  const [detail, setDetail] = useState<DetailItem | null>(null);
+  const [detailError, setDetailError] = useState<string | null>(null);
+  const [detailLoadingId, setDetailLoadingId] = useState<string | null>(null);
+
+  const openDetail = useCallback(async (id: string) => {
+    setDetailError(null);
+    setDetailLoadingId(id);
+    try {
+      const res = await fetch(
+        `/api/control/woocommerce/webhook-deliveries?id=${encodeURIComponent(id)}`,
+        { credentials: "include" },
+      );
+      const j = (await res.json()) as {
+        ok?: boolean;
+        item?: DetailItem;
+        error?: string;
+      };
+      if (res.ok && j.item) {
+        setDetail(j.item);
+      } else {
+        setDetailError(j.error ?? "تعذر فتح التفاصيل");
+      }
+    } catch (e) {
+      setDetailError(e instanceof Error ? e.message : "خطأ");
+    } finally {
+      setDetailLoadingId(null);
+    }
+  }, []);
 
   const loadFirst = useCallback(async () => {
     setErr(null);
@@ -106,33 +157,15 @@ export function WooWebhookDeliveriesPanel() {
     void loadFirst();
   }, [loadFirst]);
 
-  if (loading) {
+  if (loading || err || !data) {
     return (
-      <p className="text-sm text-slate-500">جاري جلب سجل الـ webhooks…</p>
+      <ControlAsyncState
+        loading={loading}
+        error={err}
+        loadingLabel="جاري جلب سجل الـ webhooks…"
+        onRetry={() => void loadFirst()}
+      />
     );
-  }
-
-  if (err) {
-    return (
-      <div className="rounded-lg border border-amber-200 bg-amber-50/60 p-3 text-sm text-amber-950">
-        {err}
-        <div className="mt-2">
-          <Button
-            type="button"
-            size="sm"
-            variant="secondary"
-            onClick={() => void loadFirst()}
-            className="border-slate-200 bg-white text-xs"
-          >
-            إعادة المحاولة
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  if (!data) {
-    return null;
   }
 
   if (data.enabled === false) {
@@ -182,6 +215,7 @@ export function WooWebhookDeliveriesPanel() {
                 <th className="hidden px-3 py-2.5 font-medium sm:table-cell sm:px-4" dir="ltr">
                   مرجع فني
                 </th>
+                <th className="px-3 py-2.5 font-medium sm:px-4">تفاصيل</th>
               </tr>
             </thead>
             <tbody>
@@ -235,6 +269,18 @@ export function WooWebhookDeliveriesPanel() {
                     {row.bodySha256 ? shortHash(row.bodySha256) : "—"}
                     <div className="text-slate-400">{row.bodyBytes} B</div>
                   </td>
+                  <td className="px-3 py-2.5 align-top sm:px-4">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="secondary"
+                      className="border-slate-200 bg-white text-xs"
+                      disabled={detailLoadingId === row.id}
+                      onClick={() => void openDetail(row.id)}
+                    >
+                      {detailLoadingId === row.id ? "…" : "تفاصيل"}
+                    </Button>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -253,6 +299,70 @@ export function WooWebhookDeliveriesPanel() {
           >
             {moreLoading ? "…" : "تحميل أقدم"}
           </Button>
+        </div>
+      ) : null}
+      {detailError ? (
+        <div className="border-t border-rose-100 bg-rose-50/40 px-5 py-3 text-xs text-rose-900">
+          {detailError}
+        </div>
+      ) : null}
+      {detail ? (
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/40 p-3 sm:items-center"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="max-h-[min(90vh,720px)] w-full max-w-2xl overflow-hidden rounded-xl border border-slate-200/90 bg-slate-50 shadow-xl">
+            <div className="flex items-start justify-between border-b border-slate-200/80 bg-white px-5 py-3">
+              <div>
+                <h2 className="text-base font-bold text-slate-900">تفاصيل الحدث</h2>
+                <p className="text-xs text-slate-500" dir="ltr">
+                  {detail.receivedAt} · {detail.id}
+                </p>
+              </div>
+              <Button
+                type="button"
+                size="sm"
+                variant="secondary"
+                onClick={() => setDetail(null)}
+                className="shrink-0"
+              >
+                إغلاق
+              </Button>
+            </div>
+            <div className="max-h-[55vh] space-y-3 overflow-y-auto px-5 py-4" dir="rtl">
+              {detail.error ? (
+                <div className="rounded-lg border border-rose-200 bg-rose-50/60 p-2 text-sm text-rose-900">
+                  {detail.error}
+                </div>
+              ) : null}
+              {detail.zodValidationError ? (
+                <div>
+                  <p className="mb-1 text-[11px] font-bold uppercase text-amber-800">Zod</p>
+                  <pre
+                    className="max-h-40 overflow-auto rounded-lg border border-amber-200/80 bg-amber-50/40 p-2 font-mono text-xs text-amber-950"
+                    dir="ltr"
+                  >
+                    {formatJsonish(detail.zodValidationError)}
+                  </pre>
+                </div>
+              ) : null}
+              <div>
+                <p className="mb-1 text-[11px] font-bold uppercase text-slate-500">JSON (مقصوص في المخزن)</p>
+                <pre
+                  className="max-h-64 overflow-auto rounded-lg border border-slate-200 bg-white p-3 font-mono text-xs text-slate-900"
+                  dir="ltr"
+                >
+                  {detail.payloadExcerpt
+                    ? formatJsonish(detail.payloadExcerpt)
+                    : "—"}
+                </pre>
+              </div>
+              <p className="text-xs text-slate-500" dir="ltr">
+                {detail.bodyBytes} B · {detail.bodySha256.slice(0, 20)}…
+              </p>
+            </div>
+          </div>
         </div>
       ) : null}
     </div>

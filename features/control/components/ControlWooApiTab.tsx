@@ -1,28 +1,32 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { DatabaseZap, PackageSearch, Radar, Webhook } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
+  ControlAsyncState,
   ControlMiniGuide,
-  ControlSectionIntro,
   ControlStatCard,
+  CopyableCode,
 } from "@/features/control/components/control-page-chrome";
 import type { WooDiagnosticReport } from "@/lib/woo-diagnostics";
 import { EXTERNAL_DATA_WEBHOOK_SIGNATURE_HEADER_DEFAULT } from "@/lib/external-data-webhook-constants";
 import { cn } from "@/lib/utils";
-import { WooWebhookDeliveriesPanel } from "./woo-webhook-deliveries-panel";
-import { WooWebhooksPanel } from "./woo-webhooks-panel";
+import { WooWebhookDeliveriesPanel } from "@/features/control/components/woo-webhook-deliveries-panel";
+import { WooWebhooksPanel } from "@/features/control/components/woo-webhooks-panel";
 
-function StatusPill({
-  ok,
-  label,
-}: {
-  ok: boolean;
-  label: string;
-}) {
+type WooApiSummary = {
+  report: WooDiagnosticReport;
+  publicReadBaseUrl: string | null;
+  cmsWooBaseUrl: string | null;
+  cmsPublicStorefrontBaseUrl: string | null;
+  cmsExternalDataWebhookUrl: string | null;
+  webhookEndpointUrl: string;
+  externalDataWebhookUrl: string;
+};
+
+function StatusPill({ ok, label }: { ok: boolean; label: string }) {
   return (
     <span
       className={cn(
@@ -136,31 +140,64 @@ function ProbeCard({
   );
 }
 
-export function WooApiDashboard({
-  report,
-  publicReadBaseUrl,
-  cmsWooBaseUrl,
-  cmsPublicStorefrontBaseUrl,
-  cmsExternalDataWebhookUrl,
-  webhookEndpointUrl,
-  externalDataWebhookUrl,
-}: {
-  report: WooDiagnosticReport;
-  publicReadBaseUrl: string | null;
-  /** من «عام — تكاملات» — أصل Woo الاختياري في CMS. */
-  cmsWooBaseUrl: string | null;
-  /** من CMS — نطاق واجهة نيكست لعناوين الويبهوك. */
-  cmsPublicStorefrontBaseUrl: string | null;
-  /** إن وُضع في «عام — تكاملات» — وإلا `null`. */
-  cmsExternalDataWebhookUrl: string | null;
-  webhookEndpointUrl: string;
-  /** من CMS إن وُجد، وإلا مُشتق تلقائياً من النطاق. */
-  externalDataWebhookUrl: string;
-}) {
-  const router = useRouter();
+/**
+ * تبويب «الربط» داخل /control — كان WooApiDashboard في /control/woo-api.
+ * يجلب الملخص عبر /api/control/woo-api-summary حتى لا تكون الصفحة بحاجة
+ * إلى عرض server-only.
+ */
+export function ControlWooApiTab() {
+  const [summary, setSummary] = useState<WooApiSummary | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
-  const [copiedHook, setCopiedHook] = useState(false);
-  const [copiedExternalHook, setCopiedExternalHook] = useState(false);
+
+  const load = useCallback(async () => {
+    setErr(null);
+    setLoading(true);
+    try {
+      const res = await fetch("/api/control/woo-api-summary", {
+        credentials: "include",
+      });
+      const j = (await res.json()) as
+        | (WooApiSummary & { error?: undefined })
+        | { error: string };
+      if (!res.ok || "error" in j) {
+        setErr(("error" in j ? j.error : null) ?? "تعذر تحميل ملخص الربط");
+        setSummary(null);
+        return;
+      }
+      setSummary(j as WooApiSummary);
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "خطأ شبكة");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  if (loading || err || !summary) {
+    return (
+      <ControlAsyncState
+        loading={loading}
+        error={err}
+        loadingLabel="جاري تحميل ملخص الربط…"
+        onRetry={() => void load()}
+      />
+    );
+  }
+
+  const {
+    report,
+    publicReadBaseUrl,
+    cmsWooBaseUrl,
+    cmsPublicStorefrontBaseUrl,
+    cmsExternalDataWebhookUrl,
+    webhookEndpointUrl,
+    externalDataWebhookUrl,
+  } = summary;
 
   function copyJson() {
     void navigator.clipboard.writeText(
@@ -222,98 +259,58 @@ export function WooApiDashboard({
   ] as const;
 
   return (
-    <div className="mx-auto w-full min-w-0 max-w-5xl px-4 py-6 sm:px-5 sm:py-8">
-      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
-            متابعة الربط
-          </p>
-          <h1 className="font-display text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
-            ربط المنتجات والتحديثات
-          </h1>
-          <p className="mt-1 max-w-2xl text-sm text-slate-600">
-            راجع من هنا هل قراءة المنتجات والتصنيفات تعمل بشكل سليم، وخذ الروابط التي تحتاجها لأي ربط خارجي أو تحديث تلقائي.
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button
-            type="button"
-            variant="secondary"
-            className="shrink-0 border-slate-200 bg-white shadow-sm"
-            onClick={() => router.refresh()}
-          >
-            إعادة الفحص
-          </Button>
-          <Button
-            type="button"
-            variant="secondary"
-            className="shrink-0 border-slate-200 bg-white shadow-sm"
-            onClick={copyJson}
-          >
-            {copied ? "تم النسخ" : "نسخ ملخص الحالة"}
-          </Button>
-          <Link
-            href="/control/dev"
-            className="inline-flex h-10 items-center justify-center rounded-md border border-indigo-200 bg-indigo-50 px-4 text-sm font-medium text-indigo-800 shadow-sm transition-colors hover:bg-indigo-100/80"
-          >
-            متابعة الحالة
-          </Link>
-          <Link
-            href="/control"
-            className="inline-flex h-10 items-center justify-center rounded-md border border-border bg-white px-4 text-sm font-medium text-foreground shadow-sm transition-colors hover:bg-surface-muted"
-          >
-            رجوع للوحة
-          </Link>
-        </div>
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-center gap-2">
+        <Button
+          type="button"
+          variant="secondary"
+          className="shrink-0 border-slate-200 bg-white shadow-sm"
+          onClick={() => void load()}
+        >
+          إعادة الفحص
+        </Button>
+        <Button
+          type="button"
+          variant="secondary"
+          className="shrink-0 border-slate-200 bg-white shadow-sm"
+          onClick={copyJson}
+        >
+          {copied ? "تم النسخ" : "نسخ ملخص الحالة"}
+        </Button>
       </div>
 
-      <div className="mb-6 space-y-6">
-        <ControlSectionIntro
-          eyebrow="فهم الصفحة"
-          title="مراجعة الربط ونسخ الروابط المهمة"
-          description="ابدأ من حالة المنتجات والتصنيفات، ثم انسخ روابط التحديثات الجاهزة، وبعدها راجع التفاصيل فقط لو ظهر خلل."
-          bullets={[
-            "اعرف هل الربط سليم",
-            "انسخ الرابط الصحيح",
-            "راجع التفاصيل عند الحاجة فقط",
-          ]}
-          tone="brand"
-          icon={DatabaseZap}
+      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {overviewStats.map((item) => (
+          <ControlStatCard
+            key={item.label}
+            label={item.label}
+            value={item.value}
+            hint={item.hint}
+            tone={item.tone}
+            icon={item.icon}
+          />
+        ))}
+      </section>
+
+      <section className="grid gap-3 md:grid-cols-3">
+        <ControlMiniGuide
+          title="لو كل شيء سليم"
+          badge="طمأنة"
+          description="هذا يعني أن الموقع يقرأ المنتجات بشكل طبيعي ويمكنك الاكتفاء بالمتابعة الدورية فقط."
         />
+        <ControlMiniGuide
+          title="لو الرابط خطأ"
+          badge="مراجعة"
+          description="راجع روابط الربط في الإعدادات العامة وتأكد أن رابط المصدر الفعلي هو نفسه المستخدم الآن."
+        />
+        <ControlMiniGuide
+          title="لو شكل البيانات فيه مشكلة"
+          badge="فحص"
+          description="ستظهر ملاحظات أسفل بطاقات الفحص لتوضح أي جزء قادم من المصدر يحتاج ضبط أو مراجعة."
+        />
+      </section>
 
-        <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          {overviewStats.map((item) => (
-            <ControlStatCard
-              key={item.label}
-              label={item.label}
-              value={item.value}
-              hint={item.hint}
-              tone={item.tone}
-              icon={item.icon}
-            />
-          ))}
-        </section>
-
-        <section className="grid gap-3 md:grid-cols-3">
-          <ControlMiniGuide
-            title="لو كل شيء سليم"
-            badge="طمأنة"
-            description="هذا يعني أن الموقع يقرأ المنتجات بشكل طبيعي ويمكنك الاكتفاء بالمتابعة الدورية فقط."
-          />
-          <ControlMiniGuide
-            title="لو الرابط خطأ"
-            badge="مراجعة"
-            description="راجع روابط الربط في الإعدادات العامة وتأكد أن رابط المصدر الفعلي هو نفسه المستخدم الآن."
-          />
-          <ControlMiniGuide
-            title="لو شكل البيانات فيه مشكلة"
-            badge="فحص"
-            description="ستظهر ملاحظات أسفل بطاقات الفحص لتوضح أي جزء قادم من المصدر يحتاج ضبط أو مراجعة."
-          />
-        </section>
-      </div>
-
-      <div className="mb-8 overflow-hidden rounded-xl border border-slate-200/90 bg-white p-5 shadow-sm ring-1 ring-slate-900/5">
+      <div className="overflow-hidden rounded-xl border border-slate-200/90 bg-white p-5 shadow-sm ring-1 ring-slate-900/5">
         <h2 className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
           بيانات الربط الحالية
         </h2>
@@ -338,30 +335,14 @@ export function WooApiDashboard({
         </p>
       </div>
 
-      <div className="mb-8 overflow-hidden rounded-xl border border-slate-200/90 bg-white p-5 shadow-sm ring-1 ring-slate-900/5">
+      <div className="overflow-hidden rounded-xl border border-slate-200/90 bg-white p-5 shadow-sm ring-1 ring-slate-900/5">
         <h2 className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
           رابط التحديثات القادمة من Woo
         </h2>
         <p className="mt-2 text-sm text-slate-600">
           هذا هو الرابط الذي تضعه داخل Woo حتى يعرف الموقع بوجود تحديث جديد في منتج أو تصنيف أو طلب.
         </p>
-        <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <code className="block min-w-0 break-all rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-left text-xs text-slate-800 ltr" dir="ltr">
-            {webhookEndpointUrl}
-          </code>
-          <Button
-            type="button"
-            variant="secondary"
-            className="shrink-0 border-slate-200 bg-white text-sm shadow-sm"
-            onClick={() => {
-              void navigator.clipboard.writeText(webhookEndpointUrl);
-              setCopiedHook(true);
-              setTimeout(() => setCopiedHook(false), 2000);
-            }}
-          >
-            {copiedHook ? "تم" : "نسخ الرابط"}
-          </Button>
-        </div>
+        <CopyableCode className="mt-3" value={webhookEndpointUrl} />
         <details className="mt-3 rounded-lg border border-slate-200/80 bg-slate-50/60 p-3 text-xs text-slate-600">
           <summary className="cursor-pointer font-medium text-slate-900">
             تفاصيل فنية إضافية
@@ -372,7 +353,7 @@ export function WooApiDashboard({
         </details>
       </div>
 
-      <div className="mb-8 overflow-hidden rounded-xl border border-slate-200/90 bg-white p-5 shadow-sm ring-1 ring-slate-900/5">
+      <div className="overflow-hidden rounded-xl border border-slate-200/90 bg-white p-5 shadow-sm ring-1 ring-slate-900/5">
         <h2 className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
           رابط استقبال التحديثات من نظام خارجي
         </h2>
@@ -403,26 +384,7 @@ export function WooApiDashboard({
             </>
           )}
         </p>
-        <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <code
-            className="block min-w-0 break-all rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-left text-xs text-slate-800 ltr"
-            dir="ltr"
-          >
-            {externalDataWebhookUrl}
-          </code>
-          <Button
-            type="button"
-            variant="secondary"
-            className="shrink-0 border-slate-200 bg-white text-sm shadow-sm"
-            onClick={() => {
-              void navigator.clipboard.writeText(externalDataWebhookUrl);
-              setCopiedExternalHook(true);
-              setTimeout(() => setCopiedExternalHook(false), 2000);
-            }}
-          >
-            {copiedExternalHook ? "تم" : "نسخ الرابط"}
-          </Button>
-        </div>
+        <CopyableCode className="mt-3" value={externalDataWebhookUrl} />
         <details className="mt-3 rounded-lg border border-slate-200/80 bg-slate-50/60 p-3 text-xs text-slate-600">
           <summary className="cursor-pointer font-medium text-slate-900">
             تفاصيل فنية إضافية
@@ -433,15 +395,11 @@ export function WooApiDashboard({
         </details>
       </div>
 
-      <div className="mb-8">
-        <WooWebhooksPanel />
-      </div>
+      <WooWebhooksPanel />
 
-      <div className="mb-8">
-        <WooWebhookDeliveriesPanel />
-      </div>
+      <WooWebhookDeliveriesPanel />
 
-      <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <ProbeCard
           title="المنتجات"
           endpoint="فحص قراءة المنتجات"
@@ -491,7 +449,7 @@ export function WooApiDashboard({
       </div>
 
       {process.env.NODE_ENV === "development" ? (
-        <p className="mt-6 text-center text-xs text-slate-500">
+        <p className="text-center text-xs text-slate-500">
           <a
             className="font-medium text-emerald-700 underline underline-offset-2 hover:text-emerald-800"
             href="/api/dev/woo-status"

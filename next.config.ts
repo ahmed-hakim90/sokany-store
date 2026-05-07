@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import bundleAnalyzer from "@next/bundle-analyzer";
 
 function siteImagePatterns(): NonNullable<
   NonNullable<NextConfig["images"]>["remotePatterns"]
@@ -28,6 +29,10 @@ function siteImagePatterns(): NonNullable<
   );
   return patterns;
 }
+
+const withBundleAnalyzer = bundleAnalyzer({
+  enabled: process.env.ANALYZE === "true",
+});
 
 const nextConfig: NextConfig = {
   async rewrites() {
@@ -85,4 +90,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default withBundleAnalyzer(nextConfig);

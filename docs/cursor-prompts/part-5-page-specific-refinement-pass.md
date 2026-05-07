@@ -84,7 +84,7 @@ Suggested new reusable section components if helpful:
 - features/home/components/home-hero-banner.tsx
 - features/home/components/home-trust-strip.tsx
 - features/home/components/home-promo-card.tsx
-- features/about/components/about-stats-block.tsx
+- features/about/components/about-lime-stat-ribbon.tsx
 - features/about/components/about-quote-block.tsx
 - features/service-centers/components/featured-service-center-card.tsx
 - features/checkout/components/checkout-coupon-row.tsx

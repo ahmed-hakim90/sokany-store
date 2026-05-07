@@ -15,6 +15,8 @@ export const CONTROL_TAB_LABEL_AR: Partial<Record<ControlPanelTabId, string>> = 
   preview: "معاينة",
   notifications: "إشعارات",
   orderForwarding: "تكامل الطلبات",
+  health: "صحة الموقع",
+  wooApi: "ربط Woo",
   access: "الصلاحيات (مشرف)",
 };
 

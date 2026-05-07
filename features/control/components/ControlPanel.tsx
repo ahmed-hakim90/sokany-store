@@ -5,11 +5,24 @@ import Link from "next/link";
 import type { ControlPanelTabId } from "@/features/control/lib/control-tabs";
 import { CONTROL_TAB_GROUPS, isControlPanelTabId } from "@/features/control/lib/control-tabs";
 import { ControlAccessTab } from "@/features/control/components/ControlAccessTab";
+import { ControlHealthTab } from "@/features/control/components/ControlHealthTab";
+import { ControlWooApiTab } from "@/features/control/components/ControlWooApiTab";
 import { OrderForwardingSettingsTab } from "@/features/control/components/OrderForwardingSettingsTab";
+import {
+  useControlSession,
+  ControlUnauthorizedError,
+} from "@/features/control/hooks/useControlSession";
+import {
+  CONTROL_CMS_BUNDLE_QUERY_KEY,
+  useControlCmsBundle,
+} from "@/features/control/hooks/useControlCmsBundle";
+import { useQueryClient } from "@tanstack/react-query";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import {
+  Activity,
   BellRing,
+  DatabaseZap,
   Eye,
   Home,
   Globe,
@@ -85,6 +98,7 @@ import {
 import {
   ControlActionTile,
   ControlMiniGuide,
+  ControlPageHeader,
   ControlSectionIntro,
   ControlStatCard,
 } from "@/features/control/components/control-page-chrome";
@@ -119,6 +133,8 @@ const BASE_TAB_LIST: { id: ControlPanelTabId; label: string }[] = [
   { id: "preview", label: "معاينة الموقع" },
   { id: "notifications", label: "إشعارات" },
   { id: "orderForwarding", label: "تكامل الطلبات" },
+  { id: "health", label: "صحة الموقع" },
+  { id: "wooApi", label: "ربط Woo" },
   { id: "access", label: "الصلاحيات" },
 ];
 
@@ -240,6 +256,32 @@ const TAB_EXPLAINERS: Record<
     bullets: ["مهم للتشغيل", "لا يغيّر تجربة العميل مباشرة", "يفيد الربط مع الأنظمة الداخلية"],
     badge: "ربط الطلبات",
     icon: Waypoints,
+  },
+  health: {
+    eyebrow: "متابعة وتشخيص",
+    title: "حالة الموقع والربط",
+    description:
+      "من هنا نعرف هل الموقع يستقبل التحديثات بشكل سليم، وهل الواجهة تتحدث، وهل هناك شيء يحتاج تدخل سريع.",
+    bullets: [
+      "الأعلى للحكم السريع",
+      "الوسط للإجراءات المهمة",
+      "الأسفل لآخر ما وصل",
+    ],
+    badge: "صحة الموقع",
+    icon: Activity,
+  },
+  wooApi: {
+    eyebrow: "متابعة الربط",
+    title: "ربط المنتجات والتحديثات",
+    description:
+      "راجع من هنا هل قراءة المنتجات والتصنيفات تعمل بشكل سليم، وخذ الروابط التي تحتاجها لأي ربط خارجي أو تحديث تلقائي.",
+    bullets: [
+      "اعرف هل الربط سليم",
+      "انسخ الرابط الصحيح",
+      "راجع التفاصيل عند الحاجة فقط",
+    ],
+    badge: "الربط",
+    icon: DatabaseZap,
   },
   access: {
     eyebrow: "إدارة الفريق",
@@ -412,17 +454,51 @@ function brandingFromForm(fd: FormData): CmsSiteBranding {
  */
 export function ControlPanel() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab");
   const [tab, setTab] = useState<ControlPanelTabId>("general");
-  const [bundle, setBundle] = useState<CmsBundle | null>(null);
-  const [loadError, setLoadError] = useState<string | null>(null);
-  const [sessionError, setSessionError] = useState<string | null>(null);
-  const [accessScope, setAccessScope] = useState<"unknown" | "full" | "media">("unknown");
   const [saving, setSaving] = useState<string | null>(null);
-  const [clientSession, setClientSession] = useState<ClientControlSession | null>(null);
   /** يتغيّر بعد حفظ CMS/رفع ناجح لإعادة تحميل iframe معاينة الواجهة. */
   const [storefrontPreviewKey, setStorefrontPreviewKey] = useState(0);
+
+  const sessionQuery = useControlSession();
+  const sessionData = sessionQuery.data;
+  const sessionError =
+    sessionQuery.error && !(sessionQuery.error instanceof ControlUnauthorizedError)
+      ? "تعذر التحقق من صلاحية الجلسة"
+      : null;
+  const accessScope: "unknown" | "full" | "media" = sessionData
+    ? sessionData.scope
+    : "unknown";
+  const clientSession = useMemo<ClientControlSession | null>(
+    () =>
+      sessionData
+        ? {
+            scope: sessionData.scope,
+            tabs: sessionData.scope === "media" ? ["media"] : sessionData.tabs,
+            mediaFolders: sessionData.mediaFolders,
+            superAdmin: sessionData.superAdmin,
+          }
+        : null,
+    [sessionData],
+  );
+
+  const cmsQuery = useControlCmsBundle({ enabled: accessScope === "full" });
+  const bundle = (cmsQuery.data ?? null) as CmsBundle | null;
+  const loadError =
+    cmsQuery.error && !(cmsQuery.error instanceof ControlUnauthorizedError)
+      ? cmsQuery.error instanceof Error
+        ? cmsQuery.error.message
+        : "خطأ"
+      : null;
+
+  useEffect(() => {
+    if (loadError) {
+      toast.error("تعذر تحميل الإعدادات");
+    }
+  }, [loadError]);
+
   const navTabs = useMemo(
     () => buildNavTabList(clientSession, accessScope),
     [clientSession, accessScope],
@@ -441,50 +517,6 @@ export function ControlPanel() {
     },
     [accessScope, router, navTabs],
   );
-
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      setSessionError(null);
-      const res = await fetch("/api/control/session");
-      if (cancelled) return;
-      if (res.status === 401) {
-        router.replace("/control/login");
-        return;
-      }
-      if (!res.ok) {
-        setSessionError("تعذر التحقق من صلاحية الجلسة");
-        return;
-      }
-      const j = (await res.json().catch(() => ({}))) as {
-        scope?: "full" | "media";
-        tabs?: "all" | string[];
-        mediaFolders?: "all" | string[];
-        superAdmin?: boolean;
-      };
-      if (j.scope === "media") {
-        setClientSession({
-          scope: "media",
-          tabs: ["media"],
-          mediaFolders: j.mediaFolders === undefined ? "all" : (j.mediaFolders as "all" | string[]),
-          superAdmin: Boolean(j.superAdmin),
-        });
-        setAccessScope("media");
-        setTab("media");
-        return;
-      }
-      setClientSession({
-        scope: "full",
-        tabs: (j.tabs as "all" | string[] | undefined) ?? "all",
-        mediaFolders: j.mediaFolders === undefined ? "all" : (j.mediaFolders as "all" | string[]),
-        superAdmin: Boolean(j.superAdmin),
-      });
-      setAccessScope("full");
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [router]);
 
   useEffect(() => {
     if (accessScope === "unknown") return;
@@ -508,27 +540,10 @@ export function ControlPanel() {
   }, [accessScope, tabParam, router, navTabs]);
 
   const load = useCallback(async () => {
-    setLoadError(null);
-    try {
-      const res = await fetch("/api/control/cms");
-      if (res.status === 401) {
-        router.replace("/control/login");
-        return;
-      }
-      if (!res.ok) throw new Error("تعذر تحميل البيانات");
-      const data = (await res.json()) as CmsBundle;
-      setBundle(data);
-    } catch (e) {
-      setLoadError(e instanceof Error ? e.message : "خطأ");
-      toast.error("تعذر تحميل الإعدادات");
-    }
-  }, [router]);
-
-  useEffect(() => {
-    if (accessScope === "full") {
-      void load();
-    }
-  }, [accessScope, load]);
+    await queryClient.invalidateQueries({
+      queryKey: CONTROL_CMS_BUNDLE_QUERY_KEY,
+    });
+  }, [queryClient]);
 
   async function logout() {
     await fetch("/api/control/session", { method: "DELETE" });
@@ -966,7 +981,7 @@ export function ControlPanel() {
               <Globe className="h-4 w-4" />
               فتح المتجر
             </Link>
-            <Link href="/control/dev" className="flex items-center gap-2 text-sm text-slate-700 hover:text-slate-950">
+            <Link href="/control?tab=health" className="flex items-center gap-2 text-sm text-slate-700 hover:text-slate-950">
               <MonitorPlay className="h-4 w-4" />
               متابعة الحالة
             </Link>
@@ -976,39 +991,39 @@ export function ControlPanel() {
 
       <div className="flex min-h-0 min-w-0 flex-1 flex-col bg-[#f6f9fc] md:min-h-dvh md:min-w-0 md:border-s md:border-slate-200/90">
         <header className="shrink-0 border-b border-slate-200/90 bg-white px-4 py-3 sm:px-5 sm:py-4">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-            <div className="min-w-0">
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
-                {currentTabInfo.eyebrow}
-              </p>
-              <h1 className="font-display text-2xl font-bold tracking-tight text-slate-900">
-                {BASE_TAB_LIST.find((item) => item.id === tab)?.label ?? "إعدادات المتجر"}
-              </h1>
-              <p className="text-sm text-slate-600">{currentTabInfo.description}</p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <Link
-                href="/control?tab=preview"
-                className="inline-flex h-10 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-800 shadow-sm transition-colors hover:bg-slate-50"
-              >
-                معاينة
-              </Link>
-              <Link
-                href="/control/dev"
-                className="inline-flex h-10 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-800 shadow-sm transition-colors hover:bg-slate-50"
-              >
-                حالة الموقع
-              </Link>
-              <Button
-                type="button"
-                variant="secondary"
-                className="shrink-0 border-slate-200 bg-white text-slate-800 shadow-sm hover:bg-slate-50"
-                onClick={() => void logout()}
-              >
-                خروج
-              </Button>
-            </div>
-          </div>
+          <ControlPageHeader
+            compact
+            eyebrow={currentTabInfo.eyebrow}
+            title={
+              BASE_TAB_LIST.find((item) => item.id === tab)?.label ??
+              "إعدادات المتجر"
+            }
+            description={currentTabInfo.description}
+            actions={
+              <>
+                <Link
+                  href="/control?tab=preview"
+                  className="inline-flex h-10 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-800 shadow-sm transition-colors hover:bg-slate-50"
+                >
+                  معاينة
+                </Link>
+                <Link
+                  href="/control?tab=health"
+                  className="inline-flex h-10 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-800 shadow-sm transition-colors hover:bg-slate-50"
+                >
+                  حالة الموقع
+                </Link>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  className="shrink-0 border-slate-200 bg-white text-slate-800 shadow-sm hover:bg-slate-50"
+                  onClick={() => void logout()}
+                >
+                  خروج
+                </Button>
+              </>
+            }
+          />
         </header>
 
         <div
@@ -1782,6 +1797,10 @@ export function ControlPanel() {
             {tab === "notifications" ? <NotificationsSection /> : null}
 
             {tab === "orderForwarding" ? <OrderForwardingSettingsTab /> : null}
+
+            {tab === "health" ? <ControlHealthTab /> : null}
+
+            {tab === "wooApi" ? <ControlWooApiTab /> : null}
         </div>
       </div>
     </div>

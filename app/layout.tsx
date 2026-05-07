@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { GoogleAnalytics } from "@next/third-parties/google";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { cache } from "react";
 import { headers } from "next/headers";
 import Script from "next/script";
@@ -131,6 +132,7 @@ export default async function RootLayout({
         {GA_MEASUREMENT_ID ? (
           <GoogleAnalytics gaId={GA_MEASUREMENT_ID} />
         ) : null}
+        <SpeedInsights />
       </body>
     </html>
   );

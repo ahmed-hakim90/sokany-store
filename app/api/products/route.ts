@@ -7,8 +7,9 @@ import {
   getSnapshotProducts,
 } from "@/features/data-snapshot/server";
 import { mockCategories } from "@/features/categories/mock";
-import { DEFAULT_PER_PAGE, USE_MOCK } from "@/lib/constants";
+import { DEFAULT_PER_PAGE } from "@/lib/constants";
 import { wooBff502Response } from "@/lib/woo-bff-catch-payload";
+import { shouldUseWooBffMockFallback } from "@/lib/woo-bff-mock-fallback";
 import { WOO_CACHE_TAG_PRODUCTS } from "@/lib/woocommerce-cache-tags";
 import { filterWcProductsExcludingOutOfStock } from "@/lib/woo-storefront-availability";
 import { fetchWooStorefrontProductsPage } from "@/features/products/services/woo-storefront-product-page";
@@ -87,7 +88,7 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    if (!USE_MOCK) {
+    if (!shouldUseWooBffMockFallback(error)) {
       return await wooBff502Response(error);
     }
     const { searchParams } = new URL(request.url);

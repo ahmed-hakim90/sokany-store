@@ -65,7 +65,7 @@ export function StorefrontIntegrationsForm({ initial, disabled, onSave }: Props)
           </label>
           <ControlFieldHelp>
             هذا هو الرابط الذي يفتحه العميل. غالبًا يكون نفس دومين الموقع الحالي. إذا كنت غير متأكد ستجده في صفحة{" "}
-            <a className="font-medium text-foreground underline" href="/control/woo-api">
+            <a className="font-medium text-foreground underline" href="/control?tab=wooApi">
               الربط
             </a>
             .
@@ -113,7 +113,7 @@ export function StorefrontIntegrationsForm({ initial, disabled, onSave }: Props)
               ستجده أيضًا في صفحة{" "}
               <a
                 className="font-medium text-foreground underline underline-offset-2"
-                href="/control/woo-api"
+                href="/control?tab=wooApi"
               >
                 الربط
               </a>

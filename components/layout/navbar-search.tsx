@@ -111,8 +111,8 @@ export function NavbarSearch({
   const showProductPanel = open && canSuggest;
   const loading =
     canSuggest && suggestions.isFetching && !suggestions.data;
-const dropdownOpen = showKeywordPanel || showProductPanel;
-const ariaControlsId = showProductPanel ? listboxId : keywordPanelId;
+  const dropdownOpen = showKeywordPanel || showProductPanel;
+  const ariaControlsId = showProductPanel ? listboxId : keywordPanelId;
 
   useEffect(() => {
     if (!open) return;
@@ -182,7 +182,7 @@ const ariaControlsId = showProductPanel ? listboxId : keywordPanelId;
             e.preventDefault();
             goSearch();
           }
-        }}  
+        }}
         className={cn(
           "min-w-0 max-w-none h-9 sm:h-10 lg:h-12",
           headerProductSearchFieldGlassClass,
@@ -214,30 +214,30 @@ const ariaControlsId = showProductPanel ? listboxId : keywordPanelId;
           )}
           onMouseDown={(e) => e.preventDefault()}
         >
-       <p className="px-3 pt-3 text-xs font-medium text-muted-foreground">
-  الكلمات المفتاحية المقترحة
-</p>
-<ul
-  className="max-h-[min(20rem,50dvh)] divide-y divide-slate-200/50 overflow-y-auto py-1"
-  role="list"
->
-  {quickKeywords.map((kw, index) => (
-    <li key={`${kw}-${index}`}>
-      <button
-        type="button"
-        className={cn(
-          "w-full px-3 py-2.5 text-start text-sm text-brand-950",
-          "transition-colors hover:bg-surface-muted/80 focus-visible:bg-surface-muted/80 focus-visible:outline-none",
-        )}
-        onClick={() => applyQuickKeyword(kw)}
-      >
-        {kw}
-      </button>
-    </li>
-  ))}
-</ul>
-          </div>
-          ): null}
+          <p className="border-b border-slate-200/55 px-3 py-2 text-xs font-bold text-brand-950">
+            اقتراحات سريعة
+          </p>
+          <ul
+            className="max-h-[min(18rem,48dvh)] space-y-0.5 overflow-y-auto overscroll-y-contain px-1.5 py-1.5"
+            role="list"
+          >
+            {quickKeywords.map((kw, index) => (
+              <li key={`${kw}-${index}`}>
+                <button
+                  type="button"
+                  className={cn(
+                    "w-full rounded-lg px-2.5 py-2 text-start text-sm font-medium text-brand-950",
+                    "transition-colors hover:bg-surface-muted/85 focus-visible:bg-surface-muted/85 focus-visible:outline-none",
+                  )}
+                  onClick={() => applyQuickKeyword(kw)}
+                >
+                  {kw}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
           {showProductPanel ? (
             <div
               id={listboxId}

@@ -14,9 +14,9 @@ import { ScrollReveal } from "@/components/ScrollReveal";
 
 /*
  * صفحة من نحن (/about): عمود واحد داخل Container بمسافات رأسية (gap-14…md:gap-20).
- * من الأعلى للأسفل: هيرو → بطاقة ثقة (٣ بلاطات) → ستوري بورد أفقي على الجوال → شريط +10 سنوات
- * → ميديا داكنة (مؤسسة المغربي) → «ليه تختار سوكاني؟» (٤ بلاطات) → رؤيتنا (نص) → صورة + رابط موزّعين
- * → خدمات المغربي → اقتباس ختامي.
+ * من الأعلى للأسفل: هيرو → ثقة سوكاني (٣ بلاطات) → ستوري بورد أفقي على الجوال → شريط +10 سنوات
+ * → «ليه تختار سوكاني؟» (٤ بلاطات) → ميديا داكنة (مؤسسة المغربي) → خدمات المغربي + CTA الفروع
+ * → صورة + شريحة «نقاط البيع والموزّعون» → رؤيتنا (نص) → اقتباس ختامي.
  * الاستجابة: الجوال أولاً؛ الستوري بورد scroll-snap أفقي، ومن md شبكة أعمدة.
  */
 export function AboutPageContent() {
@@ -53,6 +53,14 @@ export function AboutPageContent() {
         </ScrollReveal>
 
         <ScrollReveal>
+          <AboutValueFeatureBlock
+            title={aboutContent.value.title}
+            body={aboutContent.value.body}
+            tiles={aboutContent.value.tiles}
+          />
+        </ScrollReveal>
+
+        <ScrollReveal>
           <AboutDarkMediaCard
             title={aboutContent.darkMedia.title}
             subtitle={aboutContent.darkMedia.subtitle}
@@ -62,17 +70,12 @@ export function AboutPageContent() {
         </ScrollReveal>
 
         <ScrollReveal>
-          <AboutValueFeatureBlock
-            title={aboutContent.value.title}
-            body={aboutContent.value.body}
-            tiles={aboutContent.value.tiles}
-          />
-        </ScrollReveal>
-
-        <ScrollReveal>
-          <AboutStoryBlock
-            title={aboutContent.vision.title}
-            paragraphs={[...aboutContent.vision.paragraphs]}
+          <AboutAfterSalesSection
+            title={aboutContent.afterSales.title}
+            intro={aboutContent.afterSales.intro}
+            rows={aboutContent.afterSales.rows}
+            ctaLabel={aboutContent.afterSales.ctaLabel}
+            ctaHref={aboutContent.afterSales.ctaHref}
           />
         </ScrollReveal>
 
@@ -86,12 +89,9 @@ export function AboutPageContent() {
         </ScrollReveal>
 
         <ScrollReveal>
-          <AboutAfterSalesSection
-            title={aboutContent.afterSales.title}
-            intro={aboutContent.afterSales.intro}
-            rows={aboutContent.afterSales.rows}
-            ctaLabel={aboutContent.afterSales.ctaLabel}
-            ctaHref={aboutContent.afterSales.ctaHref}
+          <AboutStoryBlock
+            title={aboutContent.vision.title}
+            paragraphs={[...aboutContent.vision.paragraphs]}
           />
         </ScrollReveal>
 

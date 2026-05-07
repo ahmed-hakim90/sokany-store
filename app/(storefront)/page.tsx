@@ -4,14 +4,30 @@ import {
   HomePageContent,
   type HomeBottomPromo,
 } from "@/components/pages/HomePageContent";
-import { getCategories } from "@/features/categories/services/getCategories";
+import { getCategoriesServer } from "@/features/categories/services/getCategoriesServer";
 import {
   getPublicSiteContent,
   getSpotlightsFromFirestore,
 } from "@/features/cms/services/getPublicSiteContent";
+import {
+  HOME_BESTSELLERS_PRODUCT_PARAMS,
+  HOME_CATEGORIES_QUERY_PARAMS,
+  HOME_FLASH_SALE_PRODUCT_PARAMS,
+  HOME_NEW_ARRIVALS_PRODUCT_PARAMS,
+  homeCustomSectionProductParams,
+  homeParentCategoryRailParams,
+} from "@/features/home/lib/home-page-product-params";
+import { parentCategoriesForHome } from "@/features/home/lib/parentCategoriesForHome";
+import type { ProductsQueryData } from "@/features/products/hooks/useProducts";
+import {
+  getProductsListServer,
+  getProductsServer,
+} from "@/features/products/services/getProductsServer";
 import { ROUTES, STALE_TIME } from "@/lib/constants";
 import { trimMetaDescription } from "@/lib/html";
 import { getSiteUrl } from "@/lib/site";
+
+export const revalidate = 300;
 
 export async function generateMetadata(): Promise<Metadata> {
   const { branding } = await getPublicSiteContent();
@@ -69,19 +85,87 @@ const DEFAULT_BOTTOM_PROMO: HomeBottomPromo = {
   ctaLabel: "اكتشف الآن",
 };
 
-const HOME_CATEGORIES_QUERY_KEY = ["categories", { per_page: 100 }] as const;
+function toProductsQueryData(r: {
+  products: ProductsQueryData["items"];
+  total: number;
+  totalPages: number;
+}): ProductsQueryData {
+  return {
+    items: r.products,
+    total: r.total,
+    totalPages: r.totalPages,
+  };
+}
 
 export default async function Home() {
-  const queryClient = new QueryClient();
-  const [content, spotlights] = await Promise.all([
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { staleTime: STALE_TIME.MEDIUM },
+    },
+  });
+
+  const [
+    content,
+    spotlights,
+    categoriesData,
+    flashList,
+    newList,
+    bestList,
+  ] = await Promise.all([
     getPublicSiteContent(),
     getSpotlightsFromFirestore(),
-    queryClient.prefetchQuery({
-      queryKey: [...HOME_CATEGORIES_QUERY_KEY],
-      queryFn: () => getCategories({ per_page: 100 }),
-      staleTime: STALE_TIME.MEDIUM,
-    }),
+    getCategoriesServer(HOME_CATEGORIES_QUERY_PARAMS),
+    getProductsListServer(HOME_FLASH_SALE_PRODUCT_PARAMS),
+    getProductsListServer(HOME_NEW_ARRIVALS_PRODUCT_PARAMS),
+    getProductsListServer(HOME_BESTSELLERS_PRODUCT_PARAMS),
   ]);
+
+  queryClient.setQueryData(
+    ["categories", HOME_CATEGORIES_QUERY_PARAMS],
+    categoriesData,
+  );
+  queryClient.setQueryData(
+    ["products", HOME_FLASH_SALE_PRODUCT_PARAMS],
+    toProductsQueryData(flashList),
+  );
+  queryClient.setQueryData(
+    ["products", HOME_NEW_ARRIVALS_PRODUCT_PARAMS],
+    toProductsQueryData(newList),
+  );
+  queryClient.setQueryData(
+    ["products", HOME_BESTSELLERS_PRODUCT_PARAMS],
+    toProductsQueryData(bestList),
+  );
+
+  const mode = content.homeProductSectionsMode ?? "auto";
+  const sectionTasks: Promise<void>[] = [];
+
+  if (mode === "auto" || mode === "hybrid") {
+    for (const cat of parentCategoriesForHome(categoriesData)) {
+      const p = homeParentCategoryRailParams(cat.id);
+      sectionTasks.push(
+        getProductsServer(p).then((products) => {
+          queryClient.setQueryData(["products", p], products);
+        }),
+      );
+    }
+  }
+
+  if (mode === "custom" || mode === "hybrid") {
+    const rows = (content.homeProductSections ?? [])
+      .filter((s) => s.active)
+      .sort((a, b) => a.order - b.order || a.id.localeCompare(b.id));
+    for (const s of rows) {
+      const p = homeCustomSectionProductParams(s.categoryId, s.productCount);
+      sectionTasks.push(
+        getProductsServer(p).then((products) => {
+          queryClient.setQueryData(["products", p], products);
+        }),
+      );
+    }
+  }
+
+  await Promise.all(sectionTasks);
 
   const spotlight = spotlights?.items?.find((i) => i.active);
   let homeBottomPromo: HomeBottomPromo = DEFAULT_BOTTOM_PROMO;

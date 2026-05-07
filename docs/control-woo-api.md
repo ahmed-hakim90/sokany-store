@@ -8,12 +8,14 @@
 
 | العنصر | القيمة |
 |--------|--------|
-| URL | `/control/woo-api` |
-| ملف الصفحة (Server Component) | `app/control/woo-api/page.tsx` |
-| واجهة العرض (Client) | `app/control/woo-api/woo-api-dashboard.tsx` |
+| URL الحالي | `/control?tab=wooApi` (تبويب داخل /control) |
+| URL القديم | `/control/woo-api` — يحوّل تلقائياً إلى التبويب الجديد. |
+| تبويب لوحة التحكم | `wooApi` ضمن مجموعة «صحة وربط» في `features/control/lib/control-tabs.ts`. |
+| واجهة العرض (Client) | `features/control/components/ControlWooApiTab.tsx` (تجلب الملخص من API لأنها داخل لوحة التحكم). |
+| API ملخص الواجهة | `GET /api/control/woo-api-summary` — يجمع `getWooDiagnosticReport`، `getPublicSiteContent`، روابط الويبهوك. |
 | حماية المسار | `proxy.ts` يفرض جلسة صالحة لكل `/control/*` عدا `/control/login`. بدون كوكي جلسة → إعادة توجيه لـ `/control/login`. |
 
-الصفحة **لا تتحقق بنفسها** من صلاحية «تبويب» معيّن؛ أي مستخدم دخل `/control` بجلسة صالحة يمكنه فتح `/control/woo-api` (ما لم تُضف لاحقاً فحوصات إضافية).
+التبويب يستلم البيانات من العميل عبر API بعد التحقق من الجلسة (`requireScopeFull`). لا تظهر تبويبات «صحة وربط» إلا للمستخدمين الذين لديهم صلاحية `full`.
 
 ---
 

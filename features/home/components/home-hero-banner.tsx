@@ -31,6 +31,14 @@ export type HomeHeroBannerProps = {
   autoplayMs?: number;
 };
 
+/** نص بديل قصير للهيرو — بدون فقرات تسويقية طويلة. */
+function shortHeroAlt(raw: string | undefined, index: number): string {
+  const t = raw?.replace(/\s+/g, " ").trim() ?? "";
+  if (!t) return `عرض ترويجي ${index + 1}`;
+  const max = 100;
+  return t.length > max ? `${t.slice(0, max - 1)}…` : t;
+}
+
 export function HomeHeroBanner({
   slides,
   className,
@@ -138,12 +146,14 @@ export function HomeHeroBanner({
         ref={scrollerRef}
         className="flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-[calc((100vw-330px)/2)] pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
-        {/* أول شريحتين بـ priority — LCP في الكاروسيل قد لا يكون الشريحة 0 حسب ترتيب CMS/RTL */}
+        {/* شريحة واحدة فقط بـ priority — تقليل منافسة LCP مع البرومو والشعار */}
         {slides.map((slide, index) => (
           <HeroImageCard
             key={`${slide.imageSrc}-${index}`}
             slide={slide}
-            priority={index < 2}
+            slideIndex={index}
+            priority={index === 0}
+            fetchPriority={index === 0 ? "high" : "low"}
           />
         ))}
       </div>
@@ -153,21 +163,26 @@ export function HomeHeroBanner({
 
 function HeroImageCard({
   slide,
+  slideIndex,
   priority,
+  fetchPriority,
 }: {
   slide: HomeHeroSlide;
+  slideIndex: number;
   priority?: boolean;
+  fetchPriority?: "high" | "low" | "auto";
 }) {
-  // Hero cards use a fixed slide frame (300×25rem); parent-category banners use `aspect-[16/5]` — visual rhythm is approximate.
+  // Hero cards use a fixed slide frame (300×400px); explicit box size limits CLS.
   const content = (
     <div className="relative h-[25rem] w-[300px] shrink-0 snap-center overflow-hidden rounded-2xl bg-image-well shadow-sm ring-1 ring-black/[0.06]">
       <AppImage
         src={slide.imageSrc}
-        alt={slide.imageAlt ?? ""}
+        alt={shortHeroAlt(slide.imageAlt, slideIndex)}
         fill
         sizes="330px"
         className="object-cover"
         priority={priority}
+        fetchPriority={fetchPriority}
       />
     </div>
   );

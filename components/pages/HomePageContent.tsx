@@ -1,10 +1,9 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import dynamic from "next/dynamic";
 import { useTransitionRouter } from "next-view-transitions";
 import { Button } from "@/components/Button";
 import { Container } from "@/components/Container";
-import { ScrollReveal } from "@/components/ScrollReveal";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorState } from "@/components/ErrorState";
 import { useCart } from "@/hooks/useCart";
@@ -12,16 +11,15 @@ import {
   HomeHeroBanner,
   type HomeHeroSlide,
 } from "@/features/home/components/home-hero-banner";
-import {
-  HomeParentCategorySections,
-  HomeParentCategorySectionsSkeleton,
-} from "@/features/home/components/home-parent-category-sections";
-import { HomePromoCard } from "@/features/home/components/home-promo-card";
-import { HomeMobileServicesCapsule } from "@/features/home/components/home-mobile-services-capsule";
 import { ProductGrid } from "@/features/products/components/ProductGrid";
 import { ROUTES } from "@/lib/constants";
 import { useCategories } from "@/features/categories/hooks/useCategories";
-import { HomeFlashSaleCountdownStrip } from "@/features/home/components/home-flash-sale-countdown";
+import {
+  HOME_BESTSELLERS_PRODUCT_PARAMS,
+  HOME_CATEGORIES_QUERY_PARAMS,
+  HOME_FLASH_SALE_PRODUCT_PARAMS,
+  HOME_NEW_ARRIVALS_PRODUCT_PARAMS,
+} from "@/features/home/lib/home-page-product-params";
 import { useProducts } from "@/features/products/hooks/useProducts";
 import {
   CMS_DEFAULT_HOME_SPOTLIGHT_PLACEMENT,
@@ -31,28 +29,60 @@ import {
   type CmsHomeProductSectionsMode,
   type CmsHomeSpotlightPlacement,
 } from "@/schemas/cms";
-import { HomeCustomProductSections } from "@/features/home/components/home-custom-product-sections";
-import { HomeFeatureVideo } from "@/features/home/components/home-feature-video";
 
-function subscribeHydrationSnapshot() {
-  return () => {};
-}
+const ScrollReveal = dynamic(() =>
+  import("@/components/ScrollReveal").then((m) => ({ default: m.ScrollReveal })),
+);
 
-function getHydratedSnapshot() {
-  return true;
-}
+const HomeFeatureVideo = dynamic(() =>
+  import("@/features/home/components/home-feature-video").then((m) => ({
+    default: m.HomeFeatureVideo,
+  })),
+);
 
-function getServerHydrationSnapshot() {
-  return false;
-}
+const HomePromoCard = dynamic(() =>
+  import("@/features/home/components/home-promo-card").then((m) => ({
+    default: m.HomePromoCard,
+  })),
+);
+
+const HomeFlashSaleCountdownStrip = dynamic(() =>
+  import("@/features/home/components/home-flash-sale-countdown").then((m) => ({
+    default: m.HomeFlashSaleCountdownStrip,
+  })),
+);
+
+const HomeMobileServicesCapsule = dynamic(() =>
+  import("@/features/home/components/home-mobile-services-capsule").then((m) => ({
+    default: m.HomeMobileServicesCapsule,
+  })),
+);
+
+const HomeCustomProductSections = dynamic(() =>
+  import("@/features/home/components/home-custom-product-sections").then((m) => ({
+    default: m.HomeCustomProductSections,
+  })),
+);
+
+const HomeParentCategorySections = dynamic(() =>
+  import("@/features/home/components/home-parent-category-sections").then((m) => ({
+    default: m.HomeParentCategorySections,
+  })),
+);
+
+const HomeParentCategorySectionsSkeleton = dynamic(() =>
+  import("@/features/home/components/home-parent-category-sections").then((m) => ({
+    default: m.HomeParentCategorySectionsSkeleton,
+  })),
+);
 
 /*
  * الصفحة الرئيسية (/): عمود واحد داخل Container بمسافات رأسية تتسع تدريجياً (sm → md).
- * ‎`max-lg`‎: أثناء ‎`HomePageContent` بلا ‎`bg` تظهر ‎`MobileHeroLimeAtmosphere` (خلف ‎`main`‎) لوناً خلف
- * بانر الهيرو/الهوامس. التسلسل: هيرو → عروض سريعة → كبسولة خدمات → بطاقة ترويج (موضعها من CMS «إعلان مميز»)
- * → (بانر ترويج اختياري، قابل للإخفاء من /control) → الأكثر مبيعاً → وصل حديثاً
- * → حسب ‎`homeProductSectionsMode`‎: ‎`auto`‎ أقسام أب فقط؛ ‎`custom`‎ أقسام CMS مخصصة فقط؛ ‎`hybrid`‎ المخصصة ثم الأب.
- * فشل جلب التصنيفات لأقسام الأب: ‎`ErrorState`‎. فشل منتجات قسم مخصص: ‎`ErrorState`‎ داخل ذلك القسم فقط.
+ * ‎`max-lg`‎: ‎`MobileHeroLimeAtmosphere`‎ داخل ‎`main`‎ (خلف المحتوى) تمنح ليماً خلف الهيرو؛ ‎`HomePageContent`‎ بلا ‎`bg`‎.
+ * التسلسل: هيرو → عروض سريعة → كبسولة خدمات → بطاقة ترويج (CMS «إعلان مميز») → الأكثر مبيعاً → وصل حديثاً
+ * → حسب ‎`homeProductSectionsMode`‎: ‎`auto`‎ أقسام أب؛ ‎`custom`‎ أقسام CMS؛ ‎`hybrid`‎ المخصصة ثم الأب.
+ * بيانات المنتجات/التصنيفات تُملأ من ‎`app/(storefront)/page.tsx`‎ (‎`setQueryData`‎ + ‎`HydrationBoundary`‎) لتفادي شبكات فارغة قبل التحميل.
+ * فشل التصنيفات: ‎`ErrorState`‎. فشل قسم مخصص: ‎`ErrorState`‎ داخل القسم.
  */
 export type HomeBottomPromo = {
   eyebrow?: string;
@@ -113,28 +143,10 @@ export function HomePageContent({
   homeProductSections = [],
 }: HomePageContentProps) {
   const router = useTransitionRouter();
-  const flashSales = useProducts({
-    on_sale: true,
-    per_page: 12,
-    orderby: "date",
-    order: "desc",
-  });
-  const newArrivals = useProducts({
-    per_page: 12,
-    orderby: "date",
-    order: "desc",
-  });
-  const categories = useCategories({ per_page: 100 });
-  const hasMounted = useSyncExternalStore(
-    subscribeHydrationSnapshot,
-    getHydratedSnapshot,
-    getServerHydrationSnapshot,
-  );
-  const homeBestsellers = useProducts({
-    per_page: 12,
-    orderby: "popularity",
-    order: "desc",
-  });
+  const flashSales = useProducts(HOME_FLASH_SALE_PRODUCT_PARAMS);
+  const newArrivals = useProducts(HOME_NEW_ARRIVALS_PRODUCT_PARAMS);
+  const categories = useCategories(HOME_CATEGORIES_QUERY_PARAMS);
+  const homeBestsellers = useProducts(HOME_BESTSELLERS_PRODUCT_PARAMS);
   const { getCartLineQuantity, setProductLineQuantity } = useCart();
   const renderFeatureVideo = (placement: CmsHomeFeatureVideo["placement"]) =>
     homeFeatureVideo?.enabled && homeFeatureVideo.placement === placement ? (
@@ -145,6 +157,7 @@ export function HomePageContent({
 
   const promoPlacement =
     homeBottomPromo.homePlacement ?? CMS_DEFAULT_HOME_SPOTLIGHT_PLACEMENT;
+  const promoImagePriority = heroSlides.length === 0;
   const renderHomePromo = (slot: CmsHomeSpotlightPlacement) =>
     homeBottomPromoVisible && promoPlacement === slot ? (
       <ScrollReveal>
@@ -155,8 +168,7 @@ export function HomePageContent({
           href={homeBottomPromo.href}
           ctaLabel={homeBottomPromo.ctaLabel}
           imageSrc={homeBottomPromo.imageSrc}
-          /* Full-width 70dvh: often competes with narrow hero slides for LCP — eager avoids dev warning. */
-          imagePriority
+          imagePriority={promoImagePriority}
         />
       </ScrollReveal>
     ) : null;
@@ -210,6 +222,8 @@ export function HomePageContent({
                     : "ready"
               }
               products={flashSales.data?.items ?? []}
+              skeletonCount={12}
+              priorityImageSlots={0}
               getCartLineQuantity={getCartLineQuantity}
               onCartLineQuantityChange={setProductLineQuantity}
               cardVariant="mobileCompact"
@@ -278,6 +292,8 @@ export function HomePageContent({
                     : "ready"
               }
               products={homeBestsellers.data?.items ?? []}
+              skeletonCount={12}
+              priorityImageSlots={0}
               getCartLineQuantity={getCartLineQuantity}
               onCartLineQuantityChange={setProductLineQuantity}
               cardVariant="mobileCompact"
@@ -330,6 +346,8 @@ export function HomePageContent({
                     : "ready"
               }
               products={newArrivals.data?.items ?? []}
+              skeletonCount={12}
+              priorityImageSlots={0}
               getCartLineQuantity={getCartLineQuantity}
               onCartLineQuantityChange={setProductLineQuantity}
               cardVariant="mobileCompact"
@@ -355,14 +373,14 @@ export function HomePageContent({
         {homeProductSectionsMode === "custom" || homeProductSectionsMode === "hybrid" ? (
           <HomeCustomProductSections
             sections={homeProductSections}
-            categories={hasMounted ? (categories.data ?? []) : []}
+            categories={categories.data ?? []}
             getCartLineQuantity={getCartLineQuantity}
             onCartLineQuantityChange={setProductLineQuantity}
           />
         ) : null}
 
         {homeProductSectionsMode === "auto" || homeProductSectionsMode === "hybrid" ? (
-          !hasMounted || categories.isPending ? (
+          categories.isPending && !categories.data ? (
             <ScrollReveal>
               <HomeParentCategorySectionsSkeleton
                 getCartLineQuantity={getCartLineQuantity}
