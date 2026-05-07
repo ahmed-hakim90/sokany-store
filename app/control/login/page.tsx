@@ -7,7 +7,7 @@ import { signInWithEmailAndPassword } from "firebase/auth";
 import { Button } from "@/components/Button";
 import { Card } from "@/components/ui/card";
 import { ROUTES } from "@/lib/constants";
-import { getFirebaseAuth } from "@/lib/firebase";
+import { getFirebaseAuth } from "@/lib/firebase-client-auth";
 
 /*
  * صفحة دخول المشرف (/control/login): نموذج بريد وكلمة مرور (Firebase Email/Password)

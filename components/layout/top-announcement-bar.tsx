@@ -118,10 +118,30 @@ function CarouselRow({
   const [i, setI] = useState(0);
   useEffect(() => {
     if (items.length <= 1) return;
-    const t = window.setInterval(() => {
-      setI((x) => (x + 1) % items.length);
-    }, Math.max(3000, intervalSec * 1000));
-    return () => window.clearInterval(t);
+    const ms = Math.max(3000, intervalSec * 1000);
+    let id: number | undefined;
+    const start = () => {
+      if (id !== undefined || document.hidden) return;
+      id = window.setInterval(() => {
+        setI((x) => (x + 1) % items.length);
+      }, ms);
+    };
+    const stop = () => {
+      if (id !== undefined) {
+        window.clearInterval(id);
+        id = undefined;
+      }
+    };
+    const onVisibility = () => {
+      if (document.hidden) stop();
+      else start();
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    start();
+    return () => {
+      stop();
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
   }, [items.length, intervalSec]);
 
   const item = items[i] ?? items[0];

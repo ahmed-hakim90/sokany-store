@@ -1,10 +1,10 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { Link } from "next-view-transitions";
 import { usePathname } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { AppImage } from "@/components/AppImage";
-import { MobileNavDrawer } from "@/components/layout/mobile-nav-drawer";
 import {
   mobileNavDrawerReturnFocusRef,
   useMobileNavDrawerOpenStore,
@@ -19,6 +19,7 @@ import { useMobileChromeCollapsedStore } from "@/components/layout/mobile-chrome
 import { DesktopCategoryMegaNav } from "@/components/layout/desktop-category-mega-nav";
 import { TopHeader } from "@/components/layout/top-header";
 import { useCategories } from "@/features/categories/hooks/useCategories";
+import { HOME_CATEGORIES_QUERY_PARAMS } from "@/features/home/lib/home-page-product-params";
 import { mockCategories } from "@/features/categories/mock";
 import type { Category } from "@/features/categories/types";
 import { useCartDrawerOpenStore } from "@/features/cart/store/useCartDrawerOpenStore";
@@ -34,6 +35,14 @@ import {
 import { DEFAULT_SEARCH_QUICK_KEYWORDS } from "@/lib/search-quick-keywords";
 import { SOCIAL_LINKS, type SocialLink } from "@/lib/social-links";
 import { cn } from "@/lib/utils";
+
+const MobileNavDrawer = dynamic(
+  () =>
+    import("@/components/layout/mobile-nav-drawer").then(
+      (m) => m.MobileNavDrawer,
+    ),
+  { ssr: false, loading: () => null },
+);
 
 function subscribeHydrationSnapshot() {
   return () => {};
@@ -111,9 +120,10 @@ export function Navbar({
   const pathname = usePathname();
   const open = useMobileNavDrawerOpenStore((s) => s.open);
   const closeDrawer = useMobileNavDrawerOpenStore((s) => s.closeDrawer);
+  const [mobileDrawerEverOpen, setMobileDrawerEverOpen] = useState(false);
   const { totalItems } = useCart();
   const { totalCount: wishlistCount } = useWishlist();
-  const categoriesQuery = useCategories({ per_page: 100 });
+  const categoriesQuery = useCategories(HOME_CATEGORIES_QUERY_PARAMS);
   const hasMounted = useSyncExternalStore(
     subscribeHydrationSnapshot,
     getHydratedSnapshot,
@@ -157,12 +167,22 @@ export function Navbar({
   useEffect(() => {
     if (isCheckout) closeDrawer();
   }, [isCheckout, closeDrawer]);
+  useEffect(() => {
+    if (!open) return;
+    const frame = requestAnimationFrame(() => setMobileDrawerEverOpen(true));
+    return () => cancelAnimationFrame(frame);
+  }, [open]);
   const isServiceCenters =
     pathname === ROUTES.SERVICE_CENTERS ||
     pathname.startsWith(`${ROUTES.SERVICE_CENTERS}/`);
   const isRetailers =
     pathname === ROUTES.RETAILERS ||
     pathname.startsWith(`${ROUTES.RETAILERS}/`);
+  const showCatalogFilterTrigger =
+    pathname === ROUTES.PRODUCTS ||
+    pathname === ROUTES.SEARCH ||
+    pathname === ROUTES.CATEGORIES ||
+    pathname.startsWith(`${ROUTES.CATEGORIES}/`);
 
   const [logoLoadFailed, setLogoLoadFailed] = useState(false);
   const showHeaderWordmarkText = logoDisabled || logoLoadFailed;
@@ -367,7 +387,7 @@ export function Navbar({
         <div className="min-w-0 flex-1">
           <NavbarSearch quickKeywords={searchQuickKeywords} />
         </div>
-        <CatalogFilterDrawerTrigger />
+        {showCatalogFilterTrigger ? <CatalogFilterDrawerTrigger /> : null}
       </div>
     </Suspense>
   );
@@ -401,7 +421,7 @@ export function Navbar({
         mobileSecondary={mobileSecondary}
         mobileTopRowCollapsed={!isCheckout && mobileTopRowHidden}
       />
-      {!isCheckout ? (
+      {!isCheckout && (open || mobileDrawerEverOpen) ? (
         <MobileNavDrawer
           open={open}
           onClose={closeDrawer}

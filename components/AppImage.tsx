@@ -51,7 +51,15 @@ function ShimmerBox({
 
 type StringImageInnerProps = Pick<
   ImageProps,
-  "alt" | "className" | "fill" | "sizes" | "priority" | "width" | "height" | "fetchPriority"
+  | "alt"
+  | "className"
+  | "fill"
+  | "sizes"
+  | "priority"
+  | "width"
+  | "height"
+  | "fetchPriority"
+  | "quality"
 > & {
   src: string;
   onLoadError?: () => void;
@@ -71,6 +79,7 @@ function StringAppImageInner({
   width,
   height,
   fetchPriority,
+  quality,
   onLoadError,
   usePlaceholderOnError = true,
   emptyShimmer,
@@ -116,6 +125,7 @@ function StringAppImageInner({
         sizes={sizes}
         priority={priority}
         fetchPriority={fetchPriority}
+        quality={quality}
         unoptimized={
           isWooHostedProductImageUrl(stringSrc) ||
           stringSrc.startsWith("blob:") ||
@@ -151,6 +161,7 @@ export function AppImage({
   width,
   height,
   fetchPriority,
+  quality,
   onLoadError,
   usePlaceholderOnError = true,
   /** عند ‎`src`‎ فارغ: شيمر بدل صورة ‎`/images/placeholder.png`‎. @default true */
@@ -159,7 +170,16 @@ export function AppImage({
   shimmerUntilLoaded = false,
 }: Pick<
   ImageProps,
-  "src" | "alt" | "className" | "fill" | "sizes" | "priority" | "width" | "height" | "fetchPriority"
+  | "src"
+  | "alt"
+  | "className"
+  | "fill"
+  | "sizes"
+  | "priority"
+  | "width"
+  | "height"
+  | "fetchPriority"
+  | "quality"
 > & {
   onLoadError?: () => void;
   usePlaceholderOnError?: boolean;
@@ -176,6 +196,7 @@ export function AppImage({
         sizes={sizes}
         priority={priority}
         fetchPriority={fetchPriority}
+        quality={quality}
         loading={priority ? "eager" : "lazy"}
         width={width}
         height={height}
@@ -195,6 +216,7 @@ export function AppImage({
       width={width}
       height={height}
       fetchPriority={fetchPriority}
+      quality={quality}
       onLoadError={onLoadError}
       usePlaceholderOnError={usePlaceholderOnError}
       emptyShimmer={emptyShimmer}

@@ -30,6 +30,8 @@ export type ProductGridProps = {
   simpleImageMode?: boolean;
   /** Catalog crossfade length when `simpleImageMode` is false. @default true */
   imageMotion?: boolean;
+  /** Dense sections can disable swipe/pointer image switching. @default true */
+  imageInteractions?: boolean;
   loading?: ReactNode;
   empty?: ReactNode;
   products?: Product[];
@@ -54,6 +56,7 @@ export function ProductGrid({
   priorityImageSlots = 5,
   simpleImageMode = false,
   imageMotion = true,
+  imageInteractions = true,
   loading,
   empty,
   renderItem,
@@ -102,6 +105,7 @@ export function ProductGrid({
             imagePriority={index < priorityImageSlots}
             simpleImageMode={simpleImageMode}
             imageMotion={imageMotion}
+            imageInteractions={imageInteractions}
             getCartLineQuantity={getCartLineQuantity}
             onCartLineQuantityChange={onCartLineQuantityChange}
             variant={resolvedVariant}

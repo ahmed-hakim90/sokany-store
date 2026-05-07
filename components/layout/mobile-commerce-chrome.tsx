@@ -1,9 +1,9 @@
 "use client";
 
-import { useLayoutEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
+import dynamic from "next/dynamic";
+import { useLayoutEffect, useRef } from "react";
 import { useMobileChromeCollapsedStore } from "@/components/layout/mobile-chrome-collapsed-store";
-import { MobileCartBottomSheet } from "@/features/cart/components/MobileCartBottomSheet";
 import { useCart } from "@/hooks/useCart";
 import { ROUTES } from "@/lib/constants";
 import { BottomNavInner } from "@/components/layout/bottom-nav";
@@ -12,6 +12,14 @@ import {
   mobileCommerceChromeColumnClass,
 } from "@/components/layout/mobile-commerce-surface";
 import { cn } from "@/lib/utils";
+
+const MobileCartBottomSheet = dynamic(
+  () =>
+    import("@/features/cart/components/MobileCartBottomSheet").then(
+      (m) => m.MobileCartBottomSheet,
+    ),
+  { ssr: false, loading: () => null },
+);
 
 const MOBILE_COMMERCE_CHROME_HEIGHT_VAR = "--mobile-commerce-chrome-height";
 const MOBILE_COMMERCE_FLOATING_ACTIONS_BOTTOM_VAR =
@@ -100,10 +108,12 @@ export function MobileCommerceChrome() {
           mobileCommerceChromeColumnClass,
         )}
       >
-        <MobileCartBottomSheet
-          showCartSummary={showCartSummary}
-          peekHidden={cartPeekHidden}
-        />
+        {showCartSummary ? (
+          <MobileCartBottomSheet
+            showCartSummary={showCartSummary}
+            peekHidden={cartPeekHidden}
+          />
+        ) : null}
         <div
           ref={bottomNavRef}
           className={mobileCommerceBottomNavCapsuleClassName(headerHidden)}

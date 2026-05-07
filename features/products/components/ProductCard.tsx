@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { BadgeCheck, CirclePlay, ShieldCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
 import {
@@ -27,7 +28,14 @@ import { getProductCardSalesCountText } from "@/features/products/lib/product-ca
 import { getProductVideoEmbed } from "@/features/products/lib/product-merchandising";
 import { playCartFlyAnimation } from "@/lib/cart-fly-animation";
 import { usePrefetchProduct } from "@/features/products/hooks/usePrefetchProduct";
-import { ProductQuickViewModal } from "@/features/products/components/product-quick-view-modal";
+
+const ProductQuickViewModal = dynamic(
+  () =>
+    import("@/features/products/components/product-quick-view-modal").then(
+      (m) => m.ProductQuickViewModal,
+    ),
+  { ssr: false, loading: () => null },
+);
 import {
   WishlistHeartBurstPortal,
   WISHLIST_HEART_BURST_COUNT,
@@ -61,6 +69,8 @@ export type ProductCardProps = {
    * When false and `simpleImageMode` is false, image swap is instant. @default true
    */
   imageMotion?: boolean;
+  /** Disable swipe/pointer image switching for dense home grids. @default true */
+  imageInteractions?: boolean;
   getCartLineQuantity?: (productId: number) => number;
   onCartLineQuantityChange?: (product: Product, next: number) => void;
   /** Renders over the image corner (e.g. wishlist IconButton). */
@@ -300,6 +310,7 @@ export function ProductCard({
   imagePriority = false,
   simpleImageMode = false,
   imageMotion = true,
+  imageInteractions = true,
   getCartLineQuantity,
   onCartLineQuantityChange,
   wishlistSlot,
@@ -311,8 +322,8 @@ export function ProductCard({
   const prefersReducedMotion = usePrefersReducedMotion();
   const crossfadeMs = useMemo(() => {
     if (prefersReducedMotion) return 0;
-    if (simpleImageMode) return 200;
     if (!imageMotion) return 0;
+    if (simpleImageMode) return 200;
     return 320;
   }, [prefersReducedMotion, simpleImageMode, imageMotion]);
   const merchandising = useProductMerchandising();
@@ -340,6 +351,10 @@ export function ProductCard({
   const showCartQty = Boolean(onCartLineQuantityChange);
   const [justAdded, setJustAdded] = useState(false);
   const [quickViewOpen, setQuickViewOpen] = useState(false);
+  const [quickViewEverOpened, setQuickViewEverOpened] = useState(false);
+  useEffect(() => {
+    if (quickViewOpen) setQuickViewEverOpened(true);
+  }, [quickViewOpen]);
   const addButtonText = !product.inStock
     ? "نفد"
     : justAdded
@@ -367,6 +382,7 @@ export function ProductCard({
 
   const [imageIndex, setImageIndex] = useState(0);
   const multiImage = cardSlides.length > 1;
+  const enableImageInteractions = imageInteractions && multiImage;
   const emptySlide = useMemo(
     (): CardSlide => ({
       key: "no-image",
@@ -397,7 +413,7 @@ export function ProductCard({
   }, [router, product.id]);
 
   const cardImageSwipe = usePointerSwipe({
-    enabled: multiImage,
+    enabled: enableImageInteractions,
     onSwipeNext: goImgNext,
     onSwipePrev: goImgPrev,
     onTap: navigateToProduct,
@@ -411,6 +427,7 @@ export function ProductCard({
   const updateImageIndexFromCardPointerX = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
       if (e.pointerType !== "mouse" || !multiImage) return;
+      if (!enableImageInteractions) return;
       if (e.buttons !== 0) return;
       const { left, width } = e.currentTarget.getBoundingClientRect();
       if (width <= 0) return;
@@ -422,22 +439,22 @@ export function ProductCard({
       );
       setImageIndex((prev) => (prev === i ? prev : i));
     },
-    [multiImage, cardSlides.length],
+    [enableImageInteractions, multiImage, cardSlides.length],
   );
 
   const onCardImagePointerEnter = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
       void prefetchProduct(product.id);
-      if (e.pointerType === "mouse" && multiImage) {
+      if (e.pointerType === "mouse" && enableImageInteractions) {
         updateImageIndexFromCardPointerX(e);
       }
     },
-    [prefetchProduct, product.id, multiImage, updateImageIndexFromCardPointerX],
+    [prefetchProduct, product.id, enableImageInteractions, updateImageIndexFromCardPointerX],
   );
 
   const onCardImagePointerLeave = useCallback(() => {
-    if (multiImage) setImageIndex(0);
-  }, [multiImage]);
+    if (enableImageInteractions) setImageIndex(0);
+  }, [enableImageInteractions]);
 
   useEffect(() => {
     return () => {
@@ -537,17 +554,30 @@ export function ProductCard({
           )}
         >
           <div ref={imageFlyRef} className="absolute inset-0 z-0">
-            <ProductCardImageStack
-              key={product.id}
-              productId={product.id}
-              activeSlide={activeSlide}
-              crossfadeMs={crossfadeMs}
-              prefersReducedMotion={prefersReducedMotion}
-              imageSizes={imageSizes}
-              imagePriority={imagePriority}
-            />
+            {crossfadeMs <= 0 ? (
+              <AppImage
+                src={activeSlide.src}
+                alt={activeSlide.alt}
+                fill
+                sizes={imageSizes}
+                priority={imagePriority}
+                className={productCardImageClassName}
+                shimmerUntilLoaded
+                usePlaceholderOnError={false}
+              />
+            ) : (
+              <ProductCardImageStack
+                key={product.id}
+                productId={product.id}
+                activeSlide={activeSlide}
+                crossfadeMs={crossfadeMs}
+                prefersReducedMotion={prefersReducedMotion}
+                imageSizes={imageSizes}
+                imagePriority={imagePriority}
+              />
+            )}
           </div>
-          {multiImage ? (
+          {enableImageInteractions ? (
             <div
               data-card-image-swipe
               className="absolute inset-0 z-[1] touch-none select-none"
@@ -757,7 +787,7 @@ export function ProductCard({
         </div>
       </Card>
 
-      {PRODUCT_CARD_SHOW_QUICK_VIEW && isDetailed ? (
+      {PRODUCT_CARD_SHOW_QUICK_VIEW && isDetailed && (quickViewOpen || quickViewEverOpened) ? (
         <ProductQuickViewModal
           product={product}
           open={quickViewOpen}

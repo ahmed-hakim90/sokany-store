@@ -5,6 +5,7 @@ import {
   type QueryClient,
   type QueryKey,
 } from "@tanstack/react-query";
+import { scheduleIdleCallback } from "@/lib/schedule-idle-callback";
 
 const QUERY_CACHE_STORAGE_KEY = "sokany_storefront_query_cache_v1";
 const QUERY_CACHE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
@@ -100,32 +101,34 @@ export function subscribeStorefrontQueryCachePersistence(
   if (!isBrowser()) return () => undefined;
 
   let timeout: number | undefined;
+  let unsubscribe: (() => void) | undefined;
+  const cancelIdle = scheduleIdleCallback(() => {
+    const persist = () => {
+      timeout = undefined;
+      try {
+        const clientState = dehydrate(queryClient, {
+          shouldDehydrateQuery: shouldPersistQuery,
+        });
+        window.localStorage.setItem(
+          QUERY_CACHE_STORAGE_KEY,
+          JSON.stringify({ persistedAt: Date.now(), clientState }),
+        );
+      } catch {
+        /* Storage quota / private browsing: keep the app usable without persistence. */
+      }
+    };
 
-  const persist = () => {
-    timeout = undefined;
-    try {
-      const clientState = dehydrate(queryClient, {
-        shouldDehydrateQuery: shouldPersistQuery,
-      });
-      window.localStorage.setItem(
-        QUERY_CACHE_STORAGE_KEY,
-        JSON.stringify({ persistedAt: Date.now(), clientState }),
-      );
-    } catch {
-      /* Storage quota / private browsing: keep the app usable without persistence. */
-    }
-  };
+    const schedulePersist = () => {
+      if (timeout !== undefined) return;
+      timeout = window.setTimeout(persist, PERSIST_DEBOUNCE_MS);
+    };
 
-  const schedulePersist = () => {
-    if (timeout !== undefined) return;
-    timeout = window.setTimeout(persist, PERSIST_DEBOUNCE_MS);
-  };
-
-  const unsubscribe = queryClient.getQueryCache().subscribe(schedulePersist);
-  schedulePersist();
+    unsubscribe = queryClient.getQueryCache().subscribe(schedulePersist);
+  }, { timeout: 2500 });
 
   return () => {
-    unsubscribe();
+    cancelIdle();
+    unsubscribe?.();
     if (timeout !== undefined) {
       window.clearTimeout(timeout);
     }

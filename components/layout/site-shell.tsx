@@ -8,10 +8,10 @@ import { MobileFloatingActions } from "@/components/layout/mobile-floating-actio
 import { TopAnnouncementBar } from "@/components/layout/top-announcement-bar";
 import { StorefrontHeaderCategoryStrip } from "@/components/layout/storefront-header-category-strip";
 import { Navbar } from "@/components/Navbar";
-import { DesktopCartDrawer } from "@/features/cart/components/DesktopCartDrawer";
-import { CatalogFilterDrawer } from "@/features/catalog/components/CatalogFilterDrawer";
+import { DesktopCartDrawerGate } from "@/features/cart/components/desktop-cart-drawer-gate";
+import { CatalogFilterDrawerGate } from "@/features/catalog/components/catalog-filter-drawer-gate";
 import { ProductMerchandisingProvider } from "@/features/products/components/product-merchandising-context";
-import { DesktopWishlistDrawer } from "@/features/wishlist/components/DesktopWishlistDrawer";
+import { DesktopWishlistDrawerGate } from "@/features/wishlist/components/desktop-wishlist-drawer-gate";
 import type { CmsHeaderCategoryStrip, CmsTopAnnouncementBar } from "@/schemas/cms";
 import type { ResolvedSiteBranding } from "@/lib/site-branding";
 import type { SocialLink } from "@/lib/social-links";
@@ -55,13 +55,13 @@ export function SiteShell({
         <StorefrontHeaderCategoryStrip config={headerCategoryStrip} />
       </header>
       <Suspense fallback={null}>
-        <DesktopCartDrawer />
+        <DesktopCartDrawerGate />
       </Suspense>
       <Suspense fallback={null}>
-        <DesktopWishlistDrawer />
+        <DesktopWishlistDrawerGate />
       </Suspense>
       <Suspense fallback={null}>
-        <CatalogFilterDrawer />
+        <CatalogFilterDrawerGate />
       </Suspense>
       {/*
         معالم الصفحة: ‎`<header>`‎ ثم ‎`<main>`‎ ثم الفوتر (‎`FooterGate`‎ → ‎`<footer>`‎).

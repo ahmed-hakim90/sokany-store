@@ -4,6 +4,7 @@ import { Link } from "next-view-transitions";
 import { useCallback, useEffect, useRef } from "react";
 import { AppImage } from "@/components/AppImage";
 import { cn } from "@/lib/utils";
+import { scheduleIdleCallback } from "@/lib/schedule-idle-callback";
 
 const DEFAULT_HERO_IMAGE_ALT = "قلاية هوائية سوكاني";
 /** يطابق بداية ‎`ROUTES.CATEGORY(slug)`‎ لكل ‎`slug`‎ غير فارغ. */
@@ -146,19 +147,42 @@ export function HomeHeroBanner({
 
     const step = () => measureStep();
 
-    const timer = window.setInterval(() => {
-      if (pausedRef.current) return;
-      const s = step();
-      if (!s) return;
-      const next = (indexRef.current + 1) % slides.length;
-      indexRef.current = next;
-      const child = scroller.children[next] as HTMLElement | undefined;
-      if (child) {
-        scrollHeroSlideIntoCenter(scroller, child, "smooth");
-      } else {
-        scroller.scrollTo({ left: next * s, behavior: "smooth" });
+    let intervalId: number | undefined;
+
+    const startTick = () => {
+      if (intervalId !== undefined || document.hidden) return;
+      intervalId = window.setInterval(() => {
+        if (pausedRef.current) return;
+        const s = step();
+        if (!s) return;
+        const next = (indexRef.current + 1) % slides.length;
+        indexRef.current = next;
+        const child = scroller.children[next] as HTMLElement | undefined;
+        if (child) {
+          scrollHeroSlideIntoCenter(scroller, child, "smooth");
+        } else {
+          scroller.scrollTo({ left: next * s, behavior: "smooth" });
+        }
+      }, autoplayMs);
+    };
+
+    const stopTick = () => {
+      if (intervalId !== undefined) {
+        window.clearInterval(intervalId);
+        intervalId = undefined;
       }
-    }, autoplayMs);
+    };
+
+    const onVisibility = () => {
+      if (document.hidden) stopTick();
+      else startTick();
+    };
+
+    const cancelIdle = scheduleIdleCallback(() => {
+      if (!document.hidden) startTick();
+    }, { timeout: 3500 });
+
+    document.addEventListener("visibilitychange", onVisibility);
 
     const pause = () => {
       pausedRef.current = true;
@@ -173,7 +197,9 @@ export function HomeHeroBanner({
     scroller.addEventListener("touchend", resume, { passive: true });
 
     return () => {
-      window.clearInterval(timer);
+      cancelIdle();
+      stopTick();
+      document.removeEventListener("visibilitychange", onVisibility);
       scroller.removeEventListener("mouseenter", pause);
       scroller.removeEventListener("mouseleave", resume);
       scroller.removeEventListener("touchstart", pause);
@@ -226,6 +252,7 @@ function HeroImageCard({
         className="object-cover"
         priority={priority}
         fetchPriority={fetchPriority}
+        quality={priority ? 74 : 70}
       />
     </div>
   );

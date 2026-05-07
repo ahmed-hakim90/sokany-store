@@ -1,9 +1,8 @@
 "use client";
 
-import { getToken, onMessage, type Messaging } from "firebase/messaging";
 import { useEffect, useRef } from "react";
 import { toast } from "sonner";
-import { getFirebaseMessaging } from "@/lib/firebase";
+import { getFirebaseMessaging } from "@/lib/firebase-app";
 import {
   messagingErrorIsInvalidVapid,
   warnIfVapidKeyLooksInvalidDev,
@@ -14,9 +13,12 @@ const VAPID = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY;
 
 export const SOKANY_PUSH_GRANTED_EVENT = "sokany-push-granted";
 
-async function registerTokenWithServer(messaging: Messaging): Promise<void> {
+async function registerTokenWithServer(
+  messaging: import("firebase/messaging").Messaging,
+): Promise<void> {
   if (!VAPID?.trim()) return;
   warnIfVapidKeyLooksInvalidDev(VAPID);
+  const { getToken } = await import("firebase/messaging");
   const registration = await navigator.serviceWorker.ready;
   let token: string;
   try {
@@ -73,6 +75,7 @@ export function useFcmWebPush(enabled: boolean): void {
           console.error("[push] registerTokenWithServer:", err);
         }
       }
+      const { onMessage } = await import("firebase/messaging");
       offRef.current = onMessage(messaging, (payload) => {
         if (emitWooCacheInvalidationFromData(payload.data)) {
           return;

@@ -57,8 +57,30 @@ export function HomeFlashSaleCountdownStrip({
       setMsLeft(Math.max(0, endMs - now));
     };
     tick();
-    const id = window.setInterval(tick, 1000);
-    return () => window.clearInterval(id);
+    let id: number | undefined;
+    const start = () => {
+      if (id !== undefined || document.hidden) return;
+      id = window.setInterval(tick, 1000);
+    };
+    const stop = () => {
+      if (id !== undefined) {
+        window.clearInterval(id);
+        id = undefined;
+      }
+    };
+    const onVis = () => {
+      if (document.hidden) stop();
+      else {
+        tick();
+        start();
+      }
+    };
+    document.addEventListener("visibilitychange", onVis);
+    start();
+    return () => {
+      stop();
+      document.removeEventListener("visibilitychange", onVis);
+    };
   }, [endsAtIso]);
 
   const parts = useMemo(

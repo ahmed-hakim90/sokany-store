@@ -1,9 +1,6 @@
 import type { Metadata } from "next";
 import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
-import {
-  HomePageContent,
-  type HomeBottomPromo,
-} from "@/components/pages/HomePageContent";
+import { HomePageShell, type HomeBottomPromo } from "@/components/pages/home/HomePageShell";
 import { getCategoriesServer } from "@/features/categories/services/getCategoriesServer";
 import {
   getPublicSiteContent,
@@ -205,7 +202,7 @@ export default async function Home() {
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <HomePageContent
+      <HomePageShell
         heroSlides={content.heroSlides}
         heroCategoryNamesBySlug={heroCategoryNamesBySlug}
         sectionBanners={content.sectionBanners}

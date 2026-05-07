@@ -1,21 +1,17 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import { useSyncExternalStore } from "react";
 import { useMobileChromeCollapsedStore } from "@/components/layout/mobile-chrome-collapsed-store";
 import { ROUTES } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 /*
  * موبايل: هالة ليم عالية التباين تضعف تدريجياً حتى ‎~نص الشاشة ‎(50dvh)‎ نحو ‎`--page`‎؛
- * ارتفاع الطبقة/الشفافية تقل تدريجياً مع ‎`scrollY`‎ (مدى ~‎`SCROLL_REACH_PX`‎). عند ‎`headerHidden`‎ (سيرش + أدوات بلا صف شعار) تضيق الهالة
- * لإحساس بأن شريط البحث بات «مرسوم» في نطاق أعلى أصغر.
+ * عند ‎`headerHidden`‎ (سيرش + أدوات بلا صف شعار) تضيق الهالة لإحساس بأن شريط البحث بات «مرسوم» في نطاق أعلى أصغر.
  * ‎`z-0` — **خلف** ‎`main` ‎(‎`max-lg:z-1`‎) والمحتوى، تحت الهيدر ‎(z-50)‎؛ تُرى من الشفافيّات ومن
- * ‎`HomePageContent`‎ (بدون ‎`bg`‎) خلف بانر الهيرو/الهوامس.
+ * غلاف الصفحة الرئيسية (بدون ‎`bg`‎ على الموبايل) خلف بانر الهيرو/الهوامس.
  */
-
-/** أطول = الهالة تضعف مع التمرير ببطء أكبر وتبقى أعلى على الشاشة. */
-const SCROLL_REACH_PX = 560;
 
 /** بعد الترطيب فقط (يتجنّب اختلاف SSR/هيدراتيشن). */
 function useLgOrBelow() {
@@ -59,29 +55,8 @@ export function MobileHeroLimeAtmosphere() {
   const isLgOrBelow = useLgOrBelow();
   const reducedMotion = usePrefersReducedMotion();
   const headerHidden = useMobileChromeCollapsedStore((s) => s.headerHidden);
-  const [scrollY, setScrollY] = useState(0);
-
-  useEffect(() => {
-    if (!isLgOrBelow) return;
-    const onScroll = () => {
-      setScrollY(window.scrollY ?? document.documentElement.scrollTop ?? 0);
-    };
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, [isLgOrBelow]);
-
-  const { heightVh, opacity } = useMemo(() => {
-    const t = Math.min(1, scrollY / SCROLL_REACH_PX);
-    if (headerHidden) {
-      const h = 8 + 14 * (1 - t * 0.88);
-      const o = 0.24 + 0.18 * (1 - t);
-      return { heightVh: Math.max(7, Math.min(50, h)), opacity: Math.max(0.12, o) };
-    }
-    const h = 24 + 32 * (1 - t * 0.8);
-    const o = 0.72 + 0.24 * (1 - t);
-    return { heightVh: Math.max(17, Math.min(50, h)), opacity: Math.max(0.22, Math.min(1, o)) };
-  }, [headerHidden, scrollY]);
+  const heightVh = headerHidden ? 15 : 50;
+  const opacity = headerHidden ? 0.26 : 0.86;
 
   if (!isLgOrBelow || pathname === ROUTES.CHECKOUT) {
     return null;

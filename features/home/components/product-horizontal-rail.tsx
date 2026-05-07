@@ -38,6 +38,8 @@ export type ProductHorizontalRailProps = {
   simpleImageMode?: boolean;
   /** @default true */
   imageMotion?: boolean;
+  /** @default true */
+  imageInteractions?: boolean;
   "aria-label"?: string;
   className?: string;
 };
@@ -152,6 +154,7 @@ export function ProductHorizontalRail({
   priorityImageSlots = 3,
   simpleImageMode = false,
   imageMotion = true,
+  imageInteractions = true,
   "aria-label": ariaLabel,
   className,
 }: ProductHorizontalRailProps) {
@@ -196,6 +199,7 @@ export function ProductHorizontalRail({
             imagePriority={index < priorityImageSlots}
             simpleImageMode={simpleImageMode}
             imageMotion={imageMotion}
+            imageInteractions={imageInteractions}
             variant="mobileCompact"
             getCartLineQuantity={getCartLineQuantity}
             onCartLineQuantityChange={onCartLineQuantityChange}

@@ -100,6 +100,8 @@ export function HomeCustomProductSections({
                   products={products}
                   priorityImageSlots={0}
                   simpleImageMode
+                  imageMotion={false}
+                  imageInteractions={false}
                   getCartLineQuantity={getCartLineQuantity}
                   onCartLineQuantityChange={onCartLineQuantityChange}
                   errorMessage={
@@ -129,6 +131,8 @@ export function HomeCustomProductSections({
                   }
                   products={products}
                   simpleImageMode
+                  imageMotion={false}
+                  imageInteractions={false}
                   getCartLineQuantity={getCartLineQuantity}
                   onCartLineQuantityChange={onCartLineQuantityChange}
                   cardVariant="mobileCompact"

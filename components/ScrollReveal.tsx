@@ -7,6 +7,7 @@ import {
   type ComponentPropsWithoutRef,
   type ComponentRef,
 } from "react";
+import { subscribeScrollReveal } from "@/components/scroll-reveal-shared";
 import { cn } from "@/lib/utils";
 
 export type ScrollRevealProps = {
@@ -50,26 +51,10 @@ export function ScrollReveal({
     mq.addEventListener("change", revealIfReducedMotion);
     if (mq.matches) return () => mq.removeEventListener("change", revealIfReducedMotion);
 
-    const obs = new IntersectionObserver(
-      (entries) => {
-        for (const e of entries) {
-          if (e.isIntersecting) {
-            setVisible(true);
-            obs.disconnect();
-            return;
-          }
-        }
-      },
-      {
-        root: null,
-        rootMargin: "0px 0px -48px 0px",
-        threshold: [0, 0.12, 0.25, 0.5, 1],
-      },
-    );
-    obs.observe(el);
+    const unobserve = subscribeScrollReveal(el, () => setVisible(true));
     return () => {
       mq.removeEventListener("change", revealIfReducedMotion);
-      obs.disconnect();
+      unobserve();
     };
   }, [as]);
 

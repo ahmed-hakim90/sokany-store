@@ -114,7 +114,7 @@ export default async function RootLayout({
     >
       <body className="flex min-h-full min-w-0 flex-col bg-page text-foreground">
         {CLARITY_PROJECT_ID ? (
-          <Script id="microsoft-clarity" strategy="afterInteractive">
+          <Script id="microsoft-clarity" strategy="lazyOnload">
             {`(function(c,l,a,r,i,t,y){
                 c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
                 t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;

@@ -6,12 +6,12 @@ import { useEffect, useState } from "react";
 import {
   emitWooCacheInvalidationFromData,
   invalidateStorefrontQueriesFromWooEvent,
-  isPersistableStorefrontQueryKey,
   restoreStorefrontQueryCache,
   subscribeStorefrontQueryCachePersistence,
   WOO_CACHE_INVALIDATION_EVENT,
   type WooCacheInvalidationPayload,
 } from "@/lib/storefront-offline-cache";
+import { scheduleIdleCallback } from "@/lib/schedule-idle-callback";
 
 export function QueryProvider({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -33,22 +33,19 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
    * إذا مُلئ الكاش من ‎`restoreStorefrontQueryCache`‎ قبل ذلك، يُؤجَّل الـ hydrate إلى ‎`useEffect`‎
    * في ‎`HydrationBoundary`‎ → ‎`useQuery`‎ يبقى ‎`pending`‎ لإطار أو أكثر وتظهر شبكات الـ skeleton على الهوم.
    */
-  useEffect(() => {
-    restoreStorefrontQueryCache(queryClient);
-  }, [queryClient]);
+  useEffect(
+    () =>
+      scheduleIdleCallback(() => restoreStorefrontQueryCache(queryClient), {
+        timeout: 1800,
+      }),
+    [queryClient],
+  );
 
   useEffect(() => {
     return subscribeStorefrontQueryCachePersistence(queryClient);
   }, [queryClient]);
 
   useEffect(() => {
-    const refetchPersistedStorefrontQueries = () => {
-      void queryClient.invalidateQueries({
-        predicate: (query) => isPersistableStorefrontQueryKey(query.queryKey),
-        refetchType: "active",
-      });
-    };
-
     const onWooInvalidation = (event: Event) => {
       const custom = event as CustomEvent<WooCacheInvalidationPayload>;
       invalidateStorefrontQueriesFromWooEvent(queryClient, custom.detail ?? {});
@@ -62,23 +59,11 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
       emitWooCacheInvalidationFromData(data);
     };
 
-    const onVisible = () => {
-      if (document.visibilityState === "visible") {
-        refetchPersistedStorefrontQueries();
-      }
-    };
-
     window.addEventListener(WOO_CACHE_INVALIDATION_EVENT, onWooInvalidation);
-    window.addEventListener("online", refetchPersistedStorefrontQueries);
-    window.addEventListener("focus", refetchPersistedStorefrontQueries);
-    document.addEventListener("visibilitychange", onVisible);
     navigator.serviceWorker?.addEventListener("message", onServiceWorkerMessage);
 
     return () => {
       window.removeEventListener(WOO_CACHE_INVALIDATION_EVENT, onWooInvalidation);
-      window.removeEventListener("online", refetchPersistedStorefrontQueries);
-      window.removeEventListener("focus", refetchPersistedStorefrontQueries);
-      document.removeEventListener("visibilitychange", onVisible);
       navigator.serviceWorker?.removeEventListener(
         "message",
         onServiceWorkerMessage,
