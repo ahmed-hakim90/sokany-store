@@ -136,8 +136,8 @@ function YouTubeEmbed({
   const wrapperRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<YouTubePlayer | null>(null);
   /*
-   * autoplay يوتيوب موثوق وهو مكتوم فقط؛ فك الكتم التلقائي بعد الـ ready
-   * يوقف التشغيل في كثير من المتصفحات. الصوت من زر السماعة (تفاعل مستخدم).
+   * نبدأ مكتوم لضمان autoplay، وبعد أول حدث PLAYING من يوتيوب نجرب نفك الكتم
+   * ونضبط الصوت. لو المتصفح يوقف التشغيل أو يرفض الصوت نرجع كتم ونكمل بصمت.
    */
   const [muted, setMuted] = useState(true);
   /* ما نفترضش تشغيل قبل ما نستقبل حدث من يوتيوب — غير كده يبان زر إيقاف وفيديو لسه على شاشة التشغيل. */
@@ -146,8 +146,11 @@ function YouTubeEmbed({
   /* نخزن أحدث callback في ref عشان التغيير ميعملش re-mount للـ player. */
   const onErrorRef = useRef(onError);
   onErrorRef.current = onError;
+  /** محاولة فك كتم تلقائية مرة واحدة بعد ما التشغيل يثبت (مش من onReady). */
+  const autoUnmuteOnceRef = useRef(false);
 
   useEffect(() => {
+    autoUnmuteOnceRef.current = false;
     const wrapper = wrapperRef.current;
     if (!wrapper) return;
     /*
@@ -179,6 +182,38 @@ function YouTubeEmbed({
         }
       }, delayMs);
       retryTimers.push(id);
+    };
+    const scheduleUnmuteAfterPlaybackStarts = () => {
+      if (autoUnmuteOnceRef.current) return;
+      autoUnmuteOnceRef.current = true;
+      const idUnmute = window.setTimeout(() => {
+        if (cancelled) return;
+        const p = playerRef.current;
+        if (!p) return;
+        const st = p.getPlayerState();
+        if (st === YT_PS.PAUSED || st === YT_PS.ENDED || st === YT_PS.UNSTARTED) {
+          return;
+        }
+        p.setVolume(DEFAULT_VOLUME_PERCENT);
+        p.unMute();
+        setMuted(false);
+        const idVerify = window.setTimeout(() => {
+          if (cancelled) return;
+          const p2 = playerRef.current;
+          if (!p2) return;
+          if (p2.isMuted()) {
+            setMuted(true);
+            return;
+          }
+          if (p2.getPlayerState() === YT_PS.PAUSED) {
+            p2.mute();
+            setMuted(true);
+            p2.playVideo();
+          }
+        }, 320);
+        retryTimers.push(idVerify);
+      }, 220);
+      retryTimers.push(idUnmute);
     };
     void loadYouTubeApi()
       .then((YT) => {
@@ -216,7 +251,10 @@ function YouTubeEmbed({
             },
             onStateChange: (e) => {
               const s = e.data;
-              if (s === YT_PS.PLAYING || s === YT_PS.BUFFERING) {
+              if (s === YT_PS.PLAYING) {
+                setPlaying(true);
+                scheduleUnmuteAfterPlaybackStarts();
+              } else if (s === YT_PS.BUFFERING) {
                 setPlaying(true);
               } else if (
                 s === YT_PS.PAUSED ||
@@ -300,9 +338,14 @@ function VimeoEmbed({
 }) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [muted, setMuted] = useState(true);
-  const [playing, setPlaying] = useState(true);
+  const [playing, setPlaying] = useState(false);
   const onErrorRef = useRef(onError);
   onErrorRef.current = onError;
+  const vimeoUnmuteOnceRef = useRef(false);
+
+  useEffect(() => {
+    vimeoUnmuteOnceRef.current = false;
+  }, [videoId]);
 
   const send = (method: string, value?: unknown) => {
     const win = iframeRef.current?.contentWindow;
@@ -322,8 +365,17 @@ function VimeoEmbed({
       }
       if (typeof parsed !== "object" || parsed === null) return;
       const data = parsed as { event?: string };
-      if (data.event === "play") setPlaying(true);
-      else if (data.event === "pause") setPlaying(false);
+      if (data.event === "play") {
+        setPlaying(true);
+        if (!vimeoUnmuteOnceRef.current) {
+          vimeoUnmuteOnceRef.current = true;
+          window.setTimeout(() => {
+            send("setVolume", DEFAULT_VOLUME_PERCENT / 100);
+            send("setMuted", false);
+            setMuted(false);
+          }, 160);
+        }
+      } else if (data.event === "pause") setPlaying(false);
       else if (data.event === "error") onErrorRef.current?.();
     };
     window.addEventListener("message", onMessage);
@@ -361,16 +413,6 @@ function VimeoEmbed({
           send("addEventListener", "play");
           send("addEventListener", "pause");
           send("addEventListener", "error");
-          /*
-           * نحاول فك الكتم بعد ما الـ play يبتدي. فيميو postMessage مش بيرد
-           * بنتيجة فعلية، فبنفترض النجاح. لو المتصفح رفض هيفضل مكتوم
-           * والمستخدم يضغط زرار 🔊 يدوياً.
-           */
-          window.setTimeout(() => {
-            send("setVolume", DEFAULT_VOLUME_PERCENT / 100);
-            send("setMuted", false);
-            setMuted(false);
-          }, 200);
         }}
       />
       <ClickShield />
@@ -415,9 +457,12 @@ function DirectVideoEmbed({
   onErrorRef.current = onError;
   /** يمنع طلب play() مئات المرات مع كل حدث canplay أثناء التخزين المؤقت. */
   const autoplayCommittedRef = useRef(false);
+  /** بعد تشغيل مكتوم (مسار catch)، نجرب الصوت مرة عند أول play فعلي. */
+  const unmuteOnFirstPlayRef = useRef(false);
 
   useEffect(() => {
     autoplayCommittedRef.current = false;
+    unmuteOnFirstPlayRef.current = false;
   }, [src]);
 
   const attemptAutoplay = useCallback(() => {
@@ -477,7 +522,19 @@ function DirectVideoEmbed({
           setPlaying(false);
           onErrorRef.current?.();
         }}
-        onPlay={() => setPlaying(true)}
+        onPlay={() => {
+          setPlaying(true);
+          const el = videoRef.current;
+          if (!el || unmuteOnFirstPlayRef.current) return;
+          unmuteOnFirstPlayRef.current = true;
+          if (!el.muted) return;
+          el.volume = DEFAULT_VOLUME_PERCENT / 100;
+          el.muted = false;
+          setMuted(false);
+          window.setTimeout(() => {
+            if (el.muted) setMuted(true);
+          }, 80);
+        }}
         onPause={() => setPlaying(false)}
       />
       <CustomControls
