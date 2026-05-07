@@ -1,5 +1,6 @@
 "use client";
 
+import { useSyncExternalStore } from "react";
 import dynamic from "next/dynamic";
 import { useTransitionRouter } from "next-view-transitions";
 import { Button } from "@/components/Button";
@@ -76,6 +77,11 @@ const HomeParentCategorySectionsSkeleton = dynamic(() =>
   })),
 );
 
+/** Helpers لـ ‎`useSyncExternalStore`‎: ثابتة على مستوى الـ module حتى لا تُنشأ في كل render. */
+const subscribeNoop = () => () => undefined;
+const getSnapshotClient = () => true;
+const getSnapshotServer = () => false;
+
 /*
  * الصفحة الرئيسية (/): عمود واحد داخل Container بمسافات رأسية تتسع تدريجياً (sm → md).
  * ‎`max-lg`‎: ‎`MobileHeroLimeAtmosphere`‎ داخل ‎`main`‎ (خلف المحتوى) تمنح ليماً خلف الهيرو؛ ‎`HomePageContent`‎ بلا ‎`bg`‎.
@@ -148,6 +154,18 @@ export function HomePageContent({
   const categories = useCategories(HOME_CATEGORIES_QUERY_PARAMS);
   const homeBestsellers = useProducts(HOME_BESTSELLERS_PRODUCT_PARAMS);
   const { getCartLineQuantity, setProductLineQuantity } = useCart();
+  /**
+   * Hydration guard: ‎`useSyncExternalStore`‎ يعيد ‎`false`‎ على ‎`SSR`‎ وأول رسم
+   * للعميل، ثم ‎`true`‎ بعد ‎`commit`‎ — هكذا يتطابق DOM في أول رسم بين الخادم
+   * والمتصفح بصرف النظر عن حالة كاش الـ persistence (‎`localStorage`‎ على
+   * المتصفح مقابل ‎`HydrationBoundary`‎ على الخادم) وتفادي
+   * ‎`Hydration failed because the server rendered HTML didn't match the client`‎.
+   */
+  const hasMounted = useSyncExternalStore(
+    subscribeNoop,
+    getSnapshotClient,
+    getSnapshotServer,
+  );
   const renderFeatureVideo = (placement: CmsHomeFeatureVideo["placement"]) =>
     homeFeatureVideo?.enabled && homeFeatureVideo.placement === placement ? (
       <ScrollReveal>
@@ -380,7 +398,7 @@ export function HomePageContent({
         ) : null}
 
         {homeProductSectionsMode === "auto" || homeProductSectionsMode === "hybrid" ? (
-          categories.isPending && !categories.data ? (
+          !hasMounted ? (
             <ScrollReveal>
               <HomeParentCategorySectionsSkeleton
                 getCartLineQuantity={getCartLineQuantity}
@@ -401,6 +419,13 @@ export function HomePageContent({
               getCartLineQuantity={getCartLineQuantity}
               onCartLineQuantityChange={setProductLineQuantity}
             />
+          ) : categories.isPending ? (
+            <ScrollReveal>
+              <HomeParentCategorySectionsSkeleton
+                getCartLineQuantity={getCartLineQuantity}
+                onCartLineQuantityChange={setProductLineQuantity}
+              />
+            </ScrollReveal>
           ) : null
         ) : null}
       </Container>
