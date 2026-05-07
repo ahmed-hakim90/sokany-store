@@ -20,6 +20,7 @@ const MOBILE_COMMERCE_FLOATING_ACTIONS_BOTTOM_VAR =
 export function MobileCommerceChrome() {
   const pathname = usePathname();
   const { totalItems } = useCart();
+  const headerHidden = useMobileChromeCollapsedStore((s) => s.headerHidden);
   const cartPeekHidden = useMobileChromeCollapsedStore((s) => s.cartPeekHidden);
   const rootRef = useRef<HTMLDivElement>(null);
   const bottomNavRef = useRef<HTMLDivElement>(null);
@@ -105,7 +106,7 @@ export function MobileCommerceChrome() {
         />
         <div
           ref={bottomNavRef}
-          className={mobileCommerceBottomNavCapsuleClassName()}
+          className={mobileCommerceBottomNavCapsuleClassName(headerHidden)}
         >
           <BottomNavInner />
         </div>

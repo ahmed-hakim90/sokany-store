@@ -1613,25 +1613,36 @@ export function ControlPanel() {
               </p>
             </div>
             <form
-              key={String(
-                (site as { homeBottomPromoImageUrl?: string } | null)?.homeBottomPromoImageUrl ?? "",
-              )}
+              key={`${site?.homeBottomPromoImageUrl ?? ""}-${site?.homeBottomPromoVisible === false ? "0" : "1"}`}
               className="space-y-3"
               onSubmit={(e) => {
                 e.preventDefault();
                 const fd = new FormData(e.currentTarget);
                 const imageUrl = String(fd.get("homeBottomPromoImageUrl") ?? "").trim();
+                const homeBottomPromoVisible = fd.get("homeBottomPromoVisible") === "on";
                 /* نبعت string دايماً (حتى لو فاضي) عشان merge function تتعرّف على نية المسح. */
-                void saveSiteConfig({ homeBottomPromoImageUrl: imageUrl });
+                void saveSiteConfig({
+                  homeBottomPromoImageUrl: imageUrl,
+                  homeBottomPromoVisible,
+                });
               }}
             >
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  name="homeBottomPromoVisible"
+                  defaultChecked={site?.homeBottomPromoVisible !== false}
+                />
+                <span className="text-sm font-medium">إظهار البانر الترويجي على الصفحة الرئيسية</span>
+              </label>
+              <p className="text-xs text-muted-foreground">
+                لما تلغي التفعيل، البانر يختفي في كل المواضع (حسب «إعلان مميز») حتى لو فيه صورة أو إعلان نشط.
+              </p>
               <ControlImageUrlField
                 name="homeBottomPromoImageUrl"
                 label="صورة البانر"
                 helper="ينصح بمقاس 1100×400 بكسل (نسبة عرض/ارتفاع تقريباً 11:4). صيغ مدعومة: JPG / PNG / WebP."
-                defaultValue={
-                  (site as { homeBottomPromoImageUrl?: string } | null)?.homeBottomPromoImageUrl ?? ""
-                }
+                defaultValue={site?.homeBottomPromoImageUrl ?? ""}
                 placeholder="/images/hero-banner.jpg"
                 disabled={saving === "site_config"}
               />

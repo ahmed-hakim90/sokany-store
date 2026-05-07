@@ -984,7 +984,7 @@ export function SpotlightsForm({
         <div>
           <h2 className="font-display text-lg font-bold">إعلان مميز في الصفحة الرئيسية</h2>
           <p className="text-sm text-muted-foreground">
-            يُعرَض أول عنصر عليه «نشط». اختر موضع البطقة في الهوم، واملأ الصورة والعناوين لظهور أفضل.
+            يُعرَض أول عنصر عليه «نشط». اختر موضع البطاقة في الهوم، واملأ الصورة والعناوين لظهور أفضل.
           </p>
         </div>
         <Button type="button" variant="secondary" size="sm" onClick={addRow}>

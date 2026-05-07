@@ -90,6 +90,10 @@ export function mergeSiteConfigPatch(
       patch.homeBottomPromoImageUrl !== undefined
         ? patch.homeBottomPromoImageUrl
         : current?.homeBottomPromoImageUrl,
+    homeBottomPromoVisible:
+      patch.homeBottomPromoVisible !== undefined
+        ? patch.homeBottomPromoVisible
+        : current?.homeBottomPromoVisible,
     homeProductSectionsMode:
       patch.homeProductSectionsMode ??
       current?.homeProductSectionsMode ??

@@ -296,6 +296,11 @@ export const cmsSiteConfigDocSchema = z.object({
   homeFeatureVideo: cmsHomeFeatureVideoSchema.optional(),
   /** صورة بطاقة الترويج اللي قبل قسم «الأكثر مبيعاً» — لو فاضي يستخدم spotlight أو الصورة الافتراضية. */
   homeBottomPromoImageUrl: publicAssetOrUrlSchema.optional(),
+  /**
+   * إظهار بطاقة الترويج العريضة على الهوم (في الموضع المختار من «إعلان مميز»).
+   * `false` يخفيها بالكامل؛ الغياب أو `true` = ظاهرة.
+   */
+  homeBottomPromoVisible: z.boolean().optional(),
   homeProductSectionsMode: cmsHomeProductSectionsModeSchema.optional(),
   homeProductSections: cmsHomeProductSectionsArraySchema.optional(),
   /** عناوين وقراءة عامة مدارة من `/control` — بلا أسرار. */

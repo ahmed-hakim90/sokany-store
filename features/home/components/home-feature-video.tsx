@@ -55,6 +55,16 @@ function parseEmbed(rawUrl: string): EmbedInfo | null {
 
 /* ───────────────────────  YouTube IFrame Player API  ───────────────────── */
 
+/** حالات مشغّل يوتيوب (رقمية كما في IFrame API). */
+const YT_PS = {
+  UNSTARTED: -1,
+  ENDED: 0,
+  PLAYING: 1,
+  PAUSED: 2,
+  BUFFERING: 3,
+  CUED: 5,
+} as const;
+
 interface YouTubePlayer {
   mute: () => void;
   unMute: () => void;
@@ -63,6 +73,7 @@ interface YouTubePlayer {
   playVideo: () => void;
   pauseVideo: () => void;
   destroy: () => void;
+  getPlayerState: () => number;
 }
 
 /** نسبة الصوت الافتراضية لما الفيديو يقدر يشتغل بصوت (1–100 ليوتيوب، 0–1 لـ video/Vimeo). */
@@ -125,12 +136,12 @@ function YouTubeEmbed({
   const wrapperRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<YouTubePlayer | null>(null);
   /*
-   * نبدأ مكتوم عشان autoplay يشتغل. بعد ما الفيديو يبدأ بنحاول نفك الكتم
-   * ونضبط الصوت على 30٪. لو المتصفّح منع (موبايل/سفاري عادةً) بنرجّع state
-   * إلى muted=true لحد ما المستخدم يضغط زرار الصوت بنفسه.
+   * autoplay يوتيوب موثوق وهو مكتوم فقط؛ فك الكتم التلقائي بعد الـ ready
+   * يوقف التشغيل في كثير من المتصفحات. الصوت من زر السماعة (تفاعل مستخدم).
    */
   const [muted, setMuted] = useState(true);
-  const [playing, setPlaying] = useState(true);
+  /* ما نفترضش تشغيل قبل ما نستقبل حدث من يوتيوب — غير كده يبان زر إيقاف وفيديو لسه على شاشة التشغيل. */
+  const [playing, setPlaying] = useState(false);
   const [ready, setReady] = useState(false);
   /* نخزن أحدث callback في ref عشان التغيير ميعملش re-mount للـ player. */
   const onErrorRef = useRef(onError);
@@ -149,7 +160,26 @@ function YouTubeEmbed({
 
     let player: YouTubePlayer | null = null;
     let cancelled = false;
-    let unmuteTimer: number | undefined;
+    const retryTimers: number[] = [];
+    const scheduleMutedAutoplayRetry = (delayMs: number) => {
+      const id = window.setTimeout(() => {
+        if (cancelled) return;
+        const p = playerRef.current;
+        if (!p) return;
+        const st = p.getPlayerState();
+        /*
+         * لو لسه مش شغال (متصفّح أجّل autoplay، أو فك كتم سابق أوقف التشغيل):
+         * نفضّل يفضل مكتوم وننادى play تاني — فك الكتم التلقائي بعد الـ ready
+         * كثيراً ما يكسر autoplay (السياسة تقتضي تفاعل المستخدم للصوت).
+         */
+        if (st !== YT_PS.PLAYING && st !== YT_PS.BUFFERING) {
+          p.mute();
+          setMuted(true);
+          p.playVideo();
+        }
+      }, delayMs);
+      retryTimers.push(id);
+    };
     void loadYouTubeApi()
       .then((YT) => {
         if (cancelled || !wrapper.contains(placeholder)) return;
@@ -162,6 +192,7 @@ function YouTubeEmbed({
             mute: 1,
             loop: 1,
             playlist: videoId,
+            enablejsapi: 1,
             controls: 0,
             modestbranding: 1,
             rel: 0,
@@ -174,27 +205,27 @@ function YouTubeEmbed({
           },
           events: {
             onReady: (e) => {
-              e.target.setVolume(DEFAULT_VOLUME_PERCENT);
-              e.target.playVideo();
+              const target = e.target;
+              target.setVolume(DEFAULT_VOLUME_PERCENT);
+              target.mute();
+              setMuted(true);
+              target.playVideo();
               setReady(true);
-              /*
-               * نحاول فك الكتم بعد ما الفيديو يبتدي play. لو المتصفح صدّق
-               * (Chrome desktop غالباً يصدّق) هنشتغل بصوت. لو رفض (موبايل/سفاري)
-               * بنرجّع UI لـ muted=true لحد ما المستخدم يضغط بنفسه.
-               */
-              window.setTimeout(() => {
-                if (!playerRef.current) return;
-                playerRef.current.setVolume(DEFAULT_VOLUME_PERCENT);
-                playerRef.current.unMute();
-                setMuted(false);
-                unmuteTimer = window.setTimeout(() => {
-                  if (playerRef.current?.isMuted()) setMuted(true);
-                }, 500);
-              }, 200);
+              scheduleMutedAutoplayRetry(350);
+              scheduleMutedAutoplayRetry(1100);
             },
             onStateChange: (e) => {
-              if (e.data === 1) setPlaying(true);
-              else if (e.data === 2 || e.data === 0) setPlaying(false);
+              const s = e.data;
+              if (s === YT_PS.PLAYING || s === YT_PS.BUFFERING) {
+                setPlaying(true);
+              } else if (
+                s === YT_PS.PAUSED ||
+                s === YT_PS.ENDED ||
+                s === YT_PS.UNSTARTED ||
+                s === YT_PS.CUED
+              ) {
+                setPlaying(false);
+              }
             },
             /*
              * أكواد الأخطاء من يوتيوب: 2 (ID خاطئ)، 5 (مشكلة بالـ HTML5 player)،
@@ -209,7 +240,7 @@ function YouTubeEmbed({
 
     return () => {
       cancelled = true;
-      if (unmuteTimer) window.clearTimeout(unmuteTimer);
+      for (const id of retryTimers) window.clearTimeout(id);
       try {
         player?.destroy();
       } catch {
@@ -382,16 +413,23 @@ function DirectVideoEmbed({
   const [playing, setPlaying] = useState(false);
   const onErrorRef = useRef(onError);
   onErrorRef.current = onError;
+  /** يمنع طلب play() مئات المرات مع كل حدث canplay أثناء التخزين المؤقت. */
+  const autoplayCommittedRef = useRef(false);
+
+  useEffect(() => {
+    autoplayCommittedRef.current = false;
+  }, [src]);
 
   const attemptAutoplay = useCallback(() => {
     const el = videoRef.current;
-    if (!el) return;
+    if (!el || autoplayCommittedRef.current) return;
     el.volume = DEFAULT_VOLUME_PERCENT / 100;
     el.muted = true;
     setMuted(true);
     void el
       .play()
       .then(() => {
+        autoplayCommittedRef.current = true;
         setPlaying(true);
         el.muted = false;
         setMuted(false);
@@ -408,7 +446,10 @@ function DirectVideoEmbed({
         setMuted(true);
         void el
           .play()
-          .then(() => setPlaying(true))
+          .then(() => {
+            autoplayCommittedRef.current = true;
+            setPlaying(true);
+          })
           .catch(() => setPlaying(false));
       });
   }, []);

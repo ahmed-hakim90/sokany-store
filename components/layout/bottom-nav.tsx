@@ -88,6 +88,7 @@ export function BottomNavInner() {
   const mainMenuButtonRef = useRef<HTMLButtonElement>(null);
   const drawerOpen = useMobileNavDrawerOpenStore((s) => s.open);
   const openDrawer = useMobileNavDrawerOpenStore((s) => s.openDrawer);
+  const headerHidden = useMobileChromeCollapsedStore((s) => s.headerHidden);
   const cartPeekHidden = useMobileChromeCollapsedStore((s) => s.cartPeekHidden);
   const showCartPeekOnly = useMobileChromeCollapsedStore(
     (s) => s.showCartPeekOnly,
@@ -99,7 +100,9 @@ export function BottomNavInner() {
       "flex h-14 w-full max-w-[4.85rem] flex-col items-center justify-center gap-1 rounded-2xl border border-transparent px-0.5 py-1.5 text-xs font-semibold leading-tight transition-colors duration-200 sm:max-w-[5.25rem] sm:text-[0.8125rem]",
       active
         ? "border-brand-950 bg-brand-950 text-accent"
-        : "text-muted-foreground [@media(hover:hover)]:hover:bg-black/[0.03] [@media(hover:hover)]:hover:text-foreground/80",
+        : headerHidden
+          ? "text-brand-950/78 [@media(hover:hover)]:hover:bg-black/10 [@media(hover:hover)]:hover:text-brand-950"
+          : "text-muted-foreground [@media(hover:hover)]:hover:bg-black/[0.03] [@media(hover:hover)]:hover:text-foreground/80",
     );
 
   const tabIconShellClass = (active: boolean) =>

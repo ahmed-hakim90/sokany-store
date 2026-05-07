@@ -50,7 +50,7 @@ function getServerHydrationSnapshot() {
  * الصفحة الرئيسية (/): عمود واحد داخل Container بمسافات رأسية تتسع تدريجياً (sm → md).
  * ‎`max-lg`‎: أثناء ‎`HomePageContent` بلا ‎`bg` تظهر ‎`MobileHeroLimeAtmosphere` (خلف ‎`main`‎) لوناً خلف
  * بانر الهيرو/الهوامس. التسلسل: هيرو → عروض سريعة → كبسولة خدمات → بطاقة ترويج (موضعها من CMS «إعلان مميز»)
- * → الأكثر مبيعاً → وصل حديثاً
+ * → (بانر ترويج اختياري، قابل للإخفاء من /control) → الأكثر مبيعاً → وصل حديثاً
  * → حسب ‎`homeProductSectionsMode`‎: ‎`auto`‎ أقسام أب فقط؛ ‎`custom`‎ أقسام CMS مخصصة فقط؛ ‎`hybrid`‎ المخصصة ثم الأب.
  * فشل جلب التصنيفات لأقسام الأب: ‎`ErrorState`‎. فشل منتجات قسم مخصص: ‎`ErrorState`‎ داخل ذلك القسم فقط.
  */
@@ -80,6 +80,8 @@ export type HomePageContentProps = {
   };
   /** بطاقة الترويج بعد كبسولة الخدمات — افتراضي ثابت أو من spotlight في Firestore. */
   homeBottomPromo?: HomeBottomPromo;
+  /** من `site_config` — `false` يخفي البانر الترويجي في كل المواضع. */
+  homeBottomPromoVisible?: boolean;
   /**
    * سكroller صور التصنيفات تحت الهيرو — ‎`sectionVisible`‎ من ‎/control يتحكم في الإظهار.
    */
@@ -105,6 +107,7 @@ export function HomePageContent({
   flashSaleSectionEnabled = true,
   promoFlash,
   homeBottomPromo = DEFAULT_BOTTOM_PROMO,
+  homeBottomPromoVisible = true,
   homeFeatureVideo,
   homeProductSectionsMode = "auto",
   homeProductSections = [],
@@ -143,7 +146,7 @@ export function HomePageContent({
   const promoPlacement =
     homeBottomPromo.homePlacement ?? CMS_DEFAULT_HOME_SPOTLIGHT_PLACEMENT;
   const renderHomePromo = (slot: CmsHomeSpotlightPlacement) =>
-    promoPlacement === slot ? (
+    homeBottomPromoVisible && promoPlacement === slot ? (
       <ScrollReveal>
         <HomePromoCard
           eyebrow={homeBottomPromo.eyebrow}

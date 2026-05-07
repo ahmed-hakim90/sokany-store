@@ -106,6 +106,7 @@ export default async function Home() {
   /*
    * أولوية صورة بطاقة الترويج قبل «الأكثر مبيعاً»:
    * site_config.homeBottomPromoImageUrl  ←  spotlight.imageUrl  ←  الصورة الافتراضية في HomePromoCard.
+   * الإظهار/الإخفاء: site_config.homeBottomPromoVisible === false يخفي البانر بالكامل.
    */
   if (content.homeBottomPromoImageUrl) {
     homeBottomPromo = {
@@ -126,6 +127,7 @@ export default async function Home() {
           subline: content.promoFlash.subline,
         }}
         homeFeatureVideo={content.homeFeatureVideo}
+        homeBottomPromoVisible={content.homeBottomPromoVisible}
         homeBottomPromo={homeBottomPromo}
         homeCategoryScroller={content.homeCategoryScroller}
         homeProductSectionsMode={content.homeProductSectionsMode}

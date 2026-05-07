@@ -81,6 +81,8 @@ export type PublicSiteContent = {
    * فاضية = استعمل صورة الـspotlight لو موجود، وإلا الافتراضي.
    */
   homeBottomPromoImageUrl: string | null;
+  /** من `site_config` — `false` يخفي البانر الترويجي على الهوم بالكامل. */
+  homeBottomPromoVisible: boolean;
   /** أقسام منتجات الهوم من `site_config` — الوضع الافتراضي `auto`. */
   homeProductSectionsMode: CmsHomeProductSectionsMode;
   homeProductSections: CmsHomeProductSection[];
@@ -255,6 +257,7 @@ async function fetchPublicSiteContentUncached(): Promise<PublicSiteContent> {
     homeCategoryScroller: { ...CMS_DEFAULT_HOME_CATEGORY_SCROLLER },
     homeFeatureVideo: { ...CMS_DEFAULT_HOME_FEATURE_VIDEO },
     homeBottomPromoImageUrl: null,
+    homeBottomPromoVisible: true,
     homeProductSectionsMode: CMS_DEFAULT_HOME_PRODUCT_SECTIONS_MODE,
     homeProductSections: [...CMS_DEFAULT_HOME_PRODUCT_SECTIONS],
     publicReadBaseUrl: null,
@@ -348,6 +351,11 @@ async function fetchPublicSiteContentUncached(): Promise<PublicSiteContent> {
       const t = raw.trim();
       return t.length > 0 ? t : null;
     })();
+
+    const homeBottomPromoVisible =
+      siteParsed?.success && siteParsed.data.homeBottomPromoVisible === false
+        ? false
+        : true;
 
     const homeProductSectionsMode = mergeHomeProductSectionsMode(
       siteParsed?.success
@@ -465,6 +473,7 @@ async function fetchPublicSiteContentUncached(): Promise<PublicSiteContent> {
       homeCategoryScroller,
       homeFeatureVideo,
       homeBottomPromoImageUrl,
+      homeBottomPromoVisible,
       homeProductSectionsMode,
       homeProductSections,
       publicReadBaseUrl,
@@ -484,7 +493,7 @@ async function fetchPublicSiteContentUncached(): Promise<PublicSiteContent> {
 
 const getCachedPublicSiteContent = unstable_cache(
   async () => fetchPublicSiteContentUncached(),
-  ["storefront-cms-v3"],
+  ["storefront-cms-v4"],
   { revalidate: 60, tags: [CMS_CACHE_TAG] },
 );
 
