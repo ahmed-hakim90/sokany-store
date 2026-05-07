@@ -2,7 +2,7 @@
 
 import { Link } from "next-view-transitions";
 import { usePathname } from "next/navigation";
-import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import { Suspense, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { AppImage } from "@/components/AppImage";
 import { MobileNavDrawer } from "@/components/layout/mobile-nav-drawer";
 import {
@@ -10,7 +10,10 @@ import {
   useMobileNavDrawerOpenStore,
 } from "@/components/layout/mobile-nav-drawer-open-store";
 import { MobileStoreHotline } from "@/components/layout/mobile-store-hotline";
-import { NavbarSearch } from "@/components/layout/navbar-search";
+import {
+  NavbarSearch,
+  NavbarSearchRowSkeleton,
+} from "@/components/layout/navbar-search";
 import { CatalogFilterDrawerTrigger } from "@/features/catalog/components/CatalogFilterDrawerTrigger";
 import { useMobileChromeCollapsedStore } from "@/components/layout/mobile-chrome-collapsed-store";
 import { DesktopCategoryMegaNav } from "@/components/layout/desktop-category-mega-nav";
@@ -363,12 +366,14 @@ export function Navbar({
   );
 
   const searchWithFilter = (
-    <div className="flex min-w-0 w-full items-center gap-2">
-      <div className="min-w-0 flex-1">
-        <NavbarSearch quickKeywords={searchQuickKeywords} />
+    <Suspense fallback={<NavbarSearchRowSkeleton />}>
+      <div className="flex min-w-0 w-full items-center gap-2">
+        <div className="min-w-0 flex-1">
+          <NavbarSearch quickKeywords={searchQuickKeywords} />
+        </div>
+        <CatalogFilterDrawerTrigger />
       </div>
-      <CatalogFilterDrawerTrigger />
-    </div>
+    </Suspense>
   );
 
   const mobileSecondary =

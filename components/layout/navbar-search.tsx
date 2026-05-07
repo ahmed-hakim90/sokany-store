@@ -332,3 +332,30 @@ export function NavbarSearch({
     </div>
   );
 }
+
+/**
+ * Placeholder for the header search row while `useSearchParams()` resolves (SSR/streaming).
+ * Matches flex layout + heights of `NavbarSearch` + `CatalogFilterDrawerTrigger`.
+ */
+export function NavbarSearchRowSkeleton() {
+  return (
+    <div
+      className="flex min-w-0 w-full items-center gap-2"
+      aria-busy="true"
+      aria-label="جاري تحميل البحث"
+    >
+      <div className="min-w-0 flex-1">
+        <div
+          className={cn(
+            "min-w-0 max-w-none h-9 sm:h-10 lg:h-12 rounded-2xl animate-pulse bg-white/45 shadow-[0_8px_32px_-10px_rgba(15,23,42,0.2)] backdrop-blur-2xl ring-1 ring-slate-900/8",
+            headerProductSearchFieldGlassClass,
+          )}
+        />
+      </div>
+      <div
+        className="relative inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border/80 bg-white/90 animate-pulse"
+        aria-hidden
+      />
+    </div>
+  );
+}

@@ -87,7 +87,7 @@ const getSnapshotServer = () => false;
  * ‎`max-lg`‎: ‎`MobileHeroLimeAtmosphere`‎ داخل ‎`main`‎ (خلف المحتوى) تمنح ليماً خلف الهيرو؛ ‎`HomePageContent`‎ بلا ‎`bg`‎.
  * التسلسل: هيرو → عروض سريعة → كبسولة خدمات → بطاقة ترويج (CMS «إعلان مميز») → الأكثر مبيعاً → وصل حديثاً
  * → حسب ‎`homeProductSectionsMode`‎: ‎`auto`‎ أقسام أب؛ ‎`custom`‎ أقسام CMS؛ ‎`hybrid`‎ المخصصة ثم الأب.
- * بيانات المنتجات/التصنيفات تُملأ من ‎`app/(storefront)/page.tsx`‎ (‎`setQueryData`‎ + ‎`HydrationBoundary`‎) لتفادي شبكات فارغة قبل التحميل.
+ * بيانات المنتجات/التصنيفات تُملأ من ‎`app/(storefront)/page.tsx`‎ (‎`setQueryData`‎ + ‎`HydrationBoundary`‎) لتفادي شبكات فارغة قبل التحميل؛ ‎`heroCategoryNamesBySlug`‎ لنصوص ‎`alt`‎ القصيرة في الهيرو عند الربط بمسارات التصنيفات.
  * فشل التصنيفات: ‎`ErrorState`‎. فشل قسم مخصص: ‎`ErrorState`‎ داخل القسم.
  */
 export type HomeBottomPromo = {
@@ -104,6 +104,8 @@ export type HomeBottomPromo = {
 export type HomePageContentProps = {
   /** Hero من الملفات أو من Firestore. */
   heroSlides?: HomeHeroSlide[];
+  /** من الخادم لنصوص ‎`alt`‎ القصيرة عند ربط شرائح الهيرو بمسارات التصنيفات. */
+  heroCategoryNamesBySlug?: Record<string, string>;
   /** بانرات أقسام الأب — ترتيب يطابق الفهرس. */
   sectionBanners?: { imageUrl: string; href?: string }[];
   /** إخفاء قسم «عروض سريعة» بالكامل (عداد + شبكة المنتجات المخفّضة). */
@@ -139,6 +141,7 @@ const DEFAULT_BOTTOM_PROMO: HomeBottomPromo = {
 
 export function HomePageContent({
   heroSlides = [],
+  heroCategoryNamesBySlug,
   sectionBanners = [],
   flashSaleSectionEnabled = true,
   promoFlash,
@@ -198,7 +201,12 @@ export function HomePageContent({
         {renderFeatureVideo("top")}
         {renderHomePromo("top")}
         {/* أعلى الصفحة: شرائح هيرو ديناميكية تُقرأ من /public/images/hero */}
-        {heroSlides.length > 0 ? <HomeHeroBanner slides={heroSlides} /> : null}
+        {heroSlides.length > 0 ? (
+          <HomeHeroBanner
+            slides={heroSlides}
+            categoryNamesBySlug={heroCategoryNamesBySlug}
+          />
+        ) : null}
         {renderFeatureVideo("afterHero")}
         {renderHomePromo("afterHero")}
 

@@ -45,15 +45,13 @@ export function SiteShell({
         className="sticky top-0 z-50 pt-[env(safe-area-inset-top)] max-lg:bg-transparent"
       >
         <TopAnnouncementBar config={topAnnouncementBar} />
-        <Suspense fallback={null}>
-          <Navbar
-            siteName={branding.siteName}
-            logoPath={branding.logoPath}
-            logoDisabled={branding.logoDisabled}
-            searchQuickKeywords={searchQuickKeywords}
-            socialLinks={socialLinks}
-          />
-        </Suspense>
+        <Navbar
+          siteName={branding.siteName}
+          logoPath={branding.logoPath}
+          logoDisabled={branding.logoDisabled}
+          searchQuickKeywords={searchQuickKeywords}
+          socialLinks={socialLinks}
+        />
         <StorefrontHeaderCategoryStrip config={headerCategoryStrip} />
       </header>
       <Suspense fallback={null}>

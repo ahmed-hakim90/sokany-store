@@ -5,6 +5,10 @@ import { useCallback, useEffect, useRef } from "react";
 import { AppImage } from "@/components/AppImage";
 import { cn } from "@/lib/utils";
 
+const DEFAULT_HERO_IMAGE_ALT = "قلاية هوائية سوكاني";
+/** يطابق بداية ‎`ROUTES.CATEGORY(slug)`‎ لكل ‎`slug`‎ غير فارغ. */
+const CATEGORY_HREF_PREFIX = "/categories/";
+
 /** Horizontal scroll only on `scroller` — avoids `scrollIntoView` moving the page (RTL-safe). */
 function scrollHeroSlideIntoCenter(
   scroller: HTMLElement,
@@ -29,20 +33,59 @@ export type HomeHeroBannerProps = {
   className?: string;
   /** Auto-rotate interval in ms; pass 0 to disable. */
   autoplayMs?: number;
+  /** من الخادم: ‎`slug`‎ → اسم التصنيف لربط ‎`slide.href`‎ بـ ‎`/categories/:slug`‎. */
+  categoryNamesBySlug?: Record<string, string>;
 };
 
-/** نص بديل قصير للهيرو — بدون فقرات تسويقية طويلة. */
-function shortHeroAlt(raw: string | undefined, index: number): string {
-  const t = raw?.replace(/\s+/g, " ").trim() ?? "";
-  if (!t) return `عرض ترويجي ${index + 1}`;
-  const max = 100;
-  return t.length > max ? `${t.slice(0, max - 1)}…` : t;
+function slugFromCategoryHref(href: string | undefined): string | undefined {
+  const h = href?.trim();
+  if (!h) return undefined;
+  try {
+    const path = h.startsWith("http") ? new URL(h).pathname : h;
+    if (!path.startsWith(CATEGORY_HREF_PREFIX)) return undefined;
+    const rest = path.slice(CATEGORY_HREF_PREFIX.length).replace(/\/$/, "");
+    const segment = rest.split("/")[0];
+    return segment || undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * نص بديل قصير — بدون هاشتاجات/شرائط طويلة؛ يفضّل اسم التصنيف عند ربط الشريحة بقسم.
+ */
+function heroSlideAlt(
+  slide: HomeHeroSlide,
+  categoryNamesBySlug?: Record<string, string>,
+): string {
+  const slug = slugFromCategoryHref(slide.href);
+  if (slug && categoryNamesBySlug) {
+    const name = categoryNamesBySlug[slug]?.trim();
+    if (name) return name;
+  }
+
+  const raw = slide.imageAlt?.replace(/\s+/g, " ").trim() ?? "";
+  let cleaned = raw
+    .replace(/#[^\s#]+/g, " ")
+    .replace(/_/g, " ")
+    .replace(/-/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  const words = cleaned.split(/\s+/).filter(Boolean).slice(0, 6);
+  let out = words.join(" ");
+  const maxChars = 45;
+  if (out.length > maxChars) {
+    out = `${out.slice(0, maxChars - 1)}…`;
+  }
+  if (out) return out;
+  return DEFAULT_HERO_IMAGE_ALT;
 }
 
 export function HomeHeroBanner({
   slides,
   className,
   autoplayMs = 3000,
+  categoryNamesBySlug,
 }: HomeHeroBannerProps) {
   const scrollerRef = useRef<HTMLDivElement | null>(null);
   const indexRef = useRef(0);
@@ -151,7 +194,7 @@ export function HomeHeroBanner({
           <HeroImageCard
             key={`${slide.imageSrc}-${index}`}
             slide={slide}
-            slideIndex={index}
+            categoryNamesBySlug={categoryNamesBySlug}
             priority={index === 0}
             fetchPriority={index === 0 ? "high" : "low"}
           />
@@ -163,12 +206,12 @@ export function HomeHeroBanner({
 
 function HeroImageCard({
   slide,
-  slideIndex,
+  categoryNamesBySlug,
   priority,
   fetchPriority,
 }: {
   slide: HomeHeroSlide;
-  slideIndex: number;
+  categoryNamesBySlug?: Record<string, string>;
   priority?: boolean;
   fetchPriority?: "high" | "low" | "auto";
 }) {
@@ -177,7 +220,7 @@ function HeroImageCard({
     <div className="relative h-[25rem] w-[300px] shrink-0 snap-center overflow-hidden rounded-2xl bg-image-well shadow-sm ring-1 ring-black/[0.06]">
       <AppImage
         src={slide.imageSrc}
-        alt={shortHeroAlt(slide.imageAlt, slideIndex)}
+        alt={heroSlideAlt(slide, categoryNamesBySlug)}
         fill
         sizes="330px"
         className="object-cover"

@@ -199,10 +199,15 @@ export default async function Home() {
     };
   }
 
+  const heroCategoryNamesBySlug = Object.fromEntries(
+    categoriesData.map((c) => [c.slug, c.name]),
+  );
+
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
       <HomePageContent
         heroSlides={content.heroSlides}
+        heroCategoryNamesBySlug={heroCategoryNamesBySlug}
         sectionBanners={content.sectionBanners}
         flashSaleSectionEnabled={content.promoFlash.enabled}
         promoFlash={{

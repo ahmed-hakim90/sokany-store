@@ -30,14 +30,21 @@ import { cn } from "@/lib/utils";
 const FOOTER_LINK_GROUPS = {
   quick: {
     title: "روابط",
-    links: [
+    /**
+     * يُعرَض على ‎`lg`‎ فقط — نفس الوجهات متوفرة في شريط التنقل السفلي للموبايل
+     * (‎`BottomNavInner`‎) لتجنب تكرار الروابط في الـ DOM على الشاشات الصغيرة.
+     */
+    linksDesktopOnly: [
       { href: ROUTES.HOME, label: "الرئيسية" },
       { href: ROUTES.PRODUCTS, label: "المنتجات" },
       { href: ROUTES.CART, label: "السلة" },
+      { href: ROUTES.ABOUT, label: "من نحن" },
+    ],
+    /** روابط إضافية تظهر على الموبايل والديسكتوب (ليست في الشريط السفلي). */
+    linksAlways: [
       { href: ROUTES.CHECKOUT, label: "إتمام الطلب" },
       { href: ROUTES.MY_ORDERS, label: "طلباتي" },
       { href: ROUTES.MY_REVIEWS, label: "تقييماتي" },
-      { href: ROUTES.ABOUT, label: "من نحن" },
       { href: ROUTES.SERVICE_CENTERS, label: "مراكز الخدمة" },
       { href: ROUTES.RETAILERS, label: "الموزعون المعتمدون" },
     ],
@@ -163,7 +170,22 @@ export function Footer({
               title={FOOTER_LINK_GROUPS.quick.title}
               titleClassName="lg:text-lg"
             >
-              <FooterInlineLinks items={FOOTER_LINK_GROUPS.quick.links} />
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                {FOOTER_LINK_GROUPS.quick.linksDesktopOnly.map((l) => (
+                  <li key={l.href} className="max-lg:hidden">
+                    <Link className="hover:text-brand-900" href={l.href}>
+                      {l.label}
+                    </Link>
+                  </li>
+                ))}
+                {FOOTER_LINK_GROUPS.quick.linksAlways.map((l) => (
+                  <li key={l.href}>
+                    <Link className="hover:text-brand-900" href={l.href}>
+                      {l.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
             </FooterCollapsibleSection>
             <FooterCollapsibleSection
               title={FOOTER_LINK_GROUPS.legal.title}
