@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireFullControlSession } from "@/lib/api-control-auth";
+import { requireScopeFull } from "@/lib/api-control-auth";
 import {
   listSokanyWooWebhooksOnStore,
   syncSokanyWebhooksToWoo,
@@ -19,7 +19,7 @@ function isWooConfigured(): boolean {
  * POST: إنشاء/تفعيل الناقص من ‎`SOKANY_WOO_WEBHOOK_RECIPES`‎.
  */
 export async function GET(request: NextRequest) {
-  const auth = await requireFullControlSession(request);
+  const auth = await requireScopeFull(request);
   if (auth instanceof NextResponse) return auth;
   if (!isWooConfigured()) {
     return NextResponse.json(
@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const auth = await requireFullControlSession(request);
+  const auth = await requireScopeFull(request);
   if (auth instanceof NextResponse) return auth;
   if (!isWooConfigured()) {
     return NextResponse.json(

@@ -218,7 +218,6 @@ export default async function Home() {
         homeFeatureVideo={content.homeFeatureVideo}
         homeBottomPromoVisible={content.homeBottomPromoVisible}
         homeBottomPromo={homeBottomPromo}
-        homeCategoryScroller={content.homeCategoryScroller}
         homeProductSectionsMode={content.homeProductSectionsMode}
         homeProductSections={content.homeProductSections}
       />

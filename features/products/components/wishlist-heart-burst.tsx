@@ -6,13 +6,10 @@
  * 2) ننشئ N كائن HeartParticle (موضع البداية + تأخير + انزياح عشوائي).
  * 3) WishlistHeartBurstPortal يعرض كل جزيء داخل document.body بـ createPortal
  *    حتى لا يقصّه overflow:hidden على كارت المنتج.
- * 4) كل جزيء motion.div يتحرك من الموضع نفسه: يطير لفوق، يصغر، يختفي؛ ثم onAnimationComplete يحذفه من القائمة.
+ * 4) كل جزيء ‎div‎ مع ‎@keyframes wishlist-burst-particle‎ (انظر ‎globals.css‎)؛ ‎animationend‎ يحذفه من القائمة.
  */
 
 import { createPortal } from "react-dom";
-// createPortal: نرسم المحتوى في عقدة DOM خارج شجرة React الحالية (هنا body) بدون كسر ترتيب الأحداث من React.
-import { motion } from "framer-motion";
-// motion: عنصر يطبّق أنيميشن declarative (initial → animate) بدل كتابة CSS keyframes يدوياً لكل جزيء.
 import { useEffect, useState } from "react";
 
 // حجم أيقونة القلب بالبكسل (h-3.5 w-3.5 = 14px) — نستخدمه لمحاذاة مركز الانطلاق بدقة.
@@ -46,7 +43,7 @@ function BurstHeartIcon() {
   );
 }
 
-/** قلب واحد طائر: يُرسم مرة واحدة ثم يُزال من الحالة عند انتهاء الأنيميشن. */
+/** قلب واحد طائر: يُرسم مرة واحدة ثم يُزال من الحالة عند ‎animationend‎. */
 function BurstParticle({
   particle: p,
   onComplete,
@@ -55,28 +52,22 @@ function BurstParticle({
   onComplete: () => void;
 }) {
   return (
-    <motion.div
-      /* لا يلتقط نقرات — القلوب فوق كل الواجهة بـ z عالي */
-      className="pointer-events-none fixed z-[10050] h-3.5 w-3.5 text-brand-950"
+    <div
+      className="pointer-events-none fixed z-[10050] h-3.5 w-3.5 text-brand-950 motion-reduce:hidden"
       style={{
-        // left/top: ركن أعلى يسار الصندوق؛ طرح HALF يجعل «مركز» القلب فوق مركز الزر المحسوب في الأب.
         left: p.originX - HALF,
         top: p.originY - HALF,
+        ["--burst-drift-x" as string]: `${p.driftX}px`,
+        animation: `wishlist-burst-particle 0.82s cubic-bezier(0.22, 1, 0.36, 1) ${p.delay}s both`,
       }}
-      /* البداية: ظاهر، حجم كامل، بدون إزاحة إضافية من Framer (الإزاحة من style كافية للمحاذاة). */
-      initial={{ opacity: 1, scale: 1, x: 0, y: 0 }}
-      /* النهاية: شفاف + صغير + يتحرك أفقياً driftX + يصعد للأعلى بـ y سالب (في نظام Framer y للأسفل موجب). */
-      animate={{ opacity: 0, scale: 0.2, x: p.driftX, y: -118 }}
-      transition={{
-        duration: 0.82,
-        delay: p.delay, // كل قلب يبدأ متأخراً قليلاً عن السابق = تسلسل «ورا بعض».
-        ease: [0.22, 1, 0.36, 1], // منحنى «ease-out» سريع البداية وبطيء النهاية — حركة طبيعية للطفو.
+      onAnimationEnd={(e) => {
+        if (e.animationName === "wishlist-burst-particle") {
+          onComplete();
+        }
       }}
-      /* بعد انتهاء المدة: الأب يحذف هذا الـ id من المصفوفة حتى لا يبقى DOM فاضي. */
-      onAnimationComplete={onComplete}
     >
       <BurstHeartIcon />
-    </motion.div>
+    </div>
   );
 }
 

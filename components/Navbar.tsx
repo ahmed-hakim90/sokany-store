@@ -29,7 +29,6 @@ import { ROUTES, SITE_LOGO_DISABLED, SITE_LOGO_PATH, SITE_NAME } from "@/lib/con
 import {
   desktopPrimaryBarExtraLinks,
   mobileDrawerLinkSections,
-  mobileDrawerPolicyLinks,
   servicesDropdownLinks,
 } from "@/lib/storefront-nav-links";
 import { DEFAULT_SEARCH_QUICK_KEYWORDS } from "@/lib/search-quick-keywords";
@@ -48,10 +47,7 @@ function getServerHydrationSnapshot() {
   return false;
 }
 
-/**
- * أقسام القائمة الجانبية للموبايل — الترتيب: بحث ← التصنيفات ← روابط سريعة ← أقسام ← عن المتجر ← سياسات (أكورديون) ← تواصل.
- * شريط الديسكتوب: `DesktopCategoryMegaNav` + `desktopPrimaryBarExtraLinks` / `servicesDropdownLinks` من ‎`@/lib/storefront-nav-links`‎.
- */
+/** بيانات روابط الهيدر والدرج موجودة في `@/lib/storefront-nav-links`. */
 
 /** أيقونات داخل كبسولة الهيدر الزجاجية — حدود خفيفة تندمج مع الطبقة. */
 const mobileIconTapClass =
@@ -411,7 +407,7 @@ export function Navbar({
           onClose={closeDrawer}
           returnFocusRef={mobileNavDrawerReturnFocusRef}
           linkSections={mobileDrawerLinkSections}
-          policyLinks={mobileDrawerPolicyLinks}
+          policyLinks={servicesDropdownLinks}
           categories={navCategories}
           categoriesLoading={categoriesQuery.isLoading}
         />

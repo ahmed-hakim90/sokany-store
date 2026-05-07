@@ -31,17 +31,24 @@ export function ScrollReveal({
 }: ScrollRevealProps) {
   const divRef = useRef<HTMLDivElement>(null);
   const sectionRef = useRef<ComponentRef<"section">>(null);
-  const [visible, setVisible] = useState(false);
+  const [visible, setVisible] = useState(() =>
+    typeof window === "undefined"
+      ? false
+      : window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+  );
 
   useEffect(() => {
     const el = as === "section" ? sectionRef.current : divRef.current;
     if (!el) return;
 
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    if (mq.matches) {
-      setVisible(true);
-      return;
-    }
+
+    const revealIfReducedMotion = () => {
+      if (mq.matches) setVisible(true);
+    };
+
+    mq.addEventListener("change", revealIfReducedMotion);
+    if (mq.matches) return () => mq.removeEventListener("change", revealIfReducedMotion);
 
     const obs = new IntersectionObserver(
       (entries) => {
@@ -60,7 +67,10 @@ export function ScrollReveal({
       },
     );
     obs.observe(el);
-    return () => obs.disconnect();
+    return () => {
+      mq.removeEventListener("change", revealIfReducedMotion);
+      obs.disconnect();
+    };
   }, [as]);
 
   const merged = cn(

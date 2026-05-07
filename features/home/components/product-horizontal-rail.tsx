@@ -34,6 +34,8 @@ export type ProductHorizontalRailProps = {
   skeletonCount?: number;
   /** Eager image slots for LCP; use 0 on home so only the hero uses priority. @default 3 */
   priorityImageSlots?: number;
+  /** @default false */
+  simpleImageMode?: boolean;
   /** @default true */
   imageMotion?: boolean;
   "aria-label"?: string;
@@ -148,6 +150,7 @@ export function ProductHorizontalRail({
   onRetry,
   skeletonCount = 6,
   priorityImageSlots = 3,
+  simpleImageMode = false,
   imageMotion = true,
   "aria-label": ariaLabel,
   className,
@@ -191,6 +194,7 @@ export function ProductHorizontalRail({
           <ProductCard
             product={product}
             imagePriority={index < priorityImageSlots}
+            simpleImageMode={simpleImageMode}
             imageMotion={imageMotion}
             variant="mobileCompact"
             getCartLineQuantity={getCartLineQuantity}

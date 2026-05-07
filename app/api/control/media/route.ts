@@ -5,11 +5,19 @@ import { isSafeCmsObjectPath, publicCmsFilePathFromStoragePath } from "@/lib/cms
 import { isPathUnderCmsMediaRoot } from "@/lib/cms-media-path";
 import { canAccessMediaLibrary, canDeleteStoragePath } from "@/lib/control-storage-guard";
 import { getAdminStorageBucket } from "@/lib/firebase-admin";
-import type { File } from "@google-cloud/storage";
 
 export const runtime = "nodejs";
 
 const MAX_LIST = 80;
+type AdminStorageFile = {
+  name: string;
+  metadata: {
+    contentType?: string;
+    size?: string | number;
+    updated?: string | Date;
+  };
+  getMetadata(): Promise<unknown>;
+};
 
 export async function GET(request: NextRequest) {
   const auth = await requireControlSession(request);
@@ -76,7 +84,7 @@ async function getFilesMerged(args: {
   const { bucket, prefixes, maxResults, pageToken } = args;
   const per = Math.max(5, Math.ceil(maxResults / prefixes.length));
   try {
-    const all: File[] = [];
+    const all: AdminStorageFile[] = [];
     for (const prefix of prefixes) {
       const [files] = await bucket.getFiles({
         prefix,
@@ -96,7 +104,7 @@ async function getFilesMerged(args: {
 }
 
 async function filesToJsonResponse(
-  files: File[],
+  files: AdminStorageFile[],
   nextQ: { pageToken?: string } | undefined,
 ) {
   const nonFolder = files.filter((f) => f.name && !f.name.endsWith("/"));

@@ -13,6 +13,18 @@
     animation-duration: 0.01ms;
   }
 }
+
+/* Wishlist heart burst — replaces framer-motion on product cards */
+@keyframes wishlist-burst-particle {
+  from {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translate(var(--burst-drift-x, 0px), -118px) scale(0.2);
+  }
+}
 /* Avoid accidental horizontal scroll from full-bleed children / long strings */
 html {
   overflow-x: clip;

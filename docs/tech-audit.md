@@ -53,7 +53,7 @@
 ### التحليل المرتبط بالكود
 
 - [`MobileCommerceChrome`](../components/layout/mobile-commerce-chrome.tsx) يضع ملخص السلة و[`BottomNavInner`](../components/layout/bottom-nav.tsx) داخل حاوية `fixed` واحدة (`z-50`) — أي أن التداخل «بين طبقتين منفصلتين» ليس السيناريو الافتراضي في الكود الحالي.
-- الضغط المرن في [`CartSummaryBar`](../features/cart/components/CartSummaryBar.tsx) (`flex` + `min-w-0` على كتلة النص مقابل زر ثابت العرض) قد يقلص مساحة عرض السعر على الشاشات الضيقة.
+- تم حذف مكوّن `CartSummaryBar` القديم بعد توقف استخدامه؛ راجع مكوّنات السلة الحالية داخل `features/cart/components/` عند تعديل الشريط أو الـ drawers.
 
 ### اتجاه العلاج
 
@@ -93,7 +93,7 @@
 
 ## 8. التناسق اللغوي والعناوين
 
-- أمثلة مؤكدة: نصوص إنجليزية في [`CategoriesPageContent`](../components/pages/CategoriesPageContent.tsx) وعدد المنتجات في [`CategoryCard`](../features/categories/components/CategoryCard.tsx).
+- أمثلة مؤكدة: نصوص إنجليزية في [`CategoriesPageContent`](../components/pages/CategoriesPageContent.tsx) وأي نصوص تصنيف ظاهرة في المكوّنات الحالية داخل `features/categories/components/`.
 
 ### العلاج
 
@@ -135,7 +135,7 @@
 | `hooks/useProductsCatalog.ts` | فلاتر URL، بحث، انتقال |
 | `components/layout/site-shell.tsx` | `padding-bottom` للكروم السفلي |
 | `components/layout/mobile-commerce-chrome.tsx` | `--mobile-commerce-chrome-height` |
-| `features/cart/components/CartSummaryBar.tsx` | تخطيط السعر والزر |
+| `features/cart/components/*` | تخطيط السلة والـ drawers وأزرار الإتمام |
 | `components/Navbar.tsx` | بحث موبايل، حالة القائمة |
 | `components/layout/top-header.tsx` | لوحة الموبايل |
 | `components/layout/footer.tsx` | فوتر موبايل |
@@ -159,5 +159,5 @@
 
 - **إزالة اختيار طرق التوصيل:** عرض نص ثابت «شحن بسعر ثابت»؛ `shippingMethod` يبقى `flat_rate` في الحالة الافتراضية.
 - **إزالة سيكشن «إنشاء حساب Woo» الاختياري:** الهوية للتتبع عبر Firebase + `storefront_customers`؛ لا يُعرض تسجيل بريد/كلمة سر على الـ checkout.
-- **أخطاء Firebase:** تعريب رسائل شائعة عبر [`lib/firebase-auth-errors.ts`](../lib/firebase-auth-errors.ts) في مسار OTP.
+- **أخطاء Firebase:** عند إعادة تفعيل OTP، أضف helper جديداً لتعريب رسائل Firebase في مسار التحقق.
 - **الدفع والملاحظات:** شريط علامات فيزا/مدى/محافظ للخيار البطاقة؛ حقل ملاحظات أوضح مع حد 500 حرف وعداد.

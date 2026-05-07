@@ -1,9 +1,16 @@
 "use client";
 
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { BadgeCheck, CirclePlay, ShieldCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { Link } from "next-view-transitions";
 import { AppImage } from "@/components/AppImage";
 import { Card } from "@/components/ui/card";
@@ -44,7 +51,15 @@ export type ProductCardProps = {
   variant?: ProductCardVariant;
   /** First visible grid cells: pass `true` for LCP-friendly image loading. */
   imagePriority?: boolean;
-  /** When false, skip Framer image crossfade (lighter grids e.g. home). @default true */
+  /**
+   * Homepage / light grids: short CSS opacity crossfade only (no layout animation).
+   * @default false
+   */
+  simpleImageMode?: boolean;
+  /**
+   * Catalog: longer CSS crossfade when true. Ignored when `simpleImageMode` is true.
+   * When false and `simpleImageMode` is false, image swap is instant. @default true
+   */
   imageMotion?: boolean;
   getCartLineQuantity?: (productId: number) => number;
   onCartLineQuantityChange?: (product: Product, next: number) => void;
@@ -118,10 +133,172 @@ const variantLayout: Record<
   },
 };
 
+type CardSlide = { key: string; src: string; alt: string };
+
+const productCardImageClassName =
+  "object-contain object-center p-2 transition-transform duration-200 ease-out group-hover/card:scale-105 group-active/card:scale-[0.97] motion-reduce:transition-none motion-reduce:group-hover/card:scale-100";
+
+function ProductCardImageStack({
+  activeSlide,
+  crossfadeMs,
+  prefersReducedMotion,
+  imageSizes,
+  imagePriority,
+  productId,
+}: {
+  activeSlide: CardSlide;
+  crossfadeMs: number;
+  prefersReducedMotion: boolean;
+  imageSizes: string;
+  imagePriority: boolean;
+  productId: number;
+}) {
+  const [committed, setCommitted] = useState(activeSlide);
+  const [transition, setTransition] = useState<{
+    outgoing: CardSlide;
+    incoming: CardSlide;
+  } | null>(null);
+  const [runTransition, setRunTransition] = useState(false);
+
+  useLayoutEffect(() => {
+    if (prefersReducedMotion || crossfadeMs <= 0) {
+      const frame = requestAnimationFrame(() => {
+        setCommitted(activeSlide);
+        setTransition(null);
+        setRunTransition(false);
+      });
+      return () => cancelAnimationFrame(frame);
+    }
+
+    if (activeSlide.key === committed.key && !transition) {
+      return;
+    }
+
+    if (transition) {
+      if (activeSlide.key !== transition.incoming.key) {
+        const frame = requestAnimationFrame(() => {
+          setCommitted(activeSlide);
+          setTransition(null);
+          setRunTransition(false);
+        });
+        return () => cancelAnimationFrame(frame);
+      }
+      return;
+    }
+    const frame = requestAnimationFrame(() => {
+      setTransition({ outgoing: committed, incoming: activeSlide });
+      setRunTransition(false);
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [
+    activeSlide,
+    committed,
+    transition,
+    crossfadeMs,
+    prefersReducedMotion,
+  ]);
+
+  useLayoutEffect(() => {
+    if (!transition) return;
+    const id = requestAnimationFrame(() => {
+      setRunTransition(true);
+    });
+    return () => cancelAnimationFrame(id);
+  }, [transition]);
+
+  const onOutgoingTransitionEnd = (
+    e: React.TransitionEvent<HTMLDivElement>,
+  ) => {
+    if (e.propertyName !== "opacity") return;
+    if (!transition) return;
+    setCommitted(transition.incoming);
+    setTransition(null);
+    setRunTransition(false);
+  };
+
+  if (prefersReducedMotion || crossfadeMs <= 0) {
+    return (
+      <AppImage
+        src={activeSlide.src}
+        alt={activeSlide.alt}
+        fill
+        sizes={imageSizes}
+        priority={imagePriority}
+        className={productCardImageClassName}
+        shimmerUntilLoaded
+        usePlaceholderOnError={false}
+      />
+    );
+  }
+
+  if (!transition) {
+    return (
+      <AppImage
+        src={committed.src}
+        alt={committed.alt}
+        fill
+        sizes={imageSizes}
+        priority={imagePriority}
+        className={productCardImageClassName}
+        shimmerUntilLoaded
+        usePlaceholderOnError={false}
+      />
+    );
+  }
+
+  const durationClass =
+    crossfadeMs <= 200 ? "duration-200" : "duration-[320ms]";
+
+  return (
+    <>
+      <div
+        className={cn(
+          "absolute inset-0 z-0 transition-opacity ease-[cubic-bezier(0.4,0,0.2,1)]",
+          durationClass,
+          runTransition ? "opacity-100" : "opacity-0",
+        )}
+      >
+        <AppImage
+          key={`${productId}-${transition.incoming.key}-in`}
+          src={transition.incoming.src}
+          alt={transition.incoming.alt}
+          fill
+          sizes={imageSizes}
+          priority={imagePriority}
+          className={productCardImageClassName}
+          shimmerUntilLoaded
+          usePlaceholderOnError={false}
+        />
+      </div>
+      <div
+        className={cn(
+          "absolute inset-0 z-[1] transition-opacity ease-[cubic-bezier(0.4,0,0.2,1)]",
+          durationClass,
+          runTransition ? "opacity-0" : "opacity-100",
+        )}
+        onTransitionEnd={onOutgoingTransitionEnd}
+      >
+        <AppImage
+          key={`${productId}-${transition.outgoing.key}-out`}
+          src={transition.outgoing.src}
+          alt={transition.outgoing.alt}
+          fill
+          sizes={imageSizes}
+          priority={imagePriority}
+          className={productCardImageClassName}
+          shimmerUntilLoaded
+          usePlaceholderOnError={false}
+        />
+      </div>
+    </>
+  );
+}
+
 export function ProductCard({
   product,
   variant = "desktopCatalog",
   imagePriority = false,
+  simpleImageMode = false,
   imageMotion = true,
   getCartLineQuantity,
   onCartLineQuantityChange,
@@ -131,7 +308,13 @@ export function ProductCard({
   const router = useRouter();
   const prefetchProduct = usePrefetchProduct();
   const imageFlyRef = useRef<HTMLDivElement>(null);
-  const reduceMotion = useReducedMotion();
+  const prefersReducedMotion = usePrefersReducedMotion();
+  const crossfadeMs = useMemo(() => {
+    if (prefersReducedMotion) return 0;
+    if (simpleImageMode) return 200;
+    if (!imageMotion) return 0;
+    return 320;
+  }, [prefersReducedMotion, simpleImageMode, imageMotion]);
   const merchandising = useProductMerchandising();
   const addFeedbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const layout = variantLayout[variant];
@@ -184,12 +367,18 @@ export function ProductCard({
 
   const [imageIndex, setImageIndex] = useState(0);
   const multiImage = cardSlides.length > 1;
-  const activeSlide = cardSlides[imageIndex] ??
-    cardSlides[0] ?? {
+  const emptySlide = useMemo(
+    (): CardSlide => ({
       key: "no-image",
       src: "",
       alt: product.name,
-    };
+    }),
+    [product.name],
+  );
+  const activeSlide = useMemo(
+    () => cardSlides[imageIndex] ?? cardSlides[0] ?? emptySlide,
+    [cardSlides, imageIndex, emptySlide],
+  );
 
   useEffect(() => {
     setImageIndex(0);
@@ -264,7 +453,7 @@ export function ProductCard({
     void playCartFlyAnimation({
       fromElement: imageFlyRef.current,
       imageSrc: activeSlide.src,
-      prefersReducedMotion: Boolean(reduceMotion),
+      prefersReducedMotion: Boolean(prefersReducedMotion),
     });
     setJustAdded(true);
     if (addFeedbackTimerRef.current) {
@@ -348,43 +537,15 @@ export function ProductCard({
           )}
         >
           <div ref={imageFlyRef} className="absolute inset-0 z-0">
-            {reduceMotion || !imageMotion ? (
-              <AppImage
-                src={activeSlide.src}
-                alt={activeSlide.alt}
-                fill
-                sizes={imageSizes}
-                priority={imagePriority}
-                className="object-contain object-center p-2 transition-transform duration-200 ease-out group-hover/card:scale-105 group-active/card:scale-[0.97] motion-reduce:transition-none motion-reduce:group-hover/card:scale-100"
-                shimmerUntilLoaded
-                usePlaceholderOnError={false}
-              />
-            ) : (
-              <AnimatePresence initial={false} mode="sync">
-                <motion.div
-                  key={`${product.id}-${activeSlide.key}`}
-                  className="absolute inset-0"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{
-                    duration: 0.32,
-                    ease: [0.4, 0, 0.2, 1],
-                  }}
-                >
-                  <AppImage
-                    src={activeSlide.src}
-                    alt={activeSlide.alt}
-                    fill
-                    sizes={imageSizes}
-                    priority={imagePriority}
-                    className="object-contain object-center p-2 transition-transform duration-200 ease-out group-hover/card:scale-105 group-active/card:scale-[0.97] motion-reduce:transition-none motion-reduce:group-hover/card:scale-100"
-                    shimmerUntilLoaded
-                    usePlaceholderOnError={false}
-                  />
-                </motion.div>
-              </AnimatePresence>
-            )}
+            <ProductCardImageStack
+              key={product.id}
+              productId={product.id}
+              activeSlide={activeSlide}
+              crossfadeMs={crossfadeMs}
+              prefersReducedMotion={prefersReducedMotion}
+              imageSizes={imageSizes}
+              imagePriority={imagePriority}
+            />
           </div>
           {multiImage ? (
             <div
@@ -673,8 +834,7 @@ export function ProductCardWishlistIconButton({
 }) {
   // مرجع لعنصر الزر في DOM — نحتاجه لقراءة موضعه على الشاشة بعد الضغط.
   const buttonRef = useRef<HTMLButtonElement>(null);
-  // من Framer: true إذا المستخدم يفضّل تقليل الحركة — لا نطلق جزيئات حتى لا نزعجه.
-  const reduceMotion = useReducedMotion();
+  const prefersReducedMotion = usePrefersReducedMotion();
   // عداد يزيد دائماً — يضمن أن كل جزيء له key فريد حتى لو ضغط المستخدم بسرعة عدة مرات.
   const particleIdRef = useRef(0);
   // كل الجزيئات «الحية» حالياً؛ تُزال واحدة واحدة عند انتهاء أنيميشنها.
@@ -685,7 +845,7 @@ export function ProductCardWishlistIconButton({
   };
 
   const spawnBurst = () => {
-    if (reduceMotion) return;
+    if (prefersReducedMotion) return;
     const el = buttonRef.current;
     if (!el) return;
     // مستطيل الزر بالنسبة لنافذة المتصفح (إحداثيات شاشة، ليست نسبية للكارت).

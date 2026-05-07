@@ -65,7 +65,7 @@ function heroSlideAlt(
   }
 
   const raw = slide.imageAlt?.replace(/\s+/g, " ").trim() ?? "";
-  let cleaned = raw
+  const cleaned = raw
     .replace(/#[^\s#]+/g, " ")
     .replace(/_/g, " ")
     .replace(/-/g, " ")

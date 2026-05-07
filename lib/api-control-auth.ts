@@ -39,12 +39,6 @@ export async function requireScopeFull(
   return r;
 }
 
-/**
- * ‎@deprecated ‎`requireScopeFull`‎. الاسم السابق: ‎`requireFullControlSession`‎.
- * استخدم ‎`requireCmsKeySession` أو ‎`requireScopeFull` حسب المسار.
- */
-export const requireFullControlSession = requireScopeFull;
-
 export function requireCmsPutKey(
   r: ControlSessionPayload,
   key: CmsDocumentPutKey,

@@ -24,7 +24,6 @@ import {
 import { useProducts } from "@/features/products/hooks/useProducts";
 import {
   CMS_DEFAULT_HOME_SPOTLIGHT_PLACEMENT,
-  type CmsHomeCategoryScroller,
   type CmsHomeFeatureVideo,
   type CmsHomeProductSection,
   type CmsHomeProductSectionsMode,
@@ -120,10 +119,6 @@ export type HomePageContentProps = {
   homeBottomPromo?: HomeBottomPromo;
   /** من `site_config` — `false` يخفي البانر الترويجي في كل المواضع. */
   homeBottomPromoVisible?: boolean;
-  /**
-   * سكroller صور التصنيفات تحت الهيرو — ‎`sectionVisible`‎ من ‎/control يتحكم في الإظهار.
-   */
-  homeCategoryScroller?: CmsHomeCategoryScroller;
   /** فيديو مميز من لوحة التحكم مع موضع قابل للتغيير. */
   homeFeatureVideo?: CmsHomeFeatureVideo;
   /** من ‎`site_config`‎ — الافتراضي ‎`auto`‎ عند الغياب. */
@@ -210,15 +205,6 @@ export function HomePageContent({
         {renderFeatureVideo("afterHero")}
         {renderHomePromo("afterHero")}
 
-        {/* {homeCategoryScroller.sectionVisible ? (
-          <ScrollReveal>
-            <HomeCategoryImageScroller
-              tiles={categoryTiles}
-              isLoading={categories.isPending}
-            />
-          </ScrollReveal>
-        ) : null} */}
-
         {/* عروض سريعة: منتجات مخفّضة من WooCommerce + عداد تنازلي */}
         {!flashSaleSectionEnabled ? null : flashSales.isError ? (
           <ScrollReveal>
@@ -250,7 +236,7 @@ export function HomePageContent({
               products={flashSales.data?.items ?? []}
               skeletonCount={12}
               priorityImageSlots={0}
-              imageMotion={false}
+              simpleImageMode
               getCartLineQuantity={getCartLineQuantity}
               onCartLineQuantityChange={setProductLineQuantity}
               cardVariant="mobileCompact"
@@ -321,7 +307,7 @@ export function HomePageContent({
               products={homeBestsellers.data?.items ?? []}
               skeletonCount={12}
               priorityImageSlots={0}
-              imageMotion={false}
+              simpleImageMode
               getCartLineQuantity={getCartLineQuantity}
               onCartLineQuantityChange={setProductLineQuantity}
               cardVariant="mobileCompact"
@@ -376,7 +362,7 @@ export function HomePageContent({
               products={newArrivals.data?.items ?? []}
               skeletonCount={12}
               priorityImageSlots={0}
-              imageMotion={false}
+              simpleImageMode
               getCartLineQuantity={getCartLineQuantity}
               onCartLineQuantityChange={setProductLineQuantity}
               cardVariant="mobileCompact"

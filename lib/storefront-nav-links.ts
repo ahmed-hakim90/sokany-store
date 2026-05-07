@@ -9,7 +9,7 @@ export const desktopPrimaryBarExtraLinks = [
   { href: ROUTES.MY_ORDERS, label: "طلباتي" },
 ] as const;
 
-/** باقي الروابط تحت زر «خدماتنا» على الديسكتوب — نفس المسارات في درج الموبايل (قسم سياسات). */
+/** روابط «خدماتنا» في الديسكتوب، وتُستخدم أيضاً كروابط السياسات في درج الموبايل. */
 export const servicesDropdownLinks = [
   { href: ROUTES.CONTACT, label: "تواصل معنا" },
   { href: ROUTES.TERMS, label: "الشروط والأحكام" },
@@ -45,5 +45,3 @@ export const mobileDrawerLinkSections = [
   { title: "تسوق حسب القسم", links: mobileCategoryShortcuts },
   { title: "عن سوكاني", links: mobileAboutLinks },
 ] as const;
-
-export const mobileDrawerPolicyLinks = servicesDropdownLinks;

@@ -145,9 +145,12 @@ function YouTubeEmbed({
   const [ready, setReady] = useState(false);
   /* نخزن أحدث callback في ref عشان التغيير ميعملش re-mount للـ player. */
   const onErrorRef = useRef(onError);
-  onErrorRef.current = onError;
   /** محاولة فك كتم تلقائية مرة واحدة بعد ما التشغيل يثبت (مش من onReady). */
   const autoUnmuteOnceRef = useRef(false);
+
+  useEffect(() => {
+    onErrorRef.current = onError;
+  }, [onError]);
 
   useEffect(() => {
     autoUnmuteOnceRef.current = false;
@@ -340,8 +343,11 @@ function VimeoEmbed({
   const [muted, setMuted] = useState(true);
   const [playing, setPlaying] = useState(false);
   const onErrorRef = useRef(onError);
-  onErrorRef.current = onError;
   const vimeoUnmuteOnceRef = useRef(false);
+
+  useEffect(() => {
+    onErrorRef.current = onError;
+  }, [onError]);
 
   useEffect(() => {
     vimeoUnmuteOnceRef.current = false;
@@ -454,11 +460,14 @@ function DirectVideoEmbed({
   const [muted, setMuted] = useState(true);
   const [playing, setPlaying] = useState(false);
   const onErrorRef = useRef(onError);
-  onErrorRef.current = onError;
   /** يمنع طلب play() مئات المرات مع كل حدث canplay أثناء التخزين المؤقت. */
   const autoplayCommittedRef = useRef(false);
   /** بعد تشغيل مكتوم (مسار catch)، نجرب الصوت مرة عند أول play فعلي. */
   const unmuteOnFirstPlayRef = useRef(false);
+
+  useEffect(() => {
+    onErrorRef.current = onError;
+  }, [onError]);
 
   useEffect(() => {
     autoplayCommittedRef.current = false;
@@ -500,7 +509,8 @@ function DirectVideoEmbed({
   }, []);
 
   useEffect(() => {
-    attemptAutoplay();
+    const frame = requestAnimationFrame(() => attemptAutoplay());
+    return () => cancelAnimationFrame(frame);
   }, [src, attemptAutoplay]);
 
   return (
@@ -642,15 +652,23 @@ export function HomeFeatureVideo({
   const poster = video.posterImageUrl.trim();
   const embed = useMemo(() => parseEmbed(src), [src]);
   /* لو فشل التشغيل لأي سبب: نعرض الصورة فقط، أو نخفي البوكس بالكامل لو مفيش صورة. */
-  const [hasError, setHasError] = useState(false);
-  const [posterFailed, setPosterFailed] = useState(false);
-  /* نرجّع state لو حضرتك غيّرت الرابط من /control. */
-  useEffect(() => {
-    setHasError(false);
-    setPosterFailed(false);
-  }, [src, poster]);
+  const [failure, setFailure] = useState({
+    src,
+    poster,
+    hasError: false,
+    posterFailed: false,
+  });
+  const hasError =
+    failure.src === src && failure.poster === poster ? failure.hasError : false;
+  const posterFailed =
+    failure.src === src && failure.poster === poster
+      ? failure.posterFailed
+      : false;
 
-  const handleError = useCallback(() => setHasError(true), []);
+  const handleError = useCallback(
+    () => setFailure({ src, poster, hasError: true, posterFailed }),
+    [poster, posterFailed, src],
+  );
 
   if (!video.enabled || !src) return null;
   /* فشل + (مفيش poster أو الـposter نفسه فشل) = نخفي البوكس خالص. */
@@ -680,7 +698,9 @@ export function HomeFeatureVideo({
             className="object-cover"
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1100px"
             usePlaceholderOnError={false}
-            onLoadError={() => setPosterFailed(true)}
+            onLoadError={() =>
+              setFailure({ src, poster, hasError, posterFailed: true })
+            }
           />
         ) : embed?.kind === "youtube" ? (
           <YouTubeEmbed videoId={embed.videoId} onError={handleError} />

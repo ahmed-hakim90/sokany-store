@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "bash ./scripts/dev.sh",
     "build": "next build",
-    "analyze": "ANALYZE=true next build",
+    "analyze": "ANALYZE=true next build --webpack",
     "start": "next start",
     "postinstall": "patch-package",
     "lint": "eslint",

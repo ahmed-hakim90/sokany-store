@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import * as admin from "firebase-admin";
 import { WOO_WEBHOOK_DELIVERIES_COLLECTION } from "@/features/woocommerce/lib/firestore-collections";
-import { requireFullControlSession } from "@/lib/api-control-auth";
+import { requireScopeFull } from "@/lib/api-control-auth";
 import { getAdminFirestore } from "@/lib/firebase-admin";
 
 function receivedAtToIso(v: unknown): string {
@@ -16,7 +16,7 @@ function receivedAtToIso(v: unknown): string {
  * ‎GET: آخر تسليمات ‎Woo ‎webhook ‎المسجّلة في ‎Firestore (للمراقبة من لوحة ‎/control/woo-api‎).
  */
 export async function GET(request: NextRequest) {
-  const auth = await requireFullControlSession(request);
+  const auth = await requireScopeFull(request);
   if (auth instanceof NextResponse) return auth;
 
   if (!process.env.FIREBASE_SERVICE_ACCOUNT_JSON?.trim()) {

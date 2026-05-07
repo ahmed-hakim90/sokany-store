@@ -26,7 +26,9 @@ export type ProductGridProps = {
   skeletonCount?: number;
   /** First N cards request eager LCP-style image loading (`next/image` priority). @default 5 */
   priorityImageSlots?: number;
-  /** Pass false on home to avoid Framer `AnimatePresence` per card image. @default true */
+  /** Homepage/light grids: short CSS image crossfade only. @default false */
+  simpleImageMode?: boolean;
+  /** Catalog crossfade length when `simpleImageMode` is false. @default true */
   imageMotion?: boolean;
   loading?: ReactNode;
   empty?: ReactNode;
@@ -50,6 +52,7 @@ export function ProductGrid({
   status: statusProp,
   skeletonCount = 8,
   priorityImageSlots = 5,
+  simpleImageMode = false,
   imageMotion = true,
   loading,
   empty,
@@ -97,6 +100,7 @@ export function ProductGrid({
             key={product.id}
             product={product}
             imagePriority={index < priorityImageSlots}
+            simpleImageMode={simpleImageMode}
             imageMotion={imageMotion}
             getCartLineQuantity={getCartLineQuantity}
             onCartLineQuantityChange={onCartLineQuantityChange}
