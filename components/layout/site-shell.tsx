@@ -10,6 +10,7 @@ import { StorefrontHeaderCategoryStrip } from "@/components/layout/storefront-he
 import { Navbar } from "@/components/Navbar";
 import { DesktopCartDrawerGate } from "@/features/cart/components/desktop-cart-drawer-gate";
 import { CatalogFilterDrawerGate } from "@/features/catalog/components/catalog-filter-drawer-gate";
+import { StorefrontShellChrome } from "@/components/layout/storefront-shell-chrome";
 import { ProductMerchandisingProvider } from "@/features/products/components/product-merchandising-context";
 import { DesktopWishlistDrawerGate } from "@/features/wishlist/components/desktop-wishlist-drawer-gate";
 import type { CmsHeaderCategoryStrip, CmsTopAnnouncementBar } from "@/schemas/cms";
@@ -65,12 +66,16 @@ export function SiteShell({
       </Suspense>
       {/*
         معالم الصفحة: ‎`<header>`‎ ثم ‎`<main>`‎ ثم الفوتر (‎`FooterGate`‎ → ‎`<footer>`‎).
-        ‎`MobileHeroLimeAtmosphere`‎ أول طفل داخل ‎`main`‎: ‎`fixed`‎ + ‎`aria-hidden`‎، ‎`z-0`‎ خلف المحتوى (‎`max-lg:z-1`‎).
+        ‎`MobileHeroLimeAtmosphere`‎ أول طفل داخل ‎`main`‎ (‎`fixed`‎ + ‎`z-0`‎)؛ غلاف المحتوى التالي ‎`relative z-[1]`‎
+        لأن طبقة الرسم تضع ‎`z-index:0`‎ المُموضع فوق الكتل العادية — بدون ذلك تغطي الهالة النص والبطاقات.
+        ‎`max-lg:z-[1]`‎ على ‎`main`‎ يتراص مقابل الإخوة (فوتر…)، وليس كافياً داخل ‎`main`‎.
         موبايل: ‎`main`‎ بلا ‎`bg`‎ حتى تُرى الهالة خلف الهيرو؛ ‎`pt-2`‎ على غلاف المحتوى (وليس على الهالة).
       */}
       <main className="flex min-h-0 min-w-0 max-w-none flex-1 flex-col max-lg:relative max-lg:z-[1] max-lg:!bg-transparent bg-page pb-mobile-commerce lg:pb-0">
         <MobileHeroLimeAtmosphere />
-        <div className="flex min-h-0 min-w-0 flex-1 flex-col pt-2">{children}</div>
+        <div className="relative z-[1] flex min-h-0 min-w-0 flex-1 flex-col pt-2">
+          <StorefrontShellChrome>{children}</StorefrontShellChrome>
+        </div>
       </main>
       <FooterGate
         socialLinks={socialLinks}

@@ -628,7 +628,7 @@ export function ProductCard({
           {hasProductVideo ? (
             <span
               className={cn(
-                "pointer-events-none absolute z-[4] inline-flex h-7 items-center gap-1 rounded-full border border-white/70 bg-slate-950/88 px-2 text-[10px] font-extrabold leading-none text-white shadow-md shadow-slate-900/20 backdrop-blur-sm",
+                "pointer-events-none absolute z-[4] inline-flex items-center gap-1 rounded-full border border-white/70 bg-slate-950/88 px-2 py-1 text-[9px] font-extrabold leading-none text-white shadow-md shadow-slate-900/20 backdrop-blur-sm sm:text-[10px]",
                 isDetailed
                   ? wishlistSlot
                     ? "bottom-2 right-2"

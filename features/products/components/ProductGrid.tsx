@@ -9,6 +9,9 @@ import {
   type ProductCardVariant,
 } from "@/features/products/components/ProductCard";
 import { ProductSkeleton } from "@/features/products/components/ProductSkeleton";
+import { VirtualizedProductGrid } from "@/features/products/components/VirtualizedProductGrid";
+import type { GridColumnCounts } from "@/hooks/useGridColumns";
+import { VIRTUAL_PRODUCT_THRESHOLD } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 export type ProductGridStatus = "loading" | "empty" | "ready";
@@ -43,6 +46,14 @@ export type ProductGridProps = {
   cardVariantMd?: ProductCardVariant;
   /** First grid cell (e.g. promo tile) before product cards. */
   leadingSlot?: ReactNode;
+  /**
+   * شبكة افتراضية للقوائم الطويلة — يقلل DOM على الموبايل.
+   * ‎`auto`‎: يفعّل عند ‎`products.length >= VIRTUAL_PRODUCT_THRESHOLD`‎.
+   * لا يُدعم مع ‎`leadingSlot`‎ (يُرجَع للشبكة الثابتة).
+   */
+  virtualize?: boolean | "auto";
+  /** أعمدة الشبكة الافتراضية فقط — يُستخدم مع ‎`virtualize`‎ عندما تختلف عن كتالوج ‎`/products`‎. */
+  virtualGridColumnCounts?: GridColumnCounts;
 };
 
 export function ProductGrid({
@@ -63,6 +74,8 @@ export function ProductGrid({
   cardVariant = "desktopCatalog",
   cardVariantMd,
   leadingSlot,
+  virtualize = false,
+  virtualGridColumnCounts,
 }: ProductGridProps) {
   const status: ProductGridStatus = statusProp ?? "ready";
   const gridClass = gridClassName ?? defaultGridClass;
@@ -70,6 +83,11 @@ export function ProductGrid({
   const resolvedVariant =
     cardVariantMd !== undefined ? (mdUp ? cardVariantMd : cardVariant) : cardVariant;
   const nSkeleton = Math.max(1, skeletonCount);
+
+  const useVirtualization =
+    !leadingSlot &&
+    (virtualize === true ||
+      (virtualize === "auto" && products.length >= VIRTUAL_PRODUCT_THRESHOLD));
 
   if (status === "loading") {
     return (
@@ -88,6 +106,25 @@ export function ProductGrid({
 
   if (status === "empty") {
     return <div className={cn("min-w-0", className)}>{empty ?? null}</div>;
+  }
+
+  if (useVirtualization) {
+    return (
+      <VirtualizedProductGrid
+        className={className}
+        virtualColumnCounts={virtualGridColumnCounts}
+        products={products}
+        priorityImageSlots={priorityImageSlots}
+        simpleImageMode={simpleImageMode}
+        imageMotion={imageMotion}
+        imageInteractions={imageInteractions}
+        getCartLineQuantity={getCartLineQuantity}
+        onCartLineQuantityChange={onCartLineQuantityChange}
+        renderItem={renderItem}
+        cardVariant={cardVariant}
+        cardVariantMd={cardVariantMd}
+      />
+    );
   }
 
   return (

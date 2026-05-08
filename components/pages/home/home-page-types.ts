@@ -34,7 +34,7 @@ export type HomePageContentProps = {
   };
   /** بطاقة الترويج بعد كبسولة الخدمات — افتراضي ثابت أو من spotlight في Firestore. */
   homeBottomPromo?: HomeBottomPromo;
-  /** من `site_config` — `false` يخفي البانر الترويجي في كل المواضع. */
+  /** من وثيقة spotlights — `false` يخفي البانر الترويجي في كل المواضع. */
   homeBottomPromoVisible?: boolean;
   /** فيديو مميز من لوحة التحكم مع موضع قابل للتغيير. */
   homeFeatureVideo?: CmsHomeFeatureVideo;

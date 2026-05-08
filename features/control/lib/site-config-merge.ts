@@ -86,14 +86,6 @@ export function mergeSiteConfigPatch(
       patch.homeFeatureVideo !== undefined
         ? patch.homeFeatureVideo
         : current?.homeFeatureVideo ?? CMS_DEFAULT_HOME_FEATURE_VIDEO,
-    homeBottomPromoImageUrl:
-      patch.homeBottomPromoImageUrl !== undefined
-        ? patch.homeBottomPromoImageUrl
-        : current?.homeBottomPromoImageUrl,
-    homeBottomPromoVisible:
-      patch.homeBottomPromoVisible !== undefined
-        ? patch.homeBottomPromoVisible
-        : current?.homeBottomPromoVisible,
     homeProductSectionsMode:
       patch.homeProductSectionsMode ??
       current?.homeProductSectionsMode ??

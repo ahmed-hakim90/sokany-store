@@ -9,7 +9,9 @@ import { EmptyState } from "@/components/EmptyState";
 import { ErrorState } from "@/components/ErrorState";
 import { ScrollReveal } from "@/components/ScrollReveal";
 import { useCart } from "@/hooks/useCart";
+import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 import { DEFAULT_PER_PAGE, ROUTES } from "@/lib/constants";
+import { StorefrontStaleDataNotice } from "@/components/storefront-stale-data-notice";
 import { useCategories } from "@/features/categories/hooks/useCategories";
 import { useProducts } from "@/features/products/hooks/useProducts";
 import { CatalogPagination } from "@/features/catalog/components/CatalogPagination";
@@ -61,20 +63,35 @@ function CategorySlugProductsSection({
   page: number;
 }) {
   const items = productsQuery.data?.items;
+  const { offline } = useNetworkStatus();
+  const fromApiCache = productsQuery.data?.responseSource === "cache-fallback";
+  const hasItems = Boolean(items?.length);
+  const showStaleNotice =
+    (fromApiCache && hasItems) ||
+    (offline && hasItems) ||
+    (productsQuery.isError && hasItems);
+  const staleVariant =
+    offline && hasItems ? "offline-cache" : "api-fallback";
+  const fatal = productsQuery.isError && !hasItems;
   const showRefreshSkeleton =
     productsQuery.isFetching &&
     !productsQuery.isPending &&
-    !productsQuery.isError &&
+    !fatal &&
     Boolean(items?.length);
   const totalPages = productsQuery.data?.totalPages ?? 1;
 
-  return productsQuery.isError ? (
+  return fatal ? (
     <ErrorState
       message={productsQuery.error.message}
       onRetry={() => void productsQuery.refetch()}
     />
   ) : (
     <div className="relative">
+      {showStaleNotice ? (
+        <div className="mb-3">
+          <StorefrontStaleDataNotice variant={staleVariant} />
+        </div>
+      ) : null}
       <ProductGrid
         status={
           productsQuery.isPending || showRefreshSkeleton
@@ -84,6 +101,7 @@ function CategorySlugProductsSection({
               : "ready"
         }
         products={items ?? []}
+        virtualize="auto"
         getCartLineQuantity={getCartLineQuantity}
         onCartLineQuantityChange={onCartLineQuantityChange}
         cardVariant="mobileCompact"
@@ -101,7 +119,7 @@ function CategorySlugProductsSection({
           />
         }
       />
-      {!productsQuery.isPending && !productsQuery.isError && items && items.length > 0 ? (
+      {!productsQuery.isPending && !fatal && items && items.length > 0 ? (
         <CatalogPagination
           currentPage={page}
           totalPages={totalPages}
@@ -172,7 +190,6 @@ export function CategorySlugPageContent({ slug }: { slug: string }) {
 
   const productsQuery = useProducts(productParams, {
     enabled: Boolean(categoryId),
-    keepPreviousData: false,
   });
   const { getCartLineQuantity, setProductLineQuantity } = useCart();
 
@@ -180,7 +197,7 @@ export function CategorySlugPageContent({ slug }: { slug: string }) {
     return <CategorySlugPageLoadingFallback />;
   }
 
-  if (categoriesNav.isError) {
+  if (categoriesNav.isError && !(categoriesNav.data?.length)) {
     return (
       <ErrorState
         message={categoriesNav.error.message}

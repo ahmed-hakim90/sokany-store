@@ -3,7 +3,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import type { ControlPanelTabId } from "@/features/control/lib/control-tabs";
-import { CONTROL_TAB_GROUPS, isControlPanelTabId } from "@/features/control/lib/control-tabs";
+import {
+  CONTROL_TAB_GROUPS,
+  normalizeControlSessionTabList,
+  normalizeLegacyControlTabId,
+} from "@/features/control/lib/control-tabs";
 import { ControlAccessTab } from "@/features/control/components/ControlAccessTab";
 import { ControlHealthTab } from "@/features/control/components/ControlHealthTab";
 import { ControlWooApiTab } from "@/features/control/components/ControlWooApiTab";
@@ -22,12 +26,10 @@ import { toast } from "sonner";
 import {
   Activity,
   BellRing,
-  DatabaseZap,
   Eye,
   Home,
   Globe,
   FolderKanban,
-  ImageUp,
   LayoutDashboard,
   MapPinned,
   Megaphone,
@@ -36,7 +38,6 @@ import {
   ShieldCheck,
   Sparkles,
   Store,
-  Waypoints,
 } from "lucide-react";
 import { Button } from "@/components/Button";
 import { cn } from "@/lib/utils";
@@ -85,11 +86,12 @@ import {
   HomeCategoryScrollerForm,
   HeroSlidesForm,
   RetailersForm,
-  SectionBannersForm,
   SocialLinksForm,
   SpotlightsForm,
 } from "@/features/control/components/control-panel-forms";
+import { mergeSpotlightsDocWithLegacySitePromo } from "@/features/cms/lib/merge-spotlights-legacy-promo";
 import { HomeProductSectionsForm } from "@/features/control/components/HomeProductSectionsForm";
+import { StorefrontIntegrationsForm } from "@/features/control/components/StorefrontIntegrationsForm";
 import { ControlMediaTab } from "@/features/control/components/ControlMediaTab";
 import { putCmsRequest } from "@/features/control/lib/control-cms-put";
 import {
@@ -126,15 +128,11 @@ const BASE_TAB_LIST: { id: ControlPanelTabId; label: string }[] = [
   { id: "hero", label: "الهيرو" },
   { id: "home", label: "الصفحة الرئيسية" },
   { id: "branches", label: "الفروع" },
-  { id: "banners", label: "بانرات الأقسام" },
   { id: "retailers", label: "الموزعون" },
-  { id: "spotlights", label: "إعلانات مميزة" },
   { id: "media", label: "الوسائط" },
   { id: "preview", label: "معاينة الموقع" },
   { id: "notifications", label: "إشعارات" },
-  { id: "orderForwarding", label: "تكامل الطلبات" },
-  { id: "health", label: "صحة الموقع" },
-  { id: "wooApi", label: "ربط Woo" },
+  { id: "health", label: "صحة الموقع والربط" },
   { id: "access", label: "الصلاحيات" },
 ];
 
@@ -178,10 +176,14 @@ const TAB_EXPLAINERS: Record<
   },
   home: {
     eyebrow: "كتالوج الهوم",
-    title: "أقسام المنتجات والشرائح تحت الهيرو",
+    title: "الصفحة الرئيسية — أقسام، بانرات، إبراز المحتوى",
     description:
-      "اضبط أقسام المنتجات المعروضة في أسفل الصفحة الرئيسية: وضع تلقائي أو مخصص أو الاثنين، مع بانر وتصنيف وعدد واتجاه لكل قسم. شرائح التصنيفات تحت الهيرو تُدار من هنا أيضاً.",
-    bullets: ["تحكم كامل بأقسام المنتجات", "ربط أي تصنيف بالقسم", "بانر مخصص لكل قسم"],
+      "محرّر موحّد: أقسام المنتجات (تلقائي/مخصص/هجين) مع بانرات الأقسام، فيديو الهوم، شرائح التصنيفات، بطاقة الترويج العريضة، والإعلانات المميزة (سبوتلايت) — دون تبويب منفصل.",
+    bullets: [
+      "أقسام وبانرات ومنتجات",
+      "ترويج وسبوتلايت",
+      "فيديو وشرائح تحت الهيرو",
+    ],
     badge: "الهوم",
     icon: Home,
   },
@@ -194,15 +196,6 @@ const TAB_EXPLAINERS: Record<
     badge: "الفروع",
     icon: MapPinned,
   },
-  banners: {
-    eyebrow: "ترويج الأقسام",
-    title: "بانرات الأقسام والروابط السريعة",
-    description:
-      "الجزء ده لعرض صور دعائية صغيرة داخل المتجر تربط العميل مباشرة بأقسام أو حملات معينة.",
-    bullets: ["يوجّه العميل بسرعة", "ممتاز للعروض القصيرة", "يحافظ على حركة واضحة داخل الكتالوج"],
-    badge: "الكتالوج",
-    icon: ImageUp,
-  },
   retailers: {
     eyebrow: "انتشار العلامة",
     title: "الموزعون ونقاط البيع",
@@ -211,15 +204,6 @@ const TAB_EXPLAINERS: Record<
     bullets: ["يبني الثقة", "يعرّف العميل بالموزعين", "يناسب التوسع الجغرافي"],
     badge: "الموزعون",
     icon: Store,
-  },
-  spotlights: {
-    eyebrow: "رسائل مركزة",
-    title: "إعلانات مميزة ومحتوى لافت",
-    description:
-      "هذا القسم مخصص للرسائل القصيرة أو الكروت المميزة التي نريد إبرازها في نقاط معينة داخل الواجهة.",
-    bullets: ["يسلّط الضوء على نقطة محددة", "مفيد للعروض أو المزايا", "يعطي واجهة المتجر نبضًا تسويقيًا"],
-    badge: "إبراز المحتوى",
-    icon: Megaphone,
   },
   media: {
     eyebrow: "المكتبة",
@@ -248,40 +232,18 @@ const TAB_EXPLAINERS: Record<
     badge: "إشعارات",
     icon: BellRing,
   },
-  orderForwarding: {
-    eyebrow: "تكاملات",
-    title: "إرسال بيانات الطلبات إلى نظام خارجي",
-    description:
-      "هنا نربط الطلبات الصادرة من المتجر بسيرفر أو API خارجي حتى تتكامل مع أنظمة تشغيل أو تقارير أخرى.",
-    bullets: ["مهم للتشغيل", "لا يغيّر تجربة العميل مباشرة", "يفيد الربط مع الأنظمة الداخلية"],
-    badge: "ربط الطلبات",
-    icon: Waypoints,
-  },
   health: {
-    eyebrow: "متابعة وتشخيص",
-    title: "حالة الموقع والربط",
+    eyebrow: "تشغيل وربط",
+    title: "صحة الموقع والربط والتكاملات",
     description:
-      "من هنا نعرف هل الموقع يستقبل التحديثات بشكل سليم، وهل الواجهة تتحدث، وهل هناك شيء يحتاج تدخل سريع.",
+      "مركز واحد: نبض الصحة، تشخيص Woo، إعادة توجيه الطلبات، الروابط والويب هوك — دون التنقّل بين تبويبات تقنية منفصلة.",
     bullets: [
-      "الأعلى للحكم السريع",
-      "الوسط للإجراءات المهمة",
-      "الأسفل لآخر ما وصل",
+      "صحة النظام والمخزن والـ API",
+      "ربط Woo والروابط التشغيلية",
+      "تكامل الطلبات والإرسال الخارجي",
     ],
-    badge: "صحة الموقع",
+    badge: "صحة وربط",
     icon: Activity,
-  },
-  wooApi: {
-    eyebrow: "متابعة الربط",
-    title: "ربط المنتجات والتحديثات",
-    description:
-      "راجع من هنا هل قراءة المنتجات والتصنيفات تعمل بشكل سليم، وخذ الروابط التي تحتاجها لأي ربط خارجي أو تحديث تلقائي.",
-    bullets: [
-      "اعرف هل الربط سليم",
-      "انسخ الرابط الصحيح",
-      "راجع التفاصيل عند الحاجة فقط",
-    ],
-    badge: "الربط",
-    icon: DatabaseZap,
   },
   access: {
     eyebrow: "إدارة الفريق",
@@ -307,10 +269,7 @@ function buildNavTabList(
       const core = BASE_TAB_LIST.filter((t) => t.id !== "access");
       return s.superAdmin ? [...core, fromBase("access")] : core;
     }
-    const ids = s.tabs
-      .filter(
-        (x) => isControlPanelTabId(x) && (x as ControlPanelTabId) !== "access",
-      ) as ControlPanelTabId[];
+    const ids = normalizeControlSessionTabList(s.tabs as string[]).filter((x) => x !== "access");
     const out = ids.map((id) => fromBase(id));
     return s.superAdmin ? [...out, fromBase("access")] : out;
   }
@@ -318,6 +277,34 @@ function buildNavTabList(
     return BASE_TAB_LIST.filter((t) => t.id !== "access");
   }
   return BASE_TAB_LIST;
+}
+
+const SEARCH_QUICK_KEYWORDS_MAX = 40;
+const SEARCH_QUICK_KEYWORD_MAX_LEN = 64;
+
+type WooTagSuggestionRow = { name: string; slug: string; count: number };
+
+function dedupeQuickKeywordsPreserveOrder(raw: string[]): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const r of raw) {
+    const t = r.trim();
+    if (!t || t.length > SEARCH_QUICK_KEYWORD_MAX_LEN) continue;
+    const k = t.toLocaleLowerCase("ar");
+    if (seen.has(k)) continue;
+    seen.add(k);
+    out.push(t);
+    if (out.length >= SEARCH_QUICK_KEYWORDS_MAX) break;
+  }
+  return out;
+}
+
+function rowsToKeywordList(rows: string[]): string[] {
+  return rows.map((r) => r.trim()).filter(Boolean);
+}
+
+function ensureAtLeastOneRow(list: string[]): string[] {
+  return list.length === 0 ? [""] : list;
 }
 
 function SearchQuickKeywordsSection({
@@ -332,6 +319,37 @@ function SearchQuickKeywordsSection({
   const [rows, setRows] = useState<string[]>(() =>
     cmsKeywords && cmsKeywords.length > 0 ? [...cmsKeywords] : [""],
   );
+  const [wooSuggestions, setWooSuggestions] = useState<WooTagSuggestionRow[] | null>(null);
+  const [wooLoading, setWooLoading] = useState(false);
+  const [wooError, setWooError] = useState<string | null>(null);
+
+  const loadWooTagSuggestions = useCallback(async () => {
+    setWooError(null);
+    setWooLoading(true);
+    try {
+      const res = await fetch("/api/control/search-quick-keyword-suggestions", {
+        credentials: "include",
+      });
+      const j = (await res.json()) as
+        | { tags: WooTagSuggestionRow[]; error?: undefined }
+        | { error: string; tags?: undefined };
+      if (!res.ok || "error" in j) {
+        setWooSuggestions(null);
+        setWooError(
+          "error" in j && typeof j.error === "string" && j.error.trim()
+            ? j.error
+            : "تعذر التحميل",
+        );
+        return;
+      }
+      setWooSuggestions(Array.isArray(j.tags) ? j.tags : []);
+    } catch (e) {
+      setWooSuggestions(null);
+      setWooError(e instanceof Error ? e.message : "خطأ شبكة");
+    } finally {
+      setWooLoading(false);
+    }
+  }, []);
 
   function updateRow(i: number, value: string) {
     setRows((prev) => {
@@ -346,21 +364,60 @@ function SearchQuickKeywordsSection({
   }
 
   function addRow() {
-    setRows((prev) => [...prev, ""]);
+    setRows((prev) => {
+      if (rowsToKeywordList(prev).length >= SEARCH_QUICK_KEYWORDS_MAX) {
+        toast.error(`الحد الأقصى ${SEARCH_QUICK_KEYWORDS_MAX} كلمة.`);
+        return prev;
+      }
+      return [...prev, ""];
+    });
   }
 
   function fillFromDefaults() {
-    setRows([...DEFAULT_SEARCH_QUICK_KEYWORDS]);
+    setRows(ensureAtLeastOneRow(dedupeQuickKeywordsPreserveOrder([...DEFAULT_SEARCH_QUICK_KEYWORDS])));
+  }
+
+  function applyTopWooTags() {
+    if (!wooSuggestions?.length) return;
+    const names = wooSuggestions.map((t) => t.name);
+    const next = dedupeQuickKeywordsPreserveOrder(names);
+    if (next.length === 0) {
+      toast.error("لا توجد وسوم صالحة ضمن الحدود (طول الاسم حتى ٦٤ حرفًا).");
+      return;
+    }
+    setRows(ensureAtLeastOneRow(next));
+    toast.success("تم استبدال القائمة بأوائل وسوم المتجر (حسب عدد المنتجات).");
+  }
+
+  function appendWooTagName(name: string) {
+    const t = name.trim();
+    if (!t || t.length > SEARCH_QUICK_KEYWORD_MAX_LEN) {
+      toast.error("الوسم أطول من الحد المسموح (٦٤ حرفًا).");
+      return;
+    }
+    setRows((prev) => {
+      const current = rowsToKeywordList(prev);
+      const k = t.toLocaleLowerCase("ar");
+      if (current.some((x) => x.toLocaleLowerCase("ar") === k)) {
+        toast.message("الكلمة موجودة بالفعل في القائمة.");
+        return prev;
+      }
+      if (current.length >= SEARCH_QUICK_KEYWORDS_MAX) {
+        toast.error(`الحد الأقصى ${SEARCH_QUICK_KEYWORDS_MAX} كلمة.`);
+        return prev;
+      }
+      return ensureAtLeastOneRow([...current, t]);
+    });
   }
 
   function handleSave() {
-    const out = rows.map((r) => r.trim()).filter(Boolean);
-    if (out.length > 40) {
-      toast.error("الحد الأقصى ٤٠ كلمة.");
+    const out = rowsToKeywordList(rows);
+    if (out.length > SEARCH_QUICK_KEYWORDS_MAX) {
+      toast.error(`الحد الأقصى ${SEARCH_QUICK_KEYWORDS_MAX} كلمة.`);
       return;
     }
-    if (out.some((k) => k.length > 64)) {
-      toast.error("كل كلمة يجب ألا تتجاوز ٦٤ حرفًا.");
+    if (out.some((k) => k.length > SEARCH_QUICK_KEYWORD_MAX_LEN)) {
+      toast.error(`كل كلمة يجب ألا تتجاوز ${SEARCH_QUICK_KEYWORD_MAX_LEN} حرفًا.`);
       return;
     }
     onSave(out);
@@ -370,8 +427,72 @@ function SearchQuickKeywordsSection({
     <section className="space-y-4 rounded-2xl border border-border bg-white p-5 shadow-sm">
       <h2 className="font-display text-lg font-bold">اقتراحات البحث السريعة</h2>
       <p className="text-sm text-muted-foreground">
-        الكلمات دي تظهر للمستخدم أول ما يفتح البحث، قبل ما يبدأ يكتب.
+        الكلمات دي تظهر للمستخدم أول ما يفتح البحث، قبل ما يبدأ يكتب. صفحات نتائج البحث عندكم
+        معطّلة للفهرسة (‎noindex‎) عمدًا؛ الاقتراحات دي تخدم التصفّح والكتالوج أكثر من ترتيب نتائج
+        بحث Google. لمحاذاة كلمات مع ما يناسب SEO للصفحات المفهرسة (تصنيفات ومنتجات)، راجع Search
+        Console.
       </p>
+      <p className="text-sm text-muted-foreground">
+        يمكنك جلب وسوم WooCommerce مرتبة حسب عدد المنتجات في كل وسم — ده مؤشر كتالوج قوي، وليس عدد
+        مرات بحث الزوار (لا يُسجَّل حاليًا في المتجر).
+      </p>
+
+      <div className="flex flex-wrap gap-2">
+        <Button
+          type="button"
+          variant="secondary"
+          disabled={disabled || wooLoading}
+          onClick={() => void loadWooTagSuggestions()}
+        >
+          {wooLoading ? "جاري جلب الوسوم…" : "جلب وسوم من المتجر"}
+        </Button>
+        <Button
+          type="button"
+          variant="secondary"
+          disabled={disabled || !wooSuggestions?.length}
+          onClick={applyTopWooTags}
+        >
+          استبدال القائمة بأوائل الوسوم
+        </Button>
+      </div>
+      {wooError ? (
+        <p className="text-sm text-destructive" role="alert">
+          {wooError}
+        </p>
+      ) : null}
+      {wooSuggestions && wooSuggestions.length > 0 ? (
+        <div className="rounded-xl border border-border bg-muted/30 p-3">
+          <p className="mb-2 text-xs font-medium text-muted-foreground">
+            وسوم من Woo (عدد المنتجات) — اضغط «إضافة» لدمجها في القائمة أدناه
+          </p>
+          <ul className="max-h-56 space-y-1 overflow-y-auto overscroll-y-contain pe-1">
+            {wooSuggestions.map((t, idx) => (
+              <li
+                key={t.slug ? `${t.slug}-${idx}` : `${t.name}-${idx}`}
+                className="flex items-center justify-between gap-2 rounded-lg bg-white/80 px-2 py-1.5 text-sm"
+              >
+                <span className="min-w-0 truncate" dir="auto" title={t.name}>
+                  {t.name}{" "}
+                  <span className="text-muted-foreground">({t.count})</span>
+                </span>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  className="shrink-0"
+                  disabled={disabled}
+                  onClick={() => appendWooTagName(t.name)}
+                >
+                  إضافة
+                </Button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : wooSuggestions && wooSuggestions.length === 0 ? (
+        <p className="text-sm text-muted-foreground">لا توجد وسوم بمنتجات في Woo حاليًا.</p>
+      ) : null}
+
       <ul className="space-y-2">
         {rows.map((row, i) => (
           <li key={i} className="flex gap-2">
@@ -529,11 +650,15 @@ export function ControlPanel() {
     }
     const allowed = new Set(navTabs.map((n) => n.id));
     const first = (navTabs[0]?.id ?? "general") as ControlPanelTabId;
-    if (tabParam && isControlPanelTabId(tabParam) && allowed.has(tabParam as ControlPanelTabId)) {
-      setTab(tabParam);
+    const normalizedParam = tabParam ? normalizeLegacyControlTabId(tabParam) : null;
+    if (normalizedParam && allowed.has(normalizedParam)) {
+      setTab(normalizedParam);
+      if (tabParam !== normalizedParam) {
+        router.replace(`/control?tab=${normalizedParam}`, { scroll: false });
+      }
       return;
     }
-    if (tabParam != null && tabParam !== "" && !allowed.has(tabParam as ControlPanelTabId)) {
+    if (tabParam != null && tabParam !== "") {
       setTab(first);
       router.replace(`/control?tab=${first}`, { scroll: false });
     }
@@ -820,6 +945,10 @@ export function ControlPanel() {
   const spotlightsDoc: CmsSpotlightsDoc = spotlightsParsed.success
     ? spotlightsParsed.data
     : { items: [] };
+  const spotlightsDocForForm = mergeSpotlightsDocWithLegacySitePromo(
+    spotlightsDoc,
+    bundle.site_config,
+  );
 
   const currentTabLabel = navTabs.find((t) => t.id === tab)?.label ?? "المحتوى";
   const currentTabInfo = TAB_EXPLAINERS[tab];
@@ -936,44 +1065,54 @@ export function ControlPanel() {
             </option>
           ))}
         </select>
-        <nav className="mt-0 hidden min-w-0 flex-col gap-4 md:flex" role="tablist" aria-label="أقسام لوحة التحكم">
-          {groupedNavTabs.map((group) => (
-            <div key={group.label}>
-              <p className="mb-2 px-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
-                {group.label}
-              </p>
-              <div className="space-y-1">
-                {group.ids.map((id) => {
-                  const info = TAB_EXPLAINERS[id];
-                  return (
-                    <button
-                      key={id}
-                      type="button"
-                      id={`control-tab-${id}`}
-                      role="tab"
-                      aria-selected={tab === id}
-                      aria-controls="control-panel-body"
-                      className={cn(
-                        "w-full rounded-2xl border px-3 py-3 text-start transition-colors",
-                        tab === id
-                          ? "border-brand-300 bg-brand-50 text-slate-950 shadow-sm"
-                          : "border-transparent text-slate-600 hover:bg-slate-100/80 hover:text-slate-900",
-                      )}
-                      onClick={() => onSelectTab(id)}
-                    >
-                      <div className="flex items-center justify-between gap-3">
-                        <span className="text-sm font-semibold">{info.badge}</span>
-                        <span className="text-[11px] text-slate-400">{BASE_TAB_LIST.find((item) => item.id === id)?.label}</span>
-                      </div>
-                      <p className="mt-1 text-xs leading-5 text-slate-500">
-                        {info.title}
-                      </p>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
+        <nav className="mt-0 hidden min-w-0 flex-col gap-2 md:flex" role="tablist" aria-label="أقسام لوحة التحكم">
+          {groupedNavTabs.map((group) => {
+            const open = group.ids.includes(tab);
+            return (
+              <details
+                key={group.label}
+                className="group rounded-2xl border border-slate-200/90 bg-slate-50/40"
+                open={open}
+              >
+                <summary className="cursor-pointer list-none px-3 py-2.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 marker:hidden [&::-webkit-details-marker]:hidden">
+                  <span className="flex items-center justify-between gap-2">
+                    {group.label}
+                    <span className="text-slate-400 transition-transform group-open:rotate-180">▾</span>
+                  </span>
+                </summary>
+                <div className="space-y-1 border-t border-slate-200/60 px-2 pb-2 pt-1">
+                  {group.ids.map((id) => {
+                    const info = TAB_EXPLAINERS[id];
+                    return (
+                      <button
+                        key={id}
+                        type="button"
+                        id={`control-tab-${id}`}
+                        role="tab"
+                        aria-selected={tab === id}
+                        aria-controls="control-panel-body"
+                        className={cn(
+                          "w-full rounded-2xl border px-3 py-3 text-start transition-colors",
+                          tab === id
+                            ? "border-brand-300 bg-brand-50 text-slate-950 shadow-sm"
+                            : "border-transparent text-slate-600 hover:bg-slate-100/80 hover:text-slate-900",
+                        )}
+                        onClick={() => onSelectTab(id)}
+                      >
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="text-sm font-semibold">{info.badge}</span>
+                          <span className="text-[11px] text-slate-400">
+                            {BASE_TAB_LIST.find((item) => item.id === id)?.label}
+                          </span>
+                        </div>
+                        <p className="mt-1 text-xs leading-5 text-slate-500">{info.title}</p>
+                      </button>
+                    );
+                  })}
+                </div>
+              </details>
+            );
+          })}
 
           <div className="space-y-2 rounded-2xl border border-slate-200 bg-slate-50/60 p-3">
             <p className="text-xs font-semibold text-slate-600">روابط سريعة</p>
@@ -1011,7 +1150,7 @@ export function ControlPanel() {
                   href="/control?tab=health"
                   className="inline-flex h-10 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-800 shadow-sm transition-colors hover:bg-slate-50"
                 >
-                  حالة الموقع
+                  صحة وربط
                 </Link>
                 <Button
                   type="button"
@@ -1044,7 +1183,7 @@ export function ControlPanel() {
                 title={currentTabInfo.title}
                 description={currentTabInfo.description}
                 bullets={currentTabInfo.bullets}
-                tone={tab === "access" ? "slate" : tab === "orderForwarding" ? "amber" : "brand"}
+                tone={tab === "access" ? "slate" : tab === "health" ? "amber" : "brand"}
                 icon={currentTabInfo.icon}
                 compact
               />
@@ -1211,6 +1350,16 @@ export function ControlPanel() {
             })()}
             disabled={saving === "site_config"}
             onSave={(doc) => void saveSiteConfig({ headerCategoryStrip: doc })}
+          />
+
+          {/*
+           * قسم تكاملات المتجر: روابط Woo العلنية وويبهوك بدون أسرار؛ أولوية WC_BASE_URL توضَّح داخل النموذج.
+           */}
+          <StorefrontIntegrationsForm
+            key={JSON.stringify(site?.storefrontIntegrations ?? null)}
+            initial={site?.storefrontIntegrations}
+            disabled={saving === "site_config"}
+            onSave={(patch) => void saveSiteConfig(patch)}
           />
 
           <section className="rounded-2xl border border-amber-200/80 bg-amber-50/50 p-5">
@@ -1620,71 +1769,19 @@ export function ControlPanel() {
               </div>
             </form>
           </section>
-          <section className="space-y-4 rounded-2xl border border-border bg-white p-5 shadow-sm">
-            <div>
-              <h2 className="font-display text-lg font-bold">صورة بطاقة الترويج (قبل قسم الأكثر مبيعاً)</h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                البانر العريض اللي يظهر قبل قسم «الأكثر مبيعاً». لو فاضي يستخدم الصورة الافتراضية أو من «إعلانات مميزة».
-              </p>
-            </div>
-            <form
-              key={`${site?.homeBottomPromoImageUrl ?? ""}-${site?.homeBottomPromoVisible === false ? "0" : "1"}`}
-              className="space-y-3"
-              onSubmit={(e) => {
-                e.preventDefault();
-                const fd = new FormData(e.currentTarget);
-                const imageUrl = String(fd.get("homeBottomPromoImageUrl") ?? "").trim();
-                const homeBottomPromoVisible = fd.get("homeBottomPromoVisible") === "on";
-                /* نبعت string دايماً (حتى لو فاضي) عشان merge function تتعرّف على نية المسح. */
-                void saveSiteConfig({
-                  homeBottomPromoImageUrl: imageUrl,
-                  homeBottomPromoVisible,
-                });
-              }}
-            >
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  name="homeBottomPromoVisible"
-                  defaultChecked={site?.homeBottomPromoVisible !== false}
-                />
-                <span className="text-sm font-medium">إظهار البانر الترويجي على الصفحة الرئيسية</span>
-              </label>
-              <p className="text-xs text-muted-foreground">
-                لما تلغي التفعيل، البانر يختفي في كل المواضع (حسب «إعلان مميز») حتى لو فيه صورة أو إعلان نشط.
-              </p>
-              <ControlImageUrlField
-                name="homeBottomPromoImageUrl"
-                label="صورة البانر"
-                helper="ينصح بمقاس 1100×400 بكسل (نسبة عرض/ارتفاع تقريباً 11:4). صيغ مدعومة: JPG / PNG / WebP."
-                defaultValue={site?.homeBottomPromoImageUrl ?? ""}
-                placeholder="/images/hero-banner.jpg"
-                disabled={saving === "site_config"}
-              />
-              <div className="flex flex-wrap gap-2">
-                <Button type="submit" disabled={saving === "site_config"}>
-                  {saving === "site_config" ? "جاري الحفظ…" : "حفظ صورة البانر"}
-                </Button>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  disabled={saving === "site_config"}
-                  onClick={() => void saveSiteConfig({ homeBottomPromoImageUrl: "" })}
-                >
-                  استعادة الافتراضي
-                </Button>
-              </div>
-            </form>
-          </section>
           <HomeProductSectionsForm
             key={JSON.stringify({
               m: site?.homeProductSectionsMode,
               s: site?.homeProductSections,
+              b: sectionBanners.items,
             })}
             initialMode={site?.homeProductSectionsMode}
             initialSections={site?.homeProductSections}
+            initialSectionBanners={sectionBanners}
             disabled={saving === "site_config"}
+            sectionBannersDisabled={saving === "section_banners"}
             onSave={(patch) => void saveSiteConfig(patch)}
+            onSaveSectionBanners={(doc) => void saveSectionBanners(doc)}
           />
           <HomeCategoryScrollerForm
             key={JSON.stringify((site as { homeCategoryScroller?: unknown })?.homeCategoryScroller ?? null)}
@@ -1698,6 +1795,12 @@ export function ControlPanel() {
             disabled={saving === "site_config"}
             onSave={(doc) => void saveSiteConfig({ homeCategoryScroller: doc })}
           />
+          <SpotlightsForm
+            key={JSON.stringify(spotlightsDocForForm)}
+            initial={spotlightsDocForForm}
+            disabled={saving === "spotlights"}
+            onSave={(doc) => void saveSpotlights(doc)}
+          />
         </section>
       ) : null}
 
@@ -1710,30 +1813,12 @@ export function ControlPanel() {
         />
       ) : null}
 
-      {tab === "banners" ? (
-        <SectionBannersForm
-          key={JSON.stringify(sectionBanners.items)}
-          initial={sectionBanners}
-          disabled={saving === "section_banners"}
-          onSave={(doc) => void saveSectionBanners(doc)}
-        />
-      ) : null}
-
       {tab === "retailers" ? (
         <RetailersForm
           key={JSON.stringify(retailersDoc)}
           initial={retailersDoc}
           disabled={saving === "retailers"}
           onSave={(doc) => void saveRetailers(doc)}
-        />
-      ) : null}
-
-      {tab === "spotlights" ? (
-        <SpotlightsForm
-          key={JSON.stringify(spotlightsDoc.items)}
-          initial={spotlightsDoc}
-          disabled={saving === "spotlights"}
-          onSave={(doc) => void saveSpotlights(doc)}
         />
       ) : null}
 
@@ -1796,11 +1881,31 @@ export function ControlPanel() {
 
             {tab === "notifications" ? <NotificationsSection /> : null}
 
-            {tab === "orderForwarding" ? <OrderForwardingSettingsTab /> : null}
-
-            {tab === "health" ? <ControlHealthTab /> : null}
-
-            {tab === "wooApi" ? <ControlWooApiTab /> : null}
+            {tab === "health" ? (
+              <div className="space-y-10">
+                <section className="space-y-3" aria-labelledby="control-health-system">
+                  <h2 id="control-health-system" className="font-display text-lg font-bold text-slate-900">
+                    صحة النظام
+                  </h2>
+                  <ControlHealthTab />
+                </section>
+                <section className="space-y-3 border-t border-border pt-8" aria-labelledby="control-health-woo">
+                  <h2 id="control-health-woo" className="font-display text-lg font-bold text-slate-900">
+                    ربط Woo والتشخيص
+                  </h2>
+                  <ControlWooApiTab />
+                </section>
+                <section
+                  className="space-y-3 border-t border-border pt-8"
+                  aria-labelledby="control-health-forwarding"
+                >
+                  <h2 id="control-health-forwarding" className="font-display text-lg font-bold text-slate-900">
+                    تكامل الطلبات وإعادة التوجيه
+                  </h2>
+                  <OrderForwardingSettingsTab />
+                </section>
+              </div>
+            ) : null}
         </div>
       </div>
     </div>

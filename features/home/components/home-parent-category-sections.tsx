@@ -93,7 +93,7 @@ export function HomeParentCategorySections({
           image: cat.image ?? q.data?.[0]?.thumbnail ?? "/images/placeholder.png",
         };
         const banner = sectionBanners[i];
-        const sectionBannerSrc = banner?.imageUrl ?? null;
+        const sectionBannerSrc = banner?.imageUrl?.trim() ? banner.imageUrl.trim() : null;
         const bannerHref = banner?.href;
 
         return (

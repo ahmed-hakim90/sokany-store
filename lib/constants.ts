@@ -50,6 +50,8 @@ export const CHECKOUT_DRAFT_STORAGE_KEY = "checkout_draft";
 export const AUTH_TOKEN_KEY = "woo_auth_token";
 export const DEFAULT_PAGE = 1;
 export const DEFAULT_PER_PAGE = 20;
+/** أقل عدد بطاقات قبل تفعيل الشبكة الافتراضية — لا يؤثر على التصفح الحالي (‎20‎/صفحة). */
+export const VIRTUAL_PRODUCT_THRESHOLD = 48;
 export const STALE_TIME = {
   SHORT: 30_000,
   MEDIUM: 5 * 60_000,
@@ -108,11 +110,15 @@ export const ROUTES = {
   MY_REVIEWS: "/my-reviews",
 } as const;
 
-/** كتالوج الموبايل: عيّنة عشوائية ثابتة الحجم من `/products` (زر الشريط السفلي). */
-export const PRODUCTS_ALL_RANDOM_HREF = `${ROUTES.PRODUCTS}?${new URLSearchParams({
+/** كتالوج الموبايل: `/products` بترتيب مستقر (شائعية) لتحسين الكاش وSEO — ليس `orderby=rand`. */
+export const PRODUCTS_ALL_CATALOG_HREF = `${ROUTES.PRODUCTS}?${new URLSearchParams({
   per_page: "40",
-  orderby: "rand",
+  orderby: "popularity",
+  order: "desc",
 }).toString()}`;
+
+/** @deprecated استخدم `PRODUCTS_ALL_CATALOG_HREF` — بقي للتوافق مع الروابط القديمة. */
+export const PRODUCTS_ALL_RANDOM_HREF = PRODUCTS_ALL_CATALOG_HREF;
 
 /** رابط دردشة واتساب لخدمة العملاء (مثل `https://wa.me/201xxxxxxxxxx`). يُضبط عبر البيئة لصفحة التتبع. */
 export const WHATSAPP_SUPPORT_URL =

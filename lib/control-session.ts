@@ -2,6 +2,7 @@ import { SignJWT, jwtVerify } from "jose";
 
 import type { ControlSessionPayload } from "@/lib/control-session-types";
 import type { ControlPanelAccess } from "@/lib/control-auth";
+import { normalizeControlSessionTabList } from "@/features/control/lib/control-tabs";
 
 const COOKIE_NAME = "control_session";
 
@@ -105,7 +106,7 @@ export async function verifyControlSessionPayload(token: string): Promise<Contro
     tabs = "all";
   } else {
     const t = Array.isArray(payload.tabs) ? payload.tabs.map((x) => String(x)) : [];
-    tabs = t;
+    tabs = normalizeControlSessionTabList(t);
   }
   let mediaFolders: "all" | string[];
   if (payload.mA === true || (payload.mA === undefined && payload.mf === undefined)) {

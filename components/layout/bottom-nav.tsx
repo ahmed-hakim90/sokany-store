@@ -10,14 +10,14 @@ import {
   useMobileNavDrawerOpenStore,
 } from "@/components/layout/mobile-nav-drawer-open-store";
 import { useCart } from "@/hooks/useCart";
-import { PRODUCTS_ALL_RANDOM_HREF, ROUTES } from "@/lib/constants";
+import { PRODUCTS_ALL_CATALOG_HREF, ROUTES } from "@/lib/constants";
 import { bottomNavItemPressableClass } from "@/lib/nav-link-interaction";
 import { cn } from "@/lib/utils";
 
 const linkItems = [
   { href: ROUTES.HOME, label: "الرئيسية", key: "home", icon: HomeIcon },
   {
-    href: PRODUCTS_ALL_RANDOM_HREF,
+    href: PRODUCTS_ALL_CATALOG_HREF,
     label: "كل المنتجات",
     key: "products",
     icon: GridIcon,

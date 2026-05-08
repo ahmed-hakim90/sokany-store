@@ -11,15 +11,9 @@ import {
   HOME_CATEGORIES_QUERY_PARAMS,
   HOME_FLASH_SALE_PRODUCT_PARAMS,
   HOME_NEW_ARRIVALS_PRODUCT_PARAMS,
-  homeCustomSectionProductParams,
-  homeParentCategoryRailParams,
 } from "@/features/home/lib/home-page-product-params";
-import { parentCategoriesForHome } from "@/features/home/lib/parentCategoriesForHome";
 import type { ProductsQueryData } from "@/features/products/hooks/useProducts";
-import {
-  getProductsListServer,
-  getProductsServer,
-} from "@/features/products/services/getProductsServer";
+import { getProductsListServer } from "@/features/products/services/getProductsServer";
 import { ROUTES, STALE_TIME } from "@/lib/constants";
 import { trimMetaDescription } from "@/lib/html";
 import { getSiteUrl } from "@/lib/site";
@@ -134,36 +128,6 @@ export default async function Home() {
     toProductsQueryData(bestList),
   );
 
-  const mode = content.homeProductSectionsMode ?? "auto";
-  const sectionTasks: Promise<void>[] = [];
-
-  if (mode === "auto" || mode === "hybrid") {
-    for (const cat of parentCategoriesForHome(categoriesData)) {
-      const p = homeParentCategoryRailParams(cat.id);
-      sectionTasks.push(
-        getProductsServer(p).then((products) => {
-          queryClient.setQueryData(["products", p], products);
-        }),
-      );
-    }
-  }
-
-  if (mode === "custom" || mode === "hybrid") {
-    const rows = (content.homeProductSections ?? [])
-      .filter((s) => s.active)
-      .sort((a, b) => a.order - b.order || a.id.localeCompare(b.id));
-    for (const s of rows) {
-      const p = homeCustomSectionProductParams(s.categoryId, s.productCount);
-      sectionTasks.push(
-        getProductsServer(p).then((products) => {
-          queryClient.setQueryData(["products", p], products);
-        }),
-      );
-    }
-  }
-
-  await Promise.all(sectionTasks);
-
   const spotlight = spotlights?.items?.find((i) => i.active);
   let homeBottomPromo: HomeBottomPromo = DEFAULT_BOTTOM_PROMO;
   if (spotlight) {
@@ -186,15 +150,18 @@ export default async function Home() {
   }
   /*
    * أولوية صورة بطاقة الترويج قبل «الأكثر مبيعاً»:
-   * site_config.homeBottomPromoImageUrl  ←  spotlight.imageUrl  ←  الصورة الافتراضية في HomePromoCard.
-   * الإظهار/الإخفاء: site_config.homeBottomPromoVisible === false يخفي البانر بالكامل.
+   * spotlights.homeBottomPromoImageUrl  ←  أول إعلان نشط (imageUrl)  ←  الافتراضي في HomePromoCard.
+   * الإظهار: spotlights.homeBottomPromoVisible === false يخفي البانر بالكامل.
    */
-  if (content.homeBottomPromoImageUrl) {
+  const promoImageOverride = spotlights?.homeBottomPromoImageUrl?.trim();
+  if (promoImageOverride) {
     homeBottomPromo = {
       ...homeBottomPromo,
-      imageSrc: content.homeBottomPromoImageUrl,
+      imageSrc: promoImageOverride,
     };
   }
+
+  const homeBottomPromoVisible = spotlights?.homeBottomPromoVisible !== false;
 
   const heroCategoryNamesBySlug = Object.fromEntries(
     categoriesData.map((c) => [c.slug, c.name]),
@@ -213,7 +180,7 @@ export default async function Home() {
           subline: content.promoFlash.subline,
         }}
         homeFeatureVideo={content.homeFeatureVideo}
-        homeBottomPromoVisible={content.homeBottomPromoVisible}
+        homeBottomPromoVisible={homeBottomPromoVisible}
         homeBottomPromo={homeBottomPromo}
         homeProductSectionsMode={content.homeProductSectionsMode}
         homeProductSections={content.homeProductSections}

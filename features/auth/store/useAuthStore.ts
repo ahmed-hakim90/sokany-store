@@ -20,7 +20,12 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: AUTH_TOKEN_KEY,
-      storage: createJSONStorage(() => localStorage),
+      storage: createJSONStorage(() => {
+        if (typeof window === "undefined") {
+          throw new Error("localStorage is only available in the browser.");
+        }
+        return window.localStorage;
+      }),
       partialize: (state) => ({
         token: state.token,
         user: state.user,

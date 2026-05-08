@@ -8,9 +8,8 @@ const FIREBASE_JS = "12.12.0";
 /**
  * Service worker واحد: تثبيت PWA، FCM في الخلفية، إشعارات النقر.
  *
- * لا نعترض طلبات التصفح (`navigate`) — الاعتراض + `respondWith(fetch)` يكسر بث React Server
- * Components في Safari/iOS ويظهر أحيانًا صفحة خطأ Vercel («This page couldn't load»).
- * صفحة `/offline` تُخزَّن للاستخدام اليدوي فقط إن لزم.
+ * لا نعترض طلبات التصفح (`navigate`) — تبقى network-first افتراض المتصفح.
+ * اعتراض محدود: ‎`/api/*`‎ network-first مع كاش؛ أصول ‎`/_next/static`‎ وامتدادات ثابتة cache-first؛ صور خارجية GET ‎`stale-while-revalidate`‎.
  * الاستجابة تُخدم بـ ‎`Cache-Control: no-store`‎ حتى لا يبقى ‎`sw.js`‎ قديماً في المتصفح بعد النشر.
  */
 export async function GET() {
@@ -28,7 +27,12 @@ export async function GET() {
 
   const body = `/* Sokany PWA service worker — generated */
 const FIREBASE_VERSION = "${FIREBASE_JS}";
-const CACHE_NAME = "sokany-pwa-v3";
+const CACHE_PREFIX = "sokany-pwa-v4";
+const CACHE_MAIN = CACHE_PREFIX;
+const CACHE_API = CACHE_PREFIX + "-api";
+const CACHE_STATIC = CACHE_PREFIX + "-static";
+const CACHE_IMG = CACHE_PREFIX + "-img";
+const CACHE_KEYS = [CACHE_MAIN, CACHE_API, CACHE_STATIC, CACHE_IMG];
 const OFFLINE_URL = "/offline";
 const DEFAULT_ICON = "${icon192}";
 const firebaseConfig = ${configJson};
@@ -38,10 +42,48 @@ importScripts(
   "https://www.gstatic.com/firebasejs/" + FIREBASE_VERSION + "/firebase-messaging-compat.js"
 );
 
+async function networkFirstApi(request, cacheName) {
+  try {
+    const res = await fetch(request);
+    if (res && res.ok) {
+      const c = await caches.open(cacheName);
+      c.put(request, res.clone());
+    }
+    return res;
+  } catch (e) {
+    const hit = await caches.match(request);
+    if (hit) return hit;
+    throw e;
+  }
+}
+
+async function cacheFirstStatic(request, cacheName) {
+  const hit = await caches.match(request);
+  if (hit) return hit;
+  const res = await fetch(request);
+  if (res && res.ok) {
+    const c = await caches.open(cacheName);
+    c.put(request, res.clone());
+  }
+  return res;
+}
+
+async function staleWhileRevalidateImage(request, cacheName) {
+  const c = await caches.open(cacheName);
+  const hit = await c.match(request);
+  const net = fetch(request)
+    .then((res) => {
+      if (res && res.ok) c.put(request, res.clone());
+      return res;
+    })
+    .catch(() => undefined);
+  return hit || (await net) || Response.error();
+}
+
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches
-      .open(CACHE_NAME)
+      .open(CACHE_MAIN)
       .then((cache) => cache.addAll([OFFLINE_URL, DEFAULT_ICON]).catch(() => undefined))
       .then(() => self.skipWaiting())
   );
@@ -52,10 +94,37 @@ self.addEventListener("activate", (event) => {
     caches
       .keys()
       .then((keys) =>
-        Promise.all(keys.filter((k) => k !== CACHE_NAME && k.startsWith("sokany-pwa-")).map((k) => caches.delete(k))),
+        Promise.all(
+          keys
+            .filter((k) => k.startsWith("sokany-pwa-") && CACHE_KEYS.indexOf(k) === -1)
+            .map((k) => caches.delete(k)),
+        ),
       )
       .then(() => self.clients.claim()),
   );
+});
+
+self.addEventListener("fetch", (event) => {
+  const req = event.request;
+  if (req.mode === "navigate") return;
+  if (req.method !== "GET") return;
+  const url = new URL(req.url);
+  if (url.origin !== self.location.origin) {
+    if (req.destination === "image") {
+      event.respondWith(staleWhileRevalidateImage(req, CACHE_IMG));
+    }
+    return;
+  }
+  if (url.pathname.startsWith("/api/")) {
+    event.respondWith(networkFirstApi(req, CACHE_API));
+    return;
+  }
+  if (
+    url.pathname.startsWith("/_next/static/") ||
+    /\\.(js|css|woff2?|ico|png|jpg|jpeg|webp|svg|gif)(\\?|$)/i.test(url.pathname)
+  ) {
+    event.respondWith(cacheFirstStatic(req, CACHE_STATIC));
+  }
 });
 
 if (firebaseConfig.apiKey && firebaseConfig.messagingSenderId && firebaseConfig.appId) {

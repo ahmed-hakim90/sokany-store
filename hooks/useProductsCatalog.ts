@@ -29,17 +29,21 @@ export function useProductsCatalog() {
 
     const orderbyRaw = searchParams.get("orderby");
     const orderRaw = searchParams.get("order");
-    const orderResolved =
-      orderRaw === "asc" || orderRaw === "desc" ? orderRaw : undefined;
-
     const category = parseNumber(searchParams.get("category"));
-    const orderbyResolved =
+
+    /** ترتيب افتراضي مستقر عند غياب/خطأ المعامل — لا نستخدم rand كافتراض. */
+    const orderbyFromUrl =
       orderbyRaw &&
       ["date", "popularity", "price", "rating", "title", "rand"].includes(
         orderbyRaw,
       )
         ? orderbyRaw
-        : undefined;
+        : null;
+    const orderby = orderbyFromUrl ?? "popularity";
+
+    const orderFromUrl =
+      orderRaw === "asc" || orderRaw === "desc" ? orderRaw : null;
+    const order = orderby === "rand" ? undefined : orderFromUrl ?? "desc";
 
     return {
       page: parseNumber(searchParams.get("page")) ?? 1,
@@ -49,11 +53,8 @@ export function useProductsCatalog() {
       featured:
         searchParams.get("featured") === "true" ? true : undefined,
       search,
-      orderby: orderbyResolved,
-      order:
-        orderbyResolved === "rand"
-          ? undefined
-          : orderResolved,
+      orderby,
+      order,
       min_price: parseNonNegativeInt(searchParams.get("min_price")),
       max_price: parseNonNegativeInt(searchParams.get("max_price")),
     };

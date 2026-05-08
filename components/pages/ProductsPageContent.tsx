@@ -8,7 +8,9 @@ import { EmptyState } from "@/components/EmptyState";
 import { ErrorState } from "@/components/ErrorState";
 import { useCart } from "@/hooks/useCart";
 import { useProductsCatalog } from "@/hooks/useProductsCatalog";
+import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 import { ROUTES } from "@/lib/constants";
+import { StorefrontStaleDataNotice } from "@/components/storefront-stale-data-notice";
 import { cn } from "@/lib/utils";
 import { focusProductSearchHeaderInput } from "@/lib/product-search-header";
 import { CatalogPagination } from "@/features/catalog/components/CatalogPagination";
@@ -42,6 +44,7 @@ export function ProductsPageContent() {
     allActive,
     isFeatured,
   } = useProductsCatalog();
+  const { offline } = useNetworkStatus();
   const categoriesQuery = useCategories({ per_page: 100 });
   const productNavCategories = useMemo(() => {
     const data = categoriesQuery.data;
@@ -80,23 +83,37 @@ export function ProductsPageContent() {
   const pagedItems = productsQuery.data?.items ?? [];
   const totalPages = productsQuery.data?.totalPages ?? 1;
   const currentCatalogPage = catalogParams.page ?? 1;
+  const fromApiCache = productsQuery.data?.responseSource === "cache-fallback";
+  const showStaleNotice =
+    (fromApiCache && pagedItems.length > 0) ||
+    (offline && pagedItems.length > 0) ||
+    (productsQuery.isError && pagedItems.length > 0);
+  const staleVariant =
+    offline && pagedItems.length > 0 ? "offline-cache" : "api-fallback";
+  const catalogFatalError = productsQuery.isError && pagedItems.length === 0;
 
-  const catalogGrid = productsQuery.isError ? (
+  const catalogGrid = catalogFatalError ? (
     <ErrorState
       message={productsQuery.error.message}
       onRetry={() => void productsQuery.refetch()}
     />
   ) : (
     <>
+      {showStaleNotice ? (
+        <div className="mb-3">
+          <StorefrontStaleDataNotice variant={staleVariant} />
+        </div>
+      ) : null}
       <ProductGrid
         status={
-          productsQuery.isPending
+          productsQuery.isPending && pagedItems.length === 0
             ? "loading"
             : !pagedItems.length
               ? "empty"
               : "ready"
         }
         products={pagedItems}
+        virtualize="auto"
         getCartLineQuantity={getCartLineQuantity}
         onCartLineQuantityChange={setProductLineQuantity}
         cardVariant="mobileCompact"
@@ -117,7 +134,7 @@ export function ProductsPageContent() {
           />
         }
       />
-      {!productsQuery.isPending && !productsQuery.isError && pagedItems.length > 0 ? (
+      {!productsQuery.isPending && !catalogFatalError && pagedItems.length > 0 ? (
         <CatalogPagination
           currentPage={currentCatalogPage}
           totalPages={totalPages}

@@ -71,6 +71,18 @@ export const wpProductTagSchema = z.object({
   slug: z.string(),
 });
 
+/** عنصر قائمة ‎`/products/tags`‎ في Woo — يتضمّن ‎`count`‎ (عدد المنتجات). */
+export const wpWooProductTagListItemSchema = z
+  .object({
+    id: z.number(),
+    name: z.string(),
+    slug: z.string(),
+    count: z.coerce.number().default(0),
+  })
+  .passthrough();
+
+export const wpWooProductTagsListResponseSchema = z.array(wpWooProductTagListItemSchema);
+
 export const wpProductAttributeSchema = z.object({
   id: z.number(),
   name: z.string(),

@@ -240,7 +240,7 @@ export const CMS_DEFAULT_HOME_FEATURE_VIDEO: CmsHomeFeatureVideo = {
 export const cmsStorefrontIntegrationsSchema = z.object({
   /**
    * أصل ووردبرس/وُوكومرس (مثال: ‎`https://shop.example.com`‎) — اختياري.
-   * عند التعيين يُستخدم **بدل** ‎`WC_BASE_URL`‎ لطلبات REST من السيرفر. المفاتيح ‎`WC_CONSUMER_*`‎ تبقى في البيئة.
+   * يُعتمد إذا **لم** يُضبط ‎`WC_BASE_URL`‎ في بيئة الخادم؛ وإلا يُتجاهل لصالح البيئة. المفاتيح ‎`WC_CONSUMER_*`‎ تبقى في البيئة.
    */
   wooBaseUrl: z.string().url().max(500).optional(),
   /**
@@ -294,13 +294,6 @@ export const cmsSiteConfigDocSchema = z.object({
   headerCategoryStrip: z.any().optional(),
   homeCategoryScroller: z.any().optional(),
   homeFeatureVideo: cmsHomeFeatureVideoSchema.optional(),
-  /** صورة بطاقة الترويج اللي قبل قسم «الأكثر مبيعاً» — لو فاضي يستخدم spotlight أو الصورة الافتراضية. */
-  homeBottomPromoImageUrl: publicAssetOrUrlSchema.optional(),
-  /**
-   * إظهار بطاقة الترويج العريضة على الهوم (في الموضع المختار من «إعلان مميز»).
-   * `false` يخفيها بالكامل؛ الغياب أو `true` = ظاهرة.
-   */
-  homeBottomPromoVisible: z.boolean().optional(),
   homeProductSectionsMode: cmsHomeProductSectionsModeSchema.optional(),
   homeProductSections: cmsHomeProductSectionsArraySchema.optional(),
   /** عناوين وقراءة عامة مدارة من `/control` — بلا أسرار. */
@@ -330,8 +323,9 @@ export const cmsHomeHeroDocSchema = z.object({
 
 export type CmsHomeHeroDoc = z.infer<typeof cmsHomeHeroDocSchema>;
 
+/** ‎`imageUrl`‎ فاضي = لا بانر لهذا الفهرس (يُحافَى على التوافق مع ترتيب أقسام الأب). */
 export const cmsSectionBannerItemSchema = z.object({
-  imageUrl: z.string().min(1),
+  imageUrl: z.string().max(800),
   href: z.string().optional(),
 });
 
@@ -411,6 +405,13 @@ export const cmsSpotlightItemSchema = z.object({
 
 export const cmsSpotlightsDocSchema = z.object({
   items: z.array(cmsSpotlightItemSchema),
+  /** صورة البانر الترويجي — لو فاضية تُستخدم صورة أول إعلان نشط أو الافتراضي في الواجهة. */
+  homeBottomPromoImageUrl: publicAssetOrUrlSchema.optional(),
+  /**
+   * إظهار البانر الترويجي على الهوم. `false` يخفيه بالكامل حتى مع إعلان نشط.
+   * الغياب أو `true` = ظاهر.
+   */
+  homeBottomPromoVisible: z.boolean().optional(),
   updatedAt: z.unknown().optional(),
 });
 

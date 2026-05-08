@@ -10,5 +10,6 @@ export function useCategories(params?: CategoryQueryParams) {
     queryKey: ["categories", params],
     queryFn: () => getCategories(params),
     staleTime: STALE_TIME.MEDIUM,
+    placeholderData: (previousData) => previousData,
   });
 }

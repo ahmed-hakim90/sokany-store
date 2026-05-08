@@ -32,7 +32,7 @@ export function PwaEngagementStack() {
   useEffect(
     () =>
       scheduleIdleCallback(() => setIdleReady(true), {
-        timeout: 3500,
+        timeout: 900,
       }),
     [],
   );

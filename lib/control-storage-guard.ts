@@ -14,9 +14,9 @@ function siteMediaSubfolderSegment(path: string): string {
 const SUBFOLDER_TO_TABS: Readonly<Record<string, string[]>> = {
   general: ["media"],
   hero: ["hero"],
-  banners: ["banners"],
+  banners: ["home"],
   retailers: ["retailers"],
-  spotlights: ["spotlights"],
+  spotlights: ["home"],
   documents: ["media"],
   promos: ["media"],
 };

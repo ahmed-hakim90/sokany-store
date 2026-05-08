@@ -7,6 +7,8 @@ import { Button } from "@/components/Button";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorState } from "@/components/ErrorState";
 import { useCart } from "@/hooks/useCart";
+import { useNetworkStatus } from "@/hooks/useNetworkStatus";
+import { StorefrontStaleDataNotice } from "@/components/storefront-stale-data-notice";
 import {
   HomeHeroBanner,
 } from "@/features/home/components/home-hero-banner";
@@ -107,6 +109,7 @@ export function HomePageInteractiveClient({
   const categories = useCategories(HOME_CATEGORIES_QUERY_PARAMS);
   const homeBestsellers = useProducts(HOME_BESTSELLERS_PRODUCT_PARAMS);
   const { getCartLineQuantity, setProductLineQuantity } = useCart();
+  const { offline } = useNetworkStatus();
   const hasMounted = useSyncExternalStore(
     subscribeNoop,
     getSnapshotClient,
@@ -150,19 +153,42 @@ export function HomePageInteractiveClient({
       {renderFeatureVideo("afterHero")}
       {renderHomePromo("afterHero")}
 
-      {!flashSaleSectionEnabled ? null : flashSales.isError ? (
-        <ScrollReveal>
-          <ErrorState
-            message={flashSales.error.message}
-            onRetry={() => void flashSales.refetch()}
-          />
-        </ScrollReveal>
-      ) : flashSales.isPending || (flashSales.data?.items.length ?? 0) > 0 ? (
+      {!flashSaleSectionEnabled ? null : (() => {
+        const flashItems = flashSales.data?.items ?? [];
+        const flashFatal = flashSales.isError && !flashItems.length;
+        if (flashFatal) {
+          return (
+            <ScrollReveal>
+              <ErrorState
+                message={flashSales.error.message}
+                onRetry={() => void flashSales.refetch()}
+              />
+            </ScrollReveal>
+          );
+        }
+        if (
+          !flashSales.isPending &&
+          !flashItems.length &&
+          !flashSales.isError
+        ) {
+          return null;
+        }
+        const flashStale =
+          (flashSales.data?.responseSource === "cache-fallback" &&
+            flashItems.length > 0) ||
+          (offline && flashItems.length > 0) ||
+          (flashSales.isError && flashItems.length > 0);
+        const flashStaleVariant =
+          offline && flashItems.length > 0 ? "offline-cache" : "api-fallback";
+        return (
         <ScrollReveal
           as="section"
           className="space-y-4"
           aria-labelledby="home-flash-sales-title"
         >
+          {flashStale ? (
+            <StorefrontStaleDataNotice variant={flashStaleVariant} />
+          ) : null}
           <HomeFlashSaleCountdownStrip
             className="w-full"
             endsAtIso={promoFlash?.endsAtIso}
@@ -173,11 +199,11 @@ export function HomePageInteractiveClient({
             status={
               flashSales.isPending
                 ? "loading"
-                : !flashSales.data?.items.length
+                : !flashItems.length
                   ? "empty"
                   : "ready"
             }
-            products={flashSales.data?.items ?? []}
+            products={flashItems}
             skeletonCount={12}
             priorityImageSlots={0}
             simpleImageMode
@@ -201,7 +227,8 @@ export function HomePageInteractiveClient({
             }
           />
         </ScrollReveal>
-      ) : null}
+        );
+      })()}
       {renderFeatureVideo("afterFlashSales")}
       {renderHomePromo("afterFlashSales")}
 
@@ -227,21 +254,38 @@ export function HomePageInteractiveClient({
           </h2>
         </div>
 
-        {homeBestsellers.isError ? (
-          <ErrorState
-            message={homeBestsellers.error.message}
-            onRetry={() => void homeBestsellers.refetch()}
-          />
-        ) : (
+        {(() => {
+          const bestItems = homeBestsellers.data?.items ?? [];
+          const bestFatal = homeBestsellers.isError && !bestItems.length;
+          if (bestFatal) {
+            return (
+              <ErrorState
+                message={homeBestsellers.error.message}
+                onRetry={() => void homeBestsellers.refetch()}
+              />
+            );
+          }
+          const bestStale =
+            (homeBestsellers.data?.responseSource === "cache-fallback" &&
+              bestItems.length > 0) ||
+            (offline && bestItems.length > 0) ||
+            (homeBestsellers.isError && bestItems.length > 0);
+          const bestStaleVariant =
+            offline && bestItems.length > 0 ? "offline-cache" : "api-fallback";
+          return (
+            <>
+              {bestStale ? (
+                <StorefrontStaleDataNotice variant={bestStaleVariant} />
+              ) : null}
           <ProductGrid
             status={
               homeBestsellers.isPending
                 ? "loading"
-                : !homeBestsellers.data?.items.length
+                : !bestItems.length
                   ? "empty"
                   : "ready"
             }
-            products={homeBestsellers.data?.items ?? []}
+            products={bestItems}
             skeletonCount={12}
             priorityImageSlots={0}
             simpleImageMode
@@ -264,23 +308,48 @@ export function HomePageInteractiveClient({
               />
             }
           />
-        )}
+            </>
+          );
+        })()}
       </ScrollReveal>
       {renderHomePromo("afterBestsellers")}
 
-      {newArrivals.isError ? (
-        <ScrollReveal>
-          <ErrorState
-            message={newArrivals.error.message}
-            onRetry={() => void newArrivals.refetch()}
-          />
-        </ScrollReveal>
-      ) : newArrivals.isPending || (newArrivals.data?.items.length ?? 0) > 0 ? (
+      {(() => {
+        const newItems = newArrivals.data?.items ?? [];
+        const newFatal = newArrivals.isError && !newItems.length;
+        if (newFatal) {
+          return (
+            <ScrollReveal>
+              <ErrorState
+                message={newArrivals.error.message}
+                onRetry={() => void newArrivals.refetch()}
+              />
+            </ScrollReveal>
+          );
+        }
+        if (
+          !newArrivals.isPending &&
+          !newItems.length &&
+          !newArrivals.isError
+        ) {
+          return null;
+        }
+        const newStale =
+          (newArrivals.data?.responseSource === "cache-fallback" &&
+            newItems.length > 0) ||
+          (offline && newItems.length > 0) ||
+          (newArrivals.isError && newItems.length > 0);
+        const newStaleVariant =
+          offline && newItems.length > 0 ? "offline-cache" : "api-fallback";
+        return (
         <ScrollReveal
           as="section"
           className="space-y-4"
           aria-labelledby="home-new-arrivals-title"
         >
+          {newStale ? (
+            <StorefrontStaleDataNotice variant={newStaleVariant} />
+          ) : null}
           <div className="flex flex-col items-center gap-2 text-center">
             <h2
               id="home-new-arrivals-title"
@@ -293,11 +362,11 @@ export function HomePageInteractiveClient({
             status={
               newArrivals.isPending
                 ? "loading"
-                : !newArrivals.data?.items.length
+                : !newItems.length
                   ? "empty"
                   : "ready"
             }
-            products={newArrivals.data?.items ?? []}
+            products={newItems}
             skeletonCount={12}
             priorityImageSlots={0}
             simpleImageMode
@@ -321,7 +390,8 @@ export function HomePageInteractiveClient({
             }
           />
         </ScrollReveal>
-      ) : null}
+        );
+      })()}
       {renderHomePromo("afterNewArrivals")}
 
       {homeProductSectionsMode === "custom" || homeProductSectionsMode === "hybrid" ? (
@@ -341,7 +411,7 @@ export function HomePageInteractiveClient({
               onCartLineQuantityChange={setProductLineQuantity}
             />
           </ScrollReveal>
-        ) : categories.isError ? (
+        ) : categories.isError && !(categories.data?.length) ? (
           <ScrollReveal>
             <ErrorState
               message={categories.error.message}

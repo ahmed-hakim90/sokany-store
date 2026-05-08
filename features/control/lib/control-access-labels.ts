@@ -1,4 +1,8 @@
-import { CONTROL_TABS_EXCLUDING_ACCESS, type ControlPanelTabId } from "@/features/control/lib/control-tabs";
+import {
+  CONTROL_TABS_EXCLUDING_ACCESS,
+  normalizeLegacyControlTabId,
+  type ControlPanelTabId,
+} from "@/features/control/lib/control-tabs";
 import type { ControlPanelAccessDoc } from "@/schemas/control-panel-access";
 
 /** تسمية عربية لمعرف تبويب اللوحة (لعرض الصلاحيات). */
@@ -8,15 +12,11 @@ export const CONTROL_TAB_LABEL_AR: Partial<Record<ControlPanelTabId, string>> = 
   hero: "الهيرو",
   home: "الصفحة الرئيسية",
   branches: "الفروع",
-  banners: "بانرات الأقسام",
   retailers: "الموزعون",
-  spotlights: "إعلانات مميزة",
   media: "الوسائط",
   preview: "معاينة",
   notifications: "إشعارات",
-  orderForwarding: "تكامل الطلبات",
-  health: "صحة الموقع",
-  wooApi: "ربط Woo",
+  health: "صحة الموقع والربط",
   access: "الصلاحيات (مشرف)",
 };
 
@@ -44,7 +44,11 @@ export function formatControlAccessSummary(doc: ControlPanelAccessDoc): {
       : t.length === 0
         ? "لا تبويبات (استثنائي — قد تُقيّد الاستعمال)"
         : t
-            .map((id) => CONTROL_TAB_LABEL_AR[id as ControlPanelTabId] ?? id)
+            .map((id) => {
+              const n = normalizeLegacyControlTabId(id);
+              if (n) return CONTROL_TAB_LABEL_AR[n] ?? n;
+              return CONTROL_TAB_LABEL_AR[id as ControlPanelTabId] ?? id;
+            })
             .join("، ");
   const mf = doc.mediaSubfolders;
   const mfLine =

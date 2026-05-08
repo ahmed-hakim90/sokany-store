@@ -628,7 +628,7 @@ export function SectionBannersForm({
         <div>
           <h2 className="font-display text-lg font-bold">بانرات أقسام الصفحة الرئيسية</h2>
           <p className="text-sm text-muted-foreground">
-            الترتيب يطابق ترتيب أقسام الأب على الصفحة الرئيسية.
+            الترتيب يطابق ترتيب أقسام الأب. يُفضّل ضبطها من تبويب «الصفحة الرئيسية» ضمن محرّر الأقسام الموحّد.
           </p>
         </div>
         <Button type="button" variant="secondary" size="sm" onClick={addRow}>
@@ -903,6 +903,12 @@ export function SpotlightsForm({
   disabled: boolean;
   onSave: (doc: CmsSpotlightsDoc) => void;
 }) {
+  const [homeBottomPromoVisible, setHomeBottomPromoVisible] = useState(
+    initial.homeBottomPromoVisible !== false,
+  );
+  const [homeBottomPromoImageUrl, setHomeBottomPromoImageUrl] = useState(
+    initial.homeBottomPromoImageUrl ?? "",
+  );
   const [items, setItems] = useState<SpotlightRow[]>(() =>
     initial.items.length > 0
       ? initial.items.map(spotlightToRow)
@@ -969,6 +975,8 @@ export function SpotlightsForm({
           homePlacement: row.homePlacement,
         };
       }),
+      homeBottomPromoImageUrl: homeBottomPromoImageUrl.trim() || undefined,
+      homeBottomPromoVisible,
     };
     const parsed = cmsSpotlightsDocSchema.safeParse(doc);
     if (!parsed.success) {
@@ -980,14 +988,58 @@ export function SpotlightsForm({
 
   return (
     <section className="space-y-4 rounded-2xl border border-border bg-white p-5 shadow-sm">
+      <div>
+        <h2 className="font-display text-lg font-bold">إبراز المحتوى</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          البانر الترويجي العريض وقائمة الإعلانات المميزة على الصفحة الرئيسية — حفظ واحد لكل الإعدادات.
+        </p>
+      </div>
+
+      <div className="space-y-3 rounded-xl border border-amber-100 bg-amber-50/40 p-4">
+        <h3 className="text-sm font-bold text-brand-950">بانر الترويج</h3>
+        <p className="text-xs text-muted-foreground">
+          يظهر قبل «الأكثر مبيعاً» (حسب موضع العنصر النشط). صورة التجاوز تغلب على صورة أول إعلان نشط.
+        </p>
+        <label className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={homeBottomPromoVisible}
+            onChange={(e) => setHomeBottomPromoVisible(e.target.checked)}
+            disabled={disabled}
+          />
+          <span className="text-sm font-medium">إظهار البانر الترويجي على الصفحة الرئيسية</span>
+        </label>
+        <p className="text-xs text-muted-foreground">
+          عند إلغاء التفعيل يختفي البانر بالكامل حتى مع وجود إعلان نشط.
+        </p>
+        <ManagedImageUploadField
+          label="صورة البانر (تجاوز اختياري)"
+          value={homeBottomPromoImageUrl}
+          onChange={setHomeBottomPromoImageUrl}
+          disabled={disabled}
+          helper="ينصح بمقاس 1100×400 بكسل تقريباً. لو فاضي تُستخدم صورة أول إعلان نشط."
+          placeholder="/images/hero-banner.jpg"
+          buttonLabel="اختيار صورة"
+        />
+        <Button
+          type="button"
+          variant="secondary"
+          size="sm"
+          disabled={disabled}
+          onClick={() => setHomeBottomPromoImageUrl("")}
+        >
+          استعادة الافتراضي (صورة الإعلان المميز)
+        </Button>
+      </div>
+
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="font-display text-lg font-bold">إعلان مميز في الصفحة الرئيسية</h2>
+          <h3 className="text-sm font-bold text-brand-950">إعلانات مميزة</h3>
           <p className="text-sm text-muted-foreground">
-            يُعرَض أول عنصر عليه «نشط». اختر موضع البطاقة في الهوم، واملأ الصورة والعناوين لظهور أفضل.
+            يُعرَض أول عنصر عليه «نشط». اختر الموضع والصورة والعناوين.
           </p>
         </div>
-        <Button type="button" variant="secondary" size="sm" onClick={addRow}>
+        <Button type="button" variant="secondary" size="sm" onClick={addRow} disabled={disabled}>
           + عنصر
         </Button>
       </div>
@@ -1134,7 +1186,7 @@ export function SpotlightsForm({
       </ul>
 
       <Button type="button" disabled={disabled} onClick={handleSave}>
-        {disabled ? "جاري الحفظ…" : "حفظ الإعلانات المميزة"}
+        {disabled ? "جاري الحفظ…" : "حفظ إبراز المحتوى"}
       </Button>
     </section>
   );

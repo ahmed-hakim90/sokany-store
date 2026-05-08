@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import * as admin from "firebase-admin";
 import { requireSuperAdminSession } from "@/lib/api-control-auth";
 import { CONTROL_PANEL_ACCESS_COLLECTION } from "@/features/control/lib/collections";
-import { isControlPanelTabId } from "@/features/control/lib/control-tabs";
+import { normalizeLegacyControlTabId } from "@/features/control/lib/control-tabs";
 import { controlPanelAccessDocSchema, controlPanelAccessPutBodySchema } from "@/schemas/control-panel-access";
 import { getAdminFirestore, getFirebaseAdminApp } from "@/lib/firebase-admin";
 import { normalizeCmsMediaSubfolder } from "@/lib/cms-media-path";
@@ -57,8 +57,9 @@ function sanitizeTabIds(
   }
   const s = new Set<string>();
   for (const t of tabIds) {
-    if (isControlPanelTabId(t) && t !== "access") {
-      s.add(t);
+    const n = normalizeLegacyControlTabId(t);
+    if (n && n !== "access") {
+      s.add(n);
     }
   }
   return s.size === 0 ? [] : [...s];

@@ -3,6 +3,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { STALE_TIME } from "@/lib/constants";
 import { getProductsList } from "@/features/products/services/getProducts";
+import type { Product } from "@/features/products/types";
 import type { ProductQueryParams } from "@/types";
 
 export function usePrefetchProducts() {
@@ -13,7 +14,15 @@ export function usePrefetchProducts() {
       queryKey: ["products", params],
       queryFn: async () => {
         const r = await getProductsList(params);
-        return { items: r.products, total: r.total, totalPages: r.totalPages };
+        for (const p of r.products) {
+          queryClient.setQueryData<Product>(["product", p.id], p);
+        }
+        return {
+          items: r.products,
+          total: r.total,
+          totalPages: r.totalPages,
+          responseSource: r.responseSource,
+        };
       },
       staleTime: STALE_TIME.MEDIUM,
     });

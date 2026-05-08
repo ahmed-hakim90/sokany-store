@@ -3,7 +3,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/Button";
-import { CONTROL_TABS_EXCLUDING_ACCESS, type ControlPanelTabId } from "@/features/control/lib/control-tabs";
+import {
+  CONTROL_TABS_EXCLUDING_ACCESS,
+  normalizeLegacyControlTabId,
+  type ControlPanelTabId,
+} from "@/features/control/lib/control-tabs";
 import {
   ControlAdvancedDetails,
   ControlFormSection,
@@ -90,9 +94,9 @@ export function ControlAccessTab() {
     } else {
       setTabPicks(
         new Set(
-          (parsed.tabIds as string[]).filter((x): x is ControlPanelTabId =>
-            (CONTROL_TABS_EXCLUDING_ACCESS as readonly string[]).includes(x),
-          ),
+          (parsed.tabIds as string[])
+            .map((x) => normalizeLegacyControlTabId(x))
+            .filter((x): x is ControlPanelTabId => x != null),
         ),
       );
     }

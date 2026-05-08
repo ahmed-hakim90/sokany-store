@@ -17,6 +17,8 @@ export type ProductsListResult = {
   products: Product[];
   total: number;
   totalPages: number;
+  /** مصدر الاستجابة عند قراءة هيدر الـ API (كاش محلي بعد فشل الشبكة). */
+  responseSource?: "network" | "cache-fallback";
 };
 
 /**
@@ -39,7 +41,10 @@ export async function getProductsList(
       total > 0 ? Math.max(1, Math.ceil(total / per)) : 1,
     ),
   );
-  return { products, total, totalPages };
+  const src = h["x-sokany-response-source"] ?? h["X-Sokany-Response-Source"];
+  const responseSource =
+    src === "cache-fallback" ? ("cache-fallback" as const) : ("network" as const);
+  return { products, total, totalPages, responseSource };
 }
 
 export async function getProducts(

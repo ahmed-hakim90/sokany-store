@@ -1,8 +1,5 @@
 "use client";
 
-import { useMemo } from "react";
-import { usePathname, useSearchParams } from "next/navigation";
-import { ROUTES } from "@/lib/constants";
 import { useCatalogFilterDrawerOpenStore } from "@/features/catalog/store/useCatalogFilterDrawerOpenStore";
 import { cn } from "@/lib/utils";
 
@@ -27,34 +24,14 @@ function FilterSlidersIcon({ className }: { className?: string }) {
   );
 }
 
-function catalogFiltersActiveForParams(searchParams: ReturnType<typeof useSearchParams>): boolean {
-  const sp = searchParams;
-  if (sp.get("category")) return true;
-  if (sp.get("featured") === "true") return true;
-  if (sp.get("min_price")) return true;
-  if (sp.get("max_price")) return true;
-  const ob = sp.get("orderby");
-  const ord = sp.get("order");
-  if (ob && ob !== "popularity") return true;
-  if (ord === "asc") return true;
-  return false;
-}
-
-function useProductsCatalogFiltersActive(): boolean {
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-
-  return useMemo(() => {
-    if (pathname === ROUTES.PRODUCTS || pathname === ROUTES.SEARCH) {
-      return catalogFiltersActiveForParams(searchParams);
-    }
-    return false;
-  }, [pathname, searchParams]);
-}
-
-export function CatalogFilterDrawerTrigger({ className }: { className?: string }) {
+export function CatalogFilterDrawerTrigger({
+  className,
+  hasFilters = false,
+}: {
+  className?: string;
+  hasFilters?: boolean;
+}) {
   const openDrawer = useCatalogFilterDrawerOpenStore((s) => s.openDrawer);
-  const hasFilters = useProductsCatalogFiltersActive();
 
   return (
     <button

@@ -19,7 +19,7 @@ const FOLDER_PRESET_OPTIONS: { value: string; label: string }[] = [
   { value: "hero", label: "صور الواجهة الرئيسية" },
   { value: "banners", label: "بانرات" },
   { value: "retailers", label: "الموزعون" },
-  { value: "spotlights", label: "إعلانات مميزة" },
+  { value: "spotlights", label: "إبراز المحتوى" },
   { value: "documents", label: "مستندات وملفات" },
 ];
 

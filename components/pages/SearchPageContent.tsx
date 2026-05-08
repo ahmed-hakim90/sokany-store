@@ -85,6 +85,7 @@ export function SearchPageContent({
         <div className="min-w-0">
           <ProductGrid
             products={products}
+            virtualize="auto"
             getCartLineQuantity={getCartLineQuantity}
             onCartLineQuantityChange={setProductLineQuantity}
             cardVariant="desktopCatalog"

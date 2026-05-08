@@ -14,6 +14,8 @@ export function WarrantyPostProductGrid({ products }: WarrantyPostProductGridPro
   return (
     <ProductGrid
       products={products}
+      virtualize="auto"
+      virtualGridColumnCounts={{ base: 2, md: 3, lg: 4 }}
       getCartLineQuantity={getCartLineQuantity}
       onCartLineQuantityChange={setProductLineQuantity}
       gridClassName="grid grid-cols-2 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"

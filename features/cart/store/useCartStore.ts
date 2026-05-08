@@ -1,7 +1,7 @@
 "use client";
 
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { createJSONStorage, persist } from "zustand/middleware";
 import { CART_STORAGE_KEY } from "@/lib/constants";
 import type { CartItem, CartState } from "@/features/cart/types";
 import type { Product } from "@/features/products/types";
@@ -61,6 +61,12 @@ export const useCartStore = create<CartState>()(
     }),
     {
       name: CART_STORAGE_KEY,
+      storage: createJSONStorage(() => {
+        if (typeof window === "undefined") {
+          throw new Error("localStorage is only available in the browser.");
+        }
+        return window.localStorage;
+      }),
       partialize: (state) => ({ items: state.items }),
       onRehydrateStorage: () => (state) => {
         if (!state) return;

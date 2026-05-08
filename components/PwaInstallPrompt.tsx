@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { Button } from "@/components/Button";
+import { usePwaDeferredInstall } from "@/components/PwaDeferredInstallProvider";
 import { isClientRedirectSafeguardEnabled } from "@/lib/client-redirect-safeguard";
 
 type BeforeInstallPromptEvent = Event & {
@@ -28,10 +29,10 @@ function subscribeStaticSnapshot() {
 
 /**
  * تثبيت PWA عبر `beforeinstallprompt` فقط. تلميح iOS (userAgent) يظهر فقط مع `?redirect=1`.
- * التموضع: `PwaEngagementStack`.
+ * التموضع: `PwaEngagementStack`. الحدث المؤجّل يُسجَّل في `PwaDeferredInstallProvider` مبكراً.
  */
 export function PwaInstallPrompt() {
-  const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null);
+  const { deferred, clearDeferred } = usePwaDeferredInstall();
   const [dismissed, setDismissed] = useState(false);
   const iosHint = useSyncExternalStore(
     subscribeStaticSnapshot,
@@ -39,19 +40,10 @@ export function PwaInstallPrompt() {
     () => false,
   );
 
-  useEffect(() => {
-    const handler = (e: Event) => {
-      e.preventDefault();
-      setDeferred(e as BeforeInstallPromptEvent);
-    };
-    window.addEventListener("beforeinstallprompt", handler);
-
-    return () => window.removeEventListener("beforeinstallprompt", handler);
-  }, []);
-
   if (dismissed) return null;
 
-  if (deferred) {
+  const ev = deferred as BeforeInstallPromptEvent | null;
+  if (ev) {
     return (
       <div
         className="w-full rounded-2xl border border-border bg-white/95 p-4 shadow-lg backdrop-blur-sm"
@@ -63,9 +55,9 @@ export function PwaInstallPrompt() {
             type="button"
             size="sm"
             onClick={async () => {
-              await deferred.prompt();
-              await deferred.userChoice;
-              setDeferred(null);
+              await ev.prompt();
+              await ev.userChoice;
+              clearDeferred();
             }}
           >
             تثبيت

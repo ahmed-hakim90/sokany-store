@@ -3,10 +3,10 @@ import type { ControlPanelTabId } from "@/features/control/lib/control-tabs";
 const CMS_KEY_TO_TABS: Record<string, ControlPanelTabId[]> = {
   site_config: ["general", "branding", "home"],
   home_hero: ["hero"],
-  section_banners: ["banners"],
+  section_banners: ["home"],
   branches: ["branches"],
   retailers: ["retailers"],
-  spotlights: ["spotlights"],
+  spotlights: ["home"],
 } as const;
 
 export type CmsDocumentPutKey = keyof typeof CMS_KEY_TO_TABS;

@@ -8,6 +8,8 @@ import { Cairo, Montserrat } from "next/font/google";
 import { ViewTransitions } from "next-view-transitions";
 import { ViewTransitionRejectionHandler } from "@/components/layout/view-transition-rejection-handler";
 import { getPublicSiteContent } from "@/features/cms/services/getPublicSiteContent";
+import { PwaDeferredInstallProvider } from "@/components/PwaDeferredInstallProvider";
+import { NetworkStatusProvider } from "@/hooks/useNetworkStatus";
 import { QueryProvider } from "@/providers/QueryProvider";
 import { ToastProvider } from "@/providers/ToastProvider";
 import { CLARITY_PROJECT_ID, GA_MEASUREMENT_ID } from "@/lib/constants";
@@ -44,6 +46,8 @@ const getCachedBranding = cache(async () => {
   const { branding } = await getPublicSiteContent();
   return branding;
 });
+
+const speedInsightsEnabled = process.env.VERCEL === "1";
 
 export async function generateViewport(): Promise<Viewport> {
   const branding = await getCachedBranding();
@@ -125,14 +129,18 @@ export default async function RootLayout({
         <ViewTransitions>
           <ViewTransitionRejectionHandler />
           <QueryProvider>
-            <ToastProvider />
-            {children}
+            <NetworkStatusProvider>
+              <PwaDeferredInstallProvider>
+                <ToastProvider />
+                {children}
+              </PwaDeferredInstallProvider>
+            </NetworkStatusProvider>
           </QueryProvider>
         </ViewTransitions>
         {GA_MEASUREMENT_ID ? (
           <GoogleAnalytics gaId={GA_MEASUREMENT_ID} />
         ) : null}
-        <SpeedInsights />
+        {speedInsightsEnabled ? <SpeedInsights /> : null}
       </body>
     </html>
   );

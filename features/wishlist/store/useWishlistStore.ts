@@ -1,7 +1,7 @@
 "use client";
 
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { createJSONStorage, persist } from "zustand/middleware";
 import { WISHLIST_STORAGE_KEY } from "@/lib/constants";
 import type { Product } from "@/features/products/types";
 import type { WishlistItem, WishlistState } from "@/features/wishlist/types";
@@ -38,6 +38,12 @@ export const useWishlistStore = create<WishlistState>()(
     }),
     {
       name: WISHLIST_STORAGE_KEY,
+      storage: createJSONStorage(() => {
+        if (typeof window === "undefined") {
+          throw new Error("localStorage is only available in the browser.");
+        }
+        return window.localStorage;
+      }),
       partialize: (state) => ({ items: state.items }),
     },
   ),

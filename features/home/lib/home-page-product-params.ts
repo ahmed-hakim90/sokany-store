@@ -41,10 +41,11 @@ export function homeCustomSectionProductParams(
   categoryId: number,
   productCount: number,
 ): ProductQueryParams {
+  const perPage = Math.min(12, Math.max(1, productCount));
   return {
     category: categoryId,
     include_children: true,
-    per_page: productCount,
+    per_page: perPage,
     orderby: "popularity",
     order: "desc",
   };

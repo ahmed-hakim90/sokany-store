@@ -3,6 +3,7 @@ import "server-only";
 import { revalidatePath, revalidateTag } from "next/cache";
 import {
   WOO_CACHE_TAG_ORDERS,
+  WOO_CACHE_TAG_PRODUCT_TAGS,
   WOO_CACHE_TAG_PRODUCTS,
   WOO_CACHE_TAG_REVIEWS,
   WOO_CACHE_TAG_SITEMAP,
@@ -14,6 +15,7 @@ import {
  */
 export function revalidateWooDataTags(): void {
   revalidateTag(WOO_CACHE_TAG_PRODUCTS, "max");
+  revalidateTag(WOO_CACHE_TAG_PRODUCT_TAGS, "max");
   revalidateTag(WOO_CACHE_TAG_SITEMAP, "max");
 }
 

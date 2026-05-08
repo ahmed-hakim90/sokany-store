@@ -8,6 +8,8 @@ import { EmptyState } from "@/components/EmptyState";
 import { ErrorState } from "@/components/ErrorState";
 import { ScrollReveal } from "@/components/ScrollReveal";
 import { useCart } from "@/hooks/useCart";
+import { useNetworkStatus } from "@/hooks/useNetworkStatus";
+import { StorefrontStaleDataNotice } from "@/components/storefront-stale-data-notice";
 import { DEFAULT_PER_PAGE, ROUTES } from "@/lib/constants";
 import { CatalogPagination } from "@/features/catalog/components/CatalogPagination";
 import { useProducts } from "@/features/products/hooks/useProducts";
@@ -45,6 +47,15 @@ function AvailableProductsSection({
   page: number;
 }) {
   const items = productsQuery.data?.items ?? [];
+  const { offline } = useNetworkStatus();
+  const fromApiCache = productsQuery.data?.responseSource === "cache-fallback";
+  const showStaleNotice =
+    (fromApiCache && items.length > 0) ||
+    (offline && items.length > 0) ||
+    (productsQuery.isError && items.length > 0);
+  const staleVariant =
+    offline && items.length > 0 ? "offline-cache" : "api-fallback";
+  const fatal = productsQuery.isError && items.length === 0;
   const totalPages = productsQuery.data?.totalPages ?? 1;
   return (
     <section
@@ -60,22 +71,28 @@ function AvailableProductsSection({
         </h2>
       </div> */}
 
-      {productsQuery.isError ? (
+      {fatal ? (
         <ErrorState
           message={productsQuery.error.message}
           onRetry={() => void productsQuery.refetch()}
         />
       ) : (
         <>
+          {showStaleNotice ? (
+            <div className="mb-3">
+              <StorefrontStaleDataNotice variant={staleVariant} />
+            </div>
+          ) : null}
           <ProductGrid
             status={
-              productsQuery.isPending
+              productsQuery.isPending && items.length === 0
                 ? "loading"
                 : !items.length
                   ? "empty"
                   : "ready"
             }
             products={items}
+            virtualize="auto"
             getCartLineQuantity={getCartLineQuantity}
             onCartLineQuantityChange={onCartLineQuantityChange}
             cardVariant="mobileCompact"
@@ -93,7 +110,7 @@ function AvailableProductsSection({
               />
             }
           />
-          {!productsQuery.isPending && !productsQuery.isError && items.length > 0 ? (
+          {!productsQuery.isPending && !fatal && items.length > 0 ? (
             <CatalogPagination
               currentPage={page}
               totalPages={totalPages}

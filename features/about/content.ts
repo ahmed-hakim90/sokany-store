@@ -32,7 +32,7 @@ export const aboutContent = {
       "لقطات من عالم سوكاني: من الأجهزة المنزلية إلى العناية الشخصية، مع توزيع يصل بكل بيت عبر شراكة مؤسسة المغربي كوكيل حصري في مصر.",
     frames: [
       {
-        imageSrc: "/images/hero/home-appliances-1.jpg",
+        imageSrc: "/images/hero/home-appliances-4.jpg",
         imageAlt: "أجهزة منزلية متنوعة",
         caption: "أكثر من عشر سنوات في السوق المصري",
       },

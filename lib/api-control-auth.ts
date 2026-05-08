@@ -94,7 +94,7 @@ export async function requireOrderForwardingAccess(
 ): Promise<ControlSessionPayload | NextResponse> {
   const r = await requireScopeFull(request);
   if (r instanceof NextResponse) return r;
-  if (hasControlPanelTab(r, "orderForwarding")) {
+  if (hasControlPanelTab(r, "health") || hasControlPanelTab(r, "orderForwarding")) {
     return r;
   }
   if (r.tabs === "all") {

@@ -12,6 +12,8 @@ import { CatalogPagination } from "@/features/catalog/components/CatalogPaginati
 import { ProductGrid } from "@/features/products/components/ProductGrid";
 import { useProducts } from "@/features/products/hooks/useProducts";
 import { useCart } from "@/hooks/useCart";
+import { useNetworkStatus } from "@/hooks/useNetworkStatus";
+import { StorefrontStaleDataNotice } from "@/components/storefront-stale-data-notice";
 import { DEFAULT_PER_PAGE, ROUTES } from "@/lib/constants";
 
 function parsePage(value: string | null): number {
@@ -41,6 +43,15 @@ export function OffersPageContent() {
   }, []);
 
   const items = productsQuery.data?.items ?? [];
+  const { offline } = useNetworkStatus();
+  const fromApiCache = productsQuery.data?.responseSource === "cache-fallback";
+  const showStaleNotice =
+    (fromApiCache && items.length > 0) ||
+    (offline && items.length > 0) ||
+    (productsQuery.isError && items.length > 0);
+  const staleVariant =
+    offline && items.length > 0 ? "offline-cache" : "api-fallback";
+  const fatal = productsQuery.isError && items.length === 0;
   const totalPages = productsQuery.data?.totalPages ?? 1;
 
   return (
@@ -76,7 +87,7 @@ export function OffersPageContent() {
         </ScrollReveal>
 
         <ScrollReveal className="mt-4 sm:mt-5">
-          {productsQuery.isError ? (
+          {fatal ? (
             <ErrorState
               message={productsQuery.error.message}
               onRetry={() => void productsQuery.refetch()}
@@ -86,6 +97,9 @@ export function OffersPageContent() {
               className="space-y-4"
               aria-labelledby="offers-products-title"
             >
+              {showStaleNotice ? (
+                <StorefrontStaleDataNotice variant={staleVariant} />
+              ) : null}
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <h2
@@ -108,13 +122,14 @@ export function OffersPageContent() {
 
               <ProductGrid
                 status={
-                  productsQuery.isPending
+                  productsQuery.isPending && items.length === 0
                     ? "loading"
                     : !items.length
                       ? "empty"
                       : "ready"
                 }
                 products={items}
+                virtualize="auto"
                 getCartLineQuantity={getCartLineQuantity}
                 onCartLineQuantityChange={setProductLineQuantity}
                 cardVariant="mobileCompact"
@@ -136,7 +151,7 @@ export function OffersPageContent() {
                 }
               />
 
-              {!productsQuery.isPending && !productsQuery.isError && items.length > 0 ? (
+              {!productsQuery.isPending && !fatal && items.length > 0 ? (
                 <CatalogPagination
                   currentPage={page}
                   totalPages={totalPages}

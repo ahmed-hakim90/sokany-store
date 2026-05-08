@@ -92,13 +92,17 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       pickCmsBundle(raw, (k) => {
         if (k === "site_config") {
-          return t.has("general") || t.has("branding") || t.has("home");
+          return (
+            t.has("general") ||
+            t.has("branding") ||
+            t.has("home")
+          );
         }
         if (k === "home_hero") return t.has("hero");
-        if (k === "section_banners") return t.has("banners");
+        if (k === "section_banners") return t.has("home");
         if (k === "branches") return t.has("branches");
         if (k === "retailers") return t.has("retailers");
-        if (k === "spotlights") return t.has("spotlights");
+        if (k === "spotlights") return t.has("home");
         return false;
       }),
     );

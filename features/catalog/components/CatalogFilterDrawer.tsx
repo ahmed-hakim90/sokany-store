@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useCallback, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Drawer } from "vaul";
 import { CatalogFilterForm } from "@/features/catalog/components/catalog-filter-form";
@@ -23,6 +23,7 @@ export function CatalogFilterDrawer() {
   const setOpen = useCatalogFilterDrawerOpenStore((s) => s.setOpen);
   const closeDrawer = useCatalogFilterDrawerOpenStore((s) => s.closeDrawer);
   const [resetKey, setResetKey] = useState(0);
+  const lastPathnameRef = useRef(pathname);
 
   const onOpenChange = useCallback(
     (next: boolean) => {
@@ -35,6 +36,8 @@ export function CatalogFilterDrawer() {
   );
 
   useEffect(() => {
+    if (lastPathnameRef.current === pathname) return;
+    lastPathnameRef.current = pathname;
     closeDrawer();
   }, [pathname, closeDrawer]);
 

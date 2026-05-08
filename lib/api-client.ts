@@ -153,7 +153,10 @@ apiClient.interceptors.response.use(
           data: cached.data,
           status: 200,
           statusText: "OK (cached)",
-          headers: cached.headers,
+          headers: {
+            ...cached.headers,
+            "x-sokany-response-source": "cache-fallback",
+          },
           config,
           request: error.request,
         } satisfies AxiosResponse);

@@ -1,6 +1,6 @@
 import "server-only";
 
-import { isControlPanelTabId } from "@/features/control/lib/control-tabs";
+import { isControlPanelTabId, normalizeLegacyControlTabId } from "@/features/control/lib/control-tabs";
 import { CONTROL_PANEL_ACCESS_COLLECTION } from "@/features/control/lib/collections";
 import { controlPanelAccessDocSchema, type ControlPanelAccessDoc } from "@/schemas/control-panel-access";
 import { getControlAccessForUid, type ControlPanelAccess } from "@/lib/control-auth";
@@ -16,8 +16,9 @@ function sanitizeStoredTabIds(raw: string[] | null | undefined): "all" | string[
   if (raw.length === 0) return [];
   const out = new Set<string>();
   for (const x of raw) {
-    if (isControlPanelTabId(x) && x !== "access") {
-      out.add(x);
+    const n = normalizeLegacyControlTabId(x);
+    if (n && n !== "access") {
+      out.add(n);
     }
   }
   return out.size === 0 ? [] : [...out];

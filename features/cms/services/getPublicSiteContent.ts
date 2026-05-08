@@ -3,6 +3,7 @@ import "server-only";
 import { unstable_cache } from "next/cache";
 import { getBannerSectionOrderedImages } from "@/features/home/services/getBannerSectionOrderedImages";
 import { getHeroSlides } from "@/features/home/services/getHeroSlides";
+import { mergeSpotlightsDocWithLegacySitePromo } from "@/features/cms/lib/merge-spotlights-legacy-promo";
 import { CMS_DOC_IDS, STOREFRONT_CMS_COLLECTION } from "@/features/cms/lib/collections";
 import { branchesData } from "@/features/branches/data";
 import {
@@ -76,13 +77,6 @@ export type PublicSiteContent = {
   homeCategoryScroller: CmsHomeCategoryScroller;
   /** فيديو تسويقي قابل للتحكم في موضعه من لوحة التحكم. */
   homeFeatureVideo: CmsHomeFeatureVideo;
-  /**
-   * صورة بطاقة الترويج اللي قبل قسم «الأكثر مبيعاً» — مدارة من `/control`.
-   * فاضية = استعمل صورة الـspotlight لو موجود، وإلا الافتراضي.
-   */
-  homeBottomPromoImageUrl: string | null;
-  /** من `site_config` — `false` يخفي البانر الترويجي على الهوم بالكامل. */
-  homeBottomPromoVisible: boolean;
   /** أقسام منتجات الهوم من `site_config` — الوضع الافتراضي `auto`. */
   homeProductSectionsMode: CmsHomeProductSectionsMode;
   homeProductSections: CmsHomeProductSection[];
@@ -256,8 +250,6 @@ async function fetchPublicSiteContentUncached(): Promise<PublicSiteContent> {
     headerCategoryStrip: { ...CMS_DEFAULT_HEADER_CATEGORY_STRIP },
     homeCategoryScroller: { ...CMS_DEFAULT_HOME_CATEGORY_SCROLLER },
     homeFeatureVideo: { ...CMS_DEFAULT_HOME_FEATURE_VIDEO },
-    homeBottomPromoImageUrl: null,
-    homeBottomPromoVisible: true,
     homeProductSectionsMode: CMS_DEFAULT_HOME_PRODUCT_SECTIONS_MODE,
     homeProductSections: [...CMS_DEFAULT_HOME_PRODUCT_SECTIONS],
     publicReadBaseUrl: null,
@@ -342,20 +334,6 @@ async function fetchPublicSiteContentUncached(): Promise<PublicSiteContent> {
         : undefined,
       staticBundle.homeFeatureVideo,
     );
-
-    const homeBottomPromoImageUrl = (() => {
-      if (!siteParsed?.success) return null;
-      const raw = (siteParsed.data as { homeBottomPromoImageUrl?: unknown })
-        .homeBottomPromoImageUrl;
-      if (typeof raw !== "string") return null;
-      const t = raw.trim();
-      return t.length > 0 ? t : null;
-    })();
-
-    const homeBottomPromoVisible =
-      siteParsed?.success && siteParsed.data.homeBottomPromoVisible === false
-        ? false
-        : true;
 
     const homeProductSectionsMode = mergeHomeProductSectionsMode(
       siteParsed?.success
@@ -472,8 +450,6 @@ async function fetchPublicSiteContentUncached(): Promise<PublicSiteContent> {
       headerCategoryStrip,
       homeCategoryScroller,
       homeFeatureVideo,
-      homeBottomPromoImageUrl,
-      homeBottomPromoVisible,
       homeProductSectionsMode,
       homeProductSections,
       publicReadBaseUrl,
@@ -493,7 +469,7 @@ async function fetchPublicSiteContentUncached(): Promise<PublicSiteContent> {
 
 const getCachedPublicSiteContent = unstable_cache(
   async () => fetchPublicSiteContentUncached(),
-  ["storefront-cms-v4"],
+  ["storefront-cms-v5"],
   { revalidate: 60, tags: [CMS_CACHE_TAG] },
 );
 
@@ -512,13 +488,16 @@ export async function getSpotlightsFromFirestore(): Promise<
   }
   try {
     const db = getAdminFirestore();
-    const snap = await db
-      .collection(STOREFRONT_CMS_COLLECTION)
-      .doc(CMS_DOC_IDS.spotlights)
-      .get();
-    if (!snap.exists) return null;
-    const parsed = cmsSpotlightsDocSchema.safeParse(snap.data());
-    return parsed.success ? parsed.data : null;
+    const col = db.collection(STOREFRONT_CMS_COLLECTION);
+    const [spotSnap, siteSnap] = await Promise.all([
+      col.doc(CMS_DOC_IDS.spotlights).get(),
+      col.doc(CMS_DOC_IDS.siteConfig).get(),
+    ]);
+    const rawSpot = spotSnap.exists ? spotSnap.data() : null;
+    const parsed = cmsSpotlightsDocSchema.safeParse(rawSpot ?? { items: [] });
+    if (!parsed.success) return null;
+    const siteRaw = siteSnap.exists ? siteSnap.data() : null;
+    return mergeSpotlightsDocWithLegacySitePromo(parsed.data, siteRaw);
   } catch {
     return null;
   }

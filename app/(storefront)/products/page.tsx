@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { connection } from "next/server";
 import { Suspense } from "react";
 import { ProductsCatalogSkeleton } from "@/components/pages/ProductsCatalogSkeleton";
 import { ProductsPageContent } from "@/components/pages/ProductsPageContent";
@@ -31,7 +32,9 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
 };
 
-export default function ProductsPage() {
+export default async function ProductsPage() {
+  await connection();
+
   return (
     <Suspense fallback={<ProductsCatalogSkeleton />}>
       <ProductsPageContent />

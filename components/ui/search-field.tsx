@@ -23,6 +23,7 @@ export const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>(
       trailing,
       disabled,
       type = "search",
+      autoComplete,
       ...inputProps
     },
     ref,
@@ -48,6 +49,7 @@ export const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>(
         ref={ref}
         type={type}
         disabled={disabled}
+        autoComplete={autoComplete ?? "off"}
         className={cn(
           "min-w-0 flex-1 border-0 bg-transparent text-foreground outline-none ring-0 placeholder:text-foreground/70",
           compact

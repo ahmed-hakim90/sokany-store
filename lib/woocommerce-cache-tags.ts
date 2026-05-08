@@ -3,6 +3,8 @@
  * `revalidateTag(…)` بعد Webhook يعيد جلب المنتجات/السايت-ماب من الريموت.
  */
 export const WOO_CACHE_TAG_PRODUCTS = "woo-products";
+/** وسوم المنتجات (لوحة التحكم — اقتراحات البحث السريعة). */
+export const WOO_CACHE_TAG_PRODUCT_TAGS = "woo-product-tags";
 export const WOO_CACHE_TAG_SITEMAP = "sitemap-woo";
 export const WOO_CACHE_TAG_ORDERS = "woo-orders";
 export const WOO_CACHE_TAG_REVIEWS = "woo-reviews";
