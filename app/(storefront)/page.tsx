@@ -7,10 +7,8 @@ import {
   getSpotlightsFromFirestore,
 } from "@/features/cms/services/getPublicSiteContent";
 import {
-  HOME_BESTSELLERS_PRODUCT_PARAMS,
   HOME_CATEGORIES_QUERY_PARAMS,
-  HOME_FLASH_SALE_PRODUCT_PARAMS,
-  HOME_NEW_ARRIVALS_PRODUCT_PARAMS,
+  homeEagerRailParams,
 } from "@/features/home/lib/home-page-product-params";
 import type { ProductsQueryData } from "@/features/products/hooks/useProducts";
 import { getProductsListServer } from "@/features/products/services/getProductsServer";
@@ -95,37 +93,18 @@ export default async function Home() {
     },
   });
 
-  const [
-    content,
-    spotlights,
-    categoriesData,
-    flashList,
-    newList,
-    bestList,
-  ] = await Promise.all([
+  const [content, spotlights, categoriesData] = await Promise.all([
     getPublicSiteContent(),
     getSpotlightsFromFirestore(),
     getCategoriesServer(HOME_CATEGORIES_QUERY_PARAMS),
-    getProductsListServer(HOME_FLASH_SALE_PRODUCT_PARAMS),
-    getProductsListServer(HOME_NEW_ARRIVALS_PRODUCT_PARAMS),
-    getProductsListServer(HOME_BESTSELLERS_PRODUCT_PARAMS),
   ]);
 
+  const eagerParams = homeEagerRailParams(content.promoFlash.enabled);
+  const eagerList = await getProductsListServer(eagerParams);
+
   queryClient.setQueryData(
-    ["categories", HOME_CATEGORIES_QUERY_PARAMS],
-    categoriesData,
-  );
-  queryClient.setQueryData(
-    ["products", HOME_FLASH_SALE_PRODUCT_PARAMS],
-    toProductsQueryData(flashList),
-  );
-  queryClient.setQueryData(
-    ["products", HOME_NEW_ARRIVALS_PRODUCT_PARAMS],
-    toProductsQueryData(newList),
-  );
-  queryClient.setQueryData(
-    ["products", HOME_BESTSELLERS_PRODUCT_PARAMS],
-    toProductsQueryData(bestList),
+    ["products", eagerParams],
+    toProductsQueryData(eagerList),
   );
 
   const spotlight = spotlights?.items?.find((i) => i.active);
