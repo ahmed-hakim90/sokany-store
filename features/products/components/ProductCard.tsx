@@ -701,9 +701,9 @@ export function ProductCard({
           ) : null}
           {titleLink}
           {!isDetailed ? (
-            <div className="flex min-h-4 items-center gap-1 text-[10px] font-bold leading-none text-slate-600">
-              <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-brand-700" aria-hidden />
-              <span className="truncate">ضمان الوكيل في مصر</span>
+            <div className="flex min-h-[1.125rem] items-center gap-1 py-px text-[10px] font-bold leading-snug text-slate-600">
+              <ShieldCheck className="h-3.5 w-3.5 shrink-0 self-center text-brand-700" aria-hidden />
+              <span className="min-w-0 truncate">ضمان الوكيل في مصر</span>
             </div>
           ) : null}
           {!isDetailed ? (
