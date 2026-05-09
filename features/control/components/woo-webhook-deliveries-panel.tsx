@@ -21,6 +21,7 @@ type Item = {
 type GetRes = {
   ok: boolean;
   enabled?: boolean;
+  storage?: "memory";
   message?: string;
   items: Item[];
   nextCursor: string | null;
@@ -66,7 +67,7 @@ function formatJsonish(s: string) {
 }
 
 /**
- * سجل تسليمات ‎Woo (موقّعة) كما تُسجّل في ‎Firestore من الخادم.
+ * سجل تسليمات ‎Woo (موقّعة) من ذاكرة الخادم — للعرض فقط، لا يُحفظ في Firebase.
  */
 export function WooWebhookDeliveriesPanel() {
   const [data, setData] = useState<GetRes | null>(null);
@@ -191,6 +192,11 @@ export function WooWebhookDeliveriesPanel() {
           <p className="mt-0.5 text-xs text-slate-600">
             هنا نرى آخر ما وصل من Woo إلى الموقع، وهل تم التعامل معه بنجاح أم حدثت مشكلة.
           </p>
+          {data.storage === "memory" && data.message ? (
+            <p className="mt-1.5 rounded-md border border-amber-200/80 bg-amber-50/60 px-2 py-1.5 text-[11px] text-amber-950">
+              {data.message}
+            </p>
+          ) : null}
         </div>
         <Button
           type="button"

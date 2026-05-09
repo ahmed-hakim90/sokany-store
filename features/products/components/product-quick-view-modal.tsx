@@ -125,8 +125,6 @@ export function ProductQuickViewModal({
   });
 
   const plainDesc = stripHtml(product.shortDescription || product.description || "");
-  const excerpt =
-    plainDesc.length > 320 ? `${plainDesc.slice(0, 320).trim()}…` : plainDesc;
 
   if (!mounted || !open) return null;
 
@@ -147,7 +145,7 @@ export function ProductQuickViewModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        aria-describedby={excerpt ? descId : undefined}
+        aria-describedby={plainDesc ? descId : undefined}
         className={cn(
           "relative z-[1] flex w-full max-w-md flex-col overflow-hidden rounded-t-2xl border border-border/80 bg-white shadow-2xl",
           /* موبايل: ارتفاع يعتمد على الشاشة + safe-area؛ لصق من الأسفل */
@@ -251,9 +249,12 @@ export function ProductQuickViewModal({
                 className="!flex-col !items-start !gap-1.5 !gap-x-0"
               />
             </div>
-            {excerpt ? (
-              <p id={descId} className="text-sm leading-relaxed text-muted-foreground">
-                {excerpt}
+            {plainDesc ? (
+              <p
+                id={descId}
+                className="max-h-52 overflow-y-auto overscroll-contain text-sm leading-relaxed text-muted-foreground"
+              >
+                {plainDesc}
               </p>
             ) : (
               <p id={descId} className="text-sm text-muted-foreground">

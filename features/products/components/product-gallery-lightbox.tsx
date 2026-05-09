@@ -60,10 +60,10 @@ export function ProductGalleryLightbox({
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
-      if (e.key === "ArrowLeft") {
+      if (e.key === "ArrowRight") {
         setIndex((i) => (i >= list.length - 1 ? 0 : i + 1));
       }
-      if (e.key === "ArrowRight") {
+      if (e.key === "ArrowLeft") {
         setIndex((i) => (i <= 0 ? list.length - 1 : i - 1));
       }
     };

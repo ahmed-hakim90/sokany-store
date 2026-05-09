@@ -24,6 +24,7 @@ type HealthRes = {
 type AggRes = {
   ok: boolean;
   enabled?: boolean;
+  storage?: "memory";
   lastEventAt: string | null;
   successRatePercent: number | null;
   avgProcessingTimeMs: number | null;
@@ -334,9 +335,11 @@ export function ControlHealthTab() {
               ? `${agg.successRatePercent.toFixed(0)}%`
               : "—"}
           </p>
-          {agg && agg.enabled === false && (
-            <p className="mt-1 text-xs text-amber-700">Firestore معطّل — لا بيانات.</p>
-          )}
+          {agg?.storage === "memory" ? (
+            <p className="mt-1 text-xs text-slate-600">من ذاكرة الخادم (نفس سجل اللوحة، لا Firebase).</p>
+          ) : agg && agg.enabled === false ? (
+            <p className="mt-1 text-xs text-amber-700">لا بيانات متاحة.</p>
+          ) : null}
         </div>
         <div className="rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm ring-1 ring-slate-900/5">
           <p className="text-[11px] font-semibold uppercase text-slate-500">آخر حدث (سجل)</p>
