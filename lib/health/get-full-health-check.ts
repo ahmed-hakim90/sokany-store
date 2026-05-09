@@ -1,6 +1,6 @@
 import "server-only";
 
-import { WOO_WEBHOOK_DELIVERIES_COLLECTION } from "@/features/woocommerce/lib/firestore-collections";
+import { CONTROL_SETTINGS_COLLECTION } from "@/features/control/lib/collections";
 import { getAdminFirestore } from "@/lib/firebase-admin";
 import type { WooDiagnosticReport } from "@/lib/woo-diagnostics";
 import { getWooDiagnosticReport } from "@/lib/woo-diagnostics";
@@ -51,7 +51,7 @@ export async function getFullHealthCheck(): Promise<{
     const t0 = Date.now();
     try {
       const db = getAdminFirestore();
-      await db.collection(WOO_WEBHOOK_DELIVERIES_COLLECTION).limit(1).get();
+      await db.collection(CONTROL_SETTINGS_COLLECTION).limit(1).get();
       firestore.ok = true;
       firestore.latencyMs = Date.now() - t0;
     } catch (e) {
