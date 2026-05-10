@@ -11,7 +11,7 @@ import { getSnapshotCategories } from "@/features/data-snapshot/server";
 import { getCategoryBySlugMeta } from "@/features/categories/services/getCategoryBySlugMeta";
 import { trimMetaDescription } from "@/lib/html";
 import { SITE_BRAND_TITLE_AR } from "@/lib/constants";
-import { getSiteUrl } from "@/lib/site";
+import { getSiteUrl, toAbsoluteSiteUrl } from "@/lib/site";
 
 type PageProps = { params: Promise<{ slug: string }> };
 
@@ -34,6 +34,9 @@ export async function generateMetadata({
   const title = `${category.name} | ${SITE_BRAND_TITLE_AR}`;
   const rawDescription = `تصفح كل منتجات ${category.name} من سوكانى. ${category.count} منتج بأفضل الأسعار وضمان أصلي.`;
   const description = trimMetaDescription(rawDescription);
+  const ogImage = category.image
+    ? { url: toAbsoluteSiteUrl(category.image), alt: category.name }
+    : undefined;
 
   return {
     title,
@@ -46,6 +49,13 @@ export async function generateMetadata({
       url: `${site}/categories/${slug}`,
       siteName: SITE_BRAND_TITLE_AR,
       locale: "ar_EG",
+      ...(ogImage ? { images: [ogImage] } : {}),
+    },
+    twitter: {
+      card: ogImage ? "summary_large_image" : "summary",
+      title,
+      description,
+      ...(ogImage ? { images: [ogImage.url] } : {}),
     },
     alternates: { canonical: `${site}/categories/${slug}` },
     robots: { index: true, follow: true },

@@ -1,9 +1,15 @@
+/**
+ * Web App Manifest (ديناميكي)
+ * بالعامية: الأسماء والألوان والأيقونات من CMS علشان PWA تطابق الهوية من غير ما نعدّل الملف يدوي.
+ */
 import type { MetadataRoute } from "next";
 import { getPublicSiteContent } from "@/features/cms/services/getPublicSiteContent";
 
 export default async function manifest(): Promise<MetadataRoute.Manifest> {
   const { branding } = await getPublicSiteContent();
   return {
+    /** `id` ثابت علشان كروم يعرف إن دي نفس التطبيق بعد تحديثات الـ manifest. */
+    id: "/",
     name: branding.pwaName,
     short_name: branding.pwaShortName,
     description: branding.pwaDescription,

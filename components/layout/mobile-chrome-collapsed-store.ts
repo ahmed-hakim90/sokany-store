@@ -1,5 +1,9 @@
 "use client";
 
+/**
+ * حالة طي كروم الموبايل عند السكرول
+ * بالعامية: سكرول لتحت يخبي صف الشعار وملخص السلة؛ تبويب السلة ممكن يطلع الـ peek من غير ما يرجّع الشعار.
+ */
 import { create } from "zustand";
 
 type MobileChromeScrollState = {

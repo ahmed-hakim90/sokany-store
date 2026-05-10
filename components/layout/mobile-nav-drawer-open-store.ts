@@ -1,9 +1,12 @@
 "use client";
 
+/**
+ * فتح/قفل درج الموبايل + ref لإرجاع الفوكس
+ * بالعامية: Zustand بسيط؛ الـ ref بيتعبّى من الزرار اللي فتح عشان `FocusTrap` يرجّع المؤشر صح.
+ */
 import { createRef } from "react";
 import { create } from "zustand";
 
-/** Set by the control that opened the drawer (header menu or bottom nav) for focus restore. */
 export const mobileNavDrawerReturnFocusRef =
   createRef<HTMLButtonElement | null>();
 

@@ -1,3 +1,9 @@
+/**
+ * كتالوج من `/api/products` (عميل)
+ * بالعامية: TanStack Query وغيره بيستخدموا الطبقة دي؛ الهيدرز بتاعة `x-wp-total` بتفيد الباجينيشين.
+ *
+ * شوف كمان: `@/features/products/services/getProductsServer.ts` للسيرفر
+ */
 import { apiClient } from "@/lib/api";
 import { DEFAULT_PER_PAGE } from "@/lib/constants";
 import { wpProductsSchema } from "@/schemas/wordpress";
@@ -21,9 +27,6 @@ export type ProductsListResult = {
   responseSource?: "network" | "cache-fallback";
 };
 
-/**
- * Fetches a page of products plus ‎`X-WP-Total` / ‎`X-WP-TotalPages` (from the Next ‎`/api/products` route).
- */
 export async function getProductsList(
   params?: ProductQueryParams,
 ): Promise<ProductsListResult> {

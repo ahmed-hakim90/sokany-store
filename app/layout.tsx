@@ -6,6 +6,7 @@ import { headers } from "next/headers";
 import Script from "next/script";
 import { Cairo, Montserrat } from "next/font/google";
 import { ViewTransitions } from "next-view-transitions";
+import { ClientPerformanceMarks } from "@/components/client-performance-marks";
 import { ViewTransitionRejectionHandler } from "@/components/layout/view-transition-rejection-handler";
 import { getPublicSiteContent } from "@/features/cms/services/getPublicSiteContent";
 import { PwaDeferredInstallProvider } from "@/components/PwaDeferredInstallProvider";
@@ -54,6 +55,10 @@ export async function generateViewport(): Promise<Viewport> {
   return {
     /** شريط النظام/المتصفح (Chrome أندرويد وغيره) — يلتزم بـ `branding.themeColor` من الـ CMS */
     themeColor: branding.themeColor,
+    /** Safari / iOS standalone: ‎`env(safe-area-inset-*)`‎ يعمل مع الشق والحواف */
+    viewportFit: "cover",
+    /** لوحة المفاتيح الافتراضية لا تدفع ‎`100vh`‎ بشكل خاطئ على بعض المتصفحات */
+    interactiveWidget: "resizes-content",
   };
 }
 
@@ -70,6 +75,11 @@ export async function generateMetadata(): Promise<Metadata> {
       template: `%s | ${branding.siteBrandTitleAr}`,
     },
     description: branding.pwaDescription,
+    appleWebApp: {
+      capable: true,
+      title: branding.pwaShortName,
+      statusBarStyle: "default",
+    },
     ...(googleVerification
       ? { verification: { google: googleVerification } }
       : {}),
@@ -132,6 +142,7 @@ export default async function RootLayout({
             <NetworkStatusProvider>
               <PwaDeferredInstallProvider>
                 <ToastProvider />
+                <ClientPerformanceMarks />
                 {children}
               </PwaDeferredInstallProvider>
             </NetworkStatusProvider>

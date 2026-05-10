@@ -1,5 +1,13 @@
 "use client";
 
+/**
+ * كتالوج مربوط بـ URL
+ * بالعامية: بيقرأ `searchParams` ويحوّلها لـ `ProductQueryParams`، ويحدّث المسار بـ `startTransition` — كده الفلترة والصفحات تفضل shareable.
+ *
+ * ملاحظات:
+ * - الترتيب الافتراضي ثابت (مش `rand`) علشان SEO والكاش ما يتهزّوش.
+ * - شوف كمان: `@/features/products/hooks/useProducts.ts`
+ */
 import { startTransition, useCallback, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { DEFAULT_PER_PAGE, ROUTES } from "@/lib/constants";
@@ -31,7 +39,7 @@ export function useProductsCatalog() {
     const orderRaw = searchParams.get("order");
     const category = parseNumber(searchParams.get("category"));
 
-    /** ترتيب افتراضي مستقر عند غياب/خطأ المعامل — لا نستخدم rand كافتراض. */
+    /** من غير باراميتر صالح: popularity — عشوائي كافتراض يكسر الكاش والروابط. */
     const orderbyFromUrl =
       orderbyRaw &&
       ["date", "popularity", "price", "rating", "title", "rand"].includes(

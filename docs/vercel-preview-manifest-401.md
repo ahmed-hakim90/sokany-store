@@ -2,7 +2,7 @@
 
 ## 401 — `manifest.webmanifest`
 
-**السبب في المشروع:** [app/manifest.ts](../app/manifest.ts) لا يُرجع 401. [proxy.ts](../proxy.ts) (الشبيه سابقاً بـ `middleware`) لا يحمي إلا مسارات `/control`.
+**السبب في المشروع:** [app/manifest.ts](../app/manifest.ts) لا يُرجع 401. [proxy.ts](../proxy.ts) لا يحمي إلا مسارات `/control` (ومطابقة `/api/*` لتمرير الطلب مع `X-Sokany-Request-Id`).
 
 **السبب الأرجح على `*.vercel.app`:** **Deployment Protection** (أو مصادقة المعاينات) في Vercel — الطلبات غير المصادَق عليها ترجع 401، بما فيها جلب المتصفح لـ `/manifest.webmanifest` بدون كوكي الجلسة نفسها.
 

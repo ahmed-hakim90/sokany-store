@@ -1,3 +1,4 @@
+/** جلب ملخّص عدة طلبات ضيف دفعة واحدة (refs). */
 import { NextRequest, NextResponse } from "next/server";
 import axios from "axios";
 import { z } from "zod";

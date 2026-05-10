@@ -6,7 +6,7 @@
 
 | المسار | ملف الصفحة | مكوّن العرض الأساسي |
 | --- | --- | --- |
-| `/` | `app/(storefront)/page.tsx` | `components/pages/HomePageContent.tsx` |
+| `/` | `app/(storefront)/page.tsx` | `components/pages/home/HomePageShell.tsx` |
 | `/products` | `app/(storefront)/products/page.tsx` | `components/pages/ProductsPageContent.tsx` |
 | `/products/[id]` | `app/(storefront)/products/[id]/page.tsx` | `components/pages/ProductDetailPageContent.tsx` |
 | `/categories` | `app/(storefront)/categories/page.tsx` | `components/pages/CategoriesPageContent.tsx` |

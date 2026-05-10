@@ -1,5 +1,9 @@
 "use client";
 
+/**
+ * نافذة معاينة سريعة
+ * بالعامية: portal فوق الصفحة، معرض مصغّر، وإضافة للسلة من غير ما نروح PDP — focus trap ضمني من الـ dialog pattern.
+ */
 import { createPortal } from "react-dom";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { Link } from "next-view-transitions";

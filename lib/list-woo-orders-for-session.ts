@@ -1,3 +1,12 @@
+/**
+ * طلبات Woo المرتبطة بالجلسة
+ * بالعامية: بنجيب أوردرات العميل من Woo حسب الإيميل، ولو في Firebase UID بندمج مع أوردرات اتسجّلت بالـ meta `firebase_uid` (ضيف اشتري قبل ما يربط عميل Woo كويس).
+ *
+ * ملاحظات:
+ * - ليه سكان إضافي: تغطية مسار الضيف اللي مالوش `customer` id مطابق.
+ * - حذر: في سقف صفحات — لو عندك تاريخ ضخم ممكن ما يظهرش كله.
+ * - شوف كمان: `@/lib/verify-order-for-session.ts`، `@/lib/jwt.ts`
+ */
 import type { AxiosInstance } from "axios";
 import type { WCOrder } from "@/features/orders/types";
 import type { SessionJwtPayload } from "@/lib/jwt";
@@ -10,12 +19,6 @@ function orderHasFirebaseUid(order: WCOrder, firebaseUid: string): boolean {
   );
 }
 
-/**
- * Lists WooCommerce orders for a storefront JWT session.
- * - WordPress-only sessions: by `customer` id from email (unchanged behaviour).
- * - Firebase sessions: merges orders for that WC customer with orders whose `meta_data` contains `firebase_uid`
- *   (covers guest checkouts that only stored Firebase linkage in order meta). Meta scan is paginated with a cap.
- */
 export async function listWooOrdersForSession(
   woo: AxiosInstance,
   session: SessionJwtPayload,

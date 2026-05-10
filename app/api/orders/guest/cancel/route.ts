@@ -1,3 +1,4 @@
+/** إلغاء طلب ضيف بعد التحقق من المفتاح والسياسة الزمنية. */
 import { NextRequest, NextResponse } from "next/server";
 import axios from "axios";
 import { z } from "zod";

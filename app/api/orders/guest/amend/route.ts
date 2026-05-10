@@ -1,3 +1,9 @@
+/**
+ * تعديل طلب ضيف (محدود)
+ * بالعامية: يتأكد من `orderId` + `orderKey` وبسياسة الزمن؛ يعدّل في Woo لو مفعّل `GUEST_ORDER_AMEND_ENABLED`.
+ *
+ * شوف كمان: `@/features/orders/lib/guest-order-server.ts`
+ */
 import { NextRequest, NextResponse } from "next/server";
 import axios from "axios";
 import { z } from "zod";

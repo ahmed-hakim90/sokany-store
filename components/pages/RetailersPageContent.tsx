@@ -1,5 +1,9 @@
 "use client";
 
+/**
+ * صفحة الموزّعين المعتمدين
+ * بالعامية: بيانات ثابتة من `features/retailers/data` + فلاتر محافظة/بحث محلي؛ روابط خرائط وواتس وتليفون بصيغ مصر.
+ */
 import {
   CheckCircle,
   ExternalLink,

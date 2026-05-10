@@ -1,3 +1,11 @@
+/**
+ * BFF: تقييمات المنتجات
+ * بالعامية: GET كاش للقائمة؛ POST بيتحقق من الجلسة ومن أهلية الشراء في Woo قبل ما يبعت للـ REST. بعد إنشاء تقييم بنعمل `revalidate` لتاج التقييمات.
+ *
+ * ملاحظات:
+ * - Woo بيستخدم باراميتر `product` مش `product_id` — الدالة تحت بتعمل الخريطة.
+ * - شوف كمان: `@/lib/review-purchase-eligibility.ts`
+ */
 import { NextRequest, NextResponse } from "next/server";
 import axios from "axios";
 import { unstable_cache } from "next/cache";
@@ -5,6 +13,7 @@ import { createWooClient } from "@/lib/create-woo-client";
 import { getSessionFromRequest } from "@/lib/auth-request";
 import { createReviewPayloadSchema } from "@/schemas/wordpress";
 import { getReviewEligibility } from "@/lib/review-purchase-eligibility";
+import { WOO_BFF_UNSTABLE_CACHE_REVALIDATE_SEC } from "@/lib/woo-bff-revalidate";
 import { WOO_CACHE_TAG_REVIEWS } from "@/lib/woocommerce-cache-tags";
 import { revalidateWooReviewTags } from "@/lib/woocommerce-revalidate-broadcast";
 
@@ -14,7 +23,7 @@ type CachedWooListResponse = {
   totalPages: string;
 };
 
-/** Map storefront query params to WooCommerce REST `/products/reviews` (list uses `product`, not `product_id`). */
+/** الفرونت بيبعت `product_id` — Woo بيستناه `product`. */
 function toWooReviewListParams(
   searchParams: URLSearchParams,
 ): Record<string, string> {
@@ -41,7 +50,7 @@ const fetchWooReviewsCached = unstable_cache(
     };
   },
   ["woo-api-reviews-v1"],
-  { revalidate: 300, tags: [WOO_CACHE_TAG_REVIEWS] },
+  { revalidate: WOO_BFF_UNSTABLE_CACHE_REVALIDATE_SEC, tags: [WOO_CACHE_TAG_REVIEWS] },
 );
 
 export async function GET(request: NextRequest) {

@@ -1,7 +1,14 @@
+/**
+ * تسجيل مستخدم جديد في Woo (REST)
+ * بالعامية: بروكسي لإنشاء عميل؛ الأخطاء من Woo بتتمرّر للفرونت.
+ *
+ * شوف كمان: `@/lib/create-woo-client.ts`
+ */
 import axios from "axios";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { createWooClient } from "@/lib/create-woo-client";
+import { enforceRateLimit } from "@/lib/rate-limit-response";
 import type { RegisterPayload } from "@/features/auth/types";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -9,6 +16,13 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 export async function POST(request: NextRequest) {
+  const limited = enforceRateLimit(request, {
+    routeId: "auth-register",
+    max: 12,
+    windowMs: 60 * 60 * 1000,
+  });
+  if (limited) return limited;
+
   const bodyUnknown: unknown = await request.json();
   if (!isRecord(bodyUnknown)) {
     return NextResponse.json({ error: "Invalid body" }, { status: 400 });

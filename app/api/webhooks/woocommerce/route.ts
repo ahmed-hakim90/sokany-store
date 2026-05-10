@@ -1,4 +1,13 @@
+/**
+ * ويبهوك Woo → إبطال كاش + إشعار للعملاء
+ * بالعامية: Woo يبعت توقيع HMAC؛ لو صح بنعمل revalidate حسب الـ topic، وبنحاول نبعت للـ SW يحدّث TanStack، ونسجّل التسليم.
+ *
+ * ملاحظات:
+ * - من غير `WC_WEBHOOK_SECRET` المسار بيرفض — عشان محدش يلعب في الكاش.
+ * - شوف كمان: `@/lib/verify-woocommerce-webhook-signature.ts`، `@/features/woocommerce/revalidate-after-product-webhook.ts`
+ */
 import { NextResponse } from "next/server";
+import { enforceRateLimit } from "@/lib/rate-limit-response";
 import {
   extractWooWebhookResourceId,
   revalidateAfterWooCommerceWebhook,
@@ -6,11 +15,19 @@ import {
 import { sendWooCacheInvalidation } from "@/features/push/services/send-woo-cache-invalidation";
 import { recordWooWebhookDelivery } from "@/features/woocommerce/services/record-woo-webhook-delivery";
 import { zodIssuesToJsonString } from "@/lib/zod-issues-compact";
+import { logServerJson } from "@/lib/server-log";
 import { verifyWooCommerceWebhookSignature } from "@/lib/verify-woocommerce-webhook-signature";
 import { wpProductSchema } from "@/schemas/wordpress";
 
 export async function POST(request: Request) {
   const t0 = Date.now();
+  const limited = enforceRateLimit(request, {
+    routeId: "webhook-woocommerce",
+    max: 600,
+    windowMs: 60 * 1000,
+  });
+  if (limited) return limited;
+
   const secret = process.env.WC_WEBHOOK_SECRET?.trim();
   if (!secret) {
     return NextResponse.json(
@@ -83,6 +100,12 @@ export async function POST(request: Request) {
     status: "processed",
     processingTimeMs: Date.now() - t0,
     zodValidationError,
+  });
+
+  logServerJson("woocommerce_webhook_processed", {
+    topic,
+    resourceId,
+    ms: Date.now() - t0,
   });
 
   return NextResponse.json({

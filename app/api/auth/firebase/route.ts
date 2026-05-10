@@ -1,4 +1,11 @@
+/**
+ * تسجيل دخول بـ Firebase ID token
+ * بالعامية: نتحقق من التوكن بـ Admin SDK، نربط أو نقرأ عميل المتجر، ونصدر JWT جلسة للمتجر.
+ *
+ * شوف كمان: `@/lib/firebase-admin.ts`، `@/lib/jwt.ts`
+ */
 import { NextRequest, NextResponse } from "next/server";
+import { enforceRateLimit } from "@/lib/rate-limit-response";
 import { signSessionToken } from "@/lib/jwt";
 import {
   getStorefrontCustomerByUid,
@@ -10,6 +17,13 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 export async function POST(request: NextRequest) {
+  const limited = enforceRateLimit(request, {
+    routeId: "auth-firebase",
+    max: 40,
+    windowMs: 15 * 60 * 1000,
+  });
+  if (limited) return limited;
+
   let bodyUnknown: unknown;
   try {
     bodyUnknown = await request.json();

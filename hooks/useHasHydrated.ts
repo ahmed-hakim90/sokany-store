@@ -1,5 +1,9 @@
 "use client";
 
+/**
+ * انتظار persist في Zustand
+ * بالعامية: متاجر زي السلة والـ auth بتتقرا من localStorage؛ لازم نعرف امتى خلصت عشان ما نقارنش SSR مع بيانات قديمة في أول render.
+ */
 import { useEffect, useState } from "react";
 
 type PersistApi = {

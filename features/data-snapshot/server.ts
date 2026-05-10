@@ -1,5 +1,13 @@
 import "server-only";
 
+/**
+ * سنابشوت JSON محلي (سكربت السكرب)
+ * بالعامية: بنقرا `data/sokany-eg/*.json` مرة ونخزن في الذاكرة؛ لو الملف مش موجود أو بايظ بنرجع `null` والنداء يقع على الموك اليدوي.
+ *
+ * ملاحظات:
+ * - المصدر: `scripts/scrape-sokany-eg.ts`
+ * - شوف كمان: `@/features/products/mock.ts`، `@/app/api/products/route.ts`
+ */
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import {
@@ -8,15 +16,6 @@ import {
 } from "@/schemas/wordpress";
 import type { WCCategory } from "@/features/categories/types";
 import type { WCProduct } from "@/features/products/types";
-
-/**
- * Loader for the JSON snapshot produced by `scripts/scrape-sokany-eg.ts`.
- *
- * - Reads `data/sokany-eg/{products,categories}.json` once per process and
- *   keeps the parsed arrays in memory.
- * - If the snapshot is missing or invalid, returns `null` so callers can fall
- *   back to the hand-curated mocks in `features/{products,categories}/mock.ts`.
- */
 
 const SNAPSHOT_DIR = path.join(process.cwd(), "data", "sokany-eg");
 const PRODUCTS_FILE = path.join(SNAPSHOT_DIR, "products.json");

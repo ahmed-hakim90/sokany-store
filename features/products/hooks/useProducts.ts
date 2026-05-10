@@ -1,5 +1,11 @@
 "use client";
 
+/**
+ * صفحة منتجات (عميل)
+ * بالعامية: بعد كل جلب نحشو كاش كل منتج في `["product", id]` — كده الـ PDP يفتح أسرع لو المنتج اتشاف في الجريد.
+ *
+ * شوف كمان: `@/features/products/services/getProducts.ts`
+ */
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { STALE_TIME } from "@/lib/constants";
 import { getProductsList } from "@/features/products/services/getProducts";

@@ -1,8 +1,17 @@
 import "server-only";
 
+/**
+ * كتالوج منتجات للـ RSC
+ * بالعامية: نفس منطق `/api/products` تقريباً — `unstable_cache` + تاجات Woo علشان الصفحات السيرفرية تبقى سريعة ومتماشية مع الـ BFF.
+ *
+ * ملاحظات:
+ * - لو Woo فشل بنرجع mock/snapshot من `catch` — سلوك ناعم للـ build والمعاينة.
+ * - شوف كمان: `@/features/products/services/woo-storefront-product-page.ts`، `@/app/api/products/route.ts`
+ */
 import { unstable_cache } from "next/cache";
 import { createWooClient } from "@/lib/create-woo-client";
 import { DEFAULT_PER_PAGE } from "@/lib/constants";
+import { WOO_BFF_UNSTABLE_CACHE_REVALIDATE_SEC } from "@/lib/woo-bff-revalidate";
 import { WOO_CACHE_TAG_PRODUCTS } from "@/lib/woocommerce-cache-tags";
 import { wpProductsSchema } from "@/schemas/wordpress";
 import type { ProductQueryParams } from "@/types";
@@ -41,8 +50,8 @@ const fetchWooProductsListCached = unstable_cache(
     };
   },
   ["woo-server-products-list-v1"],
-  /** يطابق ‎`/api/products`‎ (‎300s‎) لتقليل عدم اتساق الكاش بين الـ BFF والـ RSC. */
-  { revalidate: 300, tags: [WOO_CACHE_TAG_PRODUCTS] },
+  /** نفس زمن إبطال `/api/products` علشان RSC والـ API ما يختلفوش في العمر. */
+  { revalidate: WOO_BFF_UNSTABLE_CACHE_REVALIDATE_SEC, tags: [WOO_CACHE_TAG_PRODUCTS] },
 );
 
 function mockProductsFromParams(params?: ProductQueryParams): Product[] {
@@ -62,9 +71,6 @@ function mockProductsFromParams(params?: ProductQueryParams): Product[] {
   return mapProducts(wpProductsSchema.parse(raw));
 }
 
-/**
- * صفحة منتجات للـ RSC — نفس مسار ‎`/api/products`‎ من حيث الكاش (‎`revalidate`‎ + وسوم Woo).
- */
 export async function getProductsListServer(
   params?: ProductQueryParams,
 ): Promise<ProductsListResult> {

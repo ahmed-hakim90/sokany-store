@@ -1,3 +1,12 @@
+/**
+ * جلب صفحة منتجات «زي ما المتجر شايفها»
+ * بالعامية: Woo بيرجع أحياناً حاجات out-of-stock؛ إحنا بنمشي على صفحات API ونفلتر ونكمّل لحد ما نملى `per_page` — ده مكلف شوية بس يضمن كتالوج نظيف.
+ *
+ * ملاحظات:
+ * - `orderby=rand` حالة خاصة: مينفعش pagination عادي، بنجيب دفعة كبيرة مرة واحدة.
+ * - في dev شغّل `WOO_STOREFRONT_WALK_LOG=true` لو عايز تشوف عدد اللفات والوقت.
+ * - شوف كمان: `@/lib/woo-storefront-availability.ts`، `@/app/api/products/route.ts`
+ */
 import type { AxiosInstance } from "axios";
 import { DEFAULT_PER_PAGE } from "@/lib/constants";
 import { filterWcProductsExcludingOutOfStock } from "@/lib/woo-storefront-availability";
@@ -16,9 +25,9 @@ export function productQueryParamsToRecord(
   return out;
 }
 
-/** حجم دفعة Woo الداخلية — يُحدّ أقصى حجم شائع في Woo كـ 100. */
+/** حجم دفعة داخلية — Woo عادة بيسمح لحد ١٠٠. */
 const INNER_PER_PAGE_MAX = 100;
-/** أقصى عدد طلبات Woo لكل طلب متجر (حماية من حلقات طويلة عند كثرة غير المتوفّر). */
+/** سقف لفات الجلب علشان ما نقعش في loop لو الدنيا كلها out of stock. */
 const STORE_WALK_MAX_ITERATIONS = 80;
 
 function stripPageParams(params: Record<string, string>): Record<string, string> {
@@ -35,12 +44,6 @@ export type WooStorefrontProductPageResult = {
   totalPages: string;
 };
 
-/**
- * يجلب صفحة منتجات للمتجر مع احترام ترتيب Woo، مستبعداً ‎`outofstock`‎ من النتيجة
- * بحيث يكون طول الصفحة حتى ‎`per_page`‎ من العناصر «الظاهرة» في المتجر (متوفّر أو طلب مسبق).
- *
- * لا يعتمد على ‎`stock_status`‎ في Woo لأن ‎`/wc/v3/products`‎ يقيّد قيمة واحدة وتستبعد ‎`onbackorder`‎ إن ضُبطت إلى ‎`instock`‎ فقط.
- */
 export async function fetchWooStorefrontProductsPage(
   woo: AxiosInstance,
   params: Record<string, string>,
@@ -69,7 +72,7 @@ export async function fetchWooStorefrontProductsPage(
 
   const filterBase = stripPageParams(params);
 
-  /** مع ‎`orderby=rand`‎ لا يمكن الجمع بين صفحات Woo متتابعة (كل طلب ترتيب مختلف). جلب دفعة واحدة كبيرة ثم التصفية والشرائح. */
+  /** rand = ترتيب عشوائي كل مرة — مينفعش نكمل صفحات؛ بنسحب دفعة ونشرّح محلياً. */
   if (filterBase.orderby === "rand") {
     const fetchSize = Math.min(
       INNER_PER_PAGE_MAX,
@@ -101,6 +104,9 @@ export async function fetchWooStorefrontProductsPage(
     Math.max(perPage * 2, 40),
   );
 
+  const walkLog = process.env.WOO_STOREFRONT_WALK_LOG === "true";
+  const walkT0 = walkLog ? Date.now() : 0;
+
   let skipRemaining = targetSkip;
   const collected: WCProduct[] = [];
   let queue: WCProduct[] = [];
@@ -110,7 +116,7 @@ export async function fetchWooStorefrontProductsPage(
   let lastTotalPages = "1";
 
   while (collected.length < targetTake && iterations < STORE_WALK_MAX_ITERATIONS) {
-    iterations++;
+    iterations += 1;
 
     if (queue.length === 0) {
       const innerParams: Record<string, string> = {
@@ -138,6 +144,20 @@ export async function fetchWooStorefrontProductsPage(
       const next = queue.shift();
       if (next) collected.push(next);
     }
+  }
+
+  if (walkLog && process.env.NODE_ENV === "development") {
+    const ms = Date.now() - walkT0;
+    console.warn(
+      "[woo-storefront-walk]",
+      JSON.stringify({
+        ms,
+        iterations,
+        targetPage: page,
+        perPage,
+        collected: collected.length,
+      }),
+    );
   }
 
   return {

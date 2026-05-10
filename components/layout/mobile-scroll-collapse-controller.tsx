@@ -14,9 +14,9 @@ const SHOW_CHROME_BELOW_Y = 72;
  * بعد إظهار الكروم من السكرول، نتجاهل الإخفاء قليلًا حتى تستقر إعادة قياس
  * الـ padding / `--mobile-commerce-chrome-height` ولا تُحدث قفزة `delta` كاذبة.
  */
-const POST_RESET_COOLDOWN_MS = 220;
+const POST_RESET_COOLDOWN_MS = 320;
 /** نؤجل الطي حتى تهدأ اللمسة، حتى لا يتغير ارتفاع الصفحة أثناء نفس حركة التمرير. */
-const COLLAPSE_AFTER_SCROLL_IDLE_MS = 140;
+const COLLAPSE_AFTER_SCROLL_IDLE_MS = 180;
 
 /**
  * موبايل: سكرول للأسفل يطوي **صف الشعار** في الهيدر ويخفِي ملخص السلة.
@@ -43,6 +43,8 @@ export function MobileScrollCollapseController() {
     lastYRef.current =
       window.scrollY ?? document.documentElement.scrollTop ?? 0;
 
+    let scrollRaf = 0;
+
     const clearPendingHide = () => {
       if (hideTimerRef.current) {
         clearTimeout(hideTimerRef.current);
@@ -62,7 +64,7 @@ export function MobileScrollCollapseController() {
       }, COLLAPSE_AFTER_SCROLL_IDLE_MS);
     };
 
-    const onScroll = () => {
+    const runScrollLogic = () => {
       if (!mq.matches) return;
       const now = performance.now();
       const y = window.scrollY ?? document.documentElement.scrollTop ?? 0;
@@ -85,6 +87,16 @@ export function MobileScrollCollapseController() {
       }
     };
 
+    /** دمج أحداث السكرول في إطار واحد يقلّل اهتزاز التخطيط في Safari/iOS. */
+    const onScroll = () => {
+      if (!mq.matches) return;
+      if (scrollRaf) return;
+      scrollRaf = requestAnimationFrame(() => {
+        scrollRaf = 0;
+        runScrollLogic();
+      });
+    };
+
     const onMqChange = () => {
       if (!mq.matches) {
         clearPendingHide();
@@ -96,6 +108,7 @@ export function MobileScrollCollapseController() {
     mq.addEventListener("change", onMqChange);
     return () => {
       clearPendingHide();
+      if (scrollRaf) cancelAnimationFrame(scrollRaf);
       window.removeEventListener("scroll", onScroll);
       mq.removeEventListener("change", onMqChange);
     };

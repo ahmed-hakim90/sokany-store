@@ -1,5 +1,11 @@
 "use client";
 
+/**
+ * جلسة المتجر بعد hydration
+ * بالعامية: Zustand persist بياخد لحظة يتحمّل؛ لحد ما يخلص بنرجع قيم آمنة علشان ما يحصلش flash غلط للـ logged-in.
+ *
+ * شوف كمان: `@/features/auth/store/useAuthStore.ts`
+ */
 import { useHasHydrated } from "@/hooks/useHasHydrated";
 import { useAuthStore } from "@/features/auth/store/useAuthStore";
 

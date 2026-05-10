@@ -12,4 +12,4 @@ if [[ -n "${NODE_OPTIONS:-}" ]]; then
     unset NODE_OPTIONS
   fi
 fi
-exec node "$ROOT/node_modules/next/dist/bin/next" dev
+exec node "$ROOT/node_modules/next/dist/bin/next" dev "$@"

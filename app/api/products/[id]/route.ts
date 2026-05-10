@@ -1,3 +1,9 @@
+/**
+ * BFF: منتج واحد (رقم أو slug)
+ * بالعامية: الـ segment في المسار ممكن يكون id Woo أو slug؛ بنجرب كاشات متعددة، وبعدين mock لو البيئة تقول كده.
+ *
+ * شوف كمان: `@/features/products/services/getProductByIdMeta.ts`
+ */
 import { NextResponse } from "next/server";
 import { unstable_cache } from "next/cache";
 import { mockProducts } from "@/features/products/mock";
@@ -5,6 +11,7 @@ import { getSnapshotProducts } from "@/features/data-snapshot/server";
 import { createWooClient } from "@/lib/create-woo-client";
 import { wooBff502Response } from "@/lib/woo-bff-catch-payload";
 import { shouldUseWooBffMockFallback } from "@/lib/woo-bff-mock-fallback";
+import { WOO_BFF_UNSTABLE_CACHE_REVALIDATE_SEC } from "@/lib/woo-bff-revalidate";
 import { WOO_CACHE_TAG_PRODUCTS } from "@/lib/woocommerce-cache-tags";
 import type { WCProduct } from "@/features/products/types";
 
@@ -22,7 +29,7 @@ const fetchWooProductByIdCached = unstable_cache(
     return response.data as WCProduct;
   },
   ["woo-api-product-by-id-v1"],
-  { revalidate: 300, tags: [WOO_CACHE_TAG_PRODUCTS] },
+  { revalidate: WOO_BFF_UNSTABLE_CACHE_REVALIDATE_SEC, tags: [WOO_CACHE_TAG_PRODUCTS] },
 );
 
 const fetchWooProductByIdFromCollectionCached = unstable_cache(
@@ -35,7 +42,7 @@ const fetchWooProductByIdFromCollectionCached = unstable_cache(
     return (rows[0] as WCProduct | undefined) ?? null;
   },
   ["woo-api-product-by-id-collection-v1"],
-  { revalidate: 300, tags: [WOO_CACHE_TAG_PRODUCTS] },
+  { revalidate: WOO_BFF_UNSTABLE_CACHE_REVALIDATE_SEC, tags: [WOO_CACHE_TAG_PRODUCTS] },
 );
 
 const fetchWooProductBySlugCached = unstable_cache(
@@ -48,7 +55,7 @@ const fetchWooProductBySlugCached = unstable_cache(
     return (rows[0] as WCProduct | undefined) ?? null;
   },
   ["woo-api-product-by-slug-v1"],
-  { revalidate: 300, tags: [WOO_CACHE_TAG_PRODUCTS] },
+  { revalidate: WOO_BFF_UNSTABLE_CACHE_REVALIDATE_SEC, tags: [WOO_CACHE_TAG_PRODUCTS] },
 );
 
 export async function GET(_request: Request, context: RouteContext) {

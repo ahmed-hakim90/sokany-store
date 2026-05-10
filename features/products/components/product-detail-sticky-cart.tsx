@@ -30,7 +30,7 @@ export function ProductDetailStickyCart({
     >
       <div
         className={cn(
-          "pointer-events-auto mx-auto flex max-w-7xl items-center gap-3 border border-border/80 bg-background/95 px-3 py-2.5 shadow-[0_-8px_32px_-12px_rgba(15,23,42,0.2)] backdrop-blur-md supports-[backdrop-filter]:bg-background/85 md:rounded-2xl md:border md:py-3 md:shadow-lg",
+          "surface-glass pointer-events-auto mx-auto flex max-w-7xl items-center gap-3 border border-border/80 px-3 py-2.5 supports-[backdrop-filter]:bg-background/80 md:rounded-2xl md:border md:py-3 md:shadow-lg",
           "pb-[max(0.625rem,env(safe-area-inset-bottom))] pt-2.5 md:pb-3",
         )}
       >

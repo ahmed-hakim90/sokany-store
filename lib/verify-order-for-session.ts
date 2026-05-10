@@ -1,3 +1,11 @@
+/**
+ * التأكد إن الطلب للمستخدم الحالي
+ * بالعامية: نفس فكرة `listWooOrdersForSession` — يا إما `customer_id` يطابق عميل Woo بالإيميل، يا إما الـ meta فيها `firebase_uid` بتاع الجلسة.
+ *
+ * ملاحظات:
+ * - ليه مش بس customer_id: فيه مسارات ضيف خلت الربط في الميتا بس.
+ * - شوف كمان: `@/lib/list-woo-orders-for-session.ts`
+ */
 import type { AxiosInstance } from "axios";
 import type { z } from "zod";
 import { GuestOrderAccessError } from "@/features/orders/lib/guest-order-server";
@@ -14,9 +22,6 @@ function orderHasFirebaseUid(order: WCOrderParsed, firebaseUid: string): boolean
   );
 }
 
-/**
- * يربط طلب ووكومرس بالجلسة الحالية — نفس منطق ‎`listWooOrdersForSession‎` (عميل ‎+‎ ‎meta firebase_uid‎).
- */
 export async function assertOrderAccessibleBySession(
   woo: AxiosInstance,
   session: SessionJwtPayload,

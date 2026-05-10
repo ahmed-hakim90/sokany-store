@@ -1,7 +1,14 @@
 import "server-only";
 
+/**
+ * تصنيفات Woo مع `unstable_cache`
+ * بالعامية: نفس إعدادات الكاش اللي في `/api/categories` علشان RSC والـ route ما يضربوش Woo مرتين بمنطق مختلف.
+ *
+ * شوف كمان: `@/app/api/categories/route.ts`، `@/lib/woocommerce-cache-tags.ts`
+ */
 import { unstable_cache } from "next/cache";
 import { createWooClient } from "@/lib/create-woo-client";
+import { WOO_BFF_UNSTABLE_CACHE_REVALIDATE_SEC } from "@/lib/woo-bff-revalidate";
 import {
   WOO_CACHE_TAG_PRODUCTS,
   WOO_CACHE_TAG_SITEMAP,
@@ -13,9 +20,6 @@ type CachedWooCategoriesResponse = {
   totalPages: string;
 };
 
-/**
- * يطابق مسار ‎`/api/categories`‎ — نفس وسوم الكاش و‎`revalidate`‎ حتى يُستَخدم من الـ RSC والـ route معاً.
- */
 export const fetchCachedWooCategories = unstable_cache(
   async (paramsKey: string): Promise<CachedWooCategoriesResponse> => {
     const woo = await createWooClient();
@@ -28,5 +32,8 @@ export const fetchCachedWooCategories = unstable_cache(
     };
   },
   ["woo-api-categories-v1"],
-  { revalidate: 300, tags: [WOO_CACHE_TAG_PRODUCTS, WOO_CACHE_TAG_SITEMAP] },
+  {
+    revalidate: WOO_BFF_UNSTABLE_CACHE_REVALIDATE_SEC,
+    tags: [WOO_CACHE_TAG_PRODUCTS, WOO_CACHE_TAG_SITEMAP],
+  },
 );

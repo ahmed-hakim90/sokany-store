@@ -5,6 +5,7 @@ import { createWooClient } from "@/lib/create-woo-client";
 import { mapCategory } from "@/features/categories/adapters";
 import { mockCategories } from "@/features/categories/mock";
 import { getSnapshotCategories } from "@/features/data-snapshot/server";
+import { WOO_BFF_UNSTABLE_CACHE_REVALIDATE_SEC } from "@/lib/woo-bff-revalidate";
 import {
   WOO_CACHE_TAG_PRODUCTS,
   WOO_CACHE_TAG_SITEMAP,
@@ -21,7 +22,10 @@ const fetchWooCategoryBySlugMetaCached = unstable_cache(
     return wpCategoriesSchema.parse(res.data)[0] ?? null;
   },
   ["woo-category-meta-by-slug-v1"],
-  { revalidate: 300, tags: [WOO_CACHE_TAG_PRODUCTS, WOO_CACHE_TAG_SITEMAP] },
+  {
+    revalidate: WOO_BFF_UNSTABLE_CACHE_REVALIDATE_SEC,
+    tags: [WOO_CACHE_TAG_PRODUCTS, WOO_CACHE_TAG_SITEMAP],
+  },
 );
 
 export async function getCategoryBySlugMeta(

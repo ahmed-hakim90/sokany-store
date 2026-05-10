@@ -9,6 +9,10 @@
     "start": "next start",
     "postinstall": "patch-package",
     "lint": "eslint",
+    "perf:build": "next build",
+    "perf:analyze": "npm run analyze",
+    "test": "vitest run && node scripts/check-no-woo-secrets-in-client-trees.mjs",
+    "test:watch": "vitest",
     "test:e2e": "playwright test",
     "test:e2e:audit": "playwright test tests/sokany_audit.spec.ts",
     "scrape:sokany": "tsx scripts/scrape-sokany-eg.ts",
@@ -47,6 +51,7 @@
     "zustand": "^5.0.12"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.11.3",
     "@next/bundle-analyzer": "^16.2.4",
     "@playwright/test": "^1.59.1",
     "@tailwindcss/postcss": "^4",
@@ -61,6 +66,7 @@
     "sharp": "^0.34.5",
     "tailwindcss": "^4",
     "tsx": "^4.21.0",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^3.2.4"
   }
 }

@@ -19,6 +19,12 @@ import { ProductReviewsList } from "@/features/reviews/components/product-review
 import { useReviewEligibility } from "@/features/reviews/hooks/useReviewEligibility";
 import { useAuthSession } from "@/hooks/useAuthSession";
 
+/**
+ * عميل صفحة المنتج
+ * بالعامية: بيجمع `useProductDetailPage` + أهلية التقييم + السلة؛ «اشتري الآن» يعدّي الكمية ويروح للـ checkout.
+ *
+ * خريطة الشكل والتقييمات في التعليق اللي تحت.
+ */
 /*
  * صفحة تفاصيل المنتج (/products/[id]): عمود واحد داخل Container (حواف أفقية فقط).
  * كتلة المنتج (معرض + معلومات/شراء) بعرض كامل داخل الحاوية؛ شريط «أضف للسلة» ثابت عند التمرير بعد كتلة الشراء.

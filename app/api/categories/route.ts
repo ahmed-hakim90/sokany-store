@@ -1,3 +1,7 @@
+/**
+ * BFF: تصنيفات المنتجات
+ * بالعامية: كاش مشترك مع `fetchCachedWooCategories`؛ لو Woo مش متاح نرجع من سنابشوت/موك مع فلترة slug اختيارية.
+ */
 import { NextRequest, NextResponse } from "next/server";
 import { mockCategories } from "@/features/categories/mock";
 import { fetchCachedWooCategories } from "@/features/categories/services/fetchCachedWooCategories";

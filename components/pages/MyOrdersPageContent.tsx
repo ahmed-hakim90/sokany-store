@@ -3,7 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useTransitionRouter } from "next-view-transitions";
 import { useEffect, useState } from "react";
-import { Package } from "lucide-react";
+import { CalendarClock, ListOrdered, Package } from "lucide-react";
 import { toast } from "sonner";
 import { Container } from "@/components/Container";
 import { OrderDetailsModal } from "@/features/orders/components/order-details-modal";
@@ -32,11 +32,21 @@ import { orderItemsToCartItems } from "@/features/orders/lib/order-items-to-cart
 import { useAuthSession } from "@/hooks/useAuthSession";
 import { useCart } from "@/hooks/useCart";
 import { GUEST_ORDER_AMEND_ENABLED, ROUTES, STALE_TIME, USE_MOCK } from "@/lib/constants";
+import { StatWidget } from "@/components/ui/dashboard-widget";
 import { cn } from "@/lib/utils";
 
+/**
+ * طلباتي — مسجّل + ضيف
+ * بالعامية: JWT يجيب من `/api/orders`؛ الضيف يقرا refs من localStorage و batch view؛ فيه تعديل/إلغاء حسب السياسة و`USE_MOCK`.
+ *
+ * التفاصيل البصرية تحت.
+ */
 /*
  * صفحة «طلباتي» (/my-orders): طلبات الحساب (JWT) + طلبات محفوظة على الجهاز للضيف.
  * من md فما فوق: هوامش رأس أوضح، نفس الترتيب زمنياً.
+ *
+ * — تحت الـ sticky header: صف ملخّص (شبكة عمودين من sm) — عدد الطلبات + تاريخ آخر طلب؛
+ *   يربط المستخدم بسرعة بحالة الحساب قبل قائمة البطاقات.
  */
 
 function isGuestRowOk(row: GuestBatchViewRow): row is Extract<GuestBatchViewRow, { order: Order }> {
@@ -176,6 +186,34 @@ export function MyOrdersPageContent() {
   const guestRowsOk = guestData.filter(isGuestRowOk);
   const guestRowsFailed = guestData.filter(isGuestRowFailed);
 
+  const authList = ordersQuery.data ?? [];
+  const latestAuthOrder = authList[0];
+  const latestGuestOrder = guestRowsOk[0]?.order;
+  const showAuthSummary =
+    hasHydrated &&
+    isAuthenticated &&
+    !ordersQuery.isLoading &&
+    !ordersQuery.isError &&
+    authList.length > 0;
+  const showGuestSummary =
+    hasHydrated &&
+    !isAuthenticated &&
+    !guestOrdersQuery.isLoading &&
+    !guestOrdersQuery.isError &&
+    guestRowsOk.length > 0;
+
+  const formatOrderDate = (iso: string) => {
+    try {
+      return new Date(iso).toLocaleDateString("ar-EG", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      });
+    } catch {
+      return "—";
+    }
+  };
+
   return (
     <div className="min-h-[60vh] bg-surface-muted/40 pb-24 pt-2 md:pb-16 md:pt-4">
       <div className="sticky top-0 z-10 border-b border-border/80 bg-white/95 px-4 py-4 shadow-sm backdrop-blur-md md:px-6">
@@ -186,6 +224,71 @@ export function MyOrdersPageContent() {
       </div>
 
       <Container className="max-w-2xl py-6">
+        {showAuthSummary ? (
+          <div className="mb-6 grid gap-3 sm:grid-cols-2">
+            <StatWidget
+              label="إجمالي الطلبات"
+              value={String(authList.length)}
+              hint="كل الطلبات المعروضة أدناه من الأحدث إلى الأقدم."
+              tone="brand"
+              icon={ListOrdered}
+            />
+            <StatWidget
+              label="آخر طلب"
+              value={
+                latestAuthOrder
+                  ? `رقم ${latestAuthOrder.orderNumber || latestAuthOrder.id}`
+                  : "—"
+              }
+              hint={
+                latestAuthOrder
+                  ? `تاريخ ${formatOrderDate(latestAuthOrder.dateCreated)}`
+                  : "لا يوجد"
+              }
+              tone="neutral"
+              icon={CalendarClock}
+            />
+          </div>
+        ) : null}
+        {showGuestSummary ? (
+          <div className="mb-6 grid gap-3 sm:grid-cols-2">
+            <StatWidget
+              label="طلبات هذا الجهاز"
+              value={String(guestRowsOk.length)}
+              hint="محفوظة محلياً بعد الشراء — سجّل الدخول لمزامنة كاملة."
+              tone="brand"
+              icon={ListOrdered}
+            />
+            <StatWidget
+              label="آخر طلب"
+              value={
+                latestGuestOrder
+                  ? `رقم ${latestGuestOrder.orderNumber || latestGuestOrder.id}`
+                  : "—"
+              }
+              hint={
+                latestGuestOrder
+                  ? `تاريخ ${formatOrderDate(latestGuestOrder.dateCreated)}`
+                  : "لا يوجد"
+              }
+              tone="neutral"
+              icon={CalendarClock}
+            />
+          </div>
+        ) : null}
+        {(showAuthSummary || showGuestSummary) && (
+          <p className="mb-6 text-center text-sm text-muted-foreground">
+            <Link
+              href={ROUTES.MY_REVIEWS}
+              className="font-semibold text-brand-800 underline-offset-4 hover:underline"
+            >
+              تقييماتي
+            </Link>
+            <span className="mx-1 text-brand-900/40">·</span>
+            <span>شارك تجربتك مع المنتجات التي اشتريتها.</span>
+          </p>
+        )}
+
         {!hasHydrated ? (
           <p className="rounded-xl border border-border bg-white px-4 py-3 text-sm text-brand-900/70">
             جاري التحميل…

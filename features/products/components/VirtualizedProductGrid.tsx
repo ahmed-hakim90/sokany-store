@@ -1,5 +1,11 @@
 "use client";
 
+/**
+ * جريد منتجات افتراضية (نافذة)
+ * بالعامية: `@tanstack/react-virtual` يرسم صفوف قليلة في الـ DOM — مناسب لقوائم طويلة من غير ما نبطّئ السكرول.
+ *
+ * التفاصيل التقنية تحت.
+ */
 import { measureElement, useWindowVirtualizer } from "@tanstack/react-virtual";
 import type { ReactNode } from "react";
 import { useLayoutEffect, useRef, useState } from "react";

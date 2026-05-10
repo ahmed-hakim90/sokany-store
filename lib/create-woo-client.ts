@@ -1,16 +1,46 @@
 import "server-only";
+
+/**
+ * عميل Woo على السيرفر
+ * بالعامية: ده اللي بيطلع طلبات REST لـ WooCommerce من Node، بمفاتيح الـ env ومش من المتصفح.
+ *
+ * ملاحظات:
+ * - ليه axios هنا: طبقة واحدة للـ Basic auth والـ timeout والـ retry على GET بس (آمن إن الطلب متكرر).
+ * - حذر: متزودش retry على POST/PUT — ممكن تكرار جانبي في Woo.
+ * - شوف كمان: `@/lib/resolve-woo-base-url.ts`، `@/features/products/services/*`
+ */
 import axios, { isAxiosError, type AxiosError, type InternalAxiosRequestConfig } from "axios";
 import { WC_REST_BASE_PATH } from "@/lib/constants";
 import { resolveWooBaseUrlForServer } from "@/lib/resolve-woo-base-url";
+import { logServerJson } from "@/lib/server-log";
 import { WOO_ENV_NOT_CONFIGURED_MESSAGE } from "@/lib/woo-env-errors";
 
-/** Avoid hanging until OS TCP gives up (often 60s+). */
+/** Timeout علشان الطلب ما يعلقش لحد ما TCP يستسلم (أحياناً دقيقة+). */
 const WOO_REQUEST_TIMEOUT_MS = 25_000;
-/** Idempotent GET only — at most this many *retries* after the first attempt (1 + 2 = 3 tries). */
+/** أقصى مرات إعادة لـ GET بعد أول محاولة (٣ محاولات إجمالي مع الأولى). */
 const WOO_GET_RETRY_MAX = 2;
 const WOO_RETRY_BASE_MS = 400;
 
-type ConfigWithWooRetry = InternalAxiosRequestConfig & { __wooRetryCount?: number };
+type ConfigWithWooRetry = InternalAxiosRequestConfig & {
+  __wooRetryCount?: number;
+  __wooStartedAt?: number;
+};
+
+function maybeLogWooLatency(
+  config: InternalAxiosRequestConfig | undefined,
+  status: number | null,
+): void {
+  if (process.env.SOKANY_LOG_WOO_LATENCY !== "true") return;
+  const cfg = config as ConfigWithWooRetry;
+  const start = cfg.__wooStartedAt;
+  if (start == null) return;
+  logServerJson("woo_upstream", {
+    method: (cfg.method ?? "get").toUpperCase(),
+    url: cfg.url ?? "",
+    status,
+    ms: Date.now() - start,
+  });
+}
 
 function delay(ms: number) {
   return new Promise<void>((r) => {
@@ -42,10 +72,6 @@ function isRetryableWooUpstreamError(
   );
 }
 
-/**
- * يربط REST وو عبر ‎`WC_CONSUMER_KEY` / ‎`WC_CONSUMER_SECRET` + أصل المتجر
- * (‎`WC_BASE_URL` أو ‎`storefrontIntegrations.wooBaseUrl` في CMS).
- */
 export async function createWooClient() {
   const baseURL = await resolveWooBaseUrlForServer();
   const key = process.env.WC_CONSUMER_KEY;
@@ -65,8 +91,16 @@ export async function createWooClient() {
     },
   });
 
+  client.interceptors.request.use((config) => {
+    (config as ConfigWithWooRetry).__wooStartedAt = Date.now();
+    return config;
+  });
+
   client.interceptors.response.use(
-    (r) => r,
+    (r) => {
+      maybeLogWooLatency(r.config, r.status);
+      return r;
+    },
     async (error) => {
       if (!isAxiosError(error) || !error.config) {
         return Promise.reject(error);
@@ -74,6 +108,10 @@ export async function createWooClient() {
       const cfg = error.config as ConfigWithWooRetry;
       const n = cfg.__wooRetryCount ?? 0;
       if (!isRetryableWooUpstreamError(error, cfg) || n >= WOO_GET_RETRY_MAX) {
+        maybeLogWooLatency(
+          cfg,
+          error.response?.status != null ? error.response.status : null,
+        );
         return Promise.reject(error);
       }
       cfg.__wooRetryCount = n + 1;

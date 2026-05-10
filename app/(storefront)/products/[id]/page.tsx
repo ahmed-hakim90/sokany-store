@@ -10,7 +10,7 @@ import { toProductViewFromProduct } from "@/features/products/product-view";
 import { formatPriceEgp } from "@/lib/format";
 import { trimMetaDescription } from "@/lib/html";
 import { ROUTES, SITE_BRAND_TITLE_AR } from "@/lib/constants";
-import { getSiteUrl } from "@/lib/site";
+import { getSiteUrl, toAbsoluteSiteUrl } from "@/lib/site";
 
 type PageProps = { params: Promise<{ id: string }> };
 
@@ -36,6 +36,7 @@ export async function generateMetadata({
     product.shortDescription || fallback,
   );
   const thumb = product.images[0];
+  const ogThumbUrl = thumb ? toAbsoluteSiteUrl(thumb.src) : undefined;
 
   return {
     title,
@@ -53,15 +54,15 @@ export async function generateMetadata({
       url: `${site}/products/${product.id}`,
       siteName: SITE_BRAND_TITLE_AR,
       locale: "ar_EG",
-      images: thumb
-        ? [{ url: thumb.src, width: 800, height: 800, alt: product.name }]
+      images: ogThumbUrl
+        ? [{ url: ogThumbUrl, width: 800, height: 800, alt: product.name }]
         : undefined,
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
-      ...(thumb ? { images: [thumb.src] } : {}),
+      ...(ogThumbUrl ? { images: [ogThumbUrl] } : {}),
     },
     alternates: { canonical: `${site}/products/${product.id}` },
     robots: { index: true, follow: true },
@@ -88,7 +89,11 @@ export default async function ProductPage({ params }: PageProps) {
 
   return (
     <>
-      <ProductJsonLd product={view} />
+      <ProductJsonLd
+        product={view}
+        brandName={publicContent.branding.siteWordmark}
+        sellerName={publicContent.branding.organizationName}
+      />
       <BreadcrumbJsonLd
         items={[
           { name: "الرئيسية", href: "/" },

@@ -1,6 +1,15 @@
+/**
+ * تسجيل دخول عبر JWT ووردبريس
+ * بالعامية: الإيميل/الباسورد يتبعت لنقطة JWT على WP؛ لو نجح بنصدر JWT متجر موقّع من عندنا (`signSessionToken`) للـ cookie/الهيدر.
+ *
+ * ملاحظات:
+ * - أغلب أعطال الإعداد بتترجم لرسائل عربية توضح `WC_JWT_AUTH_TOKEN_PATH` وإلخ.
+ * - شوف كمان: `@/lib/jwt.ts`، `@/lib/wp-url.ts`
+ */
 import { decodeJwt } from "jose";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { enforceRateLimit } from "@/lib/rate-limit-response";
 import { signSessionToken } from "@/lib/jwt";
 import { getWordPressJwtTokenUrl } from "@/lib/wp-url";
 import type { LoginPayload } from "@/features/auth/types";
@@ -67,6 +76,13 @@ function describeJwtTokenUpstreamFailure(status: number, raw: unknown): string {
 }
 
 export async function POST(request: NextRequest) {
+  const limited = enforceRateLimit(request, {
+    routeId: "auth-login",
+    max: 25,
+    windowMs: 15 * 60 * 1000,
+  });
+  if (limited) return limited;
+
   const bodyUnknown: unknown = await request.json();
   if (!isRecord(bodyUnknown)) {
     return NextResponse.json({ error: "Invalid body" }, { status: 400 });

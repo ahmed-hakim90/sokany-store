@@ -20,7 +20,8 @@ const WebPushConsentBanner = dynamic(
 );
 
 /**
- * تسجيل Service Worker مرة واحدة، ثم بطاقات: تثبيت PWA + موافقة إشعارات FCM.
+ * طبقة PWA للمتجر
+ * بالعامية: بعد idle يسجّل `/sw.js` لو `NEXT_PUBLIC_ENABLE_SW`؛ لو مش مفعّل يشيل التسجيلات. يشغّل FCM ويعرض تثبيت + بانر الدفع.
  */
 export function PwaEngagementStack() {
   const pathname = usePathname();

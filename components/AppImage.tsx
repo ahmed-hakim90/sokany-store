@@ -116,6 +116,7 @@ function StringAppImageInner({
       <Image
         src={stringSrc}
         alt={alt}
+        decoding="async"
         className={cn(
           "object-cover",
           className,
@@ -191,6 +192,7 @@ export function AppImage({
       <Image
         src={src}
         alt={alt}
+        decoding="async"
         className={cn("object-cover", className)}
         fill={fill}
         sizes={sizes}

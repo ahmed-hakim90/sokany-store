@@ -1,5 +1,11 @@
 "use client";
 
+/**
+ * كروم التجارة للموبايل
+ * بالعامية: عمود ثابت تحت المحتوى فيه الـ bottom nav، ملخص سلة ديناميك، وارتفاع محجوز بـ CSS variable علشان الـ toast والـ floating actions ما يتداخلش مع بعض.
+ *
+ * شوف كمان: `@/components/layout/bottom-nav.tsx`، `@/components/layout/mobile-chrome-collapsed-store.ts`
+ */
 import { usePathname } from "next/navigation";
 import dynamic from "next/dynamic";
 import { useLayoutEffect, useRef } from "react";
@@ -13,6 +19,7 @@ import {
 } from "@/components/layout/mobile-commerce-surface";
 import { cn } from "@/lib/utils";
 
+/** السلة الكاملة تتعمل lazy — مفيش حاجة تقيلة في الـ bundle الأول. */
 const MobileCartBottomSheet = dynamic(
   () =>
     import("@/features/cart/components/MobileCartBottomSheet").then(

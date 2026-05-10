@@ -22,7 +22,8 @@ type PwaInstallContextValue = {
 const PwaInstallContext = createContext<PwaInstallContextValue | null>(null);
 
 /**
- * يُسجّل ‎`beforeinstallprompt`‎ مبكراً (قبل ‎`idle`‎) حتى لا يُفقد الحدث — يُستدعى ‎`prompt()`‎ من تفاعل المستخدم فقط.
+ * يمسك حدث التثبيت قبل ما يضيع
+ * بالعامية: لازم نسمع `beforeinstallprompt` بدري و `preventDefault`؛ استدعاء `prompt()` يفضل من زرار عشان المتصفح يسمح.
  */
 export function PwaDeferredInstallProvider({ children }: { children: React.ReactNode }) {
   const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null);

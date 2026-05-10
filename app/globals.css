@@ -3,8 +3,8 @@
 @import "../styles/vaul.css";
 ::view-transition-old(root),
 ::view-transition-new(root) {
-  animation-duration: 0.28s;
-  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  animation-duration: var(--motion-duration-md, 280ms);
+  animation-timing-function: var(--motion-ease-standard, cubic-bezier(0.4, 0, 0.2, 1));
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -59,6 +59,59 @@ html[data-storefront-modal] [data-mobile-commerce-chrome] {
   /* Mobile fixed commerce chrome (bottom nav ± cart); overridden by JS when mounted */
   --mobile-commerce-chrome-height: 12rem;
   --mobile-commerce-floating-actions-bottom: 4.75rem;
+
+  /* Motion — shared with lib/motion.ts */
+  --motion-duration-instant: 0ms;
+  --motion-duration-xs: 150ms;
+  --motion-duration-sm: 200ms;
+  --motion-duration-md: 280ms;
+  --motion-duration-lg: 450ms;
+  --motion-duration-xl: 500ms;
+  --motion-ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --motion-ease-emphasized: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --motion-ease-out: cubic-bezier(0, 0, 0.2, 1);
+
+  /* Semantic status (foreground = text on light surface) */
+  --semantic-success: #059669;
+  --semantic-success-foreground: #022c22;
+  --semantic-success-surface: color-mix(in srgb, #ecfdf5 96%, white);
+  --semantic-success-border: color-mix(in srgb, #34d399 45%, transparent);
+  --semantic-success-icon: #047857;
+
+  --semantic-warning: #d97706;
+  --semantic-warning-foreground: #422006;
+  --semantic-warning-surface: color-mix(in srgb, #fffbeb 94%, white);
+  --semantic-warning-border: color-mix(in srgb, #fbbf24 45%, transparent);
+  --semantic-warning-icon: #b45309;
+
+  --semantic-destructive: #e11d48;
+  --semantic-destructive-foreground: #4c0519;
+  --semantic-destructive-surface: color-mix(in srgb, #fff1f2 96%, white);
+  --semantic-destructive-border: color-mix(in srgb, #fb7185 45%, transparent);
+  --semantic-destructive-icon: #be123c;
+
+  --semantic-info: #0284c7;
+  --semantic-info-foreground: #0c4a6e;
+  --semantic-info-surface: color-mix(in srgb, #f0f9ff 94%, white);
+  --semantic-info-border: color-mix(in srgb, #7dd3fc 50%, transparent);
+  --semantic-info-icon: #0369a1;
+
+  /* Card / elevated surface (storefront product chrome) */
+  --surface-elevated: #ffffff;
+  --surface-elevated-border: color-mix(in srgb, var(--sokany-border) 88%, #0f172a);
+  --surface-elevated-shadow: 0 12px 36px -24px rgb(15 23 42 / 38%);
+
+  /* Glass — toast, overlays */
+  --glass-bg: rgb(255 255 255 / 0.9);
+  --glass-border: rgb(255 255 255 / 0.5);
+  --glass-blur: 24px;
+  --glass-saturate: 1.5;
+  --glass-shadow: 0 20px 48px -16px rgb(15 23 42 / 0.28),
+    0 4px 12px -4px rgb(15 23 42 / 0.1);
+
+  /* Sale / promo chip on product cards */
+  --promo-sale-bg: #c45c5c;
+  --promo-sale-fg: #ffffff;
 }
 
 @theme inline {
@@ -89,9 +142,51 @@ html[data-storefront-modal] [data-mobile-commerce-chrome] {
   --color-brand-800: #1f1f1f;
   --color-brand-900: #141414;
   --color-brand-950: #0a0a0a;
-  --animate-fade-in: fade-in 0.5s ease-out forwards;
-  --animate-slide-up: slide-up 0.45s ease-out forwards;
-  --animate-shimmer: shimmer 1.5s linear infinite;
+
+  /* Semantic palette → utilities: bg-success-surface, text-destructive, border-info-border, etc. */
+  --color-success: var(--semantic-success);
+  --color-success-foreground: var(--semantic-success-foreground);
+  --color-success-surface: var(--semantic-success-surface);
+  --color-success-border: var(--semantic-success-border);
+  --color-success-icon: var(--semantic-success-icon);
+
+  --color-warning: var(--semantic-warning);
+  --color-warning-foreground: var(--semantic-warning-foreground);
+  --color-warning-surface: var(--semantic-warning-surface);
+  --color-warning-border: var(--semantic-warning-border);
+  --color-warning-icon: var(--semantic-warning-icon);
+
+  --color-destructive: var(--semantic-destructive);
+  --color-destructive-foreground: var(--semantic-destructive-foreground);
+  --color-destructive-surface: var(--semantic-destructive-surface);
+  --color-destructive-border: var(--semantic-destructive-border);
+  --color-destructive-icon: var(--semantic-destructive-icon);
+
+  --color-info: var(--semantic-info);
+  --color-info-foreground: var(--semantic-info-foreground);
+  --color-info-surface: var(--semantic-info-surface);
+  --color-info-border: var(--semantic-info-border);
+  --color-info-icon: var(--semantic-info-icon);
+
+  --color-surface-elevated: var(--surface-elevated);
+  --color-surface-elevated-border: var(--surface-elevated-border);
+
+  --color-promo-sale-bg: var(--promo-sale-bg);
+  --color-promo-sale-fg: var(--promo-sale-fg);
+
+  /* Responsive type — product grids + UI chrome */
+  --text-product-title: clamp(0.8125rem, 0.76rem + 0.22vw, 0.875rem);
+  --text-product-title--line-height: 1.22;
+  --text-product-meta: clamp(0.6875rem, 0.65rem + 0.15vw, 0.75rem);
+  --text-product-meta--line-height: 1.35;
+  --text-product-price: clamp(0.9375rem, 0.88rem + 0.2vw, 1rem);
+  --text-product-price--line-height: 1;
+  --text-ui-label: clamp(0.625rem, 0.58rem + 0.18vw, 0.6875rem);
+  --text-ui-label--line-height: 1.35;
+
+  --animate-fade-in: fade-in var(--motion-duration-xl, 500ms) var(--motion-ease-out, ease-out) forwards;
+  --animate-slide-up: slide-up var(--motion-duration-lg, 450ms) var(--motion-ease-out, ease-out) forwards;
+  --animate-shimmer: shimmer 1.5s var(--motion-ease-standard, linear) infinite;
 }
 
 body {
@@ -165,6 +260,14 @@ html::-webkit-scrollbar-thumb:hover {
   }
   100% {
     background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-shimmer,
+  .animate-fade-in,
+  .animate-slide-up {
+    animation: none !important;
   }
 }
 
@@ -242,6 +345,21 @@ html::-webkit-scrollbar-thumb:hover {
   }
   .max-h-mobile-catalog-split {
     max-height: calc(100dvh - 7rem - var(--mobile-commerce-chrome-height));
+  }
+
+  /** Frosted glass surface — toasts, sticky overlays */
+  .surface-glass {
+    background: var(--glass-bg);
+    border-color: var(--glass-border);
+    box-shadow: var(--glass-shadow);
+    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  }
+
+  /** Product card shell — بدون إطار/ظل ثابت؛ الظل عند الـ hover من المكوّن */
+  .surface-product-card {
+    background: var(--surface-elevated);
+    border: none;
+    box-shadow: none;
   }
 }
 

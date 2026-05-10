@@ -1,5 +1,12 @@
 "use client";
 
+/**
+ * FCM Web Push في المتجر
+ * بالعامية: بعد الإذن بنجيب token ونبعته لـ `/api/push/subscribe`؛ الرسائل في المقدمة ممكن تعمل toast أو تبعث إبطال كاش للـ Query.
+ *
+ * ملاحظات:
+ * - بيتعطّل على `/control` أو لو SW مش شغال.
+ */
 import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { getFirebaseMessaging } from "@/lib/firebase-app";
@@ -47,11 +54,7 @@ async function registerTokenWithServer(
   }
 }
 
-/**
- * عند منح الإذن: تسجيل FCM مع `/api/push/subscribe` واستقبال الرسائل في المقدمة (toast).
- * يعيد الربط عند تغيّر إذن الإشعارات أو بعد حدث `sokany-push-granted`.
- * @param enabled يُعطَّل على صفحات لوحة التحكم.
- */
+/** `enabled=false` على لوحة التحكم أو بدون SW. */
 export function useFcmWebPush(enabled: boolean): void {
   const offRef = useRef<(() => void) | undefined>(undefined);
 

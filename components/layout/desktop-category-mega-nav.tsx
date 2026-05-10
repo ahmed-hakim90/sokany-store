@@ -1,5 +1,11 @@
 "use client";
 
+/**
+ * تنقل الديسكتوب + ميجا منيو
+ * بالعامية: الصف التاني في الهيدر بيعرض جذور التصنيفات من الـ API؛ الـ hover يفتح لوحة كبيرة، والموبايل لسه على الدرج.
+ *
+ * التفاصيل البصرية تحت في تعليق التخطيط.
+ */
 /*
  * شريط تصنيفات الديسكتوب (صف ثانٍ تحت اللوجو/البحث) + ميجا مينو للأقسام عند الـ hover؛ «خدماتنا» تفتح بالضغط فقط.
  * — الصف: «الرئيسية» ثم **تصنيفات جذرية من API** (parent=0 وعدّ منتجات >0، مُحدّاة) ثم «العروض» ثم روابط ثابتة؛ يمين: سوشيال + «تواصل معنا» + «خدماتنا».
@@ -25,6 +31,7 @@ import { SocialGlyph } from "@/components/layout/social-glyph";
 import { ROUTES } from "@/lib/constants";
 import { navLinkActiveSurfaceClass, navLinkPressableClass } from "@/lib/nav-link-interaction";
 import type { SocialLink } from "@/lib/social-links";
+import { motionTransition } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
 const MEGA_LINK_LIMIT = 12;
@@ -167,6 +174,14 @@ export function DesktopCategoryMegaNav({
   }, [categories]);
 
   const closeMega = useCallback(() => setOpenKey(null), []);
+
+  const focusFirstLinkInMegaPanel = useCallback(() => {
+    window.setTimeout(() => {
+      const panel = document.getElementById(`${baseId}-mega-panel`);
+      const first = panel?.querySelector<HTMLElement>("a[href]");
+      first?.focus();
+    }, 0);
+  }, [baseId]);
 
   useEffect(() => {
     if (!moreOpen) return;
@@ -332,7 +347,7 @@ export function DesktopCategoryMegaNav({
           <li>
             <Link
               href={ROUTES.OFFERS}
-              className="block rounded-md px-1 py-1 font-medium text-red-700 transition-colors hover:bg-red-50 hover:text-red-800"
+              className="block rounded-md px-1 py-1 font-medium text-destructive transition-colors hover:bg-destructive-surface hover:text-destructive-foreground"
             >
               كل المنتجات المخفضة
             </Link>
@@ -439,14 +454,23 @@ export function DesktopCategoryMegaNav({
                 <Link
                   id={itemId}
                   href={item.href}
+                  onKeyDown={(e) => {
+                    if (!isMega) return;
+                    if (e.key === "ArrowDown") {
+                      e.preventDefault();
+                      setMoreOpen(false);
+                      setOpenKey(item.key);
+                      focusFirstLinkInMegaPanel();
+                    }
+                  }}
                   className={cn(
                     "inline-flex items-center rounded-md px-2.5 py-2 transition-colors",
                     navLinkPressableClass,
                     isOffers
-                      ? "font-semibold text-red-600 [@media(hover:hover)]:hover:bg-red-50 [@media(hover:hover)]:hover:text-red-700 active:bg-red-100/80"
+                      ? "font-semibold text-destructive [@media(hover:hover)]:hover:bg-destructive-surface [@media(hover:hover)]:hover:text-destructive-foreground active:bg-destructive-surface/80"
                       : "text-brand-900/85 [@media(hover:hover)]:hover:bg-surface-muted/50 [@media(hover:hover)]:hover:text-brand-950",
                     isOpen && !isOffers && "bg-surface-muted/45 text-brand-950",
-                    isOpen && isOffers && "bg-red-50 text-red-700",
+                    isOpen && isOffers && "bg-destructive-surface text-destructive-foreground",
                     !isOffers && navLinkActiveSurfaceClass,
                   )}
                   aria-expanded={isMega ? isOpen : undefined}
@@ -486,7 +510,7 @@ export function DesktopCategoryMegaNav({
                 href={s.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border/70 bg-white text-brand-800 shadow-sm transition-colors hover:bg-surface-muted/80 hover:text-brand-950"
+                className="inline-flex h-11 min-h-[44px] w-11 min-w-[44px] items-center justify-center rounded-full border border-border/70 bg-white text-brand-800 shadow-sm transition-colors hover:bg-surface-muted/80 hover:text-brand-950"
                 aria-label={s.label}
               >
                 <SocialGlyph socialKey={s.key} className="h-3.5 w-3.5" />
@@ -560,7 +584,7 @@ export function DesktopCategoryMegaNav({
             initial={{ opacity: 0, y: -6 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
-            transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+            transition={motionTransition.megaPanelOpen}
             className="absolute inset-x-0 top-full z-50"
           >
             <Container>

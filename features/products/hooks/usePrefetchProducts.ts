@@ -1,5 +1,6 @@
 "use client";
 
+/** Prefetch قائمة + تعبئة كاش العناصر الفردية زي `useProducts`. */
 import { useQueryClient } from "@tanstack/react-query";
 import { STALE_TIME } from "@/lib/constants";
 import { getProductsList } from "@/features/products/services/getProducts";

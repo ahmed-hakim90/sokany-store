@@ -12,6 +12,7 @@ import { WooWebhookDeliveriesPanel } from "@/features/control/components/woo-web
 import { cn } from "@/lib/utils";
 
 type HealthRes = {
+  /** وقت تشغيل آخر فحص صحة مركّب */
   at: string;
   healthScore: number;
   healthLabel: "ok" | "degraded" | "down";
@@ -319,7 +320,7 @@ export function ControlHealthTab() {
         </div>
       ) : null}
 
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <div className="rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm ring-1 ring-slate-900/5">
           <p className="text-[11px] font-semibold uppercase text-slate-500">واجهة ‎Woo (استجابة)</p>
           <p className="mt-2 font-mono text-2xl font-bold tabular-nums text-slate-900">
@@ -347,6 +348,17 @@ export function ControlHealthTab() {
             {agg?.lastEventAt
               ? new Date(agg.lastEventAt).toLocaleString("ar-EG", { dateStyle: "short", timeStyle: "medium" })
               : "—"}
+          </p>
+        </div>
+        <div className="rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm ring-1 ring-slate-900/5">
+          <p className="text-[11px] font-semibold uppercase text-slate-500">آخر فحص صحة (لوحة)</p>
+          <p className="mt-2 line-clamp-2 font-mono text-sm font-medium text-slate-800">
+            {health?.at
+              ? new Date(health.at).toLocaleString("ar-EG", { dateStyle: "short", timeStyle: "medium" })
+              : "—"}
+          </p>
+          <p className="mt-1 text-xs text-slate-600">
+            يعكس وقت طلب ‎`/api/control/health-check`‎ — مكمّل لسجل الويبهوك أعلاه.
           </p>
         </div>
       </div>

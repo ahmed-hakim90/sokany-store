@@ -1,11 +1,16 @@
 import "server-only";
 
+/**
+ * أصل Woo على السيرفر
+ * بالعامية: بنحدد لينك المتجر في Woo منين: الأول env، ولو فاضي بنقرا من إعدادات الـ CMS في Firestore.
+ *
+ * ملاحظات:
+ * - ليه الاتنين: النشر بيحب الـ env، والتحكم من لوحة التحكم يعدّي من غير redeploy.
+ * - المفاتيح (consumer/secret) لسه في `WC_CONSUMER_*` — الملف ده بس الـ base URL.
+ * - شوف كمان: `@/lib/create-woo-client.ts`
+ */
 import { getCmsStorefrontIntegrationsForServer } from "@/features/cms/services/getCmsStorefrontIntegrationsForServer";
 
-/**
- * أولوية: ‎`WC_BASE_URL` عند الضبط (يتوقع فريق التطوير/النشر) ثم ‎`storefrontIntegrations.wooBaseUrl` في Firestore
- * وإلا ‎`null`‎. المفاتيح (consumer/secret) تبقى في ‎`WC_CONSUMER_*` دائماً.
- */
 export async function resolveWooBaseUrlForServer(): Promise<string | null> {
   const fromEnv = process.env.WC_BASE_URL?.trim();
   if (fromEnv) {

@@ -20,6 +20,12 @@ import { getCartShippingUi } from "@/lib/cart-shipping-ui";
 import { ROUTES } from "@/lib/constants";
 import { formatPrice } from "@/lib/utils";
 
+/**
+ * صفحة السلة
+ * بالعامية: مصدر الحقيقة من `useCart`؛ الموبايل فيه dock للإتمام، الديسكتوب عمودين؛ الفوتر متخفي من `FooterGate`.
+ *
+ * التفاصيل البصرية تحت.
+ */
 /*
  * صفحة السلة (/cart)
  *

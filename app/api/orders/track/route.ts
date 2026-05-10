@@ -1,3 +1,7 @@
+/**
+ * تتبع طلب (عام أو بكاش)
+ * بالعامية: البحث برقم/مفتاح مع دعم mock ووسم كاش للطلبات؛ بيحوّل حالة Woo لخطوات عرض للمتسوق.
+ */
 import { NextRequest, NextResponse } from "next/server";
 import axios from "axios";
 import { unstable_cache } from "next/cache";

@@ -1,5 +1,11 @@
 "use client";
 
+/**
+ * بحث المنتجات في الهيدر
+ * بالعامية: debounce + اقتراحات سريعة من CMS؛ التنقّل يستخدم view transitions حيث متاح.
+ *
+ * شوف كمان: `@/hooks/useSearchSuggestions.ts`
+ */
 import { Link } from "next-view-transitions";
 import {
   usePathname,

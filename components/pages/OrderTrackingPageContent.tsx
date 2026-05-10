@@ -12,6 +12,12 @@ import { trackOrder } from "@/features/order-tracking/services/trackOrder";
 import { ROUTES, STALE_TIME, WHATSAPP_SUPPORT_URL } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
+/**
+ * تتبع الطلب في العميل
+ * بالعامية: `?q=` من رابط الشكر؛ من غيره بنحوّل لطلباتي. الـ query بتعمل polling كل دقيقة لحد ما الطلب يخلص حالة نهائية.
+ *
+ * التفاصيل البصرية تحت.
+ */
 const TERMINAL_COPY: Record<string, string> = {
   cancelled: "تم إلغاء هذا الطلب.",
   refunded: "تم استرداد قيمة هذا الطلب.",

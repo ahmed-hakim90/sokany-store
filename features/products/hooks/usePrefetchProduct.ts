@@ -1,5 +1,6 @@
 "use client";
 
+/** Prefetch لمنتج عند hover/focus على لينك — نفس المفتاح والـ staleTime بتاعة `useProduct`. */
 import { useQueryClient } from "@tanstack/react-query";
 import { STALE_TIME } from "@/lib/constants";
 import { getProductById } from "@/features/products/services/getProductById";

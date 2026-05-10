@@ -149,6 +149,12 @@ export function CategorySlugPageLoadingFallback() {
   );
 }
 
+/**
+ * عميل صفحة تصنيف بالـ slug
+ * بالعامية: `useCategories` يحدد الـ id، `useProducts` يجيب الصفحة من الـ API؛ فيه stale notice لو الشبكة رجعت.
+ *
+ * التفاصيل البصرية تحت.
+ */
 /*
  * محتوى صفحة تصنيف (/categories/[slug]): يُلفّه layout المشترك بشريط تصنيفات أفقي (دوائر).
  * الترتيب: بانر صورة التصنيف → عنوان ووصف ورابط «كل المنتجات» → شبكة المنتجات.

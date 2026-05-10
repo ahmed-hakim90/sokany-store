@@ -1,5 +1,11 @@
 "use client";
 
+/**
+ * فوتر المتجر
+ * بالعامية: أكورديون أصلي على الشاشات الصغيرة، وأعمدة من `lg`؛ التصنيفات من `useCategories` مع موك احتياطي.
+ *
+ * خريطة الشكل تحت في تعليق التخطيط — ما تغيّرش واحد من غير التاني.
+ */
 import { Link } from "next-view-transitions";
 import { useId, useMemo, useState, useSyncExternalStore } from "react";
 import { AppImage } from "@/components/AppImage";

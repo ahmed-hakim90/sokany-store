@@ -1,3 +1,9 @@
+/**
+ * هيكل المتجر الرئيسي
+ * بالعامية: تجميعة الهيدر، شريط التصنيفات، كروم الموبايل، الجيتات (سلة/فلتر)، والـ PWA — المحتوى بينهم بيروح لـ `main` بـ id ثابت للـ a11y.
+ *
+ * شوف كمان: `@/components/layout/mobile-commerce-chrome.tsx`، `@/lib/storefront-a11y.ts`
+ */
 import { Suspense } from "react";
 import { PwaEngagementStack } from "@/components/PwaEngagementStack";
 import { FooterGate } from "@/components/layout/footer-gate";
@@ -14,6 +20,7 @@ import { StorefrontShellChrome } from "@/components/layout/storefront-shell-chro
 import { ProductMerchandisingProvider } from "@/features/products/components/product-merchandising-context";
 import { DesktopWishlistDrawerGate } from "@/features/wishlist/components/desktop-wishlist-drawer-gate";
 import type { CmsHeaderCategoryStrip, CmsTopAnnouncementBar } from "@/schemas/cms";
+import { STOREFRONT_MAIN_CONTENT_ID } from "@/lib/storefront-a11y";
 import type { ResolvedSiteBranding } from "@/lib/site-branding";
 import type { SocialLink } from "@/lib/social-links";
 
@@ -71,7 +78,11 @@ export function SiteShell({
         ‎`max-lg:z-[1]`‎ على ‎`main`‎ يتراص مقابل الإخوة (فوتر…)، وليس كافياً داخل ‎`main`‎.
         موبايل: ‎`main`‎ بلا ‎`bg`‎ حتى تُرى الهالة خلف الهيرو؛ ‎`pt-2`‎ على غلاف المحتوى (وليس على الهالة).
       */}
-      <main className="flex min-h-0 min-w-0 max-w-none flex-1 flex-col max-lg:relative max-lg:z-[1] max-lg:!bg-transparent bg-page pb-mobile-commerce lg:pb-0">
+      <main
+        id={STOREFRONT_MAIN_CONTENT_ID}
+        tabIndex={-1}
+        className="flex min-h-0 min-w-0 max-w-none flex-1 flex-col scroll-mt-[calc(env(safe-area-inset-top,0px)+6.5rem)] max-lg:relative max-lg:z-[1] max-lg:!bg-transparent bg-page pb-mobile-commerce lg:pb-0 lg:scroll-mt-28"
+      >
         <MobileHeroLimeAtmosphere />
         <div className="relative z-[1] flex min-h-0 min-w-0 flex-1 flex-col pt-2">
           <StorefrontShellChrome>{children}</StorefrontShellChrome>

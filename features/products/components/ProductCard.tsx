@@ -1,5 +1,9 @@
 "use client";
 
+/**
+ * بطاقة منتج في الجريد
+ * بالعامية: لينك للـ PDP، سلايد صور/فيديو اختياري، quick view لو مفعّل، wishlist، prefetch على التفاعل، وأنيميشن سلة اختياري.
+ */
 import dynamic from "next/dynamic";
 import { BadgeCheck, CirclePlay, ShieldCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -112,33 +116,38 @@ const variantLayout: Record<
 > = {
   /* بدون ‎overflow-hidden‎ على الـcard — لئلا يُقصّ ظل/حلقة أزرار التذييل (المعاينة) على موبايل. القصّ للصور فقط على مربع الصورة. */
   mobileCompact: {
-    card: "min-w-0 gap-2 p-2 sm:p-2.5",
-    body: "gap-1.5 p-0.5 pt-0 sm:gap-2",
-    title: "line-clamp-2 min-h-[2.25rem] text-[13px] font-semibold leading-[1.22] text-slate-950",
+    card: "min-w-0 gap-2 p-0",
+    body: "gap-1.5 px-2 pb-2 pt-1 sm:gap-2 sm:px-2.5 sm:pb-2.5 sm:pt-1.5",
+    title:
+      "line-clamp-2 min-h-[2.25rem] text-product-title font-semibold leading-[var(--text-product-title--line-height)] text-foreground",
     image: "h-[136px] w-full sm:h-[144px]",
   },
   desktopCatalog: {
-    card: "min-w-0 gap-2 p-2 sm:p-2.5",
-    body: "gap-1.5 p-0.5 pt-0 sm:gap-2",
-    title: "line-clamp-2 min-h-[2.25rem] text-[13px] font-semibold leading-[1.22] text-neutral-950",
+    card: "min-w-0 gap-2 p-0",
+    body: "gap-1.5 px-2 pb-2 pt-1 sm:gap-2 sm:px-2.5 sm:pb-2.5 sm:pt-1.5",
+    title:
+      "line-clamp-2 min-h-[2.25rem] text-product-title font-semibold leading-[var(--text-product-title--line-height)] text-foreground",
     image: "h-[138px] w-full sm:h-[146px] lg:h-[154px]",
   },
   desktopCatalogWide: {
-    card: "min-w-0 gap-2 p-2 sm:p-2.5",
-    body: "gap-1.5 p-0.5 pt-0 sm:gap-2",
-    title: "line-clamp-2 min-h-[2.25rem] text-[13px] font-semibold leading-[1.22] text-neutral-950",
+    card: "min-w-0 gap-2 p-0",
+    body: "gap-1.5 px-2 pb-2 pt-1 sm:gap-2 sm:px-2.5 sm:pb-2.5 sm:pt-1.5",
+    title:
+      "line-clamp-2 min-h-[2.25rem] text-product-title font-semibold leading-[var(--text-product-title--line-height)] text-foreground",
     image: "h-[138px] w-full sm:h-[146px] lg:h-[154px]",
   },
   featured: {
-    card: "min-w-0 gap-2 p-2 sm:p-2.5",
-    body: "gap-1.5 p-0.5 pt-0 sm:gap-2",
-    title: "line-clamp-2 min-h-[2.25rem] text-[13px] font-semibold leading-[1.22] text-neutral-950",
+    card: "min-w-0 gap-2 p-0",
+    body: "gap-1.5 px-2 pb-2 pt-1 sm:gap-2 sm:px-2.5 sm:pb-2.5 sm:pt-1.5",
+    title:
+      "line-clamp-2 min-h-[2.25rem] text-product-title font-semibold leading-[var(--text-product-title--line-height)] text-foreground",
     image: "h-[138px] w-full sm:h-[146px] lg:h-[154px]",
   },
   detailed: {
-    card: "p-0 min-w-0",
-    body: "gap-2 p-3 sm:p-3.5",
-    title: "line-clamp-2 min-h-[2.75rem] text-sm font-bold leading-snug text-neutral-950",
+    card: "min-w-0 p-0",
+    body: "gap-2 px-2 pb-2 pt-2 sm:px-3 sm:pb-3",
+    title:
+      "line-clamp-2 min-h-[2.75rem] text-base font-bold leading-snug text-foreground sm:text-lg",
     image: "aspect-square w-full",
   },
 };
@@ -521,11 +530,13 @@ export function ProductCard({
       compact={priceCompact}
       emphasized={false}
       amountClassName={cn(
-        "font-display font-extrabold tracking-tight text-slate-950",
-        priceCompact ? "text-[15px] leading-none sm:text-base" : "text-base md:text-lg",
+        "font-display font-extrabold tracking-tight text-foreground",
+        priceCompact
+          ? "text-product-price leading-[var(--text-product-price--line-height)] sm:text-base"
+          : "text-base md:text-lg",
         variant === "featured" && "text-lg",
       )}
-      compareAtClassName="!text-[11px] !leading-none !text-neutral-400 md:!text-xs"
+      compareAtClassName="!text-ui-label !leading-[var(--text-ui-label--line-height)] !text-muted-foreground md:!text-xs"
       className={cn(
         "min-w-0 !flex-col !items-start !gap-0.5 !gap-x-0",
       )}
@@ -538,10 +549,12 @@ export function ProductCard({
         variant="product"
         onClick={handleCardClick}
         className={cn(
-          "group/card relative flex h-full min-w-0 cursor-pointer flex-col border-slate-200/80 transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-[0_18px_38px_-22px_rgba(15,23,42,0.42)] active:scale-[0.98] motion-reduce:transform-none motion-reduce:transition-none",
-          isDetailed
-            ? "rounded-xl border-black/[0.06]"
-            : "rounded-2xl bg-white shadow-[0_10px_30px_-22px_rgba(15,23,42,0.35)] ring-1 ring-slate-900/[0.04]",
+          "group/card surface-product-card relative flex h-full min-w-0 cursor-pointer flex-col border-0 shadow-none ring-0",
+          /* transform + shadow: صريحة حتى لا تُلغى مع transition-shadow من أماكن أخرى */
+          "transition-[transform,box-shadow] duration-200 ease-out",
+          "hover:-translate-y-1 hover:shadow-[0_20px_44px_-20px_rgba(15,23,42,0.38)]",
+          "active:scale-[0.985] motion-reduce:transform-none motion-reduce:transition-none",
+          isDetailed ? "rounded-xl" : "rounded-2xl",
           layout.card,
           className,
         )}
@@ -599,7 +612,7 @@ export function ProductCard({
           {!isDetailed && saleDiscount !== null ? (
             <span
               dir="ltr"
-              className="pointer-events-none absolute left-2 top-2 z-[3] rounded-full bg-[#c45c5c] px-2 py-1 text-[10px] font-extrabold leading-none text-white shadow-sm sm:text-[11px]"
+              className="pointer-events-none absolute left-2 top-2 z-[3] rounded-full bg-promo-sale-bg px-2 py-1 text-product-meta font-extrabold leading-none text-promo-sale-fg shadow-sm sm:text-[11px]"
             >
               −{saleDiscount}%
             </span>
@@ -611,7 +624,7 @@ export function ProductCard({
           ) : saleDiscount !== null ? (
             <span
               dir="ltr"
-              className="pointer-events-none absolute left-2 top-2 z-[3] rounded-full bg-[#c45c5c] px-2 py-1 text-[10px] font-extrabold leading-none text-white shadow-sm sm:text-[11px]"
+              className="pointer-events-none absolute left-2 top-2 z-[3] rounded-full bg-promo-sale-bg px-2 py-1 text-product-meta font-extrabold leading-none text-promo-sale-fg shadow-sm sm:text-[11px]"
             >
               −{saleDiscount}%
             </span>

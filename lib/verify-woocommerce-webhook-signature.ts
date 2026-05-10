@@ -1,9 +1,11 @@
+/**
+ * التحقق من توقيع ويبهوك Woo
+ * بالعامية: Woo بيبعت `X-WC-Webhook-Signature` = Base64(HMAC-SHA256 للجسم الخام بالسرّ)؛ لازم يطابق `WC_WEBHOOK_SECRET`.
+ *
+ * شوف كمان: `@/app/api/webhooks/woocommerce/route.ts`
+ */
 import { verifyHmacSha256Base64Body } from "./verify-hmac-sha256-body-base64";
 
-/**
- * Verifies `X-WC-Webhook-Signature` (base64 HMAC-SHA256 of the raw body)
- * against the webhook secret from WooCommerce → Settings → Advanced → Webhooks.
- */
 export function verifyWooCommerceWebhookSignature(
   rawBody: string,
   signatureHeader: string | null,

@@ -1,5 +1,9 @@
 "use client";
 
+/**
+ * Toasts عربية RTL
+ * بالعامية: Sonner مع كلاسات التصميم؛ `mobileOffset` يفوق شريط التجارة عشان الزرار ما يغطيش الرسايل.
+ */
 import {
   AlertTriangle,
   CheckCircle2,
@@ -12,32 +16,31 @@ import { Toaster } from "sonner";
 import type { ToastClassnames } from "sonner";
 import { cn } from "@/lib/utils";
 
-/** فوق شريط التنقل/السلة — يُضبط ارتفاع الكروم في `MobileCommerceChrome`. */
+/** فوق الكروم السفلي — الارتفاع من متغير CSS يحدده `MobileCommerceChrome`. */
 const MOBILE_TOAST_BOTTOM =
   "calc(env(safe-area-inset-bottom, 0px) + var(--mobile-commerce-chrome-height, 5rem) + 0.75rem)";
 
 const toastClassNames = {
   toast: cn(
-    "!gap-3 !rounded-3xl !border !border-white/50 !p-4 !shadow-[0_20px_48px_-16px_rgba(15,23,42,0.28),0_4px_12px_-4px_rgba(15,23,42,0.1)]",
-    "!bg-white/90 !backdrop-blur-2xl !backdrop-saturate-150",
-    "!text-slate-900",
+    "surface-glass !gap-3 !rounded-3xl !border !p-4 !backdrop-blur-2xl",
+    "!text-foreground",
   ),
   title: "font-display text-sm font-semibold tracking-tight text-inherit",
-  description: "text-sm font-normal leading-snug text-slate-600",
+  description: "text-sm font-normal leading-snug text-muted-foreground",
   success:
-    "!border-emerald-400/45 !bg-emerald-50/95 !text-emerald-950 [&_[data-description]]:!text-emerald-900/80",
+    "!border-success-border !bg-success-surface !text-success-foreground [&_[data-description]]:!text-success-foreground/80",
   error:
-    "!border-rose-400/45 !bg-rose-50/95 !text-rose-950 [&_[data-description]]:!text-rose-900/80",
-  info: "!border-sky-300/50 !bg-sky-50/92 !text-slate-900 [&_[data-description]]:!text-slate-600",
+    "!border-destructive-border !bg-destructive-surface !text-destructive-foreground [&_[data-description]]:!text-destructive-foreground/85",
+  info: "!border-info-border !bg-info-surface !text-info-foreground [&_[data-description]]:!text-muted-foreground",
   warning:
-    "!border-amber-400/45 !bg-amber-50/92 !text-amber-950 [&_[data-description]]:!text-amber-900/85",
+    "!border-warning-border !bg-warning-surface !text-warning-foreground [&_[data-description]]:!text-warning-foreground/88",
   default:
-    "!border-slate-300/55 !bg-slate-50/95 !text-slate-900 [&_[data-description]]:!text-slate-600",
+    "!border-border/80 !bg-background/95 !text-foreground [&_[data-description]]:!text-muted-foreground",
   loading:
-    "!border-slate-300/55 !bg-white/90 !text-slate-900 [&_[data-description]]:!text-slate-600",
+    "!border-border/80 !bg-background/95 !text-foreground [&_[data-description]]:!text-muted-foreground",
   icon: "[&_svg]:size-5 shrink-0",
   closeButton:
-    "!h-9 !w-9 !border-0 !rounded-full !bg-slate-100/95 !text-slate-600 !shadow-sm !ring-1 !ring-slate-900/5 transition-colors hover:!bg-slate-200/90",
+    "!h-9 !w-9 !border-0 !rounded-full !bg-surface-muted/90 !text-muted-foreground !shadow-sm !ring-1 !ring-foreground/5 transition-colors hover:!bg-surface-muted",
 } satisfies ToastClassnames;
 
 export function ToastProvider() {
@@ -57,18 +60,23 @@ export function ToastProvider() {
       icons={{
         success: (
           <CheckCircle2
-            className="size-5 shrink-0 text-emerald-600"
+            className="size-5 shrink-0 text-success-icon"
             aria-hidden
           />
         ),
-        error: <XCircle className="size-5 shrink-0 text-rose-600" aria-hidden />,
-        info: <Info className="size-5 shrink-0 text-sky-600" aria-hidden />,
+        error: (
+          <XCircle className="size-5 shrink-0 text-destructive-icon" aria-hidden />
+        ),
+        info: <Info className="size-5 shrink-0 text-info-icon" aria-hidden />,
         warning: (
-          <AlertTriangle className="size-5 shrink-0 text-amber-600" aria-hidden />
+          <AlertTriangle
+            className="size-5 shrink-0 text-warning-icon"
+            aria-hidden
+          />
         ),
         loading: (
           <Loader2
-            className="size-5 shrink-0 animate-spin text-slate-600"
+            className="size-5 shrink-0 animate-spin text-muted-foreground"
             aria-hidden
           />
         ),

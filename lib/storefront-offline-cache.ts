@@ -1,3 +1,12 @@
+/**
+ * TanStack Query + أوفلاين/تحديث Woo من السوفت
+ * بالعامية: بنحفظ جزء من كاش الـ Query في localStorage بعد النجاح، ولو وصلنا إشعار من Service Worker إن الداتا اتغيّرت نعمل invalidate للمفاتيح المناسبة.
+ *
+ * ملاحظات:
+ * - ليه persist محدود: بس مفاتيح كتالوج ظاهرة للمتسوق — مش كل query عشان الحجم والخصوصية.
+ * - حذر: تغيير شكل `queryKey` لازم يعدّل `isPersistableStorefrontQueryKey`.
+ * - شوف كمان: `@/providers/QueryProvider.tsx`، `@/lib/api-client.ts`
+ */
 import {
   dehydrate,
   hydrate,
@@ -83,6 +92,7 @@ function readPersistedQueryCache(): PersistedQueryCache | null {
   }
 }
 
+/** تحميل كاش الـ Query من localStorage عند الإقلاع (لو صالح ومش منتهي). */
 export function restoreStorefrontQueryCache(queryClient: QueryClient): void {
   const persisted = readPersistedQueryCache();
   if (!persisted) return;
@@ -95,6 +105,9 @@ export function restoreStorefrontQueryCache(queryClient: QueryClient): void {
   }
 }
 
+/**
+ * اشتراك في تغيّرات الكاش — debounce + idle علشان ما نكتبش localStorage على كل حركة.
+ */
 export function subscribeStorefrontQueryCachePersistence(
   queryClient: QueryClient,
 ): () => void {
@@ -207,6 +220,9 @@ export function emitWooCacheInvalidationFromData(
   return true;
 }
 
+/**
+ * بعد رسالة SW/حدث مخصص: نوزّع الـ invalidate حسب الـ scope (منتجات، تصنيفات، تقييمات…).
+ */
 export function invalidateStorefrontQueriesFromWooEvent(
   queryClient: QueryClient,
   payload: WooCacheInvalidationPayload,

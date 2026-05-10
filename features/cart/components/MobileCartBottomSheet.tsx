@@ -9,6 +9,7 @@ import { Drawer } from "vaul";
 import { useCart } from "@/hooks/useCart";
 import { formatPriceAmountCheckout } from "@/lib/format";
 import { ROUTES } from "@/lib/constants";
+import { motionTransition } from "@/lib/motion";
 import { cn, formatPrice } from "@/lib/utils";
 import {
   CartDrawerLines,
@@ -92,9 +93,7 @@ export function MobileCartBottomSheet({
               : { opacity: 1, y: 0 }
           }
           transition={
-            reduceMotion
-              ? { duration: 0 }
-              : { type: "spring", stiffness: 400, damping: 32 }
+            reduceMotion ? { duration: 0 } : motionTransition.cartPeekSpring
           }
         >
           <Drawer.Trigger asChild disabled={!hasHydrated || peekHidden}>

@@ -1,3 +1,12 @@
+/**
+ * مين يقدر يقيّم منتج؟
+ * بالعامية: التقييم على الـ PDP مربوط بشرط «اشتريت المنتج ده بأوردر مكتمل» + «مفيش تقييم قبل كده بنفس الإيميل».
+ *
+ * ملاحظات:
+ * - ليه نربط بـ Woo orders: المصدر الحقيقي للشراء مش السلة المحلية.
+ * - حذر: تغيير مطابقة الـ line item يأثر على المتغيرات — شوف `wcLineItemMatchesPdpProductId`.
+ * - شوف كمان: `@/lib/list-woo-orders-for-session.ts`، `@/features/reviews/lib/line-matches-pdp.ts`
+ */
 import type { AxiosInstance } from "axios";
 import type { SessionJwtPayload } from "@/lib/jwt";
 import { listWooOrdersForSession } from "@/lib/list-woo-orders-for-session";

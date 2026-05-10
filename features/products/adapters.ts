@@ -1,3 +1,11 @@
+/**
+ * من JSON وو لنموذج `Product` للواجهة
+ * بالعامية: بننضّف الوصف، نحوّل الأسعار، ونثبّت مسارات الصور — وكمان بنحتفظ بـ `wooExcess` لأي حقول زيادة محتاجينها برّه الـ schema الأساسي.
+ *
+ * ملاحظات:
+ * - ليه مش بنرجع الـ WC خام: الـ UI عايزة أرقام وURLs مطلقة من غير ما كل مكوّن يعيد نفس الشغل.
+ * - شوف كمان: `@/lib/woo-passthrough-keys.ts`، `@/schemas/wordpress.ts`
+ */
 import { normalizeProductDescriptionSource } from "@/lib/html";
 import { parsePrice } from "@/lib/utils";
 import { toAbsoluteSiteUrl } from "@/lib/site";

@@ -1,5 +1,14 @@
 import "server-only";
 
+/**
+ * إبطال كاش Next بعد تحديث Woo
+ * بالعامية: لما البيانات تتغيّر (ويبهوك أو مصدر خارجي) بننادي `revalidateTag` و`revalidatePath` علشان الصفحات والـ RSC يتبنوا من جديد.
+ *
+ * ملاحظات:
+ * - ليه path + tag: التاج يفضي كاش `unstable_cache`؛ المسار يحدّث صفحات App Router الظاهرة.
+ * - حذر: زود paths بحذر — كل `revalidatePath` تكلفة بناء/ISR.
+ * - شوف كمان: `@/app/api/webhooks/woocommerce/route.ts`، `@/lib/woocommerce-cache-tags.ts`
+ */
 import { revalidatePath, revalidateTag } from "next/cache";
 import {
   WOO_CACHE_TAG_ORDERS,
@@ -9,10 +18,7 @@ import {
   WOO_CACHE_TAG_SITEMAP,
 } from "@/lib/woocommerce-cache-tags";
 
-/**
- * يبطل ‎`unstable_cache`‎ (منتجات + سايت-ماب Woo) — مُستخدَم من ويب هووك Woo
- * وويب هووك الـ API الخارجي.
- */
+/** منتجات + تاجات + سايت ماب Woo — من ويبهوك Woo أو بيانات خارجية. */
 export function revalidateWooDataTags(): void {
   revalidateTag(WOO_CACHE_TAG_PRODUCTS, "max");
   revalidateTag(WOO_CACHE_TAG_PRODUCT_TAGS, "max");
@@ -27,7 +33,7 @@ export function revalidateWooReviewTags(): void {
   revalidateTag(WOO_CACHE_TAG_REVIEWS, "max");
 }
 
-/** مسارات الكتالوج + صفحة منتج اختياري — بعد استدعاء ‎`revalidateWooDataTags`‎ من الـ hook. */
+/** صفحات القوائم الرئيسية + اختياري `/products/[id]` بعد ما التاجات تتشال. */
 export function revalidateProductListingPaths(productId?: number): void {
   revalidatePath("/");
   revalidatePath("/products");
@@ -48,10 +54,7 @@ export function revalidateCategoryListingPathsAfterHook(): void {
   revalidatePath("/categories", "layout");
 }
 
-/**
- * إبطال كاش ومسارات القوائم بعد **مصدر بيانات خارجي** (بدون ‎Woo topic‎).
- * لا يتضمّن ‎`productId`‎ — لإضافة ‎`id`‎ اختيارياً من جسم الـ JSON لاحقاً.
- */
+/** مصدر خارجي مش Woo topic — بنعمم إبطال أوسع (منتجات/طلبات/تقييمات + قوائم). */
 export function revalidateAfterExternalDataWebhook(): void {
   revalidateWooDataTags();
   revalidateWooOrderTags();

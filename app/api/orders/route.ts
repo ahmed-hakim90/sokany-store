@@ -1,3 +1,9 @@
+/**
+ * BFF: طلبات Woo للمتجر
+ * بالعامية: GET بجلسة JWT يجمع أوردرات العميل (مع منطق Firebase meta)؛ POST ينشئ أوردر في Woo، يضيف حقول تتبع للواجهة، يعمل revalidate للطلبات، ويحاول يفوّض لـ API خارجي لو مفعّل.
+ *
+ * شوف كمان: `@/lib/list-woo-orders-for-session.ts`، `@/lib/woo-order-payment-env.ts`
+ */
 import { NextRequest, NextResponse } from "next/server";
 import axios from "axios";
 import { createWooClient } from "@/lib/create-woo-client";
@@ -46,6 +52,7 @@ function enrichWooOrderForStorefront(data: unknown): unknown {
   };
 }
 
+/** قائمة مرتبطة بالإيميل/الـ UID — مش «كل طلبات المتجر». */
 export async function GET(request: NextRequest) {
   const session = await getSessionFromRequest(request);
   if (!session) {

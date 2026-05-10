@@ -1,5 +1,12 @@
 "use client";
 
+/**
+ * درج القائمة (موبايل)
+ * بالعامية: portal فوق الصفحة، focus trap، شجرة تصنيفات من الـ API، وروابط ثابتة — مربوط بـ `useMobileNavDrawerOpenStore`.
+ *
+ * ملاحظات:
+ * - `returnFocusRef` لازم يفضل متزامن مع الزرار اللي فتح الدرج.
+ */
 import { createPortal } from "react-dom";
 import { Link } from "next-view-transitions";
 import { usePathname } from "next/navigation";
@@ -16,8 +23,9 @@ import { MobileAccordionSection } from "@/components/ui/mobile-accordion-section
 import { IconButton } from "@/components/ui/icon-button";
 import { CategoryIcon } from "@/features/categories/category-icon-registry";
 import type { Category } from "@/features/categories/types";
-import { CONTACT_EMAIL, ROUTES } from "@/lib/constants";
+import { CONTACT_EMAIL, PRODUCTS_ALL_CATALOG_HREF, ROUTES } from "@/lib/constants";
 import { navLinkActiveSurfaceClass, navLinkPressableClass } from "@/lib/nav-link-interaction";
+import { motionDuration, motionEase } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
 export type NavDrawerLink = { href: string; label: string };
@@ -172,7 +180,9 @@ export function MobileNavDrawer({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: reduceMotion ? 0 : 0.2 }}
+            transition={{
+              duration: reduceMotion ? 0 : motionDuration.sm,
+            }}
             onClick={onClose}
             aria-hidden
           />
@@ -204,7 +214,11 @@ export function MobileNavDrawer({
               transition={
                 reduceMotion
                   ? { duration: 0 }
-                  : { type: "tween", ease: [0.22, 1, 0.36, 1], duration: 0.28 }
+                  : {
+                      type: "tween",
+                      ease: motionEase.megaPanel,
+                      duration: motionDuration.md,
+                    }
               }
             >
               <h2 id={titleId} className="sr-only">
@@ -214,7 +228,7 @@ export function MobileNavDrawer({
                 <Link
                   href={ROUTES.ACCOUNT}
                   className={cn(
-                    "inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-brand-950 transition-colors [@media(hover:hover)]:hover:bg-surface-muted/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500",
+                    "inline-flex h-11 min-h-[44px] w-11 min-w-[44px] shrink-0 items-center justify-center rounded-full text-brand-950 transition-colors [@media(hover:hover)]:hover:bg-surface-muted/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500",
                     navLinkPressableClass,
                     "active:bg-black/[0.07]",
                     (pathname === ROUTES.ACCOUNT ||
@@ -254,6 +268,42 @@ export function MobileNavDrawer({
                     بحث عن منتج
                   </Link>
                 </div>
+
+                <nav
+                  aria-label="تسوق سريع"
+                  className="grid grid-cols-2 gap-2 border-b border-border/80 py-3"
+                >
+                  <Link
+                    href={ROUTES.OFFERS}
+                    className={cn(
+                      "flex min-h-[44px] items-center justify-center rounded-xl border border-destructive-border/50 bg-destructive-surface px-2 text-center text-sm font-bold text-destructive-foreground shadow-sm",
+                      navLinkPressableClass,
+                    )}
+                    onClick={onClose}
+                  >
+                    العروض
+                  </Link>
+                  <Link
+                    href={PRODUCTS_ALL_CATALOG_HREF}
+                    className={cn(
+                      "flex min-h-[44px] items-center justify-center rounded-xl border border-border/80 bg-white px-2 text-center text-sm font-semibold text-brand-950 shadow-sm",
+                      navLinkPressableClass,
+                    )}
+                    onClick={onClose}
+                  >
+                    كل المنتجات
+                  </Link>
+                  <Link
+                    href={ROUTES.CATEGORIES}
+                    className={cn(
+                      "col-span-2 flex min-h-[44px] items-center justify-center rounded-xl border border-border/80 bg-surface-muted/40 px-2 text-center text-sm font-semibold text-foreground",
+                      navLinkPressableClass,
+                    )}
+                    onClick={onClose}
+                  >
+                    تصفّح كل التصنيفات
+                  </Link>
+                </nav>
 
                 <section
                   className="border-b border-border/80 py-3"

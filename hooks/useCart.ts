@@ -1,5 +1,11 @@
 "use client";
 
+/**
+ * واجهة السلة للمكوّنات
+ * بالعامية: غلاف فوق `useCartStore` مع انتظار الـ hydration علشان SSR ما يختلفش عن أول رسمة في العميل؛ فيه toasts بسيطة للإضافة/الحذف.
+ *
+ * شوف كمان: `@/features/cart/store/useCartStore.ts`، `@/hooks/useHasHydrated.ts`
+ */
 import { useCallback } from "react";
 import { toast } from "sonner";
 import { useHasHydrated } from "@/hooks/useHasHydrated";

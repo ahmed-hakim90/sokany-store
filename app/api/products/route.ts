@@ -1,3 +1,11 @@
+/**
+ * BFF: قائمة المنتجات
+ * بالعامية: الفرونت يطلب `/api/products`؛ إحنا بنكلم Woo بكاش `unstable_cache`، ولو حصل عطل ومسموح mock بنبني نفس الفلترة من سنابشوت/موك (تصنيف + أحفاد، include، إلخ).
+ *
+ * ملاحظات:
+ * - الهيدرز `X-WP-Total` لازم تفضل متوافقة مع `getProducts` في العميل.
+ * - شوف كمان: `@/features/products/services/woo-storefront-product-page.ts`
+ */
 import { NextRequest, NextResponse } from "next/server";
 import { unstable_cache } from "next/cache";
 import { listMockProductsMatching } from "@/features/products/mock";
@@ -10,6 +18,7 @@ import { mockCategories } from "@/features/categories/mock";
 import { DEFAULT_PER_PAGE } from "@/lib/constants";
 import { wooBff502Response } from "@/lib/woo-bff-catch-payload";
 import { shouldUseWooBffMockFallback } from "@/lib/woo-bff-mock-fallback";
+import { WOO_BFF_UNSTABLE_CACHE_REVALIDATE_SEC } from "@/lib/woo-bff-revalidate";
 import { WOO_CACHE_TAG_PRODUCTS } from "@/lib/woocommerce-cache-tags";
 import { filterWcProductsExcludingOutOfStock } from "@/lib/woo-storefront-availability";
 import { fetchWooStorefrontProductsPage } from "@/features/products/services/woo-storefront-product-page";
@@ -22,6 +31,7 @@ type CachedWooListResponse = {
   totalPages: string;
 };
 
+/** للفallback المحلي: نوسّع تصنيف رقمي لكل الأطفال في الشجرة. */
 function collectDescendantCategoryIds(
   rootId: number,
   categories: WCCategory[],
@@ -73,7 +83,7 @@ const fetchWooProductsCached = unstable_cache(
     };
   },
   ["woo-api-products-v2-storefront-walk"],
-  { revalidate: 300, tags: [WOO_CACHE_TAG_PRODUCTS] },
+  { revalidate: WOO_BFF_UNSTABLE_CACHE_REVALIDATE_SEC, tags: [WOO_CACHE_TAG_PRODUCTS] },
 );
 
 export async function GET(request: NextRequest) {

@@ -1,10 +1,23 @@
 "use client";
 
+/**
+ * axios بتاع الواجهة (BFF تحت `/api`)
+ * بالعامية: كل طلبات المتجر من المتصفح تعدي هنا — بنحط التوكن، وبنخزن شوية GET في localStorage لو الشبكة وقعت نرجع آخر نجاح.
+ *
+ * ملاحظات:
+ * - ليه كاش محلي: تجربة أوضح لكتالوج/تصنيفات لما السيرفر يبوّظ مؤقتاً؛ مش بديل أمان.
+ * - حذر: الـ 401 على reviews العامة مش «انتهاء جلسة» — بنستثنيها عشان مفاتيح Woo الغلط ما تطردش المستخدم.
+ * - شوف كمان: `@/features/auth/store/useAuthStore.ts`، `@/lib/storefront-offline-cache.ts`
+ */
 import axios, { type AxiosError, type AxiosResponse } from "axios";
 import { ROUTES } from "@/lib/constants";
 import { useAuthStore } from "@/features/auth/store/useAuthStore";
+import {
+  canFallbackToCachedResponse,
+  isStorefrontCacheableGet,
+  storefrontApiCacheKey,
+} from "@/lib/storefront-api-cache-policy";
 
-const STOREFRONT_API_CACHE_PREFIX = "sokany_storefront_api_response_v1:";
 const STOREFRONT_API_CACHE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 
 type CachedApiResponse = {
@@ -20,50 +33,6 @@ export const apiClient = axios.create({
 
 function canUseStorage(): boolean {
   return typeof window !== "undefined" && typeof window.localStorage !== "undefined";
-}
-
-function stableStringify(value: unknown): string {
-  if (value == null || typeof value !== "object") {
-    return JSON.stringify(value);
-  }
-  if (Array.isArray(value)) {
-    return `[${value.map((item) => stableStringify(item)).join(",")}]`;
-  }
-  const record = value as Record<string, unknown>;
-  return `{${Object.keys(record)
-    .sort()
-    .filter((key) => record[key] !== undefined)
-    .map((key) => `${JSON.stringify(key)}:${stableStringify(record[key])}`)
-    .join(",")}}`;
-}
-
-function normalizeApiPath(url: string | undefined): string {
-  if (!url) return "";
-  try {
-    const parsed = new URL(url, "http://sokany.local");
-    return parsed.pathname.replace(/^\/api/, "") || "/";
-  } catch {
-    return url.split("?")[0]?.replace(/^\/api/, "") || "";
-  }
-}
-
-function isStorefrontCacheableGet(config: AxiosResponse["config"]): boolean {
-  const method = (config.method ?? "get").toLowerCase();
-  if (method !== "get") return false;
-  const path = normalizeApiPath(config.url);
-  return (
-    path === "/products" ||
-    /^\/products\/\d+$/.test(path) ||
-    path === "/categories" ||
-    /^\/categories\/\d+$/.test(path) ||
-    path === "/reviews"
-  );
-}
-
-function storefrontApiCacheKey(config: AxiosResponse["config"]): string {
-  const path = normalizeApiPath(config.url);
-  const params = stableStringify(config.params ?? {});
-  return `${STOREFRONT_API_CACHE_PREFIX}${path}:${params}`;
 }
 
 function headersToRecord(headers: unknown): Record<string, string> {
@@ -122,12 +91,7 @@ function readStorefrontApiCache(
   }
 }
 
-function canFallbackToCachedResponse(error: AxiosError): boolean {
-  if (!error.config) return false;
-  if (!error.response) return true;
-  return [502, 503, 504].includes(error.response.status);
-}
-
+/** حقن Bearer من الـ auth store قبل ما الطلب يطلع. */
 apiClient.interceptors.request.use((config) => {
   if (typeof window === "undefined") {
     return config;
@@ -139,6 +103,9 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
+/**
+ * ردود ناجحة → نكتب كاش؛ أخطاء شبكة/502 → نجرب نقرا من localStorage؛ 401 → نفض الجلسة مع استثناءات واضحة.
+ */
 apiClient.interceptors.response.use(
   (res) => {
     writeStorefrontApiCache(res);
@@ -174,7 +141,7 @@ apiClient.interceptors.response.use(
       ) {
         return Promise.reject(error);
       }
-      // Public GETs proxied to Woo can return 401 (bad/readonly keys, endpoint policy). That is not a storefront session expiry.
+      /* GET عام لـ reviews ممكن 401 من Woo — ده مش انتهاء جلسة المتجر. */
       if (
         method === "get" &&
         (url === "reviews" ||

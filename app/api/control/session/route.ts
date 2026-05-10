@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { enforceRateLimit } from "@/lib/rate-limit-response";
 import { isUidControlPanelAccessAllowed, resolveControlSessionForUid } from "@/lib/control-access-resolve";
 import { requireControlSession } from "@/lib/api-control-auth";
 import {
@@ -20,6 +21,13 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const limited = enforceRateLimit(request, {
+    routeId: "control-session",
+    max: 30,
+    windowMs: 15 * 60 * 1000,
+  });
+  if (limited) return limited;
+
   let body: unknown;
   try {
     body = await request.json();

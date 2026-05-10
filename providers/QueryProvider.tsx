@@ -1,5 +1,13 @@
 "use client";
 
+/**
+ * إعداد TanStack Query للمتجر
+ * بالعامية: QueryClient واحد، استعادة كاش من localStorage بعد أول frame (علشان ما يكسرش HydrationBoundary)، اشتراك في حفظ الكاش، وسماع أحداث إبطال من SW أو الداخل.
+ *
+ * ملاحظات:
+ * - `restore` في effect + idle علشان الهوم ما تفضلش skeleton من غير داعي.
+ * - شوف كمان: `@/lib/storefront-offline-cache.ts`
+ */
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { useEffect, useState } from "react";
@@ -12,6 +20,7 @@ import {
   type WooCacheInvalidationPayload,
 } from "@/lib/storefront-offline-cache";
 import { scheduleIdleCallback } from "@/lib/schedule-idle-callback";
+import { STALE_TIME } from "@/lib/constants";
 
 export function QueryProvider({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -19,7 +28,7 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
       new QueryClient({
         defaultOptions: {
           queries: {
-            staleTime: 5 * 60 * 1000,
+            staleTime: STALE_TIME.MEDIUM,
             retry: 1,
             refetchOnWindowFocus: false,
             refetchOnReconnect: true,
@@ -28,12 +37,7 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
       }),
   );
 
-  /**
-   * استعادة ‎`localStorage`‎ بعد أول commit وليس في ‎`useState`‎:
-   * ‎`HydrationBoundary`‎ يدمج بيانات RSC في أول render فقط للاستعلامات «الجديدة» في الكاش.
-   * إذا مُلئ الكاش من ‎`restoreStorefrontQueryCache`‎ قبل ذلك، يُؤجَّل الـ hydrate إلى ‎`useEffect`‎
-   * في ‎`HydrationBoundary`‎ → ‎`useQuery`‎ يبقى ‎`pending`‎ لإطار أو أكثر وتظهر شبكات الـ skeleton على الهوم.
-   */
+  /* استعادة localStorage بعد أول commit: لو حصلت في useState الأول ممكن تخلي HydrationBoundary/useQuery يتأخروا ويطلع skeleton على الهوم. */
   useEffect(
     () =>
       scheduleIdleCallback(() => restoreStorefrontQueryCache(queryClient), {

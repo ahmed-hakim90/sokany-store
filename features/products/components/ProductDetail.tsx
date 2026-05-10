@@ -1,5 +1,9 @@
 "use client";
 
+/**
+ * كتلة PDP (معرض + معلومات + شريط لاصق)
+ * بالعامية: يظبط الكمية، يشغّل أنيميشن الطيران للسلة لو الحركة مسموحة، ويعرض `ProductDetailStickyCart` لما منطقة الشراء تطلع من الشاشة.
+ */
 import { useReducedMotion } from "framer-motion";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ProductDetailInfoColumn } from "@/features/products/components/product-detail-info-column";

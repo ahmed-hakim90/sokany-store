@@ -17,8 +17,10 @@ import { cn } from "@/lib/utils";
 const PLACEHOLDER = "/images/placeholder.png";
 
 /**
- * ‎/my-reviews‎: مسار عمود ‎`Container`‎ — للمسجّل فقط؛ منتجات من طلب ‎`completed`‎
- * لم تُنشر بها مراجعة ببريدك بعد، مع ارتباط بصفحة المنتج.
+ * تقييماتي (مسجّل)
+ * بالعامية: بنستخرج منتجات من أوردرات `completed`، نجيب تفاصيل المنتج والمراجعات، ونعرض اللي لسه ما اتكتبش فيه ريفيو بنفس الإيميل.
+ *
+ * شوف كمان: `@/lib/review-purchase-eligibility.ts`
  */
 
 function pdpIdFromItem(item: OrderItem): number {

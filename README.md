@@ -180,6 +180,19 @@ npm run analyze                  # bundle analyzer (webpack build)
 | [`docs/tech-audit.md`](docs/tech-audit.md) | Layout shift (CLS), mobile commerce chrome, search/menu UX notes |
 | [`AGENTS.md`](AGENTS.md) | Agent / contributor notes (Next.js docs pointer, branding & SEO doc links) |
 
+**Architecture & operations map (bilingual entry points):**
+
+| Document | Purpose |
+|----------|---------|
+| [`docs/architecture.md`](docs/architecture.md) | Stack, folder contract, BFF data flow, Control vs storefront |
+| [`docs/frontend-guidelines.md`](docs/frontend-guidelines.md) | RTL, RSC/client, Query/Zustand, Zod, images, layout comments |
+| [`docs/woo-integration.md`](docs/woo-integration.md) | Woo env, client→`/api` map, webhooks, revalidation |
+| [`docs/caching-strategy.md`](docs/caching-strategy.md) | `unstable_cache`, tags, ISR, HTTP headers, PWA cache layer |
+| [`docs/pwa-behavior.md`](docs/pwa-behavior.md) | `manifest`, service worker, offline, FCM, Vercel manifest 401 |
+| [`docs/deployment-runbook.md`](docs/deployment-runbook.md) | Env checklist, build, webhooks, smoke tests |
+| [`docs/seo-system.md`](docs/seo-system.md) | Metadata inheritance, sitemap/robots, JSON-LD index |
+| [`docs/image-specs.md`](docs/image-specs.md) | `AppImage` cover/contain, remote patterns, designer sizes (→ `design-image-sizes-ar`) |
+
 ---
 
 ## Folder structure

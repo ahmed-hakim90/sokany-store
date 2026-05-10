@@ -10,7 +10,15 @@ import { defineConfig, devices } from '@playwright/test';
 
 /**
  * See https://playwright.dev/docs/test-configuration.
+ *
+ * خادم الاختبار: ‎`build` + ‎`start` على 3330 (لا يتعارض مع ‎`next dev` على 3000؛ Next يسمح بخادم تطوير واحد فقط لكل مجلد مشروع).
+ * لتجاوز التشغيل التلقائي: ‎`PLAYWRIGHT_SKIP_WEBSERVER=1`‎ و ‎`PLAYWRIGHT_TEST_BASE_URL`‎.
  */
+const PLAYWRIGHT_PREVIEW_PORT = process.env.PLAYWRIGHT_PREVIEW_PORT?.trim() || '3330';
+const DEFAULT_PLAYWRIGHT_ORIGIN =
+  process.env.PLAYWRIGHT_TEST_BASE_URL?.trim() ||
+  `http://127.0.0.1:${PLAYWRIGHT_PREVIEW_PORT}`;
+
 export default defineConfig({
   testDir: './tests',
   /* Run tests in files in parallel */
@@ -25,8 +33,7 @@ export default defineConfig({
   reporter: 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
-    baseURL:
-      process.env.PLAYWRIGHT_TEST_BASE_URL?.trim() || 'http://127.0.0.1:3000',
+    baseURL: DEFAULT_PLAYWRIGHT_ORIGIN,
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
   },
@@ -69,18 +76,15 @@ export default defineConfig({
     // },
   ],
 
-  /* يشغّل `next dev` تلقائياً ما لم يكن الخادم يعمل (reuseExistingServer). عطّل بـ PLAYWRIGHT_SKIP_WEBSERVER=1 */
+  /* production preview — يعمل بجانب `next dev` ويضمن ‎`NEXT_PUBLIC_USE_MOCK`‎ لبيانات ثابتة */
   ...(process.env.PLAYWRIGHT_SKIP_WEBSERVER
     ? {}
     : {
         webServer: {
-          command: 'npm run dev',
-          url:
-            process.env.PLAYWRIGHT_TEST_BASE_URL?.trim() ||
-            'http://127.0.0.1:3000',
-          reuseExistingServer: !process.env.CI,
-          timeout: 120_000,
-          /* بيانات ثابتة من mock — يضمن تحميل صفحات المنتجات في E2E دون انتظار WooCommerce. */
+          command: `npm run build && ./node_modules/.bin/next start -p ${PLAYWRIGHT_PREVIEW_PORT}`,
+          url: DEFAULT_PLAYWRIGHT_ORIGIN,
+          reuseExistingServer: !!process.env.PLAYWRIGHT_REUSE_WEBSERVER?.trim(),
+          timeout: 360_000,
           env: {
             ...process.env,
             NEXT_PUBLIC_USE_MOCK: 'true',

@@ -5,9 +5,29 @@ import type { LucideIcon } from "lucide-react";
 import { CheckCircle2, CircleDashed, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import {
+  DashboardActionTile,
+  StatWidget,
+  type DashboardWidgetTone,
+} from "@/components/ui/dashboard-widget";
 import { cn } from "@/lib/utils";
 
 type Tone = "brand" | "emerald" | "amber" | "rose" | "slate";
+
+function controlToneToWidget(tone: Tone): DashboardWidgetTone {
+  switch (tone) {
+    case "emerald":
+      return "success";
+    case "rose":
+      return "destructive";
+    case "amber":
+      return "warning";
+    case "slate":
+      return "neutral";
+    default:
+      return "brand";
+  }
+}
 
 /**
  * غلاف منطقة المحتوى الأساسية في صفحات /control الفرعية (max-w + spacing).
@@ -64,7 +84,7 @@ export function ControlPageHeader({
       )}
     >
       <div className="min-w-0">
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+        <p className="text-ui-label font-semibold uppercase tracking-wider text-muted-foreground">
           {eyebrow}
         </p>
         <h1
@@ -214,17 +234,17 @@ export function ControlAsyncState({
 
 const toneClasses: Record<Tone, string> = {
   brand: "border-brand-200/80 bg-brand-50/70 text-brand-950",
-  emerald: "border-emerald-200/80 bg-emerald-50/80 text-emerald-950",
-  amber: "border-amber-200/80 bg-amber-50/80 text-amber-950",
-  rose: "border-rose-200/80 bg-rose-50/80 text-rose-950",
+  emerald: "border-success-border/80 bg-success-surface text-success-foreground",
+  amber: "border-warning-border/80 bg-warning-surface text-warning-foreground",
+  rose: "border-destructive-border/80 bg-destructive-surface text-destructive-foreground",
   slate: "border-slate-200/80 bg-slate-50/80 text-slate-950",
 };
 
 const iconToneClasses: Record<Tone, string> = {
   brand: "bg-brand-500 text-black",
-  emerald: "bg-emerald-500 text-white",
-  amber: "bg-amber-500 text-black",
-  rose: "bg-rose-500 text-white",
+  emerald: "bg-success text-white",
+  amber: "bg-warning text-black",
+  rose: "bg-destructive text-white",
   slate: "bg-slate-900 text-white",
 };
 
@@ -349,42 +369,13 @@ export function ControlStatCard({
   icon?: LucideIcon;
 }) {
   return (
-    <Card
-      variant="summary"
-      className="relative overflow-hidden border border-slate-200/90 p-4 shadow-[0_10px_30px_-24px_rgba(15,23,42,0.35)]"
-    >
-      <div
-        className={cn(
-          "pointer-events-none absolute inset-x-0 top-0 h-1",
-          tone === "brand"
-            ? "bg-brand-500"
-            : tone === "emerald"
-              ? "bg-emerald-500"
-              : tone === "amber"
-                ? "bg-amber-500"
-                : tone === "rose"
-                  ? "bg-rose-500"
-                  : "bg-slate-300",
-        )}
-      />
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
-            {label}
-          </p>
-          <p className="mt-3 text-2xl font-bold tracking-tight text-slate-950">{value}</p>
-          <p className="mt-2 text-sm leading-6 text-slate-600">{hint}</p>
-        </div>
-        <span
-          className={cn(
-            "inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl",
-            iconToneClasses[tone],
-          )}
-        >
-          <Icon className="h-5 w-5" />
-        </span>
-      </div>
-    </Card>
+    <StatWidget
+      label={label}
+      value={value}
+      hint={hint}
+      tone={controlToneToWidget(tone)}
+      icon={Icon}
+    />
   );
 }
 
@@ -425,21 +416,13 @@ export function ControlActionTile({
   icon?: LucideIcon;
 }) {
   return (
-    <Card
-      variant="summary"
-      className="border border-slate-200/90 p-4 shadow-[0_10px_30px_-24px_rgba(15,23,42,0.35)]"
-    >
-      <div className="flex items-start gap-3">
-        <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-slate-900 text-white">
-          <Icon className="h-5 w-5" />
-        </span>
-        <div className="min-w-0 flex-1">
-          <h3 className="font-display text-base font-bold text-slate-950">{title}</h3>
-          <p className="mt-2 text-sm leading-6 text-slate-600">{description}</p>
-          <div className="mt-3">{cta}</div>
-        </div>
-      </div>
-    </Card>
+    <DashboardActionTile
+      title={title}
+      description={description}
+      cta={cta}
+      icon={Icon}
+      tone="neutral"
+    />
   );
 }
 

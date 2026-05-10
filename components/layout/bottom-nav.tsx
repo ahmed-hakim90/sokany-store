@@ -1,5 +1,11 @@
 "use client";
 
+/**
+ * شريط التنقل السفلي (موبايل)
+ * بالعامية: أيقونات أساسية + زرار القائمة اللي يفتح الدرج؛ بيستخدم نفس store الطي علشان الـ focus يرجع صح بعد الإغلاق.
+ *
+ * شوف كمان: `@/components/layout/mobile-nav-drawer-open-store.ts`
+ */
 import { Link } from "next-view-transitions";
 import { useLinkStatus } from "next/link";
 import { usePathname } from "next/navigation";
@@ -97,7 +103,7 @@ export function BottomNavInner() {
 
   const tabClass = (active: boolean) =>
     cn(
-      "flex h-14 w-full max-w-[4.85rem] flex-col items-center justify-center gap-1 rounded-2xl border border-transparent px-0.5 py-1.5 text-xs font-semibold leading-tight transition-colors duration-200 sm:max-w-[5.25rem] sm:text-[0.8125rem]",
+      "flex min-h-[3.5rem] w-full max-w-[4.85rem] flex-col items-center justify-center gap-1 rounded-2xl border border-transparent px-0.5 py-2 text-xs font-semibold leading-tight transition-colors duration-200 sm:max-w-[5.25rem] sm:text-[0.8125rem]",
       active
         ? "border-brand-950 bg-brand-950 text-accent"
         : headerHidden

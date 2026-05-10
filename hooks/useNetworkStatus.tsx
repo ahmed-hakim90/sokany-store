@@ -1,5 +1,9 @@
 "use client";
 
+/**
+ * حالة الشبكة للمتجر
+ * بالعامية: بنبدأ `online` علشان يطابق SSR، وبعدين `useEffect` يزامن مع `navigator`؛ `reconnecting` يفيد البانر والسحب للتحديث.
+ */
 import {
   createContext,
   useCallback,
@@ -19,11 +23,6 @@ export type NetworkStatus = {
 
 const NetworkStatusContext = createContext<NetworkStatus | null>(null);
 
-/**
- * حالة اتصال عامة للواجهة (بانر offline، سلوك التحديث).
- * القيمة الأولية ‎`online: true`‎ تطابق SSR (بدون ‎`navigator`‎) وتفادي hydration mismatch؛
- * المزامنة مع ‎`navigator.onLine`‎ تتم بعد التركيب في ‎`useEffect`‎.
- */
 export function NetworkStatusProvider({ children }: { children: React.ReactNode }) {
   const [online, setOnline] = useState(true);
   const [reconnecting, setReconnecting] = useState(false);

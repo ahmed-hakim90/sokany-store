@@ -1,17 +1,29 @@
+/**
+ * توليد سكربت Service Worker (`/sw.js`)
+ * بالعامية: مسار ديناميكي يرجع JS فيه كاش ببادئة مربوطة بالنشر علشان ما يفضلش chunk قديم بعد deploy؛ ما بنعترضش `navigate` — بنخلي المتصفح يدير الصفحات، وبنعترض بس API/ستاتيك/صور حسب السياسة تحت.
+ *
+ * ملاحظات:
+ * - الرد `Cache-Control: no-store` علشان المتصفح يجيب آخر `sw.js` بعد كل نشر.
+ * - Firebase compat من CDN بنفس إصدار الحزمة في `package.json`.
+ */
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 
-/** يطابق إصدار حزمة `firebase` في package.json لـ importScripts. */
+/** لازم يطابق `firebase` في package.json لـ `importScripts`. */
 const FIREBASE_JS = "12.12.0";
 
-/**
- * Service worker واحد: تثبيت PWA، FCM في الخلفية، إشعارات النقر.
- *
- * لا نعترض طلبات التصفح (`navigate`) — تبقى network-first افتراض المتصفح.
- * اعتراض محدود: ‎`/api/*`‎ network-first مع كاش؛ أصول ‎`/_next/static`‎ وامتدادات ثابتة cache-first؛ صور خارجية GET ‎`stale-while-revalidate`‎.
- * الاستجابة تُخدم بـ ‎`Cache-Control: no-store`‎ حتى لا يبقى ‎`sw.js`‎ قديماً في المتصفح بعد النشر.
- */
+/** جزء آمن يتحط في اسم الكاش — من VERCEL_* أو env يدوي. */
+function swCacheDeploySegment(): string {
+  const dep = process.env.VERCEL_DEPLOYMENT_ID?.trim();
+  if (dep && /^[a-zA-Z0-9_-]+$/.test(dep)) return dep;
+  const sha = process.env.VERCEL_GIT_COMMIT_SHA?.trim().slice(0, 12);
+  if (sha && /^[a-zA-Z0-9]+$/.test(sha)) return sha;
+  const manual = process.env.NEXT_PUBLIC_SW_CACHE_REVISION?.trim();
+  if (manual && /^[a-zA-Z0-9_-]+$/.test(manual)) return manual;
+  return "local";
+}
+
 export async function GET() {
   const firebaseConfig = {
     apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY ?? "",
@@ -24,10 +36,13 @@ export async function GET() {
 
   const icon192 = "/images/icon-192.png";
   const configJson = JSON.stringify(firebaseConfig);
+  const deploySeg = swCacheDeploySegment();
 
-  const body = `/* Sokany PWA service worker — generated */
+  /** لا نبدأ القالب بـ ‎`/*`‎ مباشرة — يفسّرها محلل ‎TypeScript‎ كتعليق ويكسر النوع. */
+  const swBanner = "/* Sokany PWA service worker — generated */";
+  const body = `${swBanner}
 const FIREBASE_VERSION = "${FIREBASE_JS}";
-const CACHE_PREFIX = "sokany-pwa-v4";
+const CACHE_PREFIX = "sokany-pwa-${deploySeg}";
 const CACHE_MAIN = CACHE_PREFIX;
 const CACHE_API = CACHE_PREFIX + "-api";
 const CACHE_STATIC = CACHE_PREFIX + "-static";
@@ -57,15 +72,20 @@ async function networkFirstApi(request, cacheName) {
   }
 }
 
-async function cacheFirstStatic(request, cacheName) {
-  const hit = await caches.match(request);
-  if (hit) return hit;
-  const res = await fetch(request);
-  if (res && res.ok) {
-    const c = await caches.open(cacheName);
-    c.put(request, res.clone());
+// network-first ثم الكاش — يقلّل جلب ملفات ‎/_next/static‎ قديمة بعد النشر.
+async function networkFirstStatic(request, cacheName) {
+  try {
+    const res = await fetch(request);
+    if (res && res.ok) {
+      const c = await caches.open(cacheName);
+      c.put(request, res.clone());
+    }
+    return res;
+  } catch (e) {
+    const hit = await caches.match(request);
+    if (hit) return hit;
+    throw e;
   }
-  return res;
 }
 
 async function staleWhileRevalidateImage(request, cacheName) {
@@ -123,7 +143,7 @@ self.addEventListener("fetch", (event) => {
     url.pathname.startsWith("/_next/static/") ||
     /\\.(js|css|woff2?|ico|png|jpg|jpeg|webp|svg|gif)(\\?|$)/i.test(url.pathname)
   ) {
-    event.respondWith(cacheFirstStatic(req, CACHE_STATIC));
+    event.respondWith(networkFirstStatic(req, CACHE_STATIC));
   }
 });
 

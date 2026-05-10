@@ -1,5 +1,11 @@
 "use client";
 
+/**
+ * تجميع بيانات صفحة المنتج
+ * بالعامية: يجمع `useProduct` + التقييمات + سكة «ذات صلة»، ويبني مواصفات للعرض من attributes أو من fallback بسيط.
+ *
+ * شوف كمان: `@/components/pages/ProductDetailPageContent.tsx`
+ */
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/lib/constants";
@@ -11,6 +17,7 @@ import type { Product } from "@/features/products/types";
 import type { ProductSpecItem } from "@/features/products/components/ProductSpecsList";
 import { appendWooExcessToProductSpecs } from "@/features/products/lib/woo-excess-to-specs";
 
+/** مواصفات للـ UI: أولاً السمات الظاهرة، وإلا صف ثابت من الحقول الأساسية. */
 function buildProductSpecs(product: Product): ProductSpecItem[] {
   const fromAttributes = product.attributes
     .filter((a) => a.visible && !a.variation && a.options.length > 0)

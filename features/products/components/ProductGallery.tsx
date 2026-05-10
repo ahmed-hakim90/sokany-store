@@ -1,5 +1,9 @@
 "use client";
 
+/**
+ * معرض صور المنتج + لايت بوكس
+ * بالعامية: سلايدر بإيماءات، portal للتكبير، وإشعار للأب لما الصورة النشطة تتغيّر (مثلاً أنيميشن السلة).
+ */
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
   forwardRef,
@@ -13,6 +17,7 @@ import { createPortal } from "react-dom";
 import { AppImage } from "@/components/AppImage";
 import { ProductGalleryLightbox } from "@/features/products/components/product-gallery-lightbox";
 import { usePointerSwipe } from "@/hooks/usePointerSwipe";
+import { motionDuration, motionEase } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import type { ProductImage } from "@/features/products/types";
 
@@ -152,8 +157,8 @@ export const ProductGallery = forwardRef<HTMLDivElement, ProductGalleryProps>(
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{
-                  duration: reduceMotion ? 0 : 0.28,
-                  ease: [0.4, 0, 0.2, 1],
+                  duration: reduceMotion ? 0 : motionDuration.md,
+                  ease: motionEase.standard,
                 }}
               >
                 <AppImage

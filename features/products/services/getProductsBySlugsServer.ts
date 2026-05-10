@@ -1,7 +1,16 @@
 import "server-only";
 
+/**
+ * منتجات حسب slugs (مثلاً جريد بعد المقال)
+ * بالعامية: لكل slug طلب Woo صغير، وبنفلتر out-of-stock؛ لو Woo مش متاح بنلقط من السنابشوت/الموك بنفس الترتيب.
+ *
+ * ملاحظات:
+ * - في سقف `MAX_POST_PRODUCTS` علشان ما نضربش Woo بقائمة ضخمة.
+ * - شوف كمان: `@/lib/woo-storefront-availability.ts`
+ */
 import { unstable_cache } from "next/cache";
 import { createWooClient } from "@/lib/create-woo-client";
+import { WOO_BFF_UNSTABLE_CACHE_REVALIDATE_SEC } from "@/lib/woo-bff-revalidate";
 import { WOO_CACHE_TAG_PRODUCTS } from "@/lib/woocommerce-cache-tags";
 import { filterWcProductsExcludingOutOfStock } from "@/lib/woo-storefront-availability";
 import { getSnapshotProducts } from "@/features/data-snapshot/server";
@@ -29,7 +38,7 @@ const fetchWooProductsBySlugsCached = unstable_cache(
     return filterWcProductsExcludingOutOfStock(rows.filter((p): p is WCProduct => p != null));
   },
   ["woo-products-by-slugs-v1"],
-  { revalidate: 300, tags: [WOO_CACHE_TAG_PRODUCTS] },
+  { revalidate: WOO_BFF_UNSTABLE_CACHE_REVALIDATE_SEC, tags: [WOO_CACHE_TAG_PRODUCTS] },
 );
 
 function normalizeSlugs(slugs: readonly string[]): string[] {

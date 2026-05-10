@@ -83,7 +83,6 @@ export function WishlistHeartBurstPortal({
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
     // document.body is unavailable during SSR; defer portal until after hydration.
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional mount gate for createPortal
     setMounted(true);
   }, []);
 

@@ -13,7 +13,7 @@
 | تبويب لوحة التحكم | `wooApi` ضمن مجموعة «صحة وربط» في `features/control/lib/control-tabs.ts`. |
 | واجهة العرض (Client) | `features/control/components/ControlWooApiTab.tsx` (تجلب الملخص من API لأنها داخل لوحة التحكم). |
 | API ملخص الواجهة | `GET /api/control/woo-api-summary` — يجمع `getWooDiagnosticReport`، `getPublicSiteContent`، روابط الويبهوك. |
-| حماية المسار | `proxy.ts` يفرض جلسة صالحة لكل `/control/*` عدا `/control/login`. بدون كوكي جلسة → إعادة توجيه لـ `/control/login`. |
+| حماية المسار | `proxy.ts` (بديل Next.js 16 عن `middleware.ts`) يفرض جلسة صالحة لكل `/control/*` عدا `/control/login`. بدون كوكي جلسة → إعادة توجيه لـ `/control/login`. |
 
 التبويب يستلم البيانات من العميل عبر API بعد التحقق من الجلسة (`requireScopeFull`). لا تظهر تبويبات «صحة وربط» إلا للمستخدمين الذين لديهم صلاحية `full`.
 

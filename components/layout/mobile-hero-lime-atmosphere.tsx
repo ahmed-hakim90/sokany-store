@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
  * عند ‎`headerHidden`‎ (سيرش + أدوات بلا صف شعار) تضيق الهالة لإحساس بأن شريط البحث بات «مرسوم» في نطاق أعلى أصغر.
  * ‎`z-0`‎ + ‎`fixed`‎: تحت الهيدر ‎(z-50)‎؛ يبقى **تحت** المحتوى لأن غلاف المحتوى في ‎`site-shell`‎ يستخدم ‎`relative z-[1]`‎.
  * تُرى من الشفافيّات ومن غلاف الصفحة الرئيسية (بدون ‎`bg`‎ على الموبايل) خلف بانر الهيرو/الهوامس.
+ * على ‎`(pointer: coarse)`‎ لا نُدخِل أنيميشن ‎`height`‎ عند طي الهيدر (فقط ‎`opacity`‎) لتقليل اهتزاز التخطيط في WebKit.
  */
 
 /** بعد الترطيب فقط (يتجنّب اختلاف SSR/هيدراتيشن). */
@@ -28,6 +29,25 @@ function useLgOrBelow() {
       typeof window !== "undefined" &&
       typeof window.matchMedia === "function" &&
       window.matchMedia("(max-width: 1023px)").matches,
+    () => false,
+  );
+}
+
+/** أجهزة لمس: تجنّب أنيميشن ‎`height`‎ أثناء طي الهيدر — يخفّف تعليق السكرول في WebKit. */
+function usePointerCoarse() {
+  return useSyncExternalStore(
+    (onStoreChange) => {
+      if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
+        return () => {};
+      }
+      const mq = window.matchMedia("(pointer: coarse)");
+      mq.addEventListener("change", onStoreChange);
+      return () => mq.removeEventListener("change", onStoreChange);
+    },
+    () =>
+      typeof window !== "undefined" &&
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(pointer: coarse)").matches,
     () => false,
   );
 }
@@ -54,9 +74,16 @@ export function MobileHeroLimeAtmosphere() {
   const pathname = usePathname();
   const isLgOrBelow = useLgOrBelow();
   const reducedMotion = usePrefersReducedMotion();
+  const pointerCoarse = usePointerCoarse();
   const headerHidden = useMobileChromeCollapsedStore((s) => s.headerHidden);
   const heightVh = headerHidden ? 15 : 50;
   const opacity = headerHidden ? 0.26 : 0.86;
+  const transition =
+    reducedMotion
+      ? "none"
+      : pointerCoarse
+        ? "opacity 0.22s cubic-bezier(0.33, 1, 0.68, 1)"
+        : "height 0.32s cubic-bezier(0.33, 1, 0.68, 1), opacity 0.32s cubic-bezier(0.33, 1, 0.68, 1)";
 
   if (!isLgOrBelow || pathname === ROUTES.CHECKOUT) {
     return null;
@@ -80,9 +107,7 @@ export function MobileHeroLimeAtmosphere() {
           color-mix(in srgb, var(--color-brand-500) 12%, var(--color-page) 88%) 50%,
           var(--color-page) 100%
         )`,
-        transition: reducedMotion
-          ? "none"
-          : "height 0.32s cubic-bezier(0.33, 1, 0.68, 1), opacity 0.32s cubic-bezier(0.33, 1, 0.68, 1)",
+        transition,
       }}
     />
   );

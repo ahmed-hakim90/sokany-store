@@ -1,3 +1,7 @@
+/**
+ * BFF: تصنيف واحد بالـ id
+ * بالعامية: كاش مع تاجات منتجات + سايت ماب؛ الفallback زي باقي الـ BFF.
+ */
 import { NextResponse } from "next/server";
 import { unstable_cache } from "next/cache";
 import { mockCategories } from "@/features/categories/mock";
@@ -5,6 +9,7 @@ import { getSnapshotCategories } from "@/features/data-snapshot/server";
 import { createWooClient } from "@/lib/create-woo-client";
 import { wooBff502Response } from "@/lib/woo-bff-catch-payload";
 import { shouldUseWooBffMockFallback } from "@/lib/woo-bff-mock-fallback";
+import { WOO_BFF_UNSTABLE_CACHE_REVALIDATE_SEC } from "@/lib/woo-bff-revalidate";
 import {
   WOO_CACHE_TAG_PRODUCTS,
   WOO_CACHE_TAG_SITEMAP,
@@ -20,7 +25,10 @@ const fetchWooCategoryByIdCached = unstable_cache(
     return response.data as WCCategory;
   },
   ["woo-api-category-by-id-v1"],
-  { revalidate: 300, tags: [WOO_CACHE_TAG_PRODUCTS, WOO_CACHE_TAG_SITEMAP] },
+  {
+    revalidate: WOO_BFF_UNSTABLE_CACHE_REVALIDATE_SEC,
+    tags: [WOO_CACHE_TAG_PRODUCTS, WOO_CACHE_TAG_SITEMAP],
+  },
 );
 
 export async function GET(_request: Request, context: RouteContext) {

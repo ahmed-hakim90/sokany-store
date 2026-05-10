@@ -1,10 +1,12 @@
 import { SiteShell } from "@/components/layout/site-shell";
+import { SkipToMainContent } from "@/components/layout/skip-to-main-content";
 import { OrganizationJsonLd } from "@/components/seo/OrganizationJsonLd";
 import { WebSiteJsonLd } from "@/components/seo/WebSiteJsonLd";
 import { getPublicSiteContent } from "@/features/cms/services/getPublicSiteContent";
 
 /*
  * واجهة المتجر فقط: هيدر، فوتر، أدراج — بدون تضمين مسار /control.
+ * موبايل/سطح المكتب: ‎`SkipToMainContent`‎ أول تركيز لوحة المفاتيح ثم كومة الهيدر اللاصقة (‎`SiteShell`‎).
  */
 export default async function StorefrontLayout({
   children,
@@ -15,6 +17,7 @@ export default async function StorefrontLayout({
 
   return (
     <>
+      <SkipToMainContent />
       <OrganizationJsonLd
         sameAs={sameAsHrefs}
         organizationName={b.organizationName}

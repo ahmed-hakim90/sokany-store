@@ -1,5 +1,14 @@
 import "server-only";
 
+/**
+ * ردود 502 من BFF لما Woo يقع
+ * بالعامية: بنبني JSON موحّد للفرونت، وفي التطوير بنحط تلميحات تشخيص من غير ما نسرب مفاتيح API.
+ *
+ * ملاحظات:
+ * - ليه `NextResponse.json` هنا: مسارات `/api` ترجع شكل متوقع للعميل حتى لو الـ upstream مات.
+ * - حذر: الـ `dev` object يظهر بس في development.
+ * - شوف كمان: `@/lib/woo-bff-errors.ts`، `@/app/api/products/route.ts`
+ */
 import { isAxiosError } from "axios";
 import { NextResponse } from "next/server";
 import { getCmsStorefrontIntegrationsForServer } from "@/features/cms/services/getCmsStorefrontIntegrationsForServer";
@@ -39,9 +48,7 @@ function safeWooLogLine(error: unknown): Record<string, unknown> {
   };
 }
 
-/**
- * ‎`next dev`‎/السيرفر: يسجّل أسباب فشل وو **من غير** هيدر ‎`Authorization`‎ (لا تُسجَّل مفاتيح الـ API).
- */
+/** لوج آمن: من غير Authorization علشان المفاتيح ما تطلعش في الـ logs. */
 function logWooBffFailure(error: unknown) {
   if (process.env.NODE_ENV === "development") {
     console.error("[woo-bff] WooCommerce request failed", safeWooLogLine(error));
@@ -65,9 +72,7 @@ function logWooBffFailure(error: unknown) {
   }
 }
 
-/**
- * JSON for ‎`502`‎ from Woo BFF — in development adds non-secret hints (CMS vs env, upstream status).
- */
+/** جسم الـ 502؛ في dev بيزود تفاصيل تشخيصية. */
 export async function buildWooBff502Body(
   error: unknown,
 ): Promise<Record<string, unknown>> {
@@ -117,9 +122,6 @@ export async function buildWooBff502Body(
   return body;
 }
 
-/**
- * ‎`502`‎ + جسم ‎`buildWooBff502Body` + تسجيل في الـ log.
- */
 export async function wooBff502Response(error: unknown) {
   logWooBffFailure(error);
   return NextResponse.json(await buildWooBff502Body(error), { status: 502 });

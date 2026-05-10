@@ -1,10 +1,20 @@
 import "server-only";
+
+/**
+ * حلّ مسار المنتج للـ SEO والـ RSC (`/products/[segment]`)
+ * بالعامية: الـ segment ممكن يكون رقم (id) أو slug؛ بنجيب من Woo مع كاش، ولو فشل بنرجع لسنابشوت/موك. صفحة المنتج بتعرض حتى out-of-stock بدل 404.
+ *
+ * ملاحظات:
+ * - ليه مسارين cached لنفس الـ id: fallback لو endpoint التفاصيل رفض أو اختلف السلوك.
+ * - شوف كمان: `@/app/api/products/[id]/route.ts`
+ */
 import { unstable_cache } from "next/cache";
 import { USE_MOCK } from "@/lib/constants";
 import { createWooClient } from "@/lib/create-woo-client";
 import { mapProduct } from "@/features/products/adapters";
 import { mockProducts } from "@/features/products/mock";
 import { getSnapshotProducts } from "@/features/data-snapshot/server";
+import { WOO_BFF_UNSTABLE_CACHE_REVALIDATE_SEC } from "@/lib/woo-bff-revalidate";
 import { WOO_CACHE_TAG_PRODUCTS } from "@/lib/woocommerce-cache-tags";
 import { wpProductSchema } from "@/schemas/wordpress";
 import type { Product } from "@/features/products/types";
@@ -16,7 +26,7 @@ const fetchWooProductByIdMetaCached = unstable_cache(
     return wpProductSchema.parse(res.data);
   },
   ["woo-product-meta-by-id-v1"],
-  { revalidate: 300, tags: [WOO_CACHE_TAG_PRODUCTS] },
+  { revalidate: WOO_BFF_UNSTABLE_CACHE_REVALIDATE_SEC, tags: [WOO_CACHE_TAG_PRODUCTS] },
 );
 
 const fetchWooProductByIdFromCollectionCached = unstable_cache(
@@ -30,7 +40,7 @@ const fetchWooProductByIdFromCollectionCached = unstable_cache(
     return first ? wpProductSchema.parse(first) : null;
   },
   ["woo-product-meta-by-id-collection-v1"],
-  { revalidate: 300, tags: [WOO_CACHE_TAG_PRODUCTS] },
+  { revalidate: WOO_BFF_UNSTABLE_CACHE_REVALIDATE_SEC, tags: [WOO_CACHE_TAG_PRODUCTS] },
 );
 
 const fetchWooProductBySlugMetaCached = unstable_cache(
@@ -44,15 +54,9 @@ const fetchWooProductBySlugMetaCached = unstable_cache(
     return first ? wpProductSchema.parse(first) : null;
   },
   ["woo-product-meta-by-slug-v1"],
-  { revalidate: 300, tags: [WOO_CACHE_TAG_PRODUCTS] },
+  { revalidate: WOO_BFF_UNSTABLE_CACHE_REVALIDATE_SEC, tags: [WOO_CACHE_TAG_PRODUCTS] },
 );
 
-/**
- * يحلّ المنتج لمسار ‎`/products/[id]`‎: رقم تعريف Woo أو ‎`slug`‎ (لروابط قديمة / مشاركة).
- * يشمل ‎`outofstock`‎ — صفحة المنتج تعرض حالة «غير متوفر» بدل ‎`404`‎.
- *
- * ملاحظة: إن كان ‎`slug`‎ أرقاماً فقط يُفسَّر كـ **id** (سلوك Woo الشائع).
- */
 export async function getProductMetaBySlugOrId(
   segment: string,
 ): Promise<Product | null> {

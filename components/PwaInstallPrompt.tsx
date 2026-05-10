@@ -28,8 +28,8 @@ function subscribeStaticSnapshot() {
 }
 
 /**
- * تثبيت PWA عبر `beforeinstallprompt` فقط. تلميح iOS (userAgent) يظهر فقط مع `?redirect=1`.
- * التموضع: `PwaEngagementStack`. الحدث المؤجّل يُسجَّل في `PwaDeferredInstallProvider` مبكراً.
+ * زرار/بطاقة تثبيت PWA
+ * بالعامية: Chrome بيعطي `beforeinstallprompt` نخزنه في الـ provider؛ الـ prompt بس من ضغطة مستخدم. على iOS التلميح يظهر بس مع `?redirect=1` (safeguard).
  */
 export function PwaInstallPrompt() {
   const { deferred, clearDeferred } = usePwaDeferredInstall();

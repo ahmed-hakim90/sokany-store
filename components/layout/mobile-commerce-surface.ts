@@ -1,9 +1,12 @@
-import { cn } from "@/lib/utils";
-
 /**
- * أسطح موبايل التجارة: كبسولة التبويب السفلي + الهيدر + ملخص السلة.
- * عند تغيير المظهر، راجع ‎`mobile-commerce-chrome.tsx`‎ و‎`mobile-top-header.tsx`‎ و‎`mobile-hero-lime-atmosphere.tsx`‎.
+ * كلاسات Tailwind المشتركة لكروم الموبايل
+ * بالعامية: جلاس/كبسولة موحّدة للناف السفلي والهيدر والـ peek؛ لو غيّرت حاجة هنا راجع المكوّنات اللي فوق في الملاحظات.
+ *
+ * ملاحظات:
+ * - ليه ملف منفصل: نفس السطح يتكرر في أكتر من مكوّن ومش عايزين يبقى في drift.
+ * - شوف كمان: `mobile-commerce-chrome.tsx`، `mobile-top-header.tsx`، `mobile-hero-lime-atmosphere.tsx`
  */
+import { cn } from "@/lib/utils";
 
 /** كبسولة التبويب السفلي — ليكويد جلاس أبيض (مع ‎`headerHidden === false`‎). يطابق مكوّنات ‎`MobileTopHeader`‎ البيضاء. */
 export const mobileBottomNavGlassRestClass = cn(

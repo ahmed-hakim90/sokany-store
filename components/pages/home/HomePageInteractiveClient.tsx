@@ -88,8 +88,8 @@ function railSkeletonCount() {
 }
 
 /**
- * جزء التفاعل والاستعلامات للصفحة الرئيسية — يُحمَّل كوحدة عميل داخل ‎`HomePageShell`‎ (خادم).
- * سكة منتجات واحدة فقط تُحمَّل فوراً؛ الباقي يُفعَّل عند اقتراب القسم من الشاشة (‎`useNearViewport`‎) بدون ‎`ProductGrid`‎ قبل ذلك.
+ * الهوم التفاعلية (عميل)
+ * بالعامية: جوّه `HomePageShell` من السيرفر؛ سكة منتجات واحدة تتحمّل فوراً، والباقي lazy لما القرب من الـ viewport (`useNearViewport`) علشان ما نضربش الـ API كله مرة واحدة.
  */
 export function HomePageInteractiveClient({
   heroSlides = [],

@@ -1,3 +1,4 @@
+/** إلغاء طلب لمستخدم مسجّل — `assertOrderAccessibleBySession` قبل Woo. */
 import { NextRequest, NextResponse } from "next/server";
 import axios from "axios";
 import { z } from "zod";
