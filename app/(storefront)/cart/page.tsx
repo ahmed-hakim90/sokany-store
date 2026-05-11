@@ -3,11 +3,11 @@ import { SITE_NAME } from "@/lib/constants";
 import { CartPageContent } from "@/components/pages/CartPageContent";
 
 export const metadata: Metadata = {
-  title: "Cart",
-  description: "Review your cart before checkout",
+  title: "سلة التسوق",
+  description: "راجع منتجاتك قبل إتمام الطلب من متجر سوكاني.",
   openGraph: {
-    title: `Cart | ${SITE_NAME}`,
-    description: "Review your cart before checkout",
+    title: `سلة التسوق | ${SITE_NAME}`,
+    description: "راجع منتجاتك قبل إتمام الطلب من متجر سوكاني.",
   },
 };
 

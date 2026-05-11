@@ -13,7 +13,6 @@
  * — الـ lg فقط؛ الموبايل يبقى على الدرج.
  */
 
-import { AnimatePresence, motion } from "framer-motion";
 import { Link } from "next-view-transitions";
 import {
   Fragment,
@@ -31,7 +30,6 @@ import { SocialGlyph } from "@/components/layout/social-glyph";
 import { ROUTES } from "@/lib/constants";
 import { navLinkActiveSurfaceClass, navLinkPressableClass } from "@/lib/nav-link-interaction";
 import type { SocialLink } from "@/lib/social-links";
-import { motionTransition } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
 const MEGA_LINK_LIMIT = 12;
@@ -574,27 +572,21 @@ export function DesktopCategoryMegaNav({
         </div>
       </div>
 
-      <AnimatePresence>
-        {openKey && openKey !== "home" ? (
-          <motion.div
-            id={`${baseId}-mega-panel`}
-            key={openKey}
-            role="region"
-            aria-label="قائمة موسعة"
-            initial={{ opacity: 0, y: -6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -6 }}
-            transition={motionTransition.megaPanelOpen}
-            className="absolute inset-x-0 top-full z-50"
-          >
-            <Container>
-              {openKey === "offers"
-                ? renderOffersMega()
-                : renderCategoryMega(openKey ?? "")}
-            </Container>
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
+      {openKey && openKey !== "home" ? (
+        <div
+          id={`${baseId}-mega-panel`}
+          key={openKey}
+          role="region"
+          aria-label="قائمة موسعة"
+          className="absolute inset-x-0 top-full z-50 animate-fade-in motion-reduce:animate-none"
+        >
+          <Container>
+            {openKey === "offers"
+              ? renderOffersMega()
+              : renderCategoryMega(openKey ?? "")}
+          </Container>
+        </div>
+      ) : null}
     </div>
   );
 }

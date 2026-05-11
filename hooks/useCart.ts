@@ -12,6 +12,21 @@ import { useHasHydrated } from "@/hooks/useHasHydrated";
 import { useCartStore } from "@/features/cart/store/useCartStore";
 import type { Product } from "@/features/products/types";
 
+const cartToast = {
+  added(product: Product) {
+    toast.success("تمت الإضافة للسلة", {
+      id: `cart-added-${product.id}`,
+      description: product.name,
+    });
+  },
+  removed(productId: number, name?: string) {
+    toast.info("تمت الإزالة من السلة", {
+      id: `cart-removed-${productId}`,
+      description: name,
+    });
+  },
+};
+
 export function useCart() {
   const hasHydrated = useHasHydrated(useCartStore);
   const items = useCartStore((state) => state.items);
@@ -35,15 +50,16 @@ export function useCart() {
 
     if (q === 0) {
       if (current > 0) {
+        const removedName = liveItems.find((i) => i.productId === product.id)?.name;
         remove(product.id);
-        toast.info("تمت إزالة المنتج من السلة");
+        cartToast.removed(product.id, removedName);
       }
       return;
     }
 
     if (current === 0) {
       add(product, q);
-      toast.success(`تمت إضافة ${product.name} إلى السلة`);
+      cartToast.added(product);
       return;
     }
 
@@ -68,11 +84,14 @@ export function useCart() {
     setProductLineQuantity,
     addProduct(product: Product, quantity = 1) {
       addToCart(product, quantity);
-      toast.success(`تمت إضافة ${product.name} إلى السلة`);
+      cartToast.added(product);
     },
     removeProduct(productId: number) {
+      const removedName = useCartStore
+        .getState()
+        .items.find((item) => item.productId === productId)?.name;
       removeFromCart(productId);
-      toast.info("تمت إزالة المنتج من السلة");
+      cartToast.removed(productId, removedName);
     },
     updateProductQuantity(productId: number, quantity: number) {
       updateQuantity(productId, quantity);

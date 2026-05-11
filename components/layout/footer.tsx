@@ -142,7 +142,7 @@ export function Footer({
       <Container
         className={cn(
           "mx-auto max-w-7xl py-8 md:py-12",
-          "max-lg:pb-[calc(120px+env(safe-area-inset-bottom))]",
+          "max-lg:pb-mobile-footer-commerce",
         )}
       >
         {/* شبكة متجاوبة: أوامر أعمدة تختلف بين موبايل ولوحة وديسكتوب دون تكرار قوائم الروابط */}

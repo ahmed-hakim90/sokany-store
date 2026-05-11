@@ -10,7 +10,6 @@
 import { createPortal } from "react-dom";
 import { Link } from "next-view-transitions";
 import { usePathname } from "next/navigation";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { FocusTrap } from "focus-trap-react";
 import {
   useEffect,
@@ -25,7 +24,6 @@ import { CategoryIcon } from "@/features/categories/category-icon-registry";
 import type { Category } from "@/features/categories/types";
 import { CONTACT_EMAIL, PRODUCTS_ALL_CATALOG_HREF, ROUTES } from "@/lib/constants";
 import { navLinkActiveSurfaceClass, navLinkPressableClass } from "@/lib/nav-link-interaction";
-import { motionDuration, motionEase } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
 export type NavDrawerLink = { href: string; label: string };
@@ -128,7 +126,6 @@ export function MobileNavDrawer({
   categoriesLoading,
 }: MobileNavDrawerProps) {
   const pathname = usePathname();
-  const reduceMotion = useReducedMotion();
   const titleId = useId();
   const closeRef = useRef<HTMLButtonElement>(null);
   const searchRef = useRef<HTMLAnchorElement>(null);
@@ -161,66 +158,41 @@ export function MobileNavDrawer({
     return () => window.removeEventListener("keydown", onKey);
   }, [open, onClose]);
 
-  if (!mounted) return null;
-
-  const panelInitial = reduceMotion ? { x: 0 } : { x: "-100%" };
-  const panelAnimate = { x: 0 };
-  const panelExit = reduceMotion ? { x: 0 } : { x: "-100%" };
+  if (!mounted || !open) return null;
 
   return createPortal(
-    <AnimatePresence>
-      {open ? (
+    <div
+      className="fixed inset-0 z-[140] lg:hidden"
+      role="presentation"
+    >
+      <div
+        className="absolute inset-0 animate-fade-in bg-slate-900/45 backdrop-blur-[10px] motion-reduce:animate-none"
+        onClick={onClose}
+        aria-hidden
+      />
+      <FocusTrap
+        active
+        focusTrapOptions={{
+          initialFocus: () =>
+            closeRef.current ?? searchRef.current ?? undefined,
+          returnFocusOnDeactivate: true,
+          setReturnFocus: () => returnFocusRef.current ?? false,
+          escapeDeactivates: false,
+          /** بدون هذا، focus-trap يمنع `pointerdown` خارج اللوحة فيُلغى النقر على الخلفية (خاصة على الموبايل). */
+          allowOutsideClick: true,
+        }}
+      >
         <div
-          className="fixed inset-0 z-[140] lg:hidden"
-          role="presentation"
+          id="mobile-nav-drawer-panel"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={titleId}
+          className={cn(
+            "fixed top-0 bottom-0 left-0 z-[141] flex h-dvh min-h-dvh w-[min(20rem,88vw)] max-w-[100vw] flex-col border-s border-border/80 bg-page shadow-2xl",
+            "pt-[max(0.75rem,env(safe-area-inset-top))] pb-[max(0.75rem,env(safe-area-inset-bottom))]",
+            "animate-mobile-nav-drawer-in",
+          )}
         >
-          <motion.div
-            key="mobile-nav-backdrop"
-            className="absolute inset-0 bg-slate-900/45 backdrop-blur-[10px]"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{
-              duration: reduceMotion ? 0 : motionDuration.sm,
-            }}
-            onClick={onClose}
-            aria-hidden
-          />
-          <FocusTrap
-            key="mobile-nav-trap"
-            active
-            focusTrapOptions={{
-              initialFocus: () =>
-                closeRef.current ?? searchRef.current ?? undefined,
-              returnFocusOnDeactivate: true,
-              setReturnFocus: () => returnFocusRef.current ?? false,
-              escapeDeactivates: false,
-              /** بدون هذا، focus-trap يمنع `pointerdown` خارج اللوحة فيُلغى النقر على الخلفية (خاصة على الموبايل). */
-              allowOutsideClick: true,
-            }}
-          >
-            <motion.div
-              id="mobile-nav-drawer-panel"
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby={titleId}
-              className={cn(
-                "fixed top-0 bottom-0 left-0 z-[141] flex h-dvh min-h-dvh w-[min(20rem,88vw)] max-w-[100vw] flex-col border-s border-border/80 bg-page shadow-2xl",
-                "pt-[max(0.75rem,env(safe-area-inset-top))] pb-[max(0.75rem,env(safe-area-inset-bottom))]",
-              )}
-              initial={panelInitial}
-              animate={panelAnimate}
-              exit={panelExit}
-              transition={
-                reduceMotion
-                  ? { duration: 0 }
-                  : {
-                      type: "tween",
-                      ease: motionEase.megaPanel,
-                      duration: motionDuration.md,
-                    }
-              }
-            >
               <h2 id={titleId} className="sr-only">
                 قائمة التنقل
               </h2>
@@ -409,11 +381,9 @@ export function MobileNavDrawer({
                   </p>
                 </div>
               </div>
-            </motion.div>
-          </FocusTrap>
         </div>
-      ) : null}
-    </AnimatePresence>,
+      </FocusTrap>
+    </div>,
     document.body,
   );
 }

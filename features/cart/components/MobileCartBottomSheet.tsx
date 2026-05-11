@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useState, startTransition } from "react";
-import { motion, useReducedMotion } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useTransitionRouter } from "next-view-transitions";
@@ -9,11 +8,13 @@ import { Drawer } from "vaul";
 import { useCart } from "@/hooks/useCart";
 import { formatPriceAmountCheckout } from "@/lib/format";
 import { ROUTES } from "@/lib/constants";
-import { motionTransition } from "@/lib/motion";
 import { cn, formatPrice } from "@/lib/utils";
 import {
+  CART_CHECKOUT_CTA_LABEL,
   CartDrawerLines,
   CartDrawerPeekFooter,
+  cartCheckoutPillButtonClassName,
+  cartCheckoutPillIconClassName,
 } from "@/features/cart/components/cart-drawer-body";
 import { mobileCommercePeekSurfaceClass } from "@/components/layout/mobile-commerce-surface";
 
@@ -38,7 +39,6 @@ export function MobileCartBottomSheet({
     removeProduct,
   } = useCart();
   const [open, setOpen] = useState(false);
-  const reduceMotion = useReducedMotion();
 
   useEffect(() => {
     if (!showCartSummary || totalItems === 0) {
@@ -80,21 +80,14 @@ export function MobileCartBottomSheet({
       dismissible
     >
       <div className="px-4 pb-0" aria-hidden={peekHidden}>
-        <motion.div
+        <div
           className={cn(
             mobileCommercePeekSurfaceClass,
-            "flex min-h-[3.25rem] items-center justify-between gap-3 px-4 py-3",
-            peekHidden && "pointer-events-none",
-          )}
-          initial={reduceMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 18 }}
-          animate={
+            "flex min-h-[3.25rem] items-center justify-between gap-3 px-4 py-3 transition-[opacity,transform] duration-200 ease-out motion-reduce:transition-none",
             peekHidden
-              ? { opacity: 0, y: reduceMotion ? 0 : 16 }
-              : { opacity: 1, y: 0 }
-          }
-          transition={
-            reduceMotion ? { duration: 0 } : motionTransition.cartPeekSpring
-          }
+              ? "pointer-events-none translate-y-4 opacity-0"
+              : "translate-y-0 opacity-100",
+          )}
         >
           <Drawer.Trigger asChild disabled={!hasHydrated || peekHidden}>
             <button
@@ -131,7 +124,7 @@ export function MobileCartBottomSheet({
             type="button"
             tabIndex={peekHidden ? -1 : undefined}
             className={cn(
-              "inline-flex shrink-0 items-center gap-3 rounded-full border border-brand-800/12 bg-brand-300 py-1.5 ps-5 pe-2 text-sm font-black text-brand-950 shadow-md transition-[transform,colors] hover:bg-brand-400/85 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600",
+              cartCheckoutPillButtonClassName,
             )}
             onClick={(e) => {
               e.preventDefault();
@@ -140,16 +133,16 @@ export function MobileCartBottomSheet({
             }}
           >
             <span className="max-w-[9rem] truncate sm:max-w-none">
-              إلى الدفع
+              {CART_CHECKOUT_CTA_LABEL}
             </span>
             <span
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-brand-950 shadow-sm ring-1 ring-black/[0.06]"
+              className={cartCheckoutPillIconClassName}
               aria-hidden
             >
               <ArrowLeft className="size-5 rtl:rotate-180" />
             </span>
           </button>
-        </motion.div>
+        </div>
       </div>
 
       <Drawer.Portal>

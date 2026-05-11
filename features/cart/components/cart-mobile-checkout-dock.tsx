@@ -2,6 +2,11 @@
 
 import { ArrowLeft } from "lucide-react";
 import { useCart } from "@/hooks/useCart";
+import {
+  CART_CHECKOUT_CTA_LABEL,
+  cartCheckoutPillButtonClassName,
+  cartCheckoutPillIconClassName,
+} from "@/features/cart/components/cart-drawer-body";
 import { formatPriceAmountCheckout } from "@/lib/format";
 import { cn, formatPrice } from "@/lib/utils";
 
@@ -56,14 +61,16 @@ export function CartMobileCheckoutDock({
         <button
           type="button"
           className={cn(
-            "inline-flex shrink-0 items-center gap-3 rounded-full border border-brand-800/12 bg-brand-300 py-1.5 ps-5 pe-2 text-sm font-black text-brand-950 shadow-md transition-[transform,colors] hover:bg-brand-400/85 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600",
+            cartCheckoutPillButtonClassName,
             "min-h-11 sm:min-h-12 sm:text-base",
           )}
           onClick={onCheckout}
         >
-          <span className="max-w-[7rem] truncate sm:max-w-none">إتمام الطلب</span>
+          <span className="max-w-[7rem] truncate sm:max-w-none">
+            {CART_CHECKOUT_CTA_LABEL}
+          </span>
           <span
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-brand-950 shadow-sm ring-1 ring-black/[0.06]"
+            className={cartCheckoutPillIconClassName}
             aria-hidden
           >
             <ArrowLeft className="size-5 rtl:rotate-180" />

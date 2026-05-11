@@ -105,7 +105,7 @@ export function BottomNavInner() {
     cn(
       "flex min-h-[3.5rem] w-full max-w-[4.85rem] flex-col items-center justify-center gap-1 rounded-2xl border border-transparent px-0.5 py-2 text-xs font-semibold leading-tight transition-colors duration-200 sm:max-w-[5.25rem] sm:text-[0.8125rem]",
       active
-        ? "border-brand-950 bg-brand-950 text-accent"
+        ? "border-brand-950/15 bg-brand-950/88 text-brand-100 shadow-sm"
         : headerHidden
           ? "text-brand-950/78 [@media(hover:hover)]:hover:bg-black/10 [@media(hover:hover)]:hover:text-brand-950"
           : "text-muted-foreground [@media(hover:hover)]:hover:bg-black/[0.03] [@media(hover:hover)]:hover:text-foreground/80",
@@ -115,7 +115,7 @@ export function BottomNavInner() {
     cn(
       "relative inline-flex text-current",
       active
-        ? "drop-shadow-[0_1px_1px_rgba(0,0,0,0.45)]"
+        ? "drop-shadow-[0_1px_1px_rgba(0,0,0,0.28)]"
         : "drop-shadow-[0_1px_1.5px_rgba(15,23,42,0.2)]",
     );
 

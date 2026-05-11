@@ -10,7 +10,7 @@ export function SkipToMainContent() {
     <a
       href={`#${STOREFRONT_MAIN_CONTENT_ID}`}
       className={cn(
-        "fixed start-4 top-4 z-[100] rounded-xl bg-page px-4 py-3 text-sm font-semibold text-foreground shadow-lg outline-none ring-2 ring-brand-700 ring-offset-2 ring-offset-page",
+        "fixed start-[max(1rem,env(safe-area-inset-left,0px))] top-[max(1rem,env(safe-area-inset-top,0px))] z-[100] rounded-xl bg-page px-4 py-3 text-sm font-semibold text-foreground shadow-lg outline-none ring-2 ring-brand-700 ring-offset-2 ring-offset-page",
         "-translate-y-[220%] transition-transform duration-200",
         "focus-visible:translate-y-0",
       )}

@@ -13,11 +13,43 @@ import { ROUTES } from "@/lib/constants";
 import type { Product } from "@/features/products/types";
 import { ProductDetail } from "@/features/products/components/ProductDetail";
 import { ProductCarouselRow } from "@/features/products/components/product-carousel-row";
-import { ProductSkeleton } from "@/features/products/components/ProductSkeleton";
 import { ProductReviewForm } from "@/features/reviews/components/ProductReviewForm";
 import { ProductReviewsList } from "@/features/reviews/components/product-reviews-list";
 import { useReviewEligibility } from "@/features/reviews/hooks/useReviewEligibility";
 import { useAuthSession } from "@/hooks/useAuthSession";
+
+function ProductDetailPageSkeleton() {
+  return (
+    <div className="grid min-w-0 gap-6 lg:grid-cols-2 lg:gap-10" aria-busy>
+      <div className="min-w-0 space-y-3">
+        <div className="aspect-square animate-shimmer rounded-2xl border border-border/70 bg-gradient-to-r from-image-well via-background to-image-well bg-[length:200%_100%]" />
+        <div className="flex justify-center gap-2 lg:justify-start">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <div
+              key={index}
+              className="h-14 w-14 animate-shimmer rounded-xl bg-surface-muted/80 ring-1 ring-foreground/[0.04] sm:h-16 sm:w-16"
+            />
+          ))}
+        </div>
+      </div>
+      <div className="min-w-0 rounded-2xl border border-border/70 bg-white p-4 shadow-[0_8px_30px_-18px_rgba(15,23,42,0.18)] sm:p-6">
+        <div className="h-5 w-28 animate-shimmer rounded bg-surface-muted/80" />
+        <div className="mt-4 h-8 w-4/5 animate-shimmer rounded bg-surface-muted/90" />
+        <div className="mt-2 h-8 w-3/5 animate-shimmer rounded bg-surface-muted/80" />
+        <div className="mt-5 h-7 w-36 animate-shimmer rounded bg-brand-100" />
+        <div className="mt-6 space-y-2">
+          <div className="h-4 animate-shimmer rounded bg-surface-muted/80" />
+          <div className="h-4 w-11/12 animate-shimmer rounded bg-surface-muted/70" />
+          <div className="h-4 w-2/3 animate-shimmer rounded bg-surface-muted/70" />
+        </div>
+        <div className="mt-8 grid grid-cols-2 gap-3">
+          <div className="h-12 animate-shimmer rounded-xl bg-surface-muted/80" />
+          <div className="h-12 animate-shimmer rounded-xl bg-brand-100" />
+        </div>
+      </div>
+    </div>
+  );
+}
 
 /**
  * عميل صفحة المنتج
@@ -84,7 +116,7 @@ export function ProductDetailPageContent({
     <Container className="w-full min-w-0 py-4 sm:py-10">
       {/* حالات التحميل/الخطأ/غياب المنتج: محتوى واحد بعرض الحاوية */}
       {productQuery.isPending ? (
-        <ProductSkeleton />
+        <ProductDetailPageSkeleton />
       ) : productQuery.isError ? (
         <ErrorState
           message={productQuery.error.message}
@@ -148,9 +180,8 @@ export function ProductDetailPageContent({
                 </p>
               )}
               {!isAuthenticated && (
-                <p className="mt-3 text-sm text-zinc-700" role="status">
-                
-                  {" "}
+                <p className="mt-3 text-sm text-muted-foreground" role="status">
+                  سجّل الدخول من صفحة حسابك إذا أردت إضافة تقييم بعد شراء المنتج.
                 </p>
               )}
               {canShowReviewForm && (

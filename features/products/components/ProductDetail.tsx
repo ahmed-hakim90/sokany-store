@@ -4,11 +4,11 @@
  * كتلة PDP (معرض + معلومات + شريط لاصق)
  * بالعامية: يظبط الكمية، يشغّل أنيميشن الطيران للسلة لو الحركة مسموحة، ويعرض `ProductDetailStickyCart` لما منطقة الشراء تطلع من الشاشة.
  */
-import { useReducedMotion } from "framer-motion";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ProductDetailInfoColumn } from "@/features/products/components/product-detail-info-column";
 import { ProductDetailStickyCart } from "@/features/products/components/product-detail-sticky-cart";
 import { ProductGallery } from "@/features/products/components/ProductGallery";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import type { ProductTrustSummary } from "@/components/pages/ProductDetailPageContent";
 import type { ProductSpecItem } from "@/features/products/components/ProductSpecsList";
 import { getProductGalleryBadge } from "@/features/products/lib/product-gallery-badge";
@@ -38,7 +38,7 @@ export function ProductDetail({
   const galleryRef = useRef<HTMLDivElement>(null);
   const purchaseRef = useRef<HTMLDivElement>(null);
   const [stickyCartVisible, setStickyCartVisible] = useState(false);
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = usePrefersReducedMotion();
   const badge = getProductGalleryBadge(product);
 
   useEffect(() => {

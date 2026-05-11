@@ -14,6 +14,12 @@ import type { CartItem } from "@/features/cart/types";
 
 export type CartLinesVariant = "default" | "premium";
 
+export const CART_CHECKOUT_CTA_LABEL = "إتمام الطلب";
+export const cartCheckoutPillButtonClassName =
+  "inline-flex shrink-0 items-center gap-3 rounded-full border border-brand-800/12 bg-brand-300 py-1.5 ps-5 pe-2 text-sm font-black text-brand-950 shadow-md transition-[transform,colors] hover:bg-brand-400/85 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600";
+export const cartCheckoutPillIconClassName =
+  "flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-brand-950 shadow-sm ring-1 ring-black/[0.06]";
+
 export function CartDrawerLines({
   items,
   onQuantityChange,
@@ -71,13 +77,14 @@ export function CartDrawerPeekFooter({
         <button
           type="button"
           className={cn(
-            "inline-flex w-full min-w-0 items-center justify-between gap-3 rounded-full border border-brand-800/12 bg-brand-300 py-2.5 ps-5 pe-2 text-sm font-black text-brand-950 shadow-md transition-[transform,colors] hover:bg-brand-400/85 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 sm:text-base",
+            cartCheckoutPillButtonClassName,
+            "w-full min-w-0 justify-between py-2.5 sm:text-base",
           )}
           onClick={onCheckout}
         >
-          <span className="min-w-0 truncate">الانتقال للدفع</span>
+          <span className="min-w-0 truncate">{CART_CHECKOUT_CTA_LABEL}</span>
           <span
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-brand-950 shadow-sm ring-1 ring-black/[0.06]"
+            className={cartCheckoutPillIconClassName}
             aria-hidden
           >
             <ArrowLeft className="size-5 rtl:rotate-180" />
@@ -91,7 +98,7 @@ export function CartDrawerPeekFooter({
           className="min-w-0 max-w-none font-bold"
           onClick={onCheckout}
         >
-          الانتقال للدفع
+          {CART_CHECKOUT_CTA_LABEL}
         </Button>
       )}
       {showFullCartLink ? (

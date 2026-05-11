@@ -6,6 +6,21 @@ import { useHasHydrated } from "@/hooks/useHasHydrated";
 import { useWishlistStore } from "@/features/wishlist/store/useWishlistStore";
 import type { Product } from "@/features/products/types";
 
+const wishlistToast = {
+  added(product: Product) {
+    toast.success("تمت الإضافة للمفضلة", {
+      id: `wishlist-added-${product.id}`,
+      description: product.name,
+    });
+  },
+  removed(productId: number, name?: string) {
+    toast.info("تمت الإزالة من المفضلة", {
+      id: `wishlist-removed-${productId}`,
+      description: name,
+    });
+  },
+};
+
 export function useWishlist() {
   const hasHydrated = useHasHydrated(useWishlistStore);
   const items = useWishlistStore((s) => s.items);
@@ -25,9 +40,9 @@ export function useWishlist() {
       const wasIn = useWishlistStore.getState().items.some((i) => i.productId === product.id);
       toggleProductStore(product);
       if (wasIn) {
-        toast.info("تمت إزالة المنتج من المفضلة");
+        wishlistToast.removed(product.id, product.name);
       } else {
-        toast.success(`تمت إضافة ${product.name} إلى المفضلة`);
+        wishlistToast.added(product);
       }
     },
     [toggleProductStore],
@@ -39,7 +54,7 @@ export function useWishlist() {
         .getState()
         .items.find((i) => i.productId === productId)?.name;
       removeProductStore(productId);
-      toast.info(name ? `تمت إزالة ${name} من المفضلة` : "تمت الإزالة من المفضلة");
+      wishlistToast.removed(productId, name);
     },
     [removeProductStore],
   );

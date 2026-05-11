@@ -74,10 +74,10 @@ export function CheckoutForm() {
         loading={isSubmitting}
         disabled={cartEmpty}
         size="lg"
-        className="h-14 base font-bold shadow-[0_14px_34px_-18px_rgba(218,255,0,0.85)]"
+        className="h-14 font-bold shadow-[0_14px_34px_-18px_rgba(218,255,0,0.85)]"
         onClick={() => void submitOrder()}
       >
-        تأكيد الطلب والدفع
+        {isSubmitting ? "جاري تأكيد الطلب…" : "تأكيد الطلب والدفع"}
       </Button>
       <CheckoutSupportFooter />
       <CheckoutFooterMeta />

@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useFcmWebPush } from "@/features/push/useFcmWebPush";
+import { ROUTES } from "@/lib/constants";
 import { scheduleIdleCallback } from "@/lib/schedule-idle-callback";
 
 const PwaInstallPrompt = dynamic(
@@ -26,6 +27,8 @@ const WebPushConsentBanner = dynamic(
 export function PwaEngagementStack() {
   const pathname = usePathname();
   const storefront = !pathname?.startsWith("/control");
+  const quietPurchaseRoute =
+    pathname === ROUTES.CART || pathname === ROUTES.CHECKOUT;
   const swEnabled = process.env.NEXT_PUBLIC_ENABLE_SW === "true";
   const [idleReady, setIdleReady] = useState(false);
   useFcmWebPush(storefront && swEnabled && idleReady);
@@ -56,10 +59,10 @@ export function PwaEngagementStack() {
     });
   }, [idleReady, storefront, swEnabled]);
 
-  if (!storefront || !idleReady) return null;
+  if (!storefront || !idleReady || quietPurchaseRoute) return null;
 
   return (
-    <div className="pointer-events-none fixed bottom-4 left-4 right-4 z-[100] flex flex-col gap-3 sm:left-auto sm:right-4 sm:max-w-md">
+    <div className="pointer-events-none fixed left-4 right-4 z-[100] flex flex-col gap-3 bottom-mobile-pwa-stack sm:left-auto sm:right-4 sm:max-w-md lg:bottom-4">
       <div className="pointer-events-auto">
         <PwaInstallPrompt />
       </div>

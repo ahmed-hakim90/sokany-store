@@ -32,6 +32,11 @@ import { getProductCardSalesCountText } from "@/features/products/lib/product-ca
 import { getProductVideoEmbed } from "@/features/products/lib/product-merchandising";
 import { playCartFlyAnimation } from "@/lib/cart-fly-animation";
 import { usePrefetchProduct } from "@/features/products/hooks/usePrefetchProduct";
+import type { HeartParticle } from "@/features/products/components/wishlist-heart-burst";
+import { ProductRatingDisplay } from "@/features/products/components/product-rating-display";
+import { useProductMerchandising } from "@/features/products/components/product-merchandising-context";
+import { ProductStatusBadge } from "@/features/products/components/product-status-badge";
+import type { Product } from "@/features/products/types";
 
 const ProductQuickViewModal = dynamic(
   () =>
@@ -40,16 +45,17 @@ const ProductQuickViewModal = dynamic(
     ),
   { ssr: false, loading: () => null },
 );
-import {
-  WishlistHeartBurstPortal,
-  WISHLIST_HEART_BURST_COUNT,
-  WISHLIST_HEART_BURST_STAGGER_SEC,
-  type HeartParticle,
-} from "@/features/products/components/wishlist-heart-burst";
-import { ProductRatingDisplay } from "@/features/products/components/product-rating-display";
-import { useProductMerchandising } from "@/features/products/components/product-merchandising-context";
-import { ProductStatusBadge } from "@/features/products/components/product-status-badge";
-import type { Product } from "@/features/products/types";
+
+const WishlistHeartBurstPortal = dynamic(
+  () =>
+    import("@/features/products/components/wishlist-heart-burst").then(
+      (m) => m.WishlistHeartBurstPortal,
+    ),
+  { ssr: false, loading: () => null },
+);
+
+const WISHLIST_HEART_BURST_COUNT = 10;
+const WISHLIST_HEART_BURST_STAGGER_SEC = 0.072;
 
 export type ProductCardVariant =
   | "mobileCompact"
@@ -156,6 +162,18 @@ type CardSlide = { key: string; src: string; alt: string };
 
 const productCardImageClassName =
   "object-contain object-center p-2 transition-transform duration-200 ease-out group-hover/card:scale-105 group-active/card:scale-[0.97] motion-reduce:transition-none motion-reduce:group-hover/card:scale-100";
+
+const productCardSaleBadgeClassName =
+  "pointer-events-none absolute left-2 top-2 z-[3] rounded-full bg-promo-sale-bg px-2 py-1 text-product-meta font-extrabold leading-none text-promo-sale-fg shadow-sm sm:text-[11px]";
+
+const productCardStatusBadgeClassName =
+  "pointer-events-none absolute left-2 top-2 z-[3] bg-white/90 px-2 py-1 text-[10px] shadow-sm ring-1 ring-white/70 backdrop-blur-sm sm:text-[10px]";
+
+const productCardAddButtonBaseClassName =
+  "inline-flex shrink-0 items-center justify-center gap-1 rounded-lg bg-brand-500 font-bold leading-none text-black shadow-[0_8px_18px_-12px_rgba(132,204,22,0.9)] ring-1 ring-black/[0.06] transition-all duration-200 ease-out hover:bg-brand-400 group-hover/card:scale-[1.02] active:scale-[0.97] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 disabled:pointer-events-none disabled:opacity-45 disabled:group-hover/card:scale-100";
+
+const productCardMerchBadgeClassName =
+  "pointer-events-none absolute bottom-2 right-2 z-[3] inline-flex max-w-[calc(100%-1rem)] items-center gap-1 rounded-full bg-white/88 px-2 py-1 text-[9px] font-bold leading-none text-slate-800 shadow-sm ring-1 ring-slate-200/80 backdrop-blur-sm sm:text-[10px]";
 
 function ProductCardImageStack({
   activeSlide,
@@ -612,19 +630,19 @@ export function ProductCard({
           {!isDetailed && saleDiscount !== null ? (
             <span
               dir="ltr"
-              className="pointer-events-none absolute left-2 top-2 z-[3] rounded-full bg-promo-sale-bg px-2 py-1 text-product-meta font-extrabold leading-none text-promo-sale-fg shadow-sm sm:text-[11px]"
+              className={productCardSaleBadgeClassName}
             >
               −{saleDiscount}%
             </span>
           ) : !isDetailed ? (
             <ProductStatusBadge
               product={product}
-              className="pointer-events-none absolute left-2 top-2 z-[3] bg-white/95 px-2 py-1 text-[10px] shadow-sm ring-1 ring-white/70 backdrop-blur-sm sm:text-[10px]"
+              className={productCardStatusBadgeClassName}
             />
           ) : saleDiscount !== null ? (
             <span
               dir="ltr"
-              className="pointer-events-none absolute left-2 top-2 z-[3] rounded-full bg-promo-sale-bg px-2 py-1 text-product-meta font-extrabold leading-none text-promo-sale-fg shadow-sm sm:text-[11px]"
+              className={productCardSaleBadgeClassName}
             >
               −{saleDiscount}%
             </span>
@@ -655,7 +673,7 @@ export function ProductCard({
             </span>
           ) : null}
           {!isDetailed && merchandising.productCardBadgeEnabled ? (
-            <span className="pointer-events-none absolute bottom-2 right-2 z-[3] inline-flex max-w-[calc(100%-1rem)] items-center gap-1 rounded-full bg-white/92 px-2 py-1 text-[9px] font-extrabold leading-none text-slate-950 shadow-sm ring-1 ring-slate-200/90 backdrop-blur-sm sm:text-[10px]">
+            <span className={productCardMerchBadgeClassName}>
               <BadgeCheck className="h-3.5 w-3.5 shrink-0 text-brand-700" aria-hidden />
               <span className="truncate">{merchandising.productCardBadgeText}</span>
             </span>
@@ -714,7 +732,7 @@ export function ProductCard({
           ) : null}
           {titleLink}
           {!isDetailed ? (
-            <div className="flex min-h-[1.125rem] items-center gap-1 py-px text-[10px] font-bold leading-snug text-slate-600">
+            <div className="flex min-h-[1.125rem] items-center gap-1 py-px text-[10px] font-semibold leading-snug text-muted-foreground">
               <ShieldCheck className="h-3.5 w-3.5 shrink-0 self-center text-brand-700" aria-hidden />
               <span className="min-w-0 truncate">ضمان الوكيل في مصر</span>
             </div>
@@ -724,7 +742,7 @@ export function ProductCard({
               rating={product.rating}
               ratingCount={product.ratingCount}
               size="xs"
-              className="min-h-4 min-w-0 text-slate-600"
+              className="min-h-4 min-w-0 text-muted-foreground"
             />
           ) : null}
           {isDetailed ? (
@@ -771,7 +789,7 @@ export function ProductCard({
                   disabled={!product.inStock}
                   aria-label={addButtonAriaLabel}
                   className={cn(
-                    "inline-flex shrink-0 items-center justify-center gap-1 rounded bg-brand-500 font-bold leading-none text-black shadow-[0_8px_18px_-12px_rgba(132,204,22,0.9)] ring-1 ring-black/[0.06] transition-all duration-200 ease-out hover:bg-brand-400 group-hover/card:scale-105 active:scale-[0.97] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 disabled:pointer-events-none disabled:opacity-45 disabled:group-hover/card:scale-100",
+                    productCardAddButtonBaseClassName,
                     isDetailed
                       ? "h-9 px-2.5 text-[11px] sm:px-4 sm:text-xs"
                       : "h-8 w-full px-2.5 text-[10px] sm:h-8 sm:px-3 sm:text-[11px]",
@@ -869,7 +887,7 @@ function MiniCartIcon({ checked }: { checked?: boolean }) {
 export function ProductCardWishlistIconButton({
   pressed,
   onPress,
-  labels = { add: "Add to favorites", remove: "Remove from favorites" },
+  labels = { add: "أضف إلى المفضلة", remove: "إزالة من المفضلة" },
 }: {
   pressed?: boolean;
   onPress?: () => void;
@@ -932,7 +950,9 @@ export function ProductCardWishlistIconButton({
         <HeartIcon filled={pressed} />
       </IconButton>
       {/* يقرأ particles ويرسم البورتال؛ onRemove يصفّر الجزيء من الحالة بعد انتهاء الأنيميشن. */}
-      <WishlistHeartBurstPortal particles={particles} onRemove={removeParticle} />
+      {particles.length > 0 ? (
+        <WishlistHeartBurstPortal particles={particles} onRemove={removeParticle} />
+      ) : null}
     </>
   );
 }

@@ -85,7 +85,7 @@ export function CheckoutShippingForm({
             label="الاسم الأول"
             id="contactFirstName"
             name="contactFirstName"
-            placeholder="First Name"
+            placeholder="مثال: أحمد"
             value={values.contactFirstName}
             onChange={(e) => onChange("contactFirstName", e.target.value)}
             error={errors.contactFirstName}
@@ -96,7 +96,7 @@ export function CheckoutShippingForm({
             label="الاسم الثاني"
             id="contactLastName"
             name="contactLastName"
-            placeholder="Last Name"
+            placeholder="مثال: محمد"
             value={values.contactLastName}
             onChange={(e) => onChange("contactLastName", e.target.value)}
             error={errors.contactLastName}
@@ -159,11 +159,11 @@ export function CheckoutShippingForm({
           />
 
           <FormField
-            label="Phone"
+            label="رقم الهاتف"
             id="contactPhone"
             name="contactPhone"
             inputMode="tel"
-            placeholder="Phone"
+            placeholder="مثال: 01012345678"
             value={values.contactPhone}
             onChange={(e) => onChange("contactPhone", e.target.value)}
             error={errors.contactPhone}
@@ -210,7 +210,9 @@ export function CheckoutShippingForm({
               onChange={(e) => onChange("createAccount", e.target.checked)}
               className="size-4 shrink-0 rounded border-border text-brand-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500"
             />
-            <span className="text-start text-sm text-brand-900">Create an account?</span>
+            <span className="text-start text-sm text-brand-900">
+              إنشاء حساب مع الطلب؟
+            </span>
           </label>
           {values.createAccount ? (
             <FormField
@@ -234,7 +236,7 @@ export function CheckoutShippingForm({
               className="size-4 shrink-0 rounded border-border text-brand-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500"
             />
             <span className="text-start text-sm text-brand-900">
-              Ship to a different address?
+              الشحن لاسم مستلم مختلف؟
             </span>
           </label>
         </div>

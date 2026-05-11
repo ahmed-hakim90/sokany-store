@@ -3,6 +3,8 @@
 import { useMemo } from "react";
 import { Link } from "next-view-transitions";
 import { ProductCard } from "@/features/products/components/ProductCard";
+import { ProductSkeleton } from "@/features/products/components/ProductSkeleton";
+import { ProductWishlistHeart } from "@/features/wishlist/components/ProductWishlistHeart";
 import { useProducts } from "@/features/products/hooks/useProducts";
 import { useCart } from "@/hooks/useCart";
 import type { Product } from "@/features/products/types";
@@ -33,10 +35,9 @@ export function CartUpsellSection({ className }: { className?: string }) {
         <div className="h-5 w-40 animate-pulse rounded bg-border" />
         <div className="flex gap-3 overflow-hidden">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div
-              key={i}
-              className="h-56 w-[9.5rem] shrink-0 animate-pulse rounded-xl bg-border/60"
-            />
+            <div key={i} className="w-[10.5rem] shrink-0 sm:w-44">
+              <ProductSkeleton />
+            </div>
           ))}
         </div>
       </section>
@@ -65,12 +66,13 @@ export function CartUpsellSection({ className }: { className?: string }) {
       </div>
       <div className="-mx-1 flex gap-3 overflow-x-auto overflow-y-hidden pb-1 pt-0.5 [scrollbar-width:thin]">
         {products.map((product: Product) => (
-          <div key={product.id} className="w-[9.75rem] shrink-0 px-1 sm:w-44">
+          <div key={product.id} className="w-[10.5rem] shrink-0 px-1 sm:w-44">
             <ProductCard
               product={product}
               variant="mobileCompact"
               getCartLineQuantity={getCartLineQuantity}
               onCartLineQuantityChange={setProductLineQuantity}
+              wishlistSlot={<ProductWishlistHeart product={product} />}
             />
           </div>
         ))}

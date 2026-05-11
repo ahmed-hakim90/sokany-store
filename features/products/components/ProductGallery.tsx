@@ -4,7 +4,7 @@
  * معرض صور المنتج + لايت بوكس
  * بالعامية: سلايدر بإيماءات، portal للتكبير، وإشعار للأب لما الصورة النشطة تتغيّر (مثلاً أنيميشن السلة).
  */
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import dynamic from "next/dynamic";
 import {
   forwardRef,
   useCallback,
@@ -15,11 +15,17 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import { AppImage } from "@/components/AppImage";
-import { ProductGalleryLightbox } from "@/features/products/components/product-gallery-lightbox";
 import { usePointerSwipe } from "@/hooks/usePointerSwipe";
-import { motionDuration, motionEase } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import type { ProductImage } from "@/features/products/types";
+
+const ProductGalleryLightbox = dynamic(
+  () =>
+    import("@/features/products/components/product-gallery-lightbox").then(
+      (m) => m.ProductGalleryLightbox,
+    ),
+  { ssr: false, loading: () => null },
+);
 
 export type ProductGalleryProps = {
   images: ProductImage[];
@@ -51,7 +57,6 @@ export const ProductGallery = forwardRef<HTMLDivElement, ProductGalleryProps>(
     const [activeSrc, setActiveSrc] = useState(initial);
     const activeIndex = Math.max(0, list.findIndex((img) => img.src === activeSrc));
     const [lightboxOpen, setLightboxOpen] = useState(false);
-    const reduceMotion = useReducedMotion();
     const titleId = useId();
 
     useEffect(() => {
@@ -149,30 +154,21 @@ export const ProductGallery = forwardRef<HTMLDivElement, ProductGalleryProps>(
             ref={ref}
             className="relative aspect-square overflow-hidden rounded-2xl border border-slate-200/80 bg-gradient-to-b from-white to-slate-50 shadow-[0_16px_40px_-28px_rgba(15,23,42,0.55)] ring-1 ring-white"
           >
-            <AnimatePresence mode="wait" initial={false}>
-              <motion.div
-                key={activeSrc}
-                className="absolute inset-0"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{
-                  duration: reduceMotion ? 0 : motionDuration.md,
-                  ease: motionEase.standard,
-                }}
-              >
-                <AppImage
-                  src={activeSrc}
-                  alt={productName}
-                  fill
-                  sizes="(max-width: 1024px) 100vw, 50vw"
-                  priority={priority}
-                  className="pointer-events-none object-contain object-center p-4 sm:p-6"
-                  shimmerUntilLoaded
-                  usePlaceholderOnError={false}
-                />
-              </motion.div>
-            </AnimatePresence>
+            <div
+              key={activeSrc}
+              className="absolute inset-0 animate-fade-in motion-reduce:animate-none"
+            >
+              <AppImage
+                src={activeSrc}
+                alt={productName}
+                fill
+                sizes="(max-width: 1024px) 100vw, 50vw"
+                priority={priority}
+                className="pointer-events-none object-contain object-center p-4 sm:p-6"
+                shimmerUntilLoaded
+                usePlaceholderOnError={false}
+              />
+            </div>
             {galleryBadge ? (
               <span className="pointer-events-none absolute end-3 top-3 z-10 rounded-full bg-brand-500 px-3 py-1.5 font-display text-[10px] font-bold uppercase leading-none tracking-wide text-black shadow-sm">
                 {galleryBadge}

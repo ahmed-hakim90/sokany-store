@@ -9,6 +9,9 @@ import {
 import { ProductSkeleton } from "@/features/products/components/ProductSkeleton";
 import { cn } from "@/lib/utils";
 
+const productCarouselCardShellClassName =
+  "w-[10.5rem] shrink-0 snap-start sm:w-44 md:w-48";
+
 export type ProductCarouselRowStatus = "loading" | "empty" | "ready";
 
 export type ProductCarouselRowProps = {
@@ -45,7 +48,7 @@ export function ProductCarouselRow({
             {Array.from({ length: 4 }).map((_, i) => (
               <div
                 key={i}
-                className="w-[10.5rem] shrink-0 snap-start sm:w-44 md:w-48"
+                className={productCarouselCardShellClassName}
               >
                 <ProductSkeleton />
               </div>
@@ -71,7 +74,7 @@ export function ProductCarouselRow({
       {products.map((product, index) => (
         <div
           key={product.id}
-          className="w-[10.5rem] shrink-0 snap-start sm:w-44 md:w-48"
+          className={productCarouselCardShellClassName}
           role="listitem"
         >
           <ProductCard
