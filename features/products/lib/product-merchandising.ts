@@ -2,6 +2,7 @@ import type { Product } from "@/features/products/types";
 
 const URL_RE = /https?:\/\/[^\s<>"')]+/gi;
 const DIRECT_VIDEO_RE = /\.(mp4|webm|ogv|ogg|mov)(?:[?#].*)?$/i;
+const ELEMENTOR_PLACEHOLDER_YOUTUBE_IDS = new Set(["XHOmBV4js_E"]);
 
 function stripHtml(input: string): string {
   return input
@@ -96,6 +97,23 @@ function getYouTubeVideoId(rawUrl: string): string | null {
   return null;
 }
 
+function isIgnoredProductVideoUrl(sourceUrl: string): boolean {
+  const youtubeId = getYouTubeVideoId(sourceUrl);
+  if (youtubeId && ELEMENTOR_PLACEHOLDER_YOUTUBE_IDS.has(youtubeId)) {
+    return true;
+  }
+
+  try {
+    const url = new URL(sourceUrl);
+    const haystack = decodeURIComponent(
+      `${url.hostname} ${url.pathname} ${url.search}`,
+    ).toLowerCase();
+    return /\belementor\b/.test(haystack) && /(placeholder|sample|demo)/.test(haystack);
+  } catch {
+    return false;
+  }
+}
+
 function getTikTokVideoId(rawUrl: string): string | null {
   try {
     const url = new URL(rawUrl);
@@ -136,6 +154,10 @@ function getFacebookEmbedUrl(rawUrl: string): string | null {
 }
 
 function getProductVideoEmbedFromUrl(sourceUrl: string): ProductVideoEmbed | null {
+  if (isIgnoredProductVideoUrl(sourceUrl)) {
+    return null;
+  }
+
   if (DIRECT_VIDEO_RE.test(sourceUrl)) {
     return { kind: "video", sourceUrl, embedUrl: sourceUrl };
   }
