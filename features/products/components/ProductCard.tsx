@@ -164,16 +164,16 @@ const productCardImageClassName =
   "object-contain object-center p-2 transition-transform duration-200 ease-out group-hover/card:scale-105 group-active/card:scale-[0.97] motion-reduce:transition-none motion-reduce:group-hover/card:scale-100";
 
 const productCardSaleBadgeClassName =
-  "pointer-events-none absolute left-2 top-2 z-[3] rounded-full bg-promo-sale-bg px-2 py-1 text-product-meta font-extrabold leading-none text-promo-sale-fg shadow-sm sm:text-[11px]";
+  "pointer-events-none absolute left-2 top-2 z-[3] rounded-full bg-promo-sale-bg/95 px-2 py-1 text-[10px] font-bold leading-none text-promo-sale-fg shadow-sm sm:text-[10px]";
 
 const productCardStatusBadgeClassName =
-  "pointer-events-none absolute left-2 top-2 z-[3] bg-white/90 px-2 py-1 text-[10px] shadow-sm ring-1 ring-white/70 backdrop-blur-sm sm:text-[10px]";
+  "pointer-events-none absolute left-2 top-2 z-[3] bg-white/88 px-2 py-1 text-[9px] shadow-sm ring-1 ring-white/70 backdrop-blur-sm sm:text-[10px]";
 
 const productCardAddButtonBaseClassName =
   "inline-flex shrink-0 items-center justify-center gap-1 rounded-lg bg-brand-500 font-bold leading-none text-black shadow-[0_8px_18px_-12px_rgba(132,204,22,0.9)] ring-1 ring-black/[0.06] transition-all duration-200 ease-out hover:bg-brand-400 group-hover/card:scale-[1.02] active:scale-[0.97] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 disabled:pointer-events-none disabled:opacity-45 disabled:group-hover/card:scale-100";
 
 const productCardMerchBadgeClassName =
-  "pointer-events-none absolute bottom-2 right-2 z-[3] inline-flex max-w-[calc(100%-1rem)] items-center gap-1 rounded-full bg-white/88 px-2 py-1 text-[9px] font-bold leading-none text-slate-800 shadow-sm ring-1 ring-slate-200/80 backdrop-blur-sm sm:text-[10px]";
+  "pointer-events-none absolute bottom-2 right-2 z-[3] inline-flex max-w-[calc(100%-1rem)] items-center gap-1 rounded-full bg-white/82 px-2 py-1 text-[9px] font-semibold leading-none text-slate-700 shadow-sm ring-1 ring-slate-200/70 backdrop-blur-sm sm:text-[10px]";
 
 function ProductCardImageStack({
   activeSlide,
@@ -732,8 +732,8 @@ export function ProductCard({
           ) : null}
           {titleLink}
           {!isDetailed ? (
-            <div className="flex min-h-[1.125rem] items-center gap-1 py-px text-[10px] font-semibold leading-snug text-muted-foreground">
-              <ShieldCheck className="h-3.5 w-3.5 shrink-0 self-center text-brand-700" aria-hidden />
+            <div className="flex min-h-[1.125rem] items-center gap-1 py-px text-[10px] font-medium leading-snug text-muted-foreground">
+              <ShieldCheck className="h-3.5 w-3.5 shrink-0 self-center text-brand-700/80" aria-hidden />
               <span className="min-w-0 truncate">ضمان الوكيل في مصر</span>
             </div>
           ) : null}

@@ -9,10 +9,9 @@ const COOKIE_NAME = "control_session";
 const encoder = new TextEncoder();
 
 function getSecret(): Uint8Array {
-  const secret =
-    process.env.JWT_SECRET?.trim() || process.env.CONTROL_SESSION_JWT_SECRET?.trim();
+  const secret = process.env.CONTROL_SESSION_JWT_SECRET?.trim();
   if (!secret) {
-    throw new Error("JWT_SECRET_OR_CONTROL_SESSION_JWT_SECRET");
+    throw new Error("CONTROL_SESSION_JWT_SECRET is not configured");
   }
   return encoder.encode(secret);
 }

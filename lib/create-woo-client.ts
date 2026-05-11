@@ -14,6 +14,7 @@ import { WC_REST_BASE_PATH } from "@/lib/constants";
 import { resolveWooBaseUrlForServer } from "@/lib/resolve-woo-base-url";
 import { logServerJson } from "@/lib/server-log";
 import { WOO_ENV_NOT_CONFIGURED_MESSAGE } from "@/lib/woo-env-errors";
+import { resolveWooCredentialsForServer } from "@/lib/woo-credentials-store";
 
 /** Timeout علشان الطلب ما يعلقش لحد ما TCP يستسلم (أحياناً دقيقة+). */
 const WOO_REQUEST_TIMEOUT_MS = 25_000;
@@ -74,12 +75,11 @@ function isRetryableWooUpstreamError(
 
 export async function createWooClient() {
   const baseURL = await resolveWooBaseUrlForServer();
-  const key = process.env.WC_CONSUMER_KEY;
-  const secret = process.env.WC_CONSUMER_SECRET;
-  if (!baseURL || !key || !secret) {
+  const credentials = await resolveWooCredentialsForServer();
+  if (!baseURL || !credentials) {
     throw new Error(WOO_ENV_NOT_CONFIGURED_MESSAGE);
   }
-  const token = Buffer.from(`${key}:${secret}`).toString("base64");
+  const token = Buffer.from(`${credentials.consumerKey}:${credentials.consumerSecret}`).toString("base64");
   const baseUrlForClient = new URL(WC_REST_BASE_PATH, baseURL).toString();
 
   const client = axios.create({

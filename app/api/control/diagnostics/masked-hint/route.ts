@@ -9,5 +9,5 @@ import { getMaskedWooCredentialHints } from "@/lib/mask-woo-credential";
 export async function GET(request: NextRequest) {
   const auth = await requireScopeFull(request);
   if (auth instanceof NextResponse) return auth;
-  return NextResponse.json(getMaskedWooCredentialHints());
+  return NextResponse.json(await getMaskedWooCredentialHints());
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/Button";
 import { ControlFieldHelp } from "@/features/control/components/control-field-help";
@@ -17,9 +17,26 @@ type Props = {
   onSave: (patch: Partial<CmsSiteConfigDoc>) => void;
 };
 
+type WooCredentialsStatus = {
+  hasConsumerKey: boolean;
+  hasConsumerSecret: boolean;
+  consumerKeyDisplay: string | null;
+  source: "env" | "firestore" | null;
+  encryptedCredentialsSaved: boolean;
+  encryptionConfigured: boolean;
+};
+
+function controlApiErrorMessage(value: unknown, fallback: string) {
+  if (value && typeof value === "object" && "error" in value) {
+    const err = (value as { error: unknown }).error;
+    if (typeof err === "string") return err;
+    if (err && typeof err === "object") return "راجع صيغة المفاتيح المدخلة";
+  }
+  return fallback;
+}
+
 /**
- * تكاملات علنية في Firestore (`site_config.storefrontIntegrations`).
- * أسرار Woo تبقى في بيئة الخادم (`WC_CONSUMER_*`).
+ * تكاملات Firestore: الروابط داخل `site_config`، وأسرار Woo في وثيقة مشفرة منفصلة.
  */
 export function StorefrontIntegrationsForm({ initial, disabled, onSave }: Props) {
   const [wooBaseUrl, setWooBaseUrl] = useState(initial?.wooBaseUrl ?? "");
@@ -31,6 +48,10 @@ export function StorefrontIntegrationsForm({ initial, disabled, onSave }: Props)
     initial?.externalDataWebhookUrl ?? "",
   );
   const [adminNote, setAdminNote] = useState(initial?.adminNote ?? "");
+  const [consumerKey, setConsumerKey] = useState("");
+  const [consumerSecret, setConsumerSecret] = useState("");
+  const [credentialStatus, setCredentialStatus] = useState<WooCredentialsStatus | null>(null);
+  const [credentialsSaving, setCredentialsSaving] = useState(false);
 
   useEffect(() => {
     setWooBaseUrl(initial?.wooBaseUrl ?? "");
@@ -39,6 +60,24 @@ export function StorefrontIntegrationsForm({ initial, disabled, onSave }: Props)
     setExternalDataWebhookUrl(initial?.externalDataWebhookUrl ?? "");
     setAdminNote(initial?.adminNote ?? "");
   }, [initial]);
+
+  const loadCredentialStatus = useCallback(async () => {
+    try {
+      const res = await fetch("/api/control/woocommerce/credentials", {
+        credentials: "include",
+      });
+      const data = (await res.json()) as unknown;
+      if (res.ok && data && typeof data === "object") {
+        setCredentialStatus(data as WooCredentialsStatus);
+      }
+    } catch {
+      /* الحالة اختيارية داخل النموذج؛ تبويب الصحة يعرض التشخيص الكامل. */
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadCredentialStatus();
+  }, [loadCredentialStatus]);
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -57,16 +96,59 @@ export function StorefrontIntegrationsForm({ initial, disabled, onSave }: Props)
     onSave({ storefrontIntegrations: parsed.data });
   }
 
+  async function submitWooCredentials(e: React.FormEvent) {
+    e.preventDefault();
+    const key = consumerKey.trim();
+    const secret = consumerSecret.trim();
+    if (!/^ck_[A-Za-z0-9]+$/.test(key) || !/^cs_[A-Za-z0-9]+$/.test(secret)) {
+      toast.error("تأكد أن المفتاح يبدأ بـ ck_ والسر يبدأ بـ cs_ بدون مسافات");
+      return;
+    }
+    setCredentialsSaving(true);
+    try {
+      const res = await fetch("/api/control/woocommerce/credentials", {
+        method: "PUT",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ consumerKey: key, consumerSecret: secret }),
+      });
+      const data = (await res.json()) as { credentials?: WooCredentialsStatus } | unknown;
+      if (!res.ok) {
+        throw new Error(controlApiErrorMessage(data, "فشل حفظ مفاتيح Woo"));
+      }
+      if (data && typeof data === "object" && "credentials" in data) {
+        setCredentialStatus((data as { credentials: WooCredentialsStatus }).credentials);
+      } else {
+        await loadCredentialStatus();
+      }
+      setConsumerKey("");
+      setConsumerSecret("");
+      toast.success("تم حفظ مفاتيح Woo المشفرة");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "فشل حفظ مفاتيح Woo");
+    } finally {
+      setCredentialsSaving(false);
+    }
+  }
+
+  const credentialSourceLabel =
+    credentialStatus?.source === "env"
+      ? "متغيرات البيئة"
+      : credentialStatus?.source === "firestore"
+        ? "Firestore مشفر"
+        : "غير مضبوط";
+
   return (
     <section className="rounded-2xl border border-border bg-white p-5 shadow-sm">
-      <h2 className="font-display text-lg font-bold">تكاملات المتجر (روابط التشغيل)</h2>
+      <h2 className="font-display text-lg font-bold">روابط Woo والتكاملات</h2>
       <p className="mt-1 text-sm text-muted-foreground">
-        حقول HTTPS علنية فقط — لا تُخزَّن مفاتيح Woo هنا. بعد الحفظ راجع{" "}
+        اضبط روابط Woo والويبهوك من هنا. مفاتيح Woo نفسها لا يحفظها إلا المشرف الرئيسي.
+        بعد أي تعديل راجع{" "}
         <Link
           href="/control?tab=health"
           className="font-medium text-emerald-700 underline underline-offset-2"
         >
-          صحة الموقع والربط
+          حالة الربط
         </Link>{" "}
         وأعد فحص Woo.
       </p>
@@ -75,25 +157,22 @@ export function StorefrontIntegrationsForm({ initial, disabled, onSave }: Props)
         className="mt-4 rounded-xl border border-amber-200/90 bg-amber-50/60 p-4 text-sm text-amber-950"
         role="note"
       >
-        <p className="font-semibold">أولوية مصدر منتجات Woo</p>
+        <p className="font-semibold">تفاصيل تقنية</p>
         <p className="mt-1 leading-relaxed">
-          إذا كان متغير البيئة <span className="font-mono text-xs">WC_BASE_URL</span> مضبوطًا على الخادم
-          (مثل Vercel)، فهو يُستخدم أولًا وتُتجاهل قيمة «رابط مصدر Woo» المحفوظة هنا. لتعتمد القيمة من هذا
-          النموذج، احذف أو لا تضبط <span className="font-mono text-xs">WC_BASE_URL</span> في إعدادات النشر.
+          لو <span className="font-mono text-xs">WC_BASE_URL</span> موجود على الخادم، هيكون له الأولوية
+          على الرابط المحفوظ هنا.
         </p>
         <p className="mt-2 leading-relaxed">
-          عند تغيير موقع Woo حدّث أيضًا{" "}
-          <span className="font-mono text-xs">WC_CONSUMER_KEY</span> و{" "}
-          <span className="font-mono text-xs">WC_CONSUMER_SECRET</span> في نفس البيئة لتطابق الموقع الجديد.
+          مفاتيح Woo يمكن أن تأتي من <span className="font-mono text-xs">WC_CONSUMER_*</span> في البيئة
+          أو من التخزين المشفر. مفاتيح البيئة لها الأولوية.
         </p>
       </div>
 
       <form className="mt-6 grid gap-4 sm:grid-cols-2" onSubmit={(e) => void submit(e)}>
         <div className="sm:col-span-2">
-          <label className="text-sm font-medium">رابط مصدر Woo (WordPress / WooCommerce)</label>
+          <label className="text-sm font-medium">رابط Woo الأساسي</label>
           <ControlFieldHelp>
-            أصل HTTPS فقط، مثل https://shop.example.com — بدون مسار /wp-json. يُستخدم لطلبات REST على السيرفر
-            عندما لا يوجد WC_BASE_URL في البيئة.
+            رابط الموقع الأساسي فقط، مثال: https://shop.example.com بدون /wp-json.
           </ControlFieldHelp>
           <input
             type="url"
@@ -108,9 +187,9 @@ export function StorefrontIntegrationsForm({ initial, disabled, onSave }: Props)
         </div>
 
         <div className="sm:col-span-2">
-          <label className="text-sm font-medium">نطاق واجهة المتجر العلنية (ويبهوك)</label>
+          <label className="text-sm font-medium">رابط المتجر العلني</label>
           <ControlFieldHelp>
-            اختياري — يُبنى منه عنوان استقبال الويبهوك بدل NEXT_PUBLIC_SITE_URL عند ضبط القيمة.
+            اختياري. نستخدمه لبناء روابط استقبال التحديثات من Woo.
           </ControlFieldHelp>
           <input
             type="url"
@@ -125,8 +204,8 @@ export function StorefrontIntegrationsForm({ initial, disabled, onSave }: Props)
         </div>
 
         <div className="sm:col-span-2">
-          <label className="text-sm font-medium">رابط مصدر قراءة إضافي (اختياري)</label>
-          <ControlFieldHelp>يُعرض في الإعدادات العامة والملخصات عند الحاجة لمصدر علني منفصل.</ControlFieldHelp>
+          <label className="text-sm font-medium">رابط قراءة إضافي (اختياري)</label>
+          <ControlFieldHelp>سيبه فاضي إلا لو عندك مصدر علني منفصل للقراءة.</ControlFieldHelp>
           <input
             type="url"
             name="publicReadBaseUrl"
@@ -140,9 +219,9 @@ export function StorefrontIntegrationsForm({ initial, disabled, onSave }: Props)
         </div>
 
         <div className="sm:col-span-2">
-          <label className="text-sm font-medium">رابط استقبال البيانات الخارجية (عرض / نسخ)</label>
+          <label className="text-sm font-medium">رابط استقبال بيانات خارجية</label>
           <ControlFieldHelp>
-            HTTPS كامل لـ POST ويبهوك البيانات الخارجي — السر يبقى في EXTERNAL_DATA_WEBHOOK_SECRET بالبيئة.
+            رابط كامل لو فيه سيرفر خارجي هيبعت تحديثات. السر يفضل في البيئة.
           </ControlFieldHelp>
           <input
             type="url"
@@ -176,8 +255,88 @@ export function StorefrontIntegrationsForm({ initial, disabled, onSave }: Props)
             href="/control?tab=health"
             className="text-sm font-medium text-emerald-700 underline underline-offset-2"
           >
-            فتح صحة الربط والتشخيص
+            فتح حالة الربط
           </Link>
+        </div>
+      </form>
+
+      <form
+        className="mt-6 rounded-xl border border-slate-200 bg-slate-50/70 p-4"
+        onSubmit={(e) => void submitWooCredentials(e)}
+      >
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h3 className="font-display text-base font-bold">مفاتيح Woo المشفرة</h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              عملية حساسة: الحفظ مسموح للمشرف الرئيسي فقط، والمفاتيح لا تظهر مرة تانية بعد الحفظ.
+            </p>
+          </div>
+          <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700">
+            <p>
+              المصدر الحالي: <span className="font-semibold">{credentialSourceLabel}</span>
+            </p>
+            <p className="mt-1 font-mono">
+              {credentialStatus?.consumerKeyDisplay ?? "ck_ غير مضبوط"}
+            </p>
+          </div>
+        </div>
+
+        {credentialStatus && !credentialStatus.encryptionConfigured ? (
+          <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-950">
+            أضف <span className="font-mono text-xs">WOO_CREDENTIALS_ENCRYPTION_KEY</span> على الخادم
+            قبل حفظ المفاتيح من اللوحة.
+          </div>
+        ) : null}
+
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <div>
+            <label className="text-sm font-medium">Consumer Key</label>
+            <input
+              type="password"
+              value={consumerKey}
+              onChange={(e) => setConsumerKey(e.target.value)}
+              placeholder="ck_..."
+              autoComplete="off"
+              disabled={disabled || credentialsSaving}
+              className="mt-1 w-full rounded-lg border border-border bg-white px-3 py-2 font-mono text-sm"
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium">Consumer Secret</label>
+            <input
+              type="password"
+              value={consumerSecret}
+              onChange={(e) => setConsumerSecret(e.target.value)}
+              placeholder="cs_..."
+              autoComplete="off"
+              disabled={disabled || credentialsSaving}
+              className="mt-1 w-full rounded-lg border border-border bg-white px-3 py-2 font-mono text-sm"
+            />
+          </div>
+        </div>
+
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          <Button
+            type="submit"
+            disabled={disabled || credentialsSaving || credentialStatus?.encryptionConfigured === false}
+          >
+            {credentialsSaving ? "جاري حفظ المفاتيح…" : "حفظ مفاتيح Woo المشفرة"}
+          </Button>
+          <Button
+            type="button"
+            variant="secondary"
+            disabled={credentialsSaving}
+            onClick={() => void loadCredentialStatus()}
+          >
+            تحديث حالة المفاتيح
+          </Button>
+          <p className="text-xs text-muted-foreground">
+            {credentialStatus?.encryptedCredentialsSaved
+              ? "يوجد زوج مفاتيح محفوظ ومشفر."
+              : credentialStatus
+                ? "لا يوجد زوج مفاتيح محفوظ في Firestore بعد."
+                : "جاري قراءة حالة المفاتيح..."}
+          </p>
         </div>
       </form>
     </section>

@@ -1,5 +1,7 @@
 import "server-only";
 
+import { resolveWooCredentialsForServer } from "@/lib/woo-credentials-store";
+
 /**
  * عرض آمن — لا يعيد مفاتيح كاملة. ‎Woo: ‎`ck_` / ‎`cs_` / نفس الفكرة.
  */
@@ -15,14 +17,17 @@ export function maskWooKeyFragment(value: string | undefined | null): string | n
   return `${t.slice(0, 2)}****${t.slice(-4)}`;
 }
 
-export function getMaskedWooCredentialHints(): {
+export async function getMaskedWooCredentialHints(): Promise<{
   hasConsumerKey: boolean;
   hasConsumerSecret: boolean;
   consumerKeyDisplay: string | null;
-} {
+  source: "env" | "firestore" | null;
+}> {
+  const resolved = await resolveWooCredentialsForServer().catch(() => null);
   return {
-    hasConsumerKey: Boolean(process.env.WC_CONSUMER_KEY?.trim()),
-    hasConsumerSecret: Boolean(process.env.WC_CONSUMER_SECRET?.trim()),
-    consumerKeyDisplay: maskWooKeyFragment(process.env.WC_CONSUMER_KEY),
+    hasConsumerKey: Boolean(resolved?.consumerKey),
+    hasConsumerSecret: Boolean(resolved?.consumerSecret),
+    consumerKeyDisplay: maskWooKeyFragment(resolved?.consumerKey),
+    source: resolved?.source ?? null,
   };
 }

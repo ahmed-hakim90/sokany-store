@@ -12,6 +12,7 @@ import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import type { ProductTrustSummary } from "@/components/pages/ProductDetailPageContent";
 import type { ProductSpecItem } from "@/features/products/components/ProductSpecsList";
 import { getProductGalleryBadge } from "@/features/products/lib/product-gallery-badge";
+import { useProduct3DModel } from "@/features/products/hooks/useProduct3DModel";
 import type { Product } from "@/features/products/types";
 import { playCartFlyAnimation } from "@/lib/cart-fly-animation";
 import { cn } from "@/lib/utils";
@@ -40,6 +41,9 @@ export function ProductDetail({
   const [stickyCartVisible, setStickyCartVisible] = useState(false);
   const reduceMotion = usePrefersReducedMotion();
   const badge = getProductGalleryBadge(product);
+  const product3DModelQuery = useProduct3DModel(product.sku);
+  const product3DModel = product3DModelQuery.data ?? null;
+  const product3DPosterSrc = product.images[0]?.src ?? product.thumbnail;
 
   useEffect(() => {
     const el = purchaseRef.current;
@@ -94,6 +98,8 @@ export function ProductDetail({
           specs={specs ?? []}
           canInteractCart={canInteractCart}
           trustSummary={trustSummary}
+          product3DModelSrc={product3DModel?.src}
+          product3DPosterSrc={product3DPosterSrc}
         />
       </div>
 

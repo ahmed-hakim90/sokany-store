@@ -16,7 +16,7 @@ export type CartLinesVariant = "default" | "premium";
 
 export const CART_CHECKOUT_CTA_LABEL = "إتمام الطلب";
 export const cartCheckoutPillButtonClassName =
-  "inline-flex shrink-0 items-center gap-3 rounded-full border border-brand-800/12 bg-brand-300 py-1.5 ps-5 pe-2 text-sm font-black text-brand-950 shadow-md transition-[transform,colors] hover:bg-brand-400/85 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600";
+  "inline-flex shrink-0 items-center gap-3 rounded-full border border-brand-800/12 bg-brand-300 py-1.5 ps-5 pe-2 text-sm font-black text-brand-950 shadow-md transition-[transform,background-color,box-shadow] hover:bg-brand-400/85 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600";
 export const cartCheckoutPillIconClassName =
   "flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-brand-950 shadow-sm ring-1 ring-black/[0.06]";
 

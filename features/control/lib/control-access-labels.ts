@@ -7,17 +7,19 @@ import type { ControlPanelAccessDoc } from "@/schemas/control-panel-access";
 
 /** تسمية عربية لمعرف تبويب اللوحة (لعرض الصلاحيات). */
 export const CONTROL_TAB_LABEL_AR: Partial<Record<ControlPanelTabId, string>> = {
-  general: "عام",
-  branding: "هوية الموقع",
-  hero: "الهيرو",
-  home: "الصفحة الرئيسية",
-  branches: "الفروع",
-  retailers: "الموزعون",
+  general: "إعدادات عامة",
+  branding: "محتوى الواجهة",
+  inventory: "المنتجات والمخزون و3D",
+  product3d: "المنتجات والمخزون و3D",
+  hero: "محتوى الواجهة",
+  home: "محتوى الواجهة",
+  branches: "الفروع والموزعين",
+  retailers: "الفروع والموزعين",
   media: "الوسائط",
-  preview: "معاينة",
-  notifications: "إشعارات",
-  health: "صحة الموقع والربط",
-  access: "الصلاحيات (مشرف)",
+  preview: "معاينة الموقع",
+  notifications: "إرسال إشعار للعملاء",
+  health: "Woo والطلبات وصحة الربط",
+  access: "الصلاحيات",
 };
 
 export function formatControlAccessSummary(doc: ControlPanelAccessDoc): {
@@ -40,25 +42,27 @@ export function formatControlAccessSummary(doc: ControlPanelAccessDoc): {
   const t = doc.tabIds;
   const tabLine =
     t == null
-      ? "كل تبويبات إعدادات المحتوى (غير مُفلترة)"
+      ? "كل أقسام لوحة التحكم"
       : t.length === 0
-        ? "لا تبويبات (استثنائي — قد تُقيّد الاستعمال)"
-        : t
-            .map((id) => {
-              const n = normalizeLegacyControlTabId(id);
-              if (n) return CONTROL_TAB_LABEL_AR[n] ?? n;
-              return CONTROL_TAB_LABEL_AR[id as ControlPanelTabId] ?? id;
-            })
-            .join("، ");
+        ? "الحساب ده لسه ملوش أقسام مسموحة"
+        : [
+            ...new Set(
+              t.map((id) => {
+                const n = normalizeLegacyControlTabId(id);
+                if (n) return CONTROL_TAB_LABEL_AR[n] ?? n;
+                return CONTROL_TAB_LABEL_AR[id as ControlPanelTabId] ?? id;
+              }),
+            ),
+          ].join("، ");
   const mf = doc.mediaSubfolders;
   const mfLine =
     mf == null
-      ? "الوسائط: كل المجلدات (ضمن تبويب الوسائط)"
+      ? "الوسائط: كل المجلدات"
       : mf.length === 0
-        ? "الوسائط: لا مجلدات (استثنائي)"
+        ? "الوسائط: مفيش مجلدات مسموحة"
         : `الوسائط: ${mf.join("، ")} فقط`;
   return {
-    typeLine: "لوحة كاملة (مُقيّدة)",
+    typeLine: "لوحة تحكم حسب الصلاحيات",
     detailLine: `${tabLine} | ${mfLine}`,
   };
 }

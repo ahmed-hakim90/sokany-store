@@ -85,14 +85,11 @@ export async function POST(request: NextRequest) {
         { status: 503 },
       );
     }
-    if (
-      msg.includes("JWT_SECRET_OR_CONTROL_SESSION_JWT_SECRET") ||
-      msg.includes("JWT_SECRET")
-    ) {
+    if (msg.includes("CONTROL_SESSION_JWT_SECRET")) {
       return NextResponse.json(
         {
           error:
-            "أضف JWT_SECRET (أو CONTROL_SESSION_JWT_SECRET) في ملف .env ثم أعد تشغيل السيرفر — مطلوب لتوقيع جلسة لوحة التحكم.",
+            "أضف CONTROL_SESSION_JWT_SECRET في ملف .env ثم أعد تشغيل السيرفر — لازم يكون سر منفصل للوحة التحكم.",
         },
         { status: 503 },
       );

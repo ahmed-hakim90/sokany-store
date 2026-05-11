@@ -72,7 +72,7 @@ function BottomNavLinkContents({
           <span
             className={cn(
               "absolute -end-1 -top-1 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-brand-400 px-0.5 text-[8px] font-bold leading-none text-black ring-2",
-              active ? "ring-brand-950" : "ring-white/90",
+              active ? "ring-brand-100" : "ring-white/90",
             )}
           >
             {totalItems > 99 ? "99+" : totalItems}
@@ -82,7 +82,7 @@ function BottomNavLinkContents({
       <span
         className={cn(
           "line-clamp-1 text-center text-[10px] font-medium leading-4 tracking-[-0.01em] transition-colors duration-200",
-          active ? "text-brand-950" : "text-current",
+          active ? "text-brand-900" : "text-current",
         )}
       >
         {label}
@@ -122,7 +122,7 @@ export function BottomNavInner() {
     cn(
       "relative inline-flex h-7 min-w-9 items-center justify-center rounded-full px-2 text-current transition-[background-color,color,box-shadow,transform] duration-200 ease-out motion-reduce:transition-none",
       active
-        ? "bg-brand-950 text-brand-100 shadow-[0_5px_14px_-10px_rgba(15,23,42,0.9)]"
+        ? "bg-brand-100 text-brand-950 shadow-[0_4px_12px_-10px_rgba(15,23,42,0.55)] ring-1 ring-brand-900/10"
         : "bg-transparent text-current",
     );
 
@@ -193,7 +193,7 @@ export function BottomNavInner() {
             <span
               className={cn(
                 "line-clamp-1 text-center text-[10px] font-medium leading-4 tracking-[-0.01em] transition-colors duration-200",
-                drawerOpen && !isCheckout ? "text-brand-950" : "text-current",
+                drawerOpen && !isCheckout ? "text-brand-900" : "text-current",
               )}
             >
               {mainMenuItem.label}

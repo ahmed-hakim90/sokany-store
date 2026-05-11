@@ -5,13 +5,15 @@ import {
   syncSokanyWebhooksToWoo,
 } from "@/features/woocommerce/services/sync-woo-webhooks";
 import { SOKANY_WOO_WEBHOOK_RECIPES } from "@/features/woocommerce/woo-webhook-topics";
+import { resolveWooBaseUrlForServer } from "@/lib/resolve-woo-base-url";
+import { resolveWooCredentialsForServer } from "@/lib/woo-credentials-store";
 
-function isWooConfigured(): boolean {
-  return Boolean(
-    process.env.WC_BASE_URL?.trim() &&
-      process.env.WC_CONSUMER_KEY?.trim() &&
-      process.env.WC_CONSUMER_SECRET?.trim(),
-  );
+async function isWooConfigured(): Promise<boolean> {
+  const [baseUrl, credentials] = await Promise.all([
+    resolveWooBaseUrlForServer(),
+    resolveWooCredentialsForServer().catch(() => null),
+  ]);
+  return Boolean(baseUrl?.trim() && credentials);
 }
 
 /**
@@ -21,7 +23,7 @@ function isWooConfigured(): boolean {
 export async function GET(request: NextRequest) {
   const auth = await requireScopeFull(request);
   if (auth instanceof NextResponse) return auth;
-  if (!isWooConfigured()) {
+  if (!(await isWooConfigured())) {
     return NextResponse.json(
       { error: "WooCommerce غير مُكوّن (WC_BASE_URL, …)" },
       { status: 503 },
@@ -47,7 +49,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const auth = await requireScopeFull(request);
   if (auth instanceof NextResponse) return auth;
-  if (!isWooConfigured()) {
+  if (!(await isWooConfigured())) {
     return NextResponse.json(
       { error: "WooCommerce غير مُكوّن (WC_BASE_URL, …)" },
       { status: 503 },

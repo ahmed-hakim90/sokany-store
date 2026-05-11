@@ -233,14 +233,15 @@ export const CMS_DEFAULT_HOME_FEATURE_VIDEO: CmsHomeFeatureVideo = {
  * بـ schemata منفصلة حتى لا تفسد قيمة قديمة باقي الحقول.
  */
 /**
- * تكاملات **علنية** فقط. المفاتيح السرية (Woo consumer، أسرار الويبهوك) → `.env` / Vercel وليس Firestore.
+ * تكاملات **علنية** فقط. أسرار الويبهوك تبقى في `.env` / Vercel.
+ * مفاتيح Woo consumer لا تُخزن هنا؛ إما env أو وثيقة Firestore مشفرة يقرأها السيرفر فقط.
  * يُستخرج `publicReadBaseUrl` و`externalDataWebhookUrl` لـ `getPublicSiteContent`.
  * `adminNote` لا يُمرَّر للواجهة العامة — يظهر فقط في لوحة التحكم.
  */
 export const cmsStorefrontIntegrationsSchema = z.object({
   /**
    * أصل ووردبرس/وُوكومرس (مثال: ‎`https://shop.example.com`‎) — اختياري.
-   * يُعتمد إذا **لم** يُضبط ‎`WC_BASE_URL`‎ في بيئة الخادم؛ وإلا يُتجاهل لصالح البيئة. المفاتيح ‎`WC_CONSUMER_*`‎ تبقى في البيئة.
+   * يُعتمد إذا **لم** يُضبط ‎`WC_BASE_URL`‎ في بيئة الخادم؛ وإلا يُتجاهل لصالح البيئة.
    */
   wooBaseUrl: z.string().url().max(500).optional(),
   /**

@@ -9,9 +9,8 @@ import {
   normalizeLegacyControlTabId,
 } from "@/features/control/lib/control-tabs";
 import { ControlAccessTab } from "@/features/control/components/ControlAccessTab";
-import { ControlHealthTab } from "@/features/control/components/ControlHealthTab";
-import { ControlWooApiTab } from "@/features/control/components/ControlWooApiTab";
-import { OrderForwardingSettingsTab } from "@/features/control/components/OrderForwardingSettingsTab";
+import { ControlIntegrationsHubTab } from "@/features/control/components/ControlIntegrationsHubTab";
+import { ControlProductsTab } from "@/features/control/components/ControlProductsTab";
 import {
   useControlSession,
   ControlUnauthorizedError,
@@ -34,6 +33,7 @@ import {
   MapPinned,
   Megaphone,
   MonitorPlay,
+  PackageSearch,
   Palette,
   ShieldCheck,
   Sparkles,
@@ -92,7 +92,6 @@ import {
 } from "@/features/control/components/control-panel-forms";
 import { mergeSpotlightsDocWithLegacySitePromo } from "@/features/cms/lib/merge-spotlights-legacy-promo";
 import { HomeProductSectionsForm } from "@/features/control/components/HomeProductSectionsForm";
-import { StorefrontIntegrationsForm } from "@/features/control/components/StorefrontIntegrationsForm";
 import { ControlMediaTab } from "@/features/control/components/ControlMediaTab";
 import { putCmsRequest } from "@/features/control/lib/control-cms-put";
 import {
@@ -124,18 +123,42 @@ type ClientControlSession = {
 };
 
 const BASE_TAB_LIST: { id: ControlPanelTabId; label: string }[] = [
-  { id: "general", label: "عام" },
-  { id: "branding", label: "هوية الموقع" },
-  { id: "hero", label: "الهيرو" },
-  { id: "home", label: "الصفحة الرئيسية" },
-  { id: "branches", label: "الفروع" },
-  { id: "retailers", label: "الموزعون" },
+  { id: "general", label: "إعدادات عامة" },
+  { id: "branding", label: "محتوى الواجهة" },
+  { id: "inventory", label: "المنتجات والمخزون و3D" },
+  { id: "product3d", label: "المنتجات والمخزون و3D" },
+  { id: "hero", label: "محتوى الواجهة" },
+  { id: "home", label: "محتوى الواجهة" },
+  { id: "branches", label: "الفروع والموزعين" },
+  { id: "retailers", label: "الفروع والموزعين" },
   { id: "media", label: "الوسائط" },
   { id: "preview", label: "معاينة الموقع" },
-  { id: "notifications", label: "إشعارات" },
-  { id: "health", label: "صحة الموقع والربط" },
+  { id: "notifications", label: "إرسال إشعار للعملاء" },
+  { id: "health", label: "Woo والطلبات وصحة الربط" },
   { id: "access", label: "الصلاحيات" },
 ];
+
+const NAV_TAB_IDS: ControlPanelTabId[] = [
+  "general",
+  "home",
+  "branches",
+  "media",
+  "inventory",
+  "health",
+  "notifications",
+  "access",
+];
+
+const MERGED_TAB_TARGETS: Partial<Record<ControlPanelTabId, ControlPanelTabId>> = {
+  branding: "home",
+  hero: "home",
+  retailers: "branches",
+  product3d: "inventory",
+};
+
+function getVisibleTabId(id: ControlPanelTabId): ControlPanelTabId {
+  return MERGED_TAB_TARGETS[id] ?? id;
+}
 
 const TAB_EXPLAINERS: Record<
   ControlPanelTabId,
@@ -150,60 +173,77 @@ const TAB_EXPLAINERS: Record<
 > = {
   general: {
     eyebrow: "تشغيل يومي",
-    title: "الإعدادات العامة للمتجر",
+    title: "إعدادات عامة",
     description:
-      "من هنا نتحكم في الرسائل السريعة، الروابط الأساسية، وما يظهر للعميل بشكل متكرر في أكثر من صفحة.",
-    bullets: ["عدّل البيانات المشتركة مرة واحدة", "أي حفظ ينعكس على الواجهة بسرعة", "مناسب للرسائل والعناوين اليومية"],
-    badge: "أساسيات المتجر",
+      "ده مكان الحاجات اليومية: رسائل، روابط، شات، وبحث سريع. أي حاجة مشتركة في أكتر من صفحة تبدأ من هنا.",
+    bullets: ["بيعدل بيانات مشتركة", "مناسب للتغييرات السريعة"],
+    badge: "عام",
     icon: LayoutDashboard,
   },
   branding: {
-    eyebrow: "هوية بصرية",
-    title: "اسم المتجر وصورته وبياناته التعريفية",
+    eyebrow: "واجهة المتجر",
+    title: "محتوى الواجهة",
     description:
-      "هذا القسم مسؤول عن الاسم العربي واللاتيني، الأيقونات، صور المشاركة، وأساس الهوية التي يراها العميل ومحركات البحث.",
-    bullets: ["يوحّد الاسم والشعار", "يضبط صور الأيقونات وOG", "يحافظ على ثبات شكل العلامة"],
-    badge: "الهوية",
+      "كل اللي بيظهر للعميل في أول واجهة: الاسم، الشعار، الهيرو، أقسام الهوم، الفيديو، والبانرات.",
+    bullets: ["مكان واحد للواجهة", "بدون تكرار بين الهيرو والهوم والهوية"],
+    badge: "الواجهة",
     icon: Palette,
   },
-  hero: {
-    eyebrow: "الواجهة الأولى",
-    title: "سلايدر الهيرو والعناصر البارزة",
+  inventory: {
+    eyebrow: "منتجات",
+    title: "المنتجات والمخزون و3D",
     description:
-      "هنا نعدّل أول مساحة يراها الزائر عند فتح الموقع: الصور الرئيسية، العناوين، والأزرار التي تدفعه للتصفح أو الشراء.",
-    bullets: ["أول انطباع بصري", "مفيد للعروض والمواسم", "غيّره عند إطلاق حملة جديدة"],
-    badge: "الصفحة الرئيسية",
+      "مراجعة المنتجات الظاهرة، حالة المخزون، وربط موديل 3D بنفس SKU من نفس الشاشة.",
+    bullets: ["المخزون والموديل في نفس المكان", "مناسب لمراجعة Woo اليومية"],
+    badge: "منتجات",
+    icon: PackageSearch,
+  },
+  product3d: {
+    eyebrow: "منتجات",
+    title: "المنتجات والمخزون و3D",
+    description:
+      "اتدمجت مع المخزون عشان كل حاجة تخص المنتج تبقى في مكان واحد.",
+    bullets: ["ربط حسب SKU", "تفعيل أو إخفاء للعميل"],
+    badge: "منتجات",
+    icon: PackageSearch,
+  },
+  hero: {
+    eyebrow: "واجهة المتجر",
+    title: "محتوى الواجهة",
+    description:
+      "الهيرو جزء من محتوى الواجهة، فبقى مع الهوم والهوية بدل تبويب منفصل.",
+    bullets: ["أول حاجة العميل بيشوفها", "مفيد للعروض والمواسم"],
+    badge: "الواجهة",
     icon: Sparkles,
   },
   home: {
-    eyebrow: "كتالوج الهوم",
-    title: "الصفحة الرئيسية — أقسام، بانرات، إبراز المحتوى",
+    eyebrow: "واجهة المتجر",
+    title: "محتوى الواجهة",
     description:
-      "محرّر موحّد: أقسام المنتجات (تلقائي/مخصص/هجين) مع بانرات الأقسام، فيديو الهوم، شرائح التصنيفات، بطاقة الترويج العريضة، والإعلانات المميزة (سبوتلايت) — دون تبويب منفصل.",
+      "كل تعديل بيغير شكل واجهة المتجر للعميل موجود هنا: الهوية، الهيرو، أقسام الهوم، الفيديو، والسبوتلايت.",
     bullets: [
-      "أقسام وبانرات ومنتجات",
-      "ترويج وسبوتلايت",
-      "فيديو وشرائح تحت الهيرو",
+      "هوية وهيرو وهوم في شاشة واحدة",
+      "كل جزء واضح باسمه",
     ],
-    badge: "الهوم",
+    badge: "الواجهة",
     icon: Home,
   },
   branches: {
-    eyebrow: "ما بعد البيع",
-    title: "بيانات الفروع ومراكز الخدمة",
+    eyebrow: "أماكن الوصول",
+    title: "الفروع والموزعين",
     description:
-      "يجمع هذا القسم عناوين الفروع وأرقام التواصل والخريطة وروابط الخدمة حتى يجد العميل أقرب نقطة دعم بسهولة.",
-    bullets: ["يرفع الثقة", "يسهّل الوصول للفروع", "يحسّن تجربة ما بعد البيع"],
-    badge: "الفروع",
+      "الفروع ومراكز الخدمة والموزعين في شاشة واحدة عشان العميل يعرف يوصلك منين.",
+    bullets: ["أماكن البيع والخدمة مع بعض", "بيانات واضحة للعميل"],
+    badge: "أماكن الوصول",
     icon: MapPinned,
   },
   retailers: {
-    eyebrow: "انتشار العلامة",
-    title: "الموزعون ونقاط البيع",
+    eyebrow: "أماكن الوصول",
+    title: "الفروع والموزعين",
     description:
-      "نستخدمه لعرض أماكن الشراء المعتمدة أو شركاء البيع، مع بيانات تساعد العميل يعرف أين يجد المنتجات خارج الموقع.",
-    bullets: ["يبني الثقة", "يعرّف العميل بالموزعين", "يناسب التوسع الجغرافي"],
-    badge: "الموزعون",
+      "اتدمجت مع الفروع لأنها نفس الفكرة: أماكن يشتري منها العميل أو يطلب خدمة.",
+    bullets: ["موزعين وفروع في مكان واحد", "أسهل في الصيانة"],
+    badge: "أماكن الوصول",
     icon: Store,
   },
   media: {
@@ -216,42 +256,41 @@ const TAB_EXPLAINERS: Record<
     icon: FolderKanban,
   },
   preview: {
-    eyebrow: "مراجعة قبل النشر",
-    title: "معاينة شكل المتجر بعد التعديلات",
+    eyebrow: "معاينة",
+    title: "معاينة الموقع",
     description:
-      "هذا التبويب يتيح التأكد من أن التغيير ظاهر بشكل جيد قبل الانتقال لباقي المهام، خاصة على واجهة العميل الحقيقية.",
-    bullets: ["يشبه النتيجة النهائية", "يسهّل اكتشاف الأخطاء البصرية", "أفضل خطوة قبل إنهاء التحديث"],
+      "زر سريع لمراجعة شكل المتجر بعد الحفظ. مش إعداد مستقل، لكنه موجود كرابط مباشر لو محتاجه.",
+    bullets: ["راجع النتيجة", "افتحها بعد أي تعديل بصري"],
     badge: "معاينة",
     icon: Eye,
   },
   notifications: {
-    eyebrow: "التفاعل",
-    title: "إشعارات الويب والتنبيهات",
+    eyebrow: "رسالة للعملاء",
+    title: "إرسال إشعار للعملاء",
     description:
-      "القسم الخاص بإرسال أو ضبط إشعارات تصل للمستخدمين المشتركين، حتى نعلن عن عرض أو تحديث مهم بسرعة.",
-    bullets: ["مفيد للعروض العاجلة", "يزيد عودة الزوار", "يخدم الحملات القصيرة"],
+      "اكتب رسالة قصيرة تظهر للعملاء المشتركين في إشعارات المتجر.",
+    bullets: ["مناسب للعروض العاجلة", "اكتب مختصر وواضح"],
     badge: "إشعارات",
     icon: BellRing,
   },
   health: {
-    eyebrow: "تشغيل وربط",
-    title: "صحة الموقع والربط والتكاملات",
+    eyebrow: "ربط وتشغيل",
+    title: "Woo والطلبات وصحة الربط",
     description:
-      "مركز واحد: نبض الصحة، تشخيص Woo، إعادة توجيه الطلبات، الروابط والويب هوك — دون التنقّل بين تبويبات تقنية منفصلة.",
+      "هنا متابعة حالة الموقع، ربط Woo، الويبهوك، وإعدادات إرسال الطلبات. التفاصيل التقنية جوه أقسام صغيرة.",
     bullets: [
-      "صحة النظام والمخزن والـ API",
-      "ربط Woo والروابط التشغيلية",
-      "تكامل الطلبات والإرسال الخارجي",
+      "متابعة الحالة",
+      "إعدادات الربط الحساسة",
     ],
-    badge: "صحة وربط",
+    badge: "ربط",
     icon: Activity,
   },
   access: {
     eyebrow: "إدارة الفريق",
     title: "صلاحيات الدخول إلى لوحة التحكم",
     description:
-      "هذا الجزء يحدد من يدخل اللوحة وماذا يمكنه أن يرى أو يعدّل، حتى تبقى إدارة المحتوى آمنة ومنظمة.",
-    bullets: ["يحمي البيانات الحساسة", "يحدد صلاحيات كل شخص", "يسهّل فصل الأدوار داخل الفريق"],
+      "حدد مين يدخل لوحة التحكم، ومين يشوف أي قسم. العمليات الحساسة للمشرف الرئيسي فقط.",
+    bullets: ["صلاحيات واضحة", "حماية للحاجات الحساسة"],
     badge: "أمان",
     icon: ShieldCheck,
   },
@@ -264,20 +303,24 @@ function buildNavTabList(
   if (scope === "media" && s?.scope === "media") {
     return [{ id: "media", label: "الوسائط" }];
   }
+  const fromBase = (id: ControlPanelTabId) => BASE_TAB_LIST.find((b) => b.id === id)!;
+  const toVisibleItems = (ids: ControlPanelTabId[]) => {
+    const visible = new Set(ids.map(getVisibleTabId));
+    return NAV_TAB_IDS.filter((id) => visible.has(id)).map((id) => fromBase(id));
+  };
   if (scope === "full" && s) {
-    const fromBase = (id: ControlPanelTabId) => BASE_TAB_LIST.find((b) => b.id === id)!;
     if (s.tabs === "all") {
-      const core = BASE_TAB_LIST.filter((t) => t.id !== "access");
+      const core = toVisibleItems(NAV_TAB_IDS.filter((id) => id !== "access"));
       return s.superAdmin ? [...core, fromBase("access")] : core;
     }
     const ids = normalizeControlSessionTabList(s.tabs as string[]).filter((x) => x !== "access");
-    const out = ids.map((id) => fromBase(id));
+    const out = toVisibleItems(ids);
     return s.superAdmin ? [...out, fromBase("access")] : out;
   }
   if (scope === "unknown" || !s) {
-    return BASE_TAB_LIST.filter((t) => t.id !== "access");
+    return NAV_TAB_IDS.filter((id) => id !== "access").map((id) => fromBase(id));
   }
-  return BASE_TAB_LIST;
+  return NAV_TAB_IDS.map((id) => fromBase(id));
 }
 
 const SEARCH_QUICK_KEYWORDS_MAX = 40;
@@ -428,15 +471,15 @@ function SearchQuickKeywordsSection({
     <section className="space-y-4 rounded-2xl border border-border bg-white p-5 shadow-sm">
       <h2 className="font-display text-lg font-bold">اقتراحات البحث السريعة</h2>
       <p className="text-sm text-muted-foreground">
-        الكلمات دي تظهر للمستخدم أول ما يفتح البحث، قبل ما يبدأ يكتب. صفحات نتائج البحث عندكم
-        معطّلة للفهرسة (‎noindex‎) عمدًا؛ الاقتراحات دي تخدم التصفّح والكتالوج أكثر من ترتيب نتائج
-        بحث Google. لمحاذاة كلمات مع ما يناسب SEO للصفحات المفهرسة (تصنيفات ومنتجات)، راجع Search
-        Console.
+        الكلمات دي بتظهر للعميل أول ما يفتح البحث. اختار كلمات قصيرة تساعده يوصل للمنتجات بسرعة.
       </p>
-      <p className="text-sm text-muted-foreground">
-        يمكنك جلب وسوم WooCommerce مرتبة حسب عدد المنتجات في كل وسم — ده مؤشر كتالوج قوي، وليس عدد
-        مرات بحث الزوار (لا يُسجَّل حاليًا في المتجر).
-      </p>
+      <details className="rounded-xl border border-slate-200 bg-slate-50/60 p-3 text-sm text-slate-600">
+        <summary className="cursor-pointer font-medium text-slate-900">تفاصيل تقنية</summary>
+        <p className="mt-2">
+          ممكن تجيب وسوم Woo حسب عدد المنتجات. ده مؤشر من الكتالوج، مش سجل بحث العملاء.
+          صفحات نتائج البحث غير مخصصة للفهرسة، فخلي SEO الأساسي في صفحات المنتجات والتصنيفات.
+        </p>
+      </details>
 
       <div className="flex flex-wrap gap-2">
         <Button
@@ -652,10 +695,20 @@ export function ControlPanel() {
     const allowed = new Set(navTabs.map((n) => n.id));
     const first = (navTabs[0]?.id ?? "general") as ControlPanelTabId;
     const normalizedParam = tabParam ? normalizeLegacyControlTabId(tabParam) : null;
-    if (normalizedParam && allowed.has(normalizedParam)) {
-      setTab(normalizedParam);
-      if (tabParam !== normalizedParam) {
-        router.replace(`/control?tab=${normalizedParam}`, { scroll: false });
+    const directPreviewAllowed =
+      normalizedParam === "preview" &&
+      (clientSession?.tabs === "all" ||
+        (Array.isArray(clientSession?.tabs) &&
+          normalizeControlSessionTabList(clientSession.tabs).includes("preview")));
+    if (directPreviewAllowed) {
+      setTab("preview");
+      return;
+    }
+    const visibleParam = normalizedParam ? getVisibleTabId(normalizedParam) : null;
+    if (visibleParam && allowed.has(visibleParam)) {
+      setTab(visibleParam);
+      if (tabParam !== visibleParam) {
+        router.replace(`/control?tab=${visibleParam}`, { scroll: false });
       }
       return;
     }
@@ -663,7 +716,7 @@ export function ControlPanel() {
       setTab(first);
       router.replace(`/control?tab=${first}`, { scroll: false });
     }
-  }, [accessScope, tabParam, router, navTabs]);
+  }, [accessScope, clientSession, tabParam, router, navTabs]);
 
   const load = useCallback(async () => {
     await queryClient.invalidateQueries({
@@ -994,7 +1047,7 @@ export function ControlPanel() {
       title: "من أين أبدأ؟",
       badge: "للعمل اليومي",
       description:
-        "ابدأ من «عام» لو تريد تعديل رسالة أو رابط مشترك، ومن «الهيرو» لو لديك حملة أو عرض جديد على الصفحة الرئيسية.",
+        "ابدأ من «إعدادات عامة» للرسائل والروابط المشتركة، ومن «محتوى الواجهة» لأي حاجة ظاهرة في الهوم.",
     },
     {
       title: "متى أستخدم الوسائط؟",
@@ -1006,15 +1059,15 @@ export function ControlPanel() {
       title: "كيف أتأكد من النتيجة؟",
       badge: "قبل النشر",
       description:
-        "بعد أي تعديل بصري، افتح «معاينة الموقع» أو صفحات التشخيص للتأكد أن البيانات ظهرت بالشكل الصحيح وبسرعة تحميل مناسبة.",
+        "بعد أي تعديل بصري، اضغط زر «معاينة» فوق وشوف النتيجة قبل ما تعتبر الشغل خلص.",
     },
   ];
   const generalActionTiles = [
     {
       title: "تعديل أول واجهة تظهر للعميل",
-      description: "ادخل على الهيرو لو عندك بانر جديد أو عرض عايز يبان أول ما الموقع يفتح.",
-      href: "/control?tab=hero",
-      cta: "فتح الهيرو",
+      description: "ادخل على محتوى الواجهة لو عندك بانر، هيرو، فيديو، أو أقسام هوم عايز تعدلها.",
+      href: "/control?tab=home",
+      cta: "فتح محتوى الواجهة",
       icon: Sparkles,
     },
     {
@@ -1393,16 +1446,6 @@ export function ControlPanel() {
             onSave={(doc) => void saveSiteConfig({ headerCategoryStrip: doc })}
           />
 
-          {/*
-           * قسم تكاملات المتجر: روابط Woo العلنية وويبهوك بدون أسرار؛ أولوية WC_BASE_URL توضَّح داخل النموذج.
-           */}
-          <StorefrontIntegrationsForm
-            key={JSON.stringify(site?.storefrontIntegrations ?? null)}
-            initial={site?.storefrontIntegrations}
-            disabled={saving === "site_config"}
-            onSave={(patch) => void saveSiteConfig(patch)}
-          />
-
           <section className="rounded-2xl border border-amber-200/80 bg-amber-50/50 p-5">
             <h2 className="font-display text-lg font-bold">استيراد سريع</h2>
             <p className="mt-1 text-sm text-muted-foreground">
@@ -1421,16 +1464,18 @@ export function ControlPanel() {
         </section>
       ) : null}
 
-      {tab === "branding" ? (
+            {tab === "inventory" ? <ControlProductsTab /> : null}
+
+      {tab === "home" ? (
+        <section className="space-y-6">
         <section
           key={JSON.stringify(site?.branding ?? null)}
           className="space-y-4 rounded-2xl border border-border bg-white p-5 shadow-sm"
         >
           <div>
-            <h2 className="font-display text-lg font-bold">هوية الموقع و SEO و PWA</h2>
+            <h2 className="font-display text-lg font-bold">هوية الموقع</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              اترك الحقل فارغًا لاستخدام القيمة الافتراضية من المتغيرات العامة أو الكود. يُحدَّث العرض خلال
-              حوالي دقيقة (ذاكرة التخزين المؤقت).
+              الاسم والشعار والصور العامة. لو سبت حقل فاضي هنستخدم القيمة الافتراضية.
             </p>
           </div>
           <form
@@ -1705,14 +1750,12 @@ export function ControlPanel() {
                 disabled={saving === "site_config"}
                 onClick={() => void saveSiteConfig({ branding: {} })}
               >
-                مسح تجاوزات CMS (العودة للافتراضي)
+                الرجوع للهوية الافتراضية
               </Button>
             </div>
           </form>
         </section>
-      ) : null}
 
-      {tab === "hero" ? (
         <HeroSlidesForm
           key={JSON.stringify({
             slides: homeHero.slides,
@@ -1722,10 +1765,7 @@ export function ControlPanel() {
           disabled={saving === "home_hero"}
           onSave={(doc) => void saveHomeHero(doc)}
         />
-      ) : null}
 
-      {tab === "home" ? (
-        <section className="space-y-6">
           <section className="space-y-4 rounded-2xl border border-border bg-white p-5 shadow-sm">
             <div>
               <h2 className="font-display text-lg font-bold">فيديو الصفحة الرئيسية</h2>
@@ -1846,21 +1886,20 @@ export function ControlPanel() {
       ) : null}
 
       {tab === "branches" ? (
-        <BranchesForm
-          key={JSON.stringify(branches)}
-          initial={branches}
-          disabled={saving === "branches"}
-          onSave={(doc) => void saveBranches(doc)}
-        />
-      ) : null}
-
-      {tab === "retailers" ? (
-        <RetailersForm
-          key={JSON.stringify(retailersDoc)}
-          initial={retailersDoc}
-          disabled={saving === "retailers"}
-          onSave={(doc) => void saveRetailers(doc)}
-        />
+        <section className="space-y-6">
+          <BranchesForm
+            key={JSON.stringify(branches)}
+            initial={branches}
+            disabled={saving === "branches"}
+            onSave={(doc) => void saveBranches(doc)}
+          />
+          <RetailersForm
+            key={JSON.stringify(retailersDoc)}
+            initial={retailersDoc}
+            disabled={saving === "retailers"}
+            onSave={(doc) => void saveRetailers(doc)}
+          />
+        </section>
       ) : null}
 
       {tab === "media" ? (
@@ -1923,29 +1962,11 @@ export function ControlPanel() {
             {tab === "notifications" ? <NotificationsSection /> : null}
 
             {tab === "health" ? (
-              <div className="space-y-10">
-                <section className="space-y-3" aria-labelledby="control-health-system">
-                  <h2 id="control-health-system" className="font-display text-lg font-bold text-slate-900">
-                    صحة النظام
-                  </h2>
-                  <ControlHealthTab />
-                </section>
-                <section className="space-y-3 border-t border-border pt-8" aria-labelledby="control-health-woo">
-                  <h2 id="control-health-woo" className="font-display text-lg font-bold text-slate-900">
-                    ربط Woo والتشخيص
-                  </h2>
-                  <ControlWooApiTab />
-                </section>
-                <section
-                  className="space-y-3 border-t border-border pt-8"
-                  aria-labelledby="control-health-forwarding"
-                >
-                  <h2 id="control-health-forwarding" className="font-display text-lg font-bold text-slate-900">
-                    تكامل الطلبات وإعادة التوجيه
-                  </h2>
-                  <OrderForwardingSettingsTab />
-                </section>
-              </div>
+              <ControlIntegrationsHubTab
+                initialIntegrations={site?.storefrontIntegrations}
+                disabled={saving === "site_config"}
+                onSaveIntegrations={(patch) => void saveSiteConfig(patch)}
+              />
             ) : null}
         </div>
       </div>

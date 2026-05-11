@@ -5,15 +5,12 @@ import { z } from "zod";
 import { USE_MOCK } from "@/lib/constants";
 import { createWooClient } from "@/lib/create-woo-client";
 import { resolveWooBaseUrlForServer } from "@/lib/resolve-woo-base-url";
+import { resolveWooCredentialsForServer } from "@/lib/woo-credentials-store";
 import { wpCategoriesSchema, wpProductsSchema } from "@/schemas/wordpress";
 
 export async function isWooEnvConfigured(): Promise<boolean> {
-  if (
-    !process.env.WC_CONSUMER_KEY?.trim() ||
-    !process.env.WC_CONSUMER_SECRET?.trim()
-  ) {
-    return false;
-  }
+  const credentials = await resolveWooCredentialsForServer().catch(() => null);
+  if (!credentials) return false;
   const base = await resolveWooBaseUrlForServer();
   return Boolean(base?.trim());
 }
@@ -162,7 +159,7 @@ export async function getWooDiagnosticReport(): Promise<WooDiagnosticReport> {
 
   if (!wooConfigured) {
     const msg =
-      "Missing or empty WC_BASE_URL, WC_CONSUMER_KEY, and/or WC_CONSUMER_SECRET";
+      "Missing or empty Woo base URL and/or Woo consumer credentials";
     base.products = {
       httpStatus: null,
       ok: false,

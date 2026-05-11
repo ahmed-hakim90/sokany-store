@@ -38,6 +38,7 @@ type MaskedHint = {
   hasConsumerKey: boolean;
   hasConsumerSecret: boolean;
   consumerKeyDisplay: string | null;
+  source: "env" | "firestore" | null;
 };
 
 const pulseOk = "animate-pulse bg-emerald-500 shadow-[0_0_0_0_rgba(16,185,129,0.4)]";
@@ -167,6 +168,12 @@ export function ControlHealthTab() {
   }, []);
 
   const hLabel = health?.healthLabel;
+  const credentialSourceLabel =
+    maskedHint?.source === "env"
+      ? "متغيرات البيئة"
+      : maskedHint?.source === "firestore"
+        ? "Firestore مشفر"
+        : "غير مضبوط";
   const livePulse =
     hLabel === "ok" ? pulseOk : hLabel === "degraded" ? "bg-amber-500" : pulseBad;
   const overviewStats = [
@@ -427,6 +434,7 @@ export function ControlHealthTab() {
               : maskedHint.consumerKeyDisplay}
           </p>
           <p>Secret: {maskedHint?.hasConsumerSecret ? "cs_****" : "غير مضبوط"}</p>
+          <p>Source: {credentialSourceLabel}</p>
         </div>
       </details>
 

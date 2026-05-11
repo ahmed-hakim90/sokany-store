@@ -8,12 +8,14 @@ import type { Product } from "@/features/products/types";
 
 const wishlistToast = {
   added(product: Product) {
+    toast.dismiss(`wishlist-removed-${product.id}`);
     toast.success("تمت الإضافة للمفضلة", {
       id: `wishlist-added-${product.id}`,
       description: product.name,
     });
   },
   removed(productId: number, name?: string) {
+    toast.dismiss(`wishlist-added-${productId}`);
     toast.info("تمت الإزالة من المفضلة", {
       id: `wishlist-removed-${productId}`,
       description: name,

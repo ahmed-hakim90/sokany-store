@@ -9,6 +9,28 @@ import { Card } from "@/components/ui/card";
 import { ROUTES } from "@/lib/constants";
 import { getFirebaseAuth } from "@/lib/firebase-client-auth";
 
+function getControlLoginErrorMessage(err: unknown): string {
+  const code =
+    err && typeof err === "object" && "code" in err
+      ? String((err as { code?: unknown }).code ?? "")
+      : "";
+  if (
+    code === "auth/invalid-credential" ||
+    code === "auth/wrong-password" ||
+    code === "auth/user-not-found" ||
+    code === "auth/invalid-email"
+  ) {
+    return "الإيميل أو كلمة المرور مش صح.";
+  }
+  if (code === "auth/too-many-requests") {
+    return "محاولات كتير في وقت قصير. استنى شوية وجرب تاني.";
+  }
+  if (code === "auth/network-request-failed") {
+    return "في مشكلة اتصال. اتأكد من الإنترنت وجرب تاني.";
+  }
+  return "حصل خطأ أثناء تسجيل الدخول. جرب تاني أو راجع المسؤول.";
+}
+
 /*
  * صفحة دخول المشرف (/control/login): نموذج بريد وكلمة مرور (Firebase Email/Password)
  * ثم تبادل idToken مع كوكي جلسة httpOnly عبر POST /api/control/session.
@@ -38,13 +60,13 @@ export default function ControlLoginPage() {
       });
       if (!res.ok) {
         const j = (await res.json().catch(() => ({}))) as { error?: string };
-        setError(j.error ?? "فشل تسجيل الدخول");
+        setError(j.error ?? "الحساب ده مش مسموح له يدخل لوحة التحكم.");
         return;
       }
       router.replace("/control");
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "خطأ غير متوقع");
+      setError(getControlLoginErrorMessage(err));
     } finally {
       setPending(false);
     }
@@ -62,7 +84,7 @@ export default function ControlLoginPage() {
           </p>
           <h1 className="font-display mt-1 text-2xl font-bold text-slate-900">تسجيل الدخول</h1>
           <p className="mt-2 text-sm text-slate-600">
-            سجّل الدخول بالحساب المسموح له باستخدام لوحة التحكم.
+            دخول المسؤولين فقط. الجلسة بتنتهي تلقائيًا بعد فترة لحماية لوحة التحكم.
           </p>
           <form onSubmit={onSubmit} className="mt-8 space-y-4">
             <div>
@@ -73,7 +95,7 @@ export default function ControlLoginPage() {
                 البريد
               </label>
               <p className="mb-2 text-xs text-slate-500">
-                اكتب نفس الإيميل اللي بتدخل بيه على لوحة التحكم.
+                اكتب إيميل حساب التحكم المسموح له بالدخول.
               </p>
               <input
                 id="ctrl-email"
@@ -93,7 +115,7 @@ export default function ControlLoginPage() {
                 كلمة المرور
               </label>
               <p className="mb-2 text-xs text-slate-500">
-                اكتب كلمة مرور حساب التحكم. لو مش فاكرها لازم تتراجع من المسؤول.
+                لو نسيتها، اطلب من المسؤول يراجعها من Firebase أو يديك حساب جديد.
               </p>
               <input
                 id="ctrl-pass"

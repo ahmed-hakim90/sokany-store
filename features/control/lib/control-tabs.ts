@@ -7,6 +7,8 @@
 export const CONTROL_TAB_ORDER = [
   "general",
   "branding",
+  "inventory",
+  "product3d",
   "hero",
   "home",
   "branches",
@@ -31,6 +33,8 @@ export const LEGACY_CONTROL_TAB_ALIASES: Record<string, ControlPanelTabId> = {
 export const CONTROL_TABS_EXCLUDING_ACCESS: ControlPanelTabId[] = [
   "general",
   "branding",
+  "inventory",
+  "product3d",
   "hero",
   "home",
   "branches",
@@ -47,11 +51,11 @@ export type ControlTabGroup = {
 };
 
 export const CONTROL_TAB_GROUPS: ControlTabGroup[] = [
-  { label: "المتجر", ids: ["general", "branding"] },
-  { label: "الصفحة والمحتوى", ids: ["hero", "home", "branches", "retailers"] },
-  { label: "الوسائط والنشر", ids: ["media", "preview", "notifications"] },
-  { label: "صحة الموقع والربط", ids: ["health"] },
-  { label: "الإدارة", ids: ["access"] },
+  { label: "تشغيل سريع", ids: ["general"] },
+  { label: "محتوى الموقع", ids: ["home", "branches", "media"] },
+  { label: "المنتجات", ids: ["inventory"] },
+  { label: "الربط والصحة", ids: ["health"] },
+  { label: "الإدارة والحماية", ids: ["notifications", "access"] },
 ];
 
 const TAB_SET: ReadonlySet<ControlPanelTabId> = new Set(CONTROL_TAB_ORDER);

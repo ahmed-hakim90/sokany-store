@@ -14,12 +14,14 @@ import type { Product } from "@/features/products/types";
 
 const cartToast = {
   added(product: Product) {
+    toast.dismiss(`cart-removed-${product.id}`);
     toast.success("تمت الإضافة للسلة", {
       id: `cart-added-${product.id}`,
       description: product.name,
     });
   },
   removed(productId: number, name?: string) {
+    toast.dismiss(`cart-added-${productId}`);
     toast.info("تمت الإزالة من السلة", {
       id: `cart-removed-${productId}`,
       description: name,

@@ -17,11 +17,13 @@
     "test:e2e:audit": "playwright test tests/sokany_audit.spec.ts",
     "scrape:sokany": "tsx scripts/scrape-sokany-eg.ts",
     "scrape:sokany:dry": "tsx scripts/scrape-sokany-eg.ts --dry-run",
+    "firebase:storage:cors": "node scripts/apply-firebase-storage-cors.mjs",
     "generate:pwa-icons": "node scripts/generate-pwa-icons.mjs",
     "optimize:hero-images": "node scripts/optimize-hero-images.mjs"
   },
   "dependencies": {
     "@ai-sdk/react": "^3.0.179",
+    "@google/model-viewer": "^4.2.0",
     "@next/third-parties": "^16.2.4",
     "@openrouter/ai-sdk-provider": "^2.9.0",
     "@tailwindcss/typography": "^0.5.19",

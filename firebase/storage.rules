@@ -1,10 +1,29 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
+    function isAdmin() {
+      return request.auth != null &&
+        (request.auth.token.admin == true || request.auth.token.role == "admin");
+    }
+
     // رفع الصور من السيرفر فقط (مفتاح الخدمة) — القواعد ترفض الكلاينت المباشر ما لم تضف استثناءً للمشرفين.
     match /cms/{allPaths=**} {
       allow read: if true;
       allow write: if false;
+    }
+
+    // ملفات 3D العامة للمنتجات. الرفع من لوحة التحكم يمر عبر API باستخدام Admin SDK؛
+    // هذه القاعدة تسمح أيضاً بالكتابة المباشرة فقط لو لدى المستخدم custom claim إداري.
+    match /models/products/{fileName} {
+      allow read: if true;
+      allow create, update: if isAdmin()
+        && (
+          request.resource.contentType == "model/gltf-binary" ||
+          request.resource.contentType == "model/gltf+json" ||
+          request.resource.contentType == "application/octet-stream" ||
+          request.resource.contentType == "application/json"
+        );
+      allow delete: if isAdmin();
     }
   }
 }

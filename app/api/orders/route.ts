@@ -133,7 +133,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error:
-            "خادم المتجر غير مُعدّ لإنشاء الطلبات. راجع ‎WC_BASE_URL‎ ومفاتيح ‎WC_CONSUMER_KEY / WC_CONSUMER_SECRET‎.",
+            "خادم المتجر غير مُعدّ لإنشاء الطلبات. راجع رابط Woo ومفاتيح Woo في البيئة أو إعدادات التحكم المشفرة.",
         },
         { status: 500 },
       );
