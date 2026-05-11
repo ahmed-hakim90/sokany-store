@@ -133,21 +133,21 @@ const variantLayout: Record<
     body: "gap-1 px-2 pb-1.5 pt-1.5 sm:gap-1.5 sm:px-2.5 sm:pb-2 sm:pt-2",
     title:
       "line-clamp-2 min-h-[2.05rem] text-product-title font-semibold leading-[var(--text-product-title--line-height)] text-foreground",
-    image: "h-[154px] w-full sm:h-[162px] lg:h-[170px]",
+    image: "h-[154px] w-full sm:h-[162px] md:h-[180px] lg:h-[190px]",
   },
   desktopCatalogWide: {
     card: "min-w-0 gap-0 p-0",
     body: "gap-1 px-2 pb-1.5 pt-1.5 sm:gap-1.5 sm:px-2.5 sm:pb-2 sm:pt-2",
     title:
       "line-clamp-2 min-h-[2.05rem] text-product-title font-semibold leading-[var(--text-product-title--line-height)] text-foreground",
-    image: "h-[154px] w-full sm:h-[162px] lg:h-[170px]",
+    image: "h-[154px] w-full sm:h-[162px] md:h-[180px] lg:h-[190px]",
   },
   featured: {
     card: "min-w-0 gap-0 p-0",
     body: "gap-1 px-2 pb-1.5 pt-1.5 sm:gap-1.5 sm:px-2.5 sm:pb-2 sm:pt-2",
     title:
       "line-clamp-2 min-h-[2.05rem] text-product-title font-semibold leading-[var(--text-product-title--line-height)] text-foreground",
-    image: "h-[154px] w-full sm:h-[162px] lg:h-[170px]",
+    image: "h-[154px] w-full sm:h-[162px] md:h-[180px] lg:h-[190px]",
   },
   detailed: {
     card: "min-w-0 p-0",
