@@ -9,6 +9,7 @@
 import { usePathname } from "next/navigation";
 import dynamic from "next/dynamic";
 import { useLayoutEffect, useRef } from "react";
+import { useMobileAssistantOpenStore } from "@/components/layout/mobile-assistant-open-store";
 import { useMobileChromeCollapsedStore } from "@/components/layout/mobile-chrome-collapsed-store";
 import { useCart } from "@/hooks/useCart";
 import { ROUTES } from "@/lib/constants";
@@ -37,13 +38,16 @@ export function MobileCommerceChrome() {
   const { totalItems } = useCart();
   const headerHidden = useMobileChromeCollapsedStore((s) => s.headerHidden);
   const cartPeekHidden = useMobileChromeCollapsedStore((s) => s.cartPeekHidden);
+  const assistantOpen = useMobileAssistantOpenStore((s) => s.open);
   const rootRef = useRef<HTMLDivElement>(null);
   const bottomNavRef = useRef<HTMLDivElement>(null);
   const reservedHeightRef = useRef(0);
   const reservedHeightKeyRef = useRef("");
 
   const hideFloatingCart =
-    pathname === ROUTES.CART || pathname === ROUTES.CHECKOUT;
+    pathname === ROUTES.CART ||
+    pathname === ROUTES.CHECKOUT ||
+    pathname === ROUTES.ASSISTANT;
 
   const showCartSummary = totalItems > 0 && !hideFloatingCart;
 
@@ -123,7 +127,15 @@ export function MobileCommerceChrome() {
         ) : null}
         <div
           ref={bottomNavRef}
-          className={mobileCommerceBottomNavCapsuleClassName(headerHidden)}
+          aria-hidden={assistantOpen}
+          inert={assistantOpen ? true : undefined}
+          className={cn(
+            mobileCommerceBottomNavCapsuleClassName(headerHidden),
+            "transition-[opacity,filter] duration-200 ease-out motion-reduce:transition-none",
+            assistantOpen
+              ? "pointer-events-none opacity-0 blur-[1px]"
+              : "opacity-100 blur-0",
+          )}
         >
           <BottomNavInner />
         </div>

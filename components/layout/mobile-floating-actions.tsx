@@ -1,5 +1,9 @@
+"use client";
+
+import { usePathname } from "next/navigation";
 import { MobileSocialSpeedDial } from "@/components/layout/mobile-social-speed-dial";
 import { ScrollToTopButton } from "@/components/layout/scroll-to-top-button";
+import { ROUTES } from "@/lib/constants";
 import type { SocialLink } from "@/lib/social-links";
 
 export type MobileFloatingActionsProps = {
@@ -11,6 +15,9 @@ export type MobileFloatingActionsProps = {
  * غلاف `fixed` واحد فوق شريط الموبايل السفلي.
  */
 export function MobileFloatingActions({ socialLinks }: MobileFloatingActionsProps) {
+  const pathname = usePathname();
+  if (pathname === ROUTES.ASSISTANT) return null;
+
   return (
     <div
       className={

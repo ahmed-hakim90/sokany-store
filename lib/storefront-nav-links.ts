@@ -1,8 +1,12 @@
 import { ROUTES } from "@/lib/constants";
 
-/** روابط تظهر في صف الديسكتوب بعد «العروض». */
+/** روابط قليلة تظهر مباشرة في صف الديسكتوب بعد «العروض». */
 export const desktopPrimaryBarExtraLinks = [
   { href: ROUTES.CATEGORIES, label: "كل التصنيفات" },
+] as const;
+
+/** روابط متجر ثانوية تظهر داخل قائمة «المزيد» في الديسكتوب. */
+export const desktopSecondaryNavLinks = [
   { href: ROUTES.ABOUT, label: "من نحن" },
   { href: ROUTES.SERVICE_CENTERS, label: "الفروع" },
   { href: ROUTES.RETAILERS, label: "الموزعون المعتمدون" },

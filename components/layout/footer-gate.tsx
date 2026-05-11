@@ -12,7 +12,7 @@ export type FooterGateProps = {
   logoDisabled?: boolean;
 };
 
-/** يخفي الفوتر على صفحة السلة لتوفير مساحة وتركيز على إتمام الشراء. */
+/** يخفي الفوتر على صفحات تحتاج تركيزاً كاملاً مثل السلة وشاشة الشات. */
 export function FooterGate({
   socialLinks,
   siteName,
@@ -20,7 +20,7 @@ export function FooterGate({
   logoDisabled,
 }: FooterGateProps) {
   const pathname = usePathname();
-  if (pathname === ROUTES.CART) {
+  if (pathname === ROUTES.CART || pathname === ROUTES.ASSISTANT) {
     return null;
   }
   return (

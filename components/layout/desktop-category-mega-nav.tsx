@@ -2,14 +2,15 @@
 
 /**
  * تنقل الديسكتوب + ميجا منيو
- * بالعامية: الصف التاني في الهيدر بيعرض جذور التصنيفات من الـ API؛ الـ hover يفتح لوحة كبيرة، والموبايل لسه على الدرج.
+ * بالعامية: الصف التاني في الهيدر بيعرض الأساسيات فقط؛ الباقي في «المزيد»، والموبايل لسه على الدرج.
  *
  * التفاصيل البصرية تحت في تعليق التخطيط.
  */
 /*
- * شريط تصنيفات الديسكتوب (صف ثانٍ تحت اللوجو/البحث) + ميجا مينو للأقسام عند الـ hover؛ «خدماتنا» تفتح بالضغط فقط.
- * — الصف: «الرئيسية» ثم **تصنيفات جذرية من API** (parent=0 وعدّ منتجات >0، مُحدّاة) ثم «العروض» ثم روابط ثابتة؛ يمين: سوشيال + «تواصل معنا» + «خدماتنا».
- * — الميجا: شبكة ثلاثية (فرعية · أولوية تسوق · صورة) مبنيّة من نفس ‎`categories`‎ (بالـ slug) أو لوحة عروض.
+ * شريط تنقل الديسكتوب (صف ثانٍ تحت اللوجو/البحث) + ميجا مينو للعروض؛ «المزيد» تفتح بالضغط فقط.
+ * — الصف: «الرئيسية» + «العروض» + «كل التصنيفات» + زر «المزيد» في سطر واحد بلا التفاف.
+ * — «المزيد»: أقسام رئيسية من WooCommerce + روابط المتجر الثانوية + المساعدة والسياسات + السوشيال.
+ * — ميجا العروض: شبكة ثلاثية للعروض والاكتشاف والتلميح.
  * — الـ lg فقط؛ الموبايل يبقى على الدرج.
  */
 
@@ -33,8 +34,8 @@ import type { SocialLink } from "@/lib/social-links";
 import { cn } from "@/lib/utils";
 
 const MEGA_LINK_LIMIT = 12;
-/** أقصى عدد لأقسام الجذر تظهر في الصف (بعد «الرئيسية») — يُرتَّب أبجديًا عربيًا. */
-const MEGA_TOP_LEVEL_CATEGORY_LIMIT = 12;
+/** لا تظهر تصنيفات مباشرة في الصف؛ كلها تدخل قائمة «المزيد». */
+const MEGA_TOP_LEVEL_CATEGORY_LIMIT = 0;
 
 export type DesktopMoreLink = { href: string; label: string };
 
@@ -111,12 +112,14 @@ export type DesktopCategoryMegaNavProps = {
   categoriesLoading: boolean;
   /** روابط نصية في الصف مباشرة بعد «العروض». */
   primaryBarExtraLinks?: readonly DesktopMoreLink[];
+  /** روابط متجر ثانوية داخل قائمة «المزيد». */
+  secondaryLinks?: readonly DesktopMoreLink[];
   moreLinks: readonly DesktopMoreLink[];
   socialLinks: readonly SocialLink[];
 };
 
 const primaryBarExtraLinkClass = cn(
-  "inline-flex items-center rounded-md px-2.5 py-2 text-brand-900/85 transition-colors [@media(hover:hover)]:hover:bg-surface-muted/50 [@media(hover:hover)]:hover:text-brand-950",
+  "inline-flex shrink-0 items-center whitespace-nowrap rounded-md px-2.5 py-2 text-brand-900/85 transition-colors [@media(hover:hover)]:hover:bg-surface-muted/50 [@media(hover:hover)]:hover:text-brand-950",
   navLinkPressableClass,
   navLinkActiveSurfaceClass,
 );
@@ -125,6 +128,7 @@ export function DesktopCategoryMegaNav({
   categories,
   categoriesLoading,
   primaryBarExtraLinks = [],
+  secondaryLinks = [],
   moreLinks,
   socialLinks,
 }: DesktopCategoryMegaNavProps) {
@@ -170,6 +174,24 @@ export function DesktopCategoryMegaNav({
     };
     return [home, ...categoryItems, offers];
   }, [categories]);
+
+  const dropdownCategoryLinks = useMemo(
+    () =>
+      (categories ?? [])
+        .filter(
+          (c) =>
+            c.parentId === 0 &&
+            c.count > 0 &&
+            c.slug !== "offers" &&
+            c.slug !== "home",
+        )
+        .sort((a, b) => a.name.localeCompare(b.name, "ar"))
+        .map((c) => ({
+          href: ROUTES.CATEGORY(c.slug),
+          label: c.name,
+        })),
+    [categories],
+  );
 
   const closeMega = useCallback(() => setOpenKey(null), []);
 
@@ -425,7 +447,7 @@ export function DesktopCategoryMegaNav({
     >
       <div className="mx-auto flex max-w-none items-center justify-between gap-2 px-4 sm:px-6 lg:px-8">
         <nav
-          className="flex min-w-0 flex-1 flex-wrap items-center gap-0.5 py-1.5 text-sm font-medium"
+          className="flex min-w-0 flex-1 flex-nowrap items-center gap-0.5 overflow-hidden py-1.5 text-sm font-medium"
           aria-label="التصنيفات الرئيسية"
         >
           {primaryBarItems.map((item) => {
@@ -462,7 +484,7 @@ export function DesktopCategoryMegaNav({
                     }
                   }}
                   className={cn(
-                    "inline-flex items-center rounded-md px-2.5 py-2 transition-colors",
+                    "inline-flex shrink-0 items-center whitespace-nowrap rounded-md px-2.5 py-2 transition-colors",
                     navLinkPressableClass,
                     isOffers
                       ? "font-semibold text-destructive [@media(hover:hover)]:hover:bg-destructive-surface [@media(hover:hover)]:hover:text-destructive-foreground active:bg-destructive-surface/80"
@@ -498,33 +520,6 @@ export function DesktopCategoryMegaNav({
         </nav>
 
         <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
-          <div
-            className="flex items-center gap-0.5"
-            aria-label="وسائل التواصل الاجتماعي"
-          >
-            {socialLinks.map((s) => (
-              <a
-                key={s.key}
-                href={s.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex h-11 min-h-[44px] w-11 min-w-[44px] items-center justify-center rounded-full border border-border/70 bg-white text-brand-800 shadow-sm transition-colors hover:bg-surface-muted/80 hover:text-brand-950"
-                aria-label={s.label}
-              >
-                <SocialGlyph socialKey={s.key} className="h-3.5 w-3.5" />
-              </a>
-            ))}
-          </div>
-          <Link
-            href={ROUTES.CONTACT}
-            className={cn(
-              "whitespace-nowrap rounded-md px-2 py-2 text-sm font-medium text-muted-foreground transition-colors [@media(hover:hover)]:hover:bg-surface-muted/50 [@media(hover:hover)]:hover:text-brand-950",
-              navLinkPressableClass,
-              navLinkActiveSurfaceClass,
-            )}
-          >
-            تواصل معنا
-          </Link>
           <div ref={moreRef} className="relative py-1.5">
             <button
               type="button"
@@ -541,7 +536,7 @@ export function DesktopCategoryMegaNav({
                 setMoreOpen((v) => !v);
               }}
             >
-              خدماتنا
+              المزيد
               <ChevronDownGlyph className="h-4 w-4 opacity-70" />
             </button>
             {moreOpen ? (
@@ -549,23 +544,147 @@ export function DesktopCategoryMegaNav({
                 id={`${baseId}-services-menu`}
                 role="menu"
                 aria-labelledby={`${baseId}-services-trigger`}
-                className="absolute end-0 top-full z-[60] mt-1 min-w-[12rem] rounded-xl border border-border/80 bg-white py-1.5 shadow-lg"
+                className="absolute end-0 top-full z-[60] mt-1 w-[min(42rem,calc(100vw-2rem))] max-h-[min(34rem,80vh)] overflow-y-auto rounded-2xl border border-border/80 bg-white p-3 shadow-lg"
               >
-                {moreLinks.map((l) => (
-                  <Link
-                    key={l.href}
-                    role="menuitem"
-                    href={l.href}
-                    className={cn(
-                      "block px-4 py-2 text-sm text-foreground [@media(hover:hover)]:hover:bg-surface-muted/60",
-                      navLinkPressableClass,
-                      navLinkActiveSurfaceClass,
-                    )}
-                    onClick={() => setMoreOpen(false)}
+                <div className="grid gap-3 md:grid-cols-[minmax(0,1.25fr)_minmax(13rem,0.9fr)]">
+                  <section
+                    role="group"
+                    aria-labelledby={`${baseId}-more-categories-heading`}
+                    className="rounded-xl bg-surface-muted/35 p-2.5"
                   >
-                    {l.label}
-                  </Link>
-                ))}
+                    <p
+                      id={`${baseId}-more-categories-heading`}
+                      className="px-2 pb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+                    >
+                      الأقسام
+                    </p>
+                    {categoriesLoading ? (
+                      <div className="grid grid-cols-2 gap-1.5 px-1" aria-busy="true">
+                        {Array.from({ length: 8 }).map((_, i) => (
+                          <div
+                            key={i}
+                            className="h-9 animate-pulse rounded-lg bg-white/75"
+                            aria-hidden
+                          />
+                        ))}
+                      </div>
+                    ) : dropdownCategoryLinks.length > 0 ? (
+                      <div className="grid grid-cols-2 gap-1">
+                        {dropdownCategoryLinks.map((l) => (
+                          <Link
+                            key={l.href}
+                            role="menuitem"
+                            href={l.href}
+                            className={cn(
+                              "rounded-lg px-2.5 py-2 text-sm font-medium text-brand-950 [@media(hover:hover)]:hover:bg-white/85",
+                              navLinkPressableClass,
+                              navLinkActiveSurfaceClass,
+                            )}
+                            onClick={() => setMoreOpen(false)}
+                          >
+                            {l.label}
+                          </Link>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="px-2 py-2 text-sm text-muted-foreground">
+                        لا توجد تصنيفات متاحة.
+                      </p>
+                    )}
+                  </section>
+
+                  <div className="space-y-3">
+                    {secondaryLinks.length > 0 ? (
+                      <section
+                        role="group"
+                        aria-labelledby={`${baseId}-more-store-heading`}
+                      >
+                        <p
+                          id={`${baseId}-more-store-heading`}
+                          className="px-2 pb-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+                        >
+                          روابط المتجر
+                        </p>
+                        <div className="rounded-xl border border-border/60 bg-white py-1">
+                          {secondaryLinks.map((l) => (
+                            <Link
+                              key={l.href}
+                              role="menuitem"
+                              href={l.href}
+                              className={cn(
+                                "block px-3 py-2 text-sm font-medium text-foreground [@media(hover:hover)]:hover:bg-surface-muted/60",
+                                navLinkPressableClass,
+                                navLinkActiveSurfaceClass,
+                              )}
+                              onClick={() => setMoreOpen(false)}
+                            >
+                              {l.label}
+                            </Link>
+                          ))}
+                        </div>
+                      </section>
+                    ) : null}
+
+                    <section
+                      role="group"
+                      aria-labelledby={`${baseId}-more-help-heading`}
+                    >
+                      <p
+                        id={`${baseId}-more-help-heading`}
+                        className="px-2 pb-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+                      >
+                        المساعدة والسياسات
+                      </p>
+                      <div className="rounded-xl border border-border/60 bg-white py-1">
+                        {moreLinks.map((l) => (
+                          <Link
+                            key={l.href}
+                            role="menuitem"
+                            href={l.href}
+                            className={cn(
+                              "block px-3 py-2 text-sm font-medium text-foreground [@media(hover:hover)]:hover:bg-surface-muted/60",
+                              navLinkPressableClass,
+                              navLinkActiveSurfaceClass,
+                            )}
+                            onClick={() => setMoreOpen(false)}
+                          >
+                            {l.label}
+                          </Link>
+                        ))}
+                      </div>
+                    </section>
+
+                    {socialLinks.length > 0 ? (
+                      <section
+                        role="group"
+                        aria-labelledby={`${baseId}-more-social-heading`}
+                      >
+                        <p
+                          id={`${baseId}-more-social-heading`}
+                          className="px-2 pb-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+                        >
+                          تابعنا
+                        </p>
+                        <div className="flex flex-wrap gap-1.5 rounded-xl border border-border/60 bg-white p-2">
+                          {socialLinks.map((s) => (
+                            <a
+                              key={s.key}
+                              role="menuitem"
+                              href={s.href}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex h-10 min-h-[40px] w-10 min-w-[40px] items-center justify-center rounded-full border border-border/70 bg-white text-brand-800 shadow-sm transition-colors hover:bg-surface-muted/80 hover:text-brand-950"
+                              aria-label={s.label}
+                              onClick={() => setMoreOpen(false)}
+                            >
+                              <SocialGlyph socialKey={s.key} className="h-3.5 w-3.5" />
+                            </a>
+                          ))}
+                        </div>
+                      </section>
+                    ) : null}
+                  </div>
+                </div>
               </div>
             ) : null}
           </div>

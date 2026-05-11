@@ -58,7 +58,7 @@ html[data-storefront-modal] [data-mobile-commerce-chrome] {
   --radius-editorial: 1.5rem;
   /* Mobile fixed commerce chrome (bottom nav ± cart); overridden by JS when mounted */
   --mobile-commerce-chrome-height: 12rem;
-  --mobile-commerce-floating-actions-bottom: 4.75rem;
+  --mobile-commerce-floating-actions-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
 
   /* Motion — shared with lib/motion.ts */
   --motion-duration-instant: 0ms;
@@ -352,7 +352,7 @@ html::-webkit-scrollbar-thumb:hover {
   }
   /** Position floating social/top actions just above the mobile bottom nav capsule. */
   .bottom-mobile-floating-actions {
-    bottom: calc(var(--mobile-commerce-floating-actions-bottom, 4.75rem) + 0.25rem);
+    bottom: calc(var(--mobile-commerce-floating-actions-bottom, 4.5rem) + 0.5rem);
   }
   /** Keep PWA prompts above bottom commerce chrome on small screens. */
   .bottom-mobile-pwa-stack {

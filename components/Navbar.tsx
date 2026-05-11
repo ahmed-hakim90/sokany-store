@@ -29,6 +29,7 @@ import { useWishlist } from "@/hooks/useWishlist";
 import { ROUTES, SITE_LOGO_DISABLED, SITE_LOGO_PATH, SITE_NAME } from "@/lib/constants";
 import {
   desktopPrimaryBarExtraLinks,
+  desktopSecondaryNavLinks,
   mobileDrawerLinkSections,
   servicesDropdownLinks,
 } from "@/lib/storefront-nav-links";
@@ -218,6 +219,7 @@ export function Navbar({
         categories={navCategories}
         categoriesLoading={categoriesQuery.isLoading}
         primaryBarExtraLinks={desktopPrimaryBarExtraLinks}
+        secondaryLinks={desktopSecondaryNavLinks}
         moreLinks={servicesDropdownLinks}
         socialLinks={socialLinks}
       />

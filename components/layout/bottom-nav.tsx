@@ -62,7 +62,7 @@ function BottomNavLinkContents({
   return (
     <span
       className={cn(
-        "flex w-full min-w-0 max-w-full flex-1 flex-col items-center justify-center gap-1",
+        "flex w-full min-w-0 max-w-full flex-1 flex-col items-center justify-center gap-0.5",
         pending && "opacity-50",
       )}
     >
@@ -71,15 +71,22 @@ function BottomNavLinkContents({
         {isCart && totalItems > 0 ? (
           <span
             className={cn(
-              "absolute-end-0.5 -top-0.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-brand-500 px-0.5 text-[8px] font-bold leading-none text-black ring-2",
-              active ? "ring-brand-950" : "ring-white",
+              "absolute -end-1 -top-1 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-brand-400 px-0.5 text-[8px] font-bold leading-none text-black ring-2",
+              active ? "ring-brand-950" : "ring-white/90",
             )}
           >
             {totalItems > 99 ? "99+" : totalItems}
           </span>
         ) : null}
       </span>
-      <span className="line-clamp-1 text-center">{label}</span>
+      <span
+        className={cn(
+          "line-clamp-1 text-center text-[10px] font-medium leading-4 tracking-[-0.01em] transition-colors duration-200",
+          active ? "text-brand-950" : "text-current",
+        )}
+      >
+        {label}
+      </span>
     </span>
   );
 }
@@ -103,20 +110,20 @@ export function BottomNavInner() {
 
   const tabClass = (active: boolean) =>
     cn(
-      "flex min-h-[3.5rem] w-full max-w-[4.85rem] flex-col items-center justify-center gap-1 rounded-2xl border border-transparent px-0.5 py-2 text-xs font-semibold leading-tight transition-colors duration-200 sm:max-w-[5.25rem] sm:text-[0.8125rem]",
+      "flex min-h-[3.25rem] w-full flex-col items-center justify-center gap-0.5 rounded-2xl border border-transparent px-0.5 py-1 text-xs leading-tight transition-[color,background-color,transform] duration-200 ease-out active:scale-[0.98] motion-reduce:transition-none",
       active
-        ? "border-brand-950/15 bg-brand-950/88 text-brand-100 shadow-sm"
+        ? "text-brand-950"
         : headerHidden
-          ? "text-brand-950/78 [@media(hover:hover)]:hover:bg-black/10 [@media(hover:hover)]:hover:text-brand-950"
-          : "text-muted-foreground [@media(hover:hover)]:hover:bg-black/[0.03] [@media(hover:hover)]:hover:text-foreground/80",
+          ? "text-brand-950/65 [@media(hover:hover)]:hover:bg-black/[0.04] [@media(hover:hover)]:hover:text-brand-950"
+          : "text-slate-500 [@media(hover:hover)]:hover:bg-black/[0.025] [@media(hover:hover)]:hover:text-slate-900",
     );
 
   const tabIconShellClass = (active: boolean) =>
     cn(
-      "relative inline-flex text-current",
+      "relative inline-flex h-7 min-w-9 items-center justify-center rounded-full px-2 text-current transition-[background-color,color,box-shadow,transform] duration-200 ease-out motion-reduce:transition-none",
       active
-        ? "drop-shadow-[0_1px_1px_rgba(0,0,0,0.28)]"
-        : "drop-shadow-[0_1px_1.5px_rgba(15,23,42,0.2)]",
+        ? "bg-brand-950 text-brand-100 shadow-[0_5px_14px_-10px_rgba(15,23,42,0.9)]"
+        : "bg-transparent text-current",
     );
 
   return (
@@ -124,7 +131,7 @@ export function BottomNavInner() {
       aria-label="التنقل السفلي"
       className="bg-transparent"
     >
-      <ul className="mx-auto flex w-full max-w-none items-center justify-between gap-0 px-0 py-1.5 sm:px-0.5">
+      <ul className="mx-auto flex w-full max-w-none items-center justify-between gap-0 px-0.5 py-1.5 sm:px-1">
         {linkItems.map(({ href, label, key, icon: Icon }) => {
           const active =
             key === "home"
@@ -177,13 +184,20 @@ export function BottomNavInner() {
               mobileNavDrawerReturnFocusRef.current = mainMenuButtonRef.current;
               openDrawer();
             }}
-          >   
+          >
             <span
               className={tabIconShellClass(Boolean(drawerOpen && !isCheckout))}
             >
               <ListIcon />
             </span>
-            <span className="line-clamp-1 text-center">{mainMenuItem.label}</span>
+            <span
+              className={cn(
+                "line-clamp-1 text-center text-[10px] font-medium leading-4 tracking-[-0.01em] transition-colors duration-200",
+                drawerOpen && !isCheckout ? "text-brand-950" : "text-current",
+              )}
+            >
+              {mainMenuItem.label}
+            </span>
           </button>
         </li>
       </ul>
@@ -191,9 +205,9 @@ export function BottomNavInner() {
   );
 }
 
-/** Slightly larger + stronger stroke on small screens for legibility; shadow lives on parent shell. */
+/** Compact icon rhythm for the slimmer native-style mobile tab row. */
 const iconClass =
-  "h-5 w-5 shrink-0 stroke-2 text-current sm:h-4 sm:w-4 sm:stroke-[1.5]";
+  "h-[1.125rem] w-[1.125rem] shrink-0 stroke-[1.9] text-current sm:h-4 sm:w-4 sm:stroke-[1.7]";
 
 function HomeIcon() {
   return (

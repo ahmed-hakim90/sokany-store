@@ -102,6 +102,8 @@ export const ROUTES = {
   WISHLIST: "/wishlist",
   /** تتبع حالة الطلب برقم الطلب أو الموبايل. */
   ORDER_TRACKING: "/track-order",
+  /** صفحة مساعد المتجر المستقلة للموبايل. */
+  ASSISTANT: "/assistant",
   LOGIN: "/login",
   REGISTER: "/register",
   /** طلبات العميل المسجّل (يتطلب جلسة). */
