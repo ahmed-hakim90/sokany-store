@@ -28,19 +28,19 @@ const KIND_WEIGHTS: Record<PublicKnowledgeChunk["kind"], number> = {
 
 export function detectPublicKnowledgeIntent(query: string): PublicKnowledgeIntent {
   const normalized = normalizeArabicText(query);
-  if (/\b(فروع|فرع|صيان|صيانه|مركز|مراكز|خدمه|عنوان|عناوين|فين|مكان|اماكن)\b/.test(normalized)) {
+  if (/(فروع|فرع|صيان|صيانه|مركز|مراكز|خدمه|عنوان|عناوين|فين|مكان|اماكن)/.test(normalized)) {
     return "branches";
   }
-  if (/\b(موزع|موزعين|معرض|معارض|نقطه بيع|نقاط بيع|اشتري منين)\b/.test(normalized)) {
+  if (/(موزع|موزعين|معرض|معارض|نقطه بيع|نقاط بيع|اشتري منين)/.test(normalized)) {
     return "retailers";
   }
-  if (/\b(ضمان|استرجاع|استبدال|ارجاع|خصوصيه|شروط|احكام|سياسه)\b/.test(normalized)) {
+  if (/(ضمان|استرجاع|استبدال|ارجاع|خصوصيه|شروط|احكام|سياسه)/.test(normalized)) {
     return "policy";
   }
-  if (/\b(تصنيف|تصنيفات|قسم|اقسام|كاتيجوري)\b/.test(normalized)) {
+  if (/(تصنيف|تصنيفات|قسم|اقسام|كاتيجوري)/.test(normalized)) {
     return "category";
   }
-  if (/\b(منتج|منتجات|موديل|سعر|اسعار|ارخص|اقل)\b/.test(normalized)) {
+  if (/(منتج|منتجات|موديل|سعر|اسعار|ارخص|اقل)/.test(normalized)) {
     return "product";
   }
   return "general";

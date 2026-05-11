@@ -122,38 +122,38 @@ const variantLayout: Record<
 > = {
   /* بدون ‎overflow-hidden‎ على الـcard — لئلا يُقصّ ظل/حلقة أزرار التذييل (المعاينة) على موبايل. القصّ للصور فقط على مربع الصورة. */
   mobileCompact: {
-    card: "min-w-0 gap-2 p-0",
-    body: "gap-1.5 px-2 pb-2 pt-1 sm:gap-2 sm:px-2.5 sm:pb-2.5 sm:pt-1.5",
+    card: "min-w-0 gap-0 p-0",
+    body: "gap-1 px-2 pb-1.5 pt-1.5 sm:gap-1.5 sm:px-2.5 sm:pb-2 sm:pt-2",
     title:
-      "line-clamp-2 min-h-[2.25rem] text-product-title font-semibold leading-[var(--text-product-title--line-height)] text-foreground",
-    image: "h-[136px] w-full sm:h-[144px]",
+      "line-clamp-2 min-h-[2.05rem] text-product-title font-semibold leading-[var(--text-product-title--line-height)] text-foreground",
+    image: "h-[152px] w-full sm:h-[160px]",
   },
   desktopCatalog: {
-    card: "min-w-0 gap-2 p-0",
-    body: "gap-1.5 px-2 pb-2 pt-1 sm:gap-2 sm:px-2.5 sm:pb-2.5 sm:pt-1.5",
+    card: "min-w-0 gap-0 p-0",
+    body: "gap-1 px-2 pb-1.5 pt-1.5 sm:gap-1.5 sm:px-2.5 sm:pb-2 sm:pt-2",
     title:
-      "line-clamp-2 min-h-[2.25rem] text-product-title font-semibold leading-[var(--text-product-title--line-height)] text-foreground",
-    image: "h-[138px] w-full sm:h-[146px] lg:h-[154px]",
+      "line-clamp-2 min-h-[2.05rem] text-product-title font-semibold leading-[var(--text-product-title--line-height)] text-foreground",
+    image: "h-[154px] w-full sm:h-[162px] lg:h-[170px]",
   },
   desktopCatalogWide: {
-    card: "min-w-0 gap-2 p-0",
-    body: "gap-1.5 px-2 pb-2 pt-1 sm:gap-2 sm:px-2.5 sm:pb-2.5 sm:pt-1.5",
+    card: "min-w-0 gap-0 p-0",
+    body: "gap-1 px-2 pb-1.5 pt-1.5 sm:gap-1.5 sm:px-2.5 sm:pb-2 sm:pt-2",
     title:
-      "line-clamp-2 min-h-[2.25rem] text-product-title font-semibold leading-[var(--text-product-title--line-height)] text-foreground",
-    image: "h-[138px] w-full sm:h-[146px] lg:h-[154px]",
+      "line-clamp-2 min-h-[2.05rem] text-product-title font-semibold leading-[var(--text-product-title--line-height)] text-foreground",
+    image: "h-[154px] w-full sm:h-[162px] lg:h-[170px]",
   },
   featured: {
-    card: "min-w-0 gap-2 p-0",
-    body: "gap-1.5 px-2 pb-2 pt-1 sm:gap-2 sm:px-2.5 sm:pb-2.5 sm:pt-1.5",
+    card: "min-w-0 gap-0 p-0",
+    body: "gap-1 px-2 pb-1.5 pt-1.5 sm:gap-1.5 sm:px-2.5 sm:pb-2 sm:pt-2",
     title:
-      "line-clamp-2 min-h-[2.25rem] text-product-title font-semibold leading-[var(--text-product-title--line-height)] text-foreground",
-    image: "h-[138px] w-full sm:h-[146px] lg:h-[154px]",
+      "line-clamp-2 min-h-[2.05rem] text-product-title font-semibold leading-[var(--text-product-title--line-height)] text-foreground",
+    image: "h-[154px] w-full sm:h-[162px] lg:h-[170px]",
   },
   detailed: {
     card: "min-w-0 p-0",
-    body: "gap-2 px-2 pb-2 pt-2 sm:px-3 sm:pb-3",
+    body: "gap-1.5 px-2 pb-1.5 pt-1.5 sm:px-3 sm:pb-2 sm:pt-2",
     title:
-      "line-clamp-2 min-h-[2.75rem] text-base font-bold leading-snug text-foreground sm:text-lg",
+      "line-clamp-2 min-h-[2.5rem] text-base font-bold leading-tight text-foreground sm:text-lg",
     image: "aspect-square w-full",
   },
 };
@@ -580,7 +580,7 @@ export function ProductCard({
         <div
           className={cn(
             "relative mx-auto overflow-hidden bg-white",
-            isDetailed ? "rounded-t-xl" : "rounded-xl",
+            isDetailed ? "rounded-t-xl" : "rounded-t-2xl",
             layout.image,
           )}
         >

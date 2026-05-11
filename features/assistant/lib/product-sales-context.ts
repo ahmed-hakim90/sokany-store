@@ -5,6 +5,7 @@ import type { Product } from "@/features/products/types";
 import { formatCurrency } from "@/lib/format";
 import { ROUTES } from "@/lib/constants";
 import type { PublicKnowledgeChunk } from "@/features/assistant/types";
+import { productToAssistantCard } from "@/features/assistant/lib/product-cards";
 
 const MAX_CROSS_SELL_ITEMS = 2;
 
@@ -98,12 +99,36 @@ export async function buildProductSalesContextChunks(
       url: ROUTES.PRODUCT(primary.id),
       text,
     },
+    {
+      id: `product-card:${primary.id}`,
+      kind: "product",
+      title: `كارت المنتج: ${primary.name}`,
+      url: ROUTES.PRODUCT(primary.id),
+      text: JSON.stringify(
+        productToAssistantCard(primary, {
+          badge: primary.onSale ? "عرض" : "اختيار مناسب",
+          reason: "المنتج الأساسي في السؤال",
+        }),
+      ),
+    },
     ...crossSell.map<PublicKnowledgeChunk>((product) => ({
       id: `product-cross-sell-${product.id}`,
       kind: "product",
       title: `اقتراح مكمل: ${product.name}`,
       url: ROUTES.PRODUCT(product.id),
       text: productLine(product),
+    })),
+    ...crossSell.map<PublicKnowledgeChunk>((product) => ({
+      id: `product-card:${product.id}`,
+      kind: "product",
+      title: `كارت اقتراح مكمل: ${product.name}`,
+      url: ROUTES.PRODUCT(product.id),
+      text: JSON.stringify(
+        productToAssistantCard(product, {
+          badge: "ممكن تحتاج كمان",
+          reason: "اقتراح مكمل مناسب",
+        }),
+      ),
     })),
   ];
 }

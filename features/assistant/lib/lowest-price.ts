@@ -34,8 +34,8 @@ export type LowestPriceResult = {
 export function isLowestPriceQuestion(question: string): boolean {
   const normalized = normalizeArabicText(question);
   return (
-    /\b(ارخص|رخيص)\b/.test(normalized) ||
-    (/\bاقل\b/.test(normalized) && /\b(سعر|اسعار|ثمن|بكام)\b/.test(normalized))
+    /(ارخص|رخيص)/.test(normalized) ||
+    (/اقل/.test(normalized) && /(سعر|اسعار|ثمن|بكام)/.test(normalized))
   );
 }
 

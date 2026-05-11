@@ -10,6 +10,7 @@ import {
   type UIMessage,
 } from "ai";
 import { z } from "zod";
+import { detectAssistantIntent, intentLabel } from "@/features/assistant/lib/assistant-intents";
 import { collectPublicKnowledge } from "@/features/assistant/lib/public-knowledge";
 import {
   chunksToPromptContext,
@@ -32,8 +33,13 @@ import {
   isLowestPriceQuestion,
 } from "@/features/assistant/lib/lowest-price";
 import { buildProductSalesContextChunks } from "@/features/assistant/lib/product-sales-context";
+import { productToAssistantCard, productsToAssistantCards } from "@/features/assistant/lib/product-cards";
+import { recommendPublicProducts } from "@/features/assistant/lib/product-recommendations";
+import { comparePublicProducts } from "@/features/assistant/lib/product-compare";
 import type {
   AssistantDataTypes,
+  AssistantPageContext,
+  AssistantProductCard,
   AssistantSource,
   PublicKnowledgeChunk,
 } from "@/features/assistant/types";
@@ -65,6 +71,25 @@ const chatRequestSchema = z
       )
       .min(1)
       .max(MAX_HISTORY_LENGTH + 4),
+    pageContext: z
+      .object({
+        pathname: z.string().max(300),
+        pageType: z.enum([
+          "home",
+          "product",
+          "category",
+          "cart",
+          "checkout",
+          "search",
+          "policy",
+          "branches",
+          "retailers",
+          "unknown",
+        ]),
+        productId: z.number().int().positive().optional(),
+        categorySlug: z.string().max(120).optional(),
+      })
+      .optional(),
   })
   .passthrough();
 
@@ -132,10 +157,31 @@ function toAssistantSources(sources: AssistantSource[]) {
   };
 }
 
-function textOnlyStreamResponse(text: string, sources: AssistantSource[] = []): Response {
+function toAssistantProducts(products: AssistantProductCard[]) {
+  return {
+    type: "data-products" as const,
+    data: products,
+  };
+}
+
+function toQuickActions(actions: string[]) {
+  return {
+    type: "data-quickActions" as const,
+    data: actions,
+  };
+}
+
+function textOnlyStreamResponse(
+  text: string,
+  sources: AssistantSource[] = [],
+  products: AssistantProductCard[] = [],
+  quickActions: string[] = [],
+): Response {
   const stream = createUIMessageStream<AssistantUIMessage>({
     execute({ writer }) {
       writer.write(toAssistantSources(sources));
+      if (products.length > 0) writer.write(toAssistantProducts(products));
+      if (quickActions.length > 0) writer.write(toQuickActions(quickActions));
       const id = `text-${crypto.randomUUID()}`;
       writer.write({ type: "text-start", id });
       writer.write({ type: "text-delta", id, delta: text });
@@ -143,6 +189,24 @@ function textOnlyStreamResponse(text: string, sources: AssistantSource[] = []): 
     },
   });
   return createUIMessageStreamResponse({ stream });
+}
+
+function logAssistantIntent(
+  intent: string,
+  pageContext: AssistantPageContext | undefined,
+  details: { results?: number; cards?: number; startedAt: number },
+) {
+  if (process.env.NODE_ENV !== "development") return;
+  console.info(
+    "[assistant]",
+    JSON.stringify({
+      intent,
+      pageType: pageContext?.pageType ?? "unknown",
+      results: details.results ?? 0,
+      cards: details.cards ?? 0,
+      ms: Date.now() - details.startedAt,
+    }),
+  );
 }
 
 function publicFallbackSource(question: string): AssistantSource {
@@ -201,6 +265,25 @@ function branchAnswerFromChunks(
   ].join("\n");
 }
 
+function chunksFromPageContext(
+  pageContext: AssistantPageContext | undefined,
+  chunks: PublicKnowledgeChunk[],
+): PublicKnowledgeChunk[] {
+  if (!pageContext) return [];
+  if (pageContext.pageType === "product" && pageContext.productId) {
+    return chunks.filter((chunk) => chunk.id === `product-${pageContext.productId}`);
+  }
+  if (pageContext.pageType === "category" && pageContext.categorySlug) {
+    return chunks.filter(
+      (chunk) =>
+        chunk.kind === "category" &&
+        (chunk.url.endsWith(`/${pageContext.categorySlug}`) ||
+          chunk.url.includes(`/${pageContext.categorySlug}?`)),
+    );
+  }
+  return [];
+}
+
 async function modelMessagesFromUi(
   messages: z.infer<typeof chatRequestSchema>["messages"],
 ): Promise<ModelMessage[]> {
@@ -215,6 +298,7 @@ async function modelMessagesFromUi(
 }
 
 export async function POST(request: NextRequest) {
+  const startedAt = Date.now();
   const limited = rateLimit(request);
   if (limited) return limited;
 
@@ -231,6 +315,7 @@ export async function POST(request: NextRequest) {
   }
 
   const question = latestUserQuestion(parsed.data.messages);
+  const pageContext = parsed.data.pageContext;
   if (!question) {
     return textOnlyStreamResponse("اكتب سؤالك عن منتجات سوكاني أو الفروع أو السياسات.");
   }
@@ -250,9 +335,17 @@ export async function POST(request: NextRequest) {
     return textOnlyStreamResponse(ABUSE_REFUSAL);
   }
 
-  if (isLowestPriceQuestion(question)) {
+  const assistantIntent = detectAssistantIntent(question, pageContext);
+
+  if (assistantIntent === "lowestPrice" || isLowestPriceQuestion(question)) {
     const lowest = await findLowestPricedPublicProduct(question);
     if (lowest) {
+      const cards = [productToAssistantCard(lowest.product, { badge: "أقل سعر متاح" })];
+      logAssistantIntent("lowestPrice", pageContext, {
+        results: 1,
+        cards: cards.length,
+        startedAt,
+      });
       return textOnlyStreamResponse(
         [
           `أقل سعر متاح لـ ${lowest.queryLabel}:`,
@@ -261,6 +354,8 @@ export async function POST(request: NextRequest) {
           `الرابط: ${lowest.url}`,
         ].join("\n"),
         [{ title: lowest.product.name, url: lowest.url, kind: "product" }],
+        cards,
+        ["قارنه بمنتج تاني", "هات منتجات مكملة"],
       );
     }
     return textOnlyStreamResponse(
@@ -269,19 +364,93 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  if (assistantIntent === "productRecommendation") {
+    const recommendation = await recommendPublicProducts(question, pageContext);
+    if (recommendation) {
+      const cards = productsToAssistantCards(
+        recommendation.products,
+        (product, index) =>
+          index === 0
+            ? "أفضل اختيار كبداية حسب السؤال"
+            : product.onSale
+              ? "اختيار عليه عرض"
+              : "بديل مناسب من نفس البحث",
+      );
+      logAssistantIntent("productRecommendation", pageContext, {
+        results: recommendation.products.length,
+        cards: cards.length,
+        startedAt,
+      });
+      return textOnlyStreamResponse(
+        [
+          recommendation.title,
+          ...recommendation.products.map(
+            (product, index) =>
+              `${index + 1}. ${product.name} - ${cards[index]?.price} - ${cards[index]?.url}`,
+          ),
+        ].join("\n"),
+        cards.map((card) => ({ title: card.name, url: card.url, kind: "product" })),
+        cards,
+        ["قارن أول اتنين", "هات أرخص بديل"],
+      );
+    }
+  }
+
+  if (assistantIntent === "productCompare") {
+    const comparison = await comparePublicProducts(question);
+    if (comparison) {
+      const cards = productsToAssistantCards(comparison.products);
+      logAssistantIntent("productCompare", pageContext, {
+        results: comparison.products.length,
+        cards: cards.length,
+        startedAt,
+      });
+      return textOnlyStreamResponse(
+        comparison.text,
+        cards.map((card) => ({ title: card.name, url: card.url, kind: "product" })),
+        cards,
+        ["هات الأرخص", "رشحلي الأفضل"],
+      );
+    }
+  }
+
   const allChunks = await collectPublicKnowledge();
   const intent = detectPublicKnowledgeIntent(question);
-  const retrieved = searchPublicKnowledge(question, allChunks);
+  const pageChunks = chunksFromPageContext(pageContext, allChunks);
+  const retrieved = [
+    ...pageChunks,
+    ...searchPublicKnowledge(question, allChunks).filter(
+      (chunk) => !pageChunks.some((pageChunk) => pageChunk.id === chunk.id),
+    ),
+  ];
 
   if (intent === "branches") {
     const branchAnswer = branchAnswerFromChunks(question, retrieved);
     if (branchAnswer) {
+      logAssistantIntent("branches", pageContext, {
+        results: retrieved.length,
+        startedAt,
+      });
       return textOnlyStreamResponse(branchAnswer, chunksToSources(retrieved));
     }
   }
 
   const productSalesChunks =
-    intent === "product" ? await buildProductSalesContextChunks(retrieved) : [];
+    intent === "product" ||
+    assistantIntent === "productDetails" ||
+    pageContext?.pageType === "product"
+      ? await buildProductSalesContextChunks(retrieved)
+      : [];
+  const productSalesCards = productSalesChunks
+    .filter((chunk) => chunk.kind === "product" && chunk.id.startsWith("product-card:"))
+    .map((chunk) => {
+      try {
+        return JSON.parse(chunk.text) as AssistantProductCard;
+      } catch {
+        return null;
+      }
+    })
+    .filter((card): card is AssistantProductCard => card != null);
   const modelContextChunks = [...productSalesChunks, ...retrieved];
   const sources =
     modelContextChunks.length > 0
@@ -340,11 +509,19 @@ export async function POST(request: NextRequest) {
   const stream = createUIMessageStream<AssistantUIMessage>({
     execute({ writer }) {
       writer.write(toAssistantSources(sources));
+      if (productSalesCards.length > 0) writer.write(toAssistantProducts(productSalesCards));
+      writer.write(toQuickActions(["هات أرخص بديل", "قارن منتجين", "منتجات مكملة"]));
       writer.merge(result.toUIMessageStream<AssistantUIMessage>());
     },
     onError() {
       return "حصل خطأ مؤقت في المساعد. جرّب مرة أخرى بعد لحظات.";
     },
+  });
+
+  logAssistantIntent(intentLabel(assistantIntent), pageContext, {
+    results: modelContextChunks.length,
+    cards: productSalesCards.length,
+    startedAt,
   });
 
   return createUIMessageStreamResponse({ stream });
