@@ -32,6 +32,7 @@ export default async function StorefrontLayout({
         branding={b}
         searchQuickKeywords={siteChrome.searchQuickKeywords}
         headerCategoryStrip={siteChrome.headerCategoryStrip}
+        assistantEnabled={siteChrome.assistant.enabled}
       >
         {children}
       </SiteShell>

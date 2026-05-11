@@ -15,6 +15,8 @@ type MobileChromeScrollState = {
   resetChrome: () => void;
   /** سكرول للأسفل: إخفاء صف الشعار + ملخص السلة. */
   hideChromeFromScroll: () => void;
+  /** زر الملخص: إخفاء شريط السلة فقط دون طي الهيدر. */
+  hideCartPeekOnly: () => void;
   /**
    * تبويب السلة: إظهار شريط الملخص فقط دون إرجاع صف الشعار
    * (يبقى صف الشعار مطويًا إن وُجد سكرول).
@@ -28,6 +30,7 @@ export const useMobileChromeCollapsedStore = create<MobileChromeScrollState>(
     cartPeekHidden: false,
     resetChrome: () => set({ headerHidden: false, cartPeekHidden: false }),
     hideChromeFromScroll: () => set({ headerHidden: true, cartPeekHidden: true }),
+    hideCartPeekOnly: () => set({ cartPeekHidden: true }),
     showCartPeekOnly: () => set({ cartPeekHidden: false }),
   }),
 );

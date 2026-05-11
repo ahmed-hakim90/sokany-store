@@ -31,6 +31,7 @@ import {
   CMS_DEFAULT_HOME_FEATURE_VIDEO,
   CMS_DEFAULT_HOME_PRODUCT_SECTIONS,
   CMS_DEFAULT_HOME_PRODUCT_SECTIONS_MODE,
+  CMS_DEFAULT_ASSISTANT_CONFIG,
   cmsHomeProductSectionsArraySchema,
   cmsHomeProductSectionsModeSchema,
   cmsHomeFeatureVideoSchema,
@@ -39,6 +40,7 @@ import {
   type CmsHomeFeatureVideo,
   type CmsHomeProductSection,
   type CmsHomeProductSectionsMode,
+  type CmsAssistantConfig,
   type CmsPromoFlash,
   type CmsTopAnnouncementBar,
   type CmsSiteBranding,
@@ -80,6 +82,8 @@ export type PublicSiteContent = {
   /** أقسام منتجات الهوم من `site_config` — الوضع الافتراضي `auto`. */
   homeProductSectionsMode: CmsHomeProductSectionsMode;
   homeProductSections: CmsHomeProductSection[];
+  /** إعدادات مساعد الشات العام، مدارة من `/control` بدون أسرار. */
+  assistant: CmsAssistantConfig;
   /**
    * رابط HTTPS علني مُدار من `site_config.storefrontIntegrations` (لوحة التحكم).
    * المفاتيح السرية تبقى في env — انظر `INTEGRATION_SERVER_SECRET` في المثال.
@@ -252,6 +256,7 @@ async function fetchPublicSiteContentUncached(): Promise<PublicSiteContent> {
     homeFeatureVideo: { ...CMS_DEFAULT_HOME_FEATURE_VIDEO },
     homeProductSectionsMode: CMS_DEFAULT_HOME_PRODUCT_SECTIONS_MODE,
     homeProductSections: [...CMS_DEFAULT_HOME_PRODUCT_SECTIONS],
+    assistant: { ...CMS_DEFAULT_ASSISTANT_CONFIG },
     publicReadBaseUrl: null,
     externalDataWebhookUrl: null,
     cmsWooBaseUrl: null,
@@ -347,6 +352,10 @@ async function fetchPublicSiteContentUncached(): Promise<PublicSiteContent> {
         : undefined,
       staticBundle.homeProductSections,
     );
+    const assistant =
+      siteParsed?.success && siteParsed.data.assistant
+        ? siteParsed.data.assistant
+        : staticBundle.assistant;
 
     const publicReadBaseUrl = (() => {
       if (!siteParsed?.success) return null;
@@ -452,6 +461,7 @@ async function fetchPublicSiteContentUncached(): Promise<PublicSiteContent> {
       homeFeatureVideo,
       homeProductSectionsMode,
       homeProductSections,
+      assistant,
       publicReadBaseUrl,
       externalDataWebhookUrl,
       cmsWooBaseUrl,

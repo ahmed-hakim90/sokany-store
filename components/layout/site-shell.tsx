@@ -19,6 +19,7 @@ import { CatalogFilterDrawerGate } from "@/features/catalog/components/catalog-f
 import { StorefrontShellChrome } from "@/components/layout/storefront-shell-chrome";
 import { ProductMerchandisingProvider } from "@/features/products/components/product-merchandising-context";
 import { DesktopWishlistDrawerGate } from "@/features/wishlist/components/desktop-wishlist-drawer-gate";
+import { StorefrontAssistantWidget } from "@/features/assistant/components/StorefrontAssistantWidget";
 import type { CmsHeaderCategoryStrip, CmsTopAnnouncementBar } from "@/schemas/cms";
 import { STOREFRONT_MAIN_CONTENT_ID } from "@/lib/storefront-a11y";
 import type { ResolvedSiteBranding } from "@/lib/site-branding";
@@ -31,6 +32,7 @@ export type SiteShellProps = {
   branding: ResolvedSiteBranding;
   searchQuickKeywords: string[];
   headerCategoryStrip: CmsHeaderCategoryStrip;
+  assistantEnabled?: boolean;
 };
 
 export function SiteShell({
@@ -40,6 +42,7 @@ export function SiteShell({
   branding,
   searchQuickKeywords,
   headerCategoryStrip,
+  assistantEnabled = true,
 }: SiteShellProps) {
   return (
     <ProductMerchandisingProvider
@@ -94,6 +97,7 @@ export function SiteShell({
         logoPath={branding.logoPath}
         logoDisabled={branding.logoDisabled}
       />
+      {assistantEnabled ? <StorefrontAssistantWidget /> : null}
       <MobileFloatingActions socialLinks={socialLinks} />
       <MobileScrollCollapseController />
       <MobileCommerceChrome />

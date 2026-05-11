@@ -65,6 +65,7 @@ import type {
   CmsHomeFeatureVideo,
 } from "@/schemas/cms";
 import {
+  CMS_DEFAULT_ASSISTANT_CONFIG,
   CMS_DEFAULT_HOME_FEATURE_VIDEO,
   CMS_DEFAULT_TOP_ANNOUNCEMENT_BAR,
   CMS_DEFAULT_HEADER_CATEGORY_STRIP,
@@ -899,6 +900,7 @@ export function ControlPanel() {
   }
 
   const site = bundle.site_config as Partial<CmsSiteConfigDoc> | null;
+  const assistant = site?.assistant ?? CMS_DEFAULT_ASSISTANT_CONFIG;
   const promo = site?.promoFlash ?? {
     enabled: true,
     endsAt: null,
@@ -1323,6 +1325,45 @@ export function ControlPanel() {
             disabled={saving === "site_config"}
             onSave={(bar) => void saveSiteConfig({ topAnnouncementBar: bar })}
           />
+
+          <section className="space-y-4 rounded-2xl border border-border bg-white p-5 shadow-sm">
+            <div>
+              <h2 className="font-display text-lg font-bold">مساعد الشات العام</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                تحكم في ظهور أيقونة مساعد سوكاني على واجهة المتجر العامة فقط.
+              </p>
+            </div>
+            <form
+              className="space-y-4"
+              onSubmit={(e) => {
+                e.preventDefault();
+                const fd = new FormData(e.currentTarget);
+                void saveSiteConfig({
+                  assistant: { enabled: fd.get("assistantEnabled") === "on" },
+                });
+              }}
+            >
+              <label className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
+                <input
+                  type="checkbox"
+                  name="assistantEnabled"
+                  defaultChecked={assistant.enabled}
+                  className="mt-1"
+                />
+                <span>
+                  <span className="block text-sm font-semibold text-slate-950">
+                    إظهار أيقونة الشات في المتجر
+                  </span>
+                  <span className="mt-1 block text-sm leading-6 text-muted-foreground">
+                    عند الإغلاق لن تظهر الأيقونة للعملاء، ولن يتغير مسار API أو أي إعدادات أخرى.
+                  </span>
+                </span>
+              </label>
+              <Button type="submit" disabled={saving === "site_config"}>
+                {saving === "site_config" ? "جاري الحفظ…" : "حفظ إعداد الشات"}
+              </Button>
+            </form>
+          </section>
 
           <SocialLinksForm
             key={JSON.stringify(site?.socialLinks ?? null)}

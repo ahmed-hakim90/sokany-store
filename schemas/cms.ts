@@ -259,6 +259,17 @@ export const cmsStorefrontIntegrationsSchema = z.object({
 
 export type CmsStorefrontIntegrations = z.infer<typeof cmsStorefrontIntegrationsSchema>;
 
+/** إعدادات مساعد الشات العام في واجهة المتجر — لا تحتوي أسرار أو مفاتيح. */
+export const cmsAssistantConfigSchema = z.object({
+  enabled: z.boolean().default(true),
+});
+
+export type CmsAssistantConfig = z.infer<typeof cmsAssistantConfigSchema>;
+
+export const CMS_DEFAULT_ASSISTANT_CONFIG: CmsAssistantConfig = {
+  enabled: true,
+};
+
 /** وضع أقسام المنتجات على الصفحة الرئيسية: تلقائي / مخصص / الاثنين معاً. */
 export const cmsHomeProductSectionsModeSchema = z.enum(["auto", "custom", "hybrid"]);
 export type CmsHomeProductSectionsMode = z.infer<typeof cmsHomeProductSectionsModeSchema>;
@@ -296,6 +307,8 @@ export const cmsSiteConfigDocSchema = z.object({
   homeFeatureVideo: cmsHomeFeatureVideoSchema.optional(),
   homeProductSectionsMode: cmsHomeProductSectionsModeSchema.optional(),
   homeProductSections: cmsHomeProductSectionsArraySchema.optional(),
+  /** تحكم عام في ظهور مساعد الشات على واجهة المتجر. */
+  assistant: cmsAssistantConfigSchema.optional(),
   /** عناوين وقراءة عامة مدارة من `/control` — بلا أسرار. */
   storefrontIntegrations: cmsStorefrontIntegrationsSchema.optional(),
   updatedAt: z.unknown().optional(),

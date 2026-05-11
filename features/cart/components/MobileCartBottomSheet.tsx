@@ -17,6 +17,7 @@ import {
   cartCheckoutPillIconClassName,
 } from "@/features/cart/components/cart-drawer-body";
 import { mobileCommercePeekSurfaceClass } from "@/components/layout/mobile-commerce-surface";
+import { useMobileChromeCollapsedStore } from "@/components/layout/mobile-chrome-collapsed-store";
 
 type MobileCartBottomSheetProps = {
   showCartSummary: boolean;
@@ -38,6 +39,7 @@ export function MobileCartBottomSheet({
     updateProductQuantity,
     removeProduct,
   } = useCart();
+  const hideCartPeekOnly = useMobileChromeCollapsedStore((s) => s.hideCartPeekOnly);
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -83,18 +85,32 @@ export function MobileCartBottomSheet({
         <div
           className={cn(
             mobileCommercePeekSurfaceClass,
-            "flex min-h-[3.25rem] items-center justify-between gap-3 px-4 py-3 transition-[opacity,transform] duration-200 ease-out motion-reduce:transition-none",
+            "relative flex min-h-[3.25rem] items-center justify-between gap-3 px-4 py-3 transition-[opacity,transform] duration-200 ease-out motion-reduce:transition-none",
             peekHidden
               ? "pointer-events-none translate-y-4 opacity-0"
               : "translate-y-0 opacity-100",
           )}
         >
+          <button
+            type="button"
+            tabIndex={peekHidden ? -1 : undefined}
+            className="absolute end-2 top-2 z-10 inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/95 text-slate-700 shadow-sm ring-1 ring-slate-900/10 transition-colors hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-400"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setOpen(false);
+              hideCartPeekOnly();
+            }}
+            aria-label="إخفاء ملخص السلة"
+          >
+            <MobileCartCloseIcon className="h-4 w-4" />
+          </button>
           <Drawer.Trigger asChild disabled={!hasHydrated || peekHidden}>
             <button
               type="button"
               tabIndex={peekHidden ? -1 : undefined}
               className={cn(
-                "flex min-w-0 flex-1 flex-col items-start gap-1 rounded-2xl text-start outline-none ring-brand-500/0 transition-[box-shadow] focus-visible:ring-2 focus-visible:ring-brand-500/40",
+                "flex min-w-0 flex-1 flex-col items-start gap-1 rounded-2xl pe-7 text-start outline-none ring-brand-500/0 transition-[box-shadow] focus-visible:ring-2 focus-visible:ring-brand-500/40",
                 (!hasHydrated || peekHidden) && "pointer-events-none opacity-80",
               )}
               aria-expanded={open}
@@ -192,9 +208,14 @@ export function MobileCartBottomSheet({
   );
 }
 
-function MobileCartCloseIcon() {
+function MobileCartCloseIcon({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden>
+    <svg
+      viewBox="0 0 24 24"
+      className={cn("h-5 w-5", className)}
+      fill="none"
+      aria-hidden
+    >
       <path
         d="M6 6l12 12M18 6L6 18"
         stroke="currentColor"

@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { useTransitionRouter } from "next-view-transitions";
 import { Drawer } from "vaul";
 import { Button } from "@/components/Button";
+import { IconButton } from "@/components/ui/icon-button";
 import { useCart } from "@/hooks/useCart";
 import { useMinLg } from "@/hooks/useMinLg";
 import { ROUTES } from "@/lib/constants";
@@ -60,16 +61,28 @@ export function DesktopCartDrawer() {
       shouldScaleBackground={false}
     >
       <Drawer.Portal>
-        <Drawer.Overlay className="fixed inset-0 z-[90] bg-slate-900/50" />
+        <Drawer.Overlay className="fixed inset-0 z-[90] cursor-pointer bg-slate-900/50" />
         <Drawer.Content
           id="desktop-cart-drawer-panel"
           className={cn(
             "fixed bottom-2 left-2 top-2 z-[100] flex h-[calc(100%-1rem)] max-h-[calc(100dvh-1rem)] min-w-0 max-w-none max-w-md flex-col rounded-2xl border border-border/80 bg-page outline-none",
           )}
         >
-          <Drawer.Title className="border-b border-border/80 px-4 py-3 text-center font-display text-base font-semibold text-brand-950">
-            سلة التسوق
-          </Drawer.Title>
+          <div className="relative shrink-0 border-b border-border/80">
+            <IconButton
+              type="button"
+              variant="ghost"
+              size="md"
+              aria-label="إغلاق سلة التسوق"
+              className="absolute start-2 top-1/2 z-10 -translate-y-1/2 text-brand-950"
+              onClick={() => closeDrawer()}
+            >
+              <CloseGlyph />
+            </IconButton>
+            <Drawer.Title className="px-12 py-3 text-center font-display text-base font-semibold text-brand-950 sm:px-14">
+              سلة التسوق
+            </Drawer.Title>
+          </div>
           <Drawer.Description className="sr-only">
             {isEmpty
               ? "السلة فارغة. يمكنك تصفح المنتجات أو فتح صفحة السلة."
@@ -112,5 +125,21 @@ export function DesktopCartDrawer() {
         </Drawer.Content>
       </Drawer.Portal>
     </Drawer.Root>
+  );
+}
+
+function CloseGlyph() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className="h-5 w-5"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      aria-hidden
+    >
+      <path d="M18 6L6 18M6 6l12 12" />
+    </svg>
   );
 }

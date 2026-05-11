@@ -1,5 +1,6 @@
 import type { CmsSiteConfigDoc, CmsStorefrontIntegrations } from "@/schemas/cms";
 import {
+  CMS_DEFAULT_ASSISTANT_CONFIG,
   CMS_DEFAULT_HOME_CATEGORY_SCROLLER,
   CMS_DEFAULT_HOME_FEATURE_VIDEO,
   CMS_DEFAULT_HOME_PRODUCT_SECTIONS,
@@ -95,6 +96,10 @@ export function mergeSiteConfigPatch(
         ? patch.homeProductSections
         : (current?.homeProductSections ?? CMS_DEFAULT_HOME_PRODUCT_SECTIONS),
     ),
+    assistant:
+      patch.assistant !== undefined
+        ? patch.assistant
+        : current?.assistant ?? CMS_DEFAULT_ASSISTANT_CONFIG,
     storefrontIntegrations: mergeStorefrontIntegrations(
       current?.storefrontIntegrations,
       patch.storefrontIntegrations,
