@@ -59,7 +59,7 @@ export function CheckoutShippingForm({
       fromGovernorate.unshift(typed);
     }
     return [
-      { value: "", label: "— بدون تحديد —" },
+      { value: "", label: "" },
       ...fromGovernorate.map((name) => ({ value: name, label: name })),
     ];
   }, [values.shippingStateCode, values.shippingCity]);
@@ -150,7 +150,7 @@ export function CheckoutShippingForm({
             options={shippingAreaOptions}
             placeholder={
               values.shippingStateCode
-                ? "ابحث أو اختر منطقة..."
+                ? ""
                 : "اختاري المحافظة أولاً"
             }
             helperText="قائمة بحسب المحافظة؛ يمكن تركها فارغة."
