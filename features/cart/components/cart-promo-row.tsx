@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/Button";
 import { inputSurfaceClass } from "@/lib/ui-input";
@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
  * Slim promo field on cart — mirrors checkout intent; real application happens at payment.
  */
 export function CartPromoRow({ className }: { className?: string }) {
+  const inputId = useId();
   const [code, setCode] = useState("");
 
   const apply = () => {
@@ -32,11 +33,11 @@ export function CartPromoRow({ className }: { className?: string }) {
     >
       <p className="mb-2 text-xs font-medium text-muted-foreground">رمز الخصم</p>
       <div className="flex items-center gap-2 rounded-xl border border-border/60 bg-page/30 p-1">
-        <label className="sr-only" htmlFor="cart-promo-code">
+        <label className="sr-only" htmlFor={inputId}>
           رمز الخصم
         </label>
         <input
-          id="cart-promo-code"
+          id={inputId}
           name="cart-coupon"
           value={code}
           onChange={(e) => setCode(e.target.value)}

@@ -83,6 +83,7 @@ export const ROUTES = {
   CATEGORY: (slug: string) => `/categories/${slug}`,
   CART: "/cart",
   CHECKOUT: "/checkout",
+  ORDER_CONFIRMATION: "/order-confirmation",
   ABOUT: "/about",
   CONTACT: "/contact",
   /** محتوى من ووردبريس الموقع الرسمي (slug: terms-and-conditions). */

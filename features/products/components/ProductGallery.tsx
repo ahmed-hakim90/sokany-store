@@ -114,7 +114,7 @@ export const ProductGallery = forwardRef<HTMLDivElement, ProductGalleryProps>(
       <div
         className={cn(
           "flex touch-pan-x gap-2 overflow-x-auto scroll-smooth pb-1 [-ms-overflow-style:none] [scrollbar-width:none] snap-x snap-mandatory [&::-webkit-scrollbar]:hidden",
-          "lg:flex-col lg:h-full lg:max-h-full lg:min-h-0 lg:w-[5rem] lg:snap-none lg:touch-pan-y lg:overflow-y-auto lg:overflow-x-hidden lg:pb-0 lg:pt-0",
+          "lg:flex-col lg:h-full lg:max-h-full lg:min-h-0 lg:w-[5.25rem] lg:snap-none lg:touch-pan-y lg:overflow-y-auto lg:overflow-x-hidden lg:pb-0 lg:pt-0",
         )}
         style={{ WebkitOverflowScrolling: "touch" }}
         aria-label="معاينات صور المنتج"
@@ -125,10 +125,10 @@ export const ProductGallery = forwardRef<HTMLDivElement, ProductGalleryProps>(
             type="button"
             aria-label={`عرض صورة ${img.alt || productName}`}
             className={cn(
-              "relative h-[4.25rem] w-[4.25rem] shrink-0 snap-start overflow-hidden rounded-xl border border-border bg-image-well transition-[border-color,ring] lg:h-[5rem] lg:w-full",
+              "relative h-[4.25rem] w-[4.25rem] shrink-0 snap-start overflow-hidden rounded-2xl border border-border bg-white transition-[border-color,ring,transform] hover:-translate-y-0.5 lg:h-[5.25rem] lg:w-full",
               activeSrc === img.src
-                ? "border-brand-900 ring-2 ring-brand-500/40"
-                : "border-brand-100 hover:border-brand-300",
+                ? "border-slate-900 ring-2 ring-slate-200"
+                : "border-slate-200 hover:border-slate-300",
             )}
             onClick={() => setActiveSrc(img.src)}
           >
@@ -149,14 +149,14 @@ export const ProductGallery = forwardRef<HTMLDivElement, ProductGalleryProps>(
     return (
       <div
         className={cn(
-          "flex min-w-0 flex-col gap-3 lg:flex-row lg:items-stretch lg:gap-3",
+          "flex min-w-0 flex-col gap-3 lg:flex-row lg:items-stretch lg:gap-4",
           className,
         )}
       >
         <div className="flex min-w-0 flex-1 flex-col gap-3">
           <div
             ref={ref}
-            className="relative aspect-square overflow-hidden rounded-2xl border border-slate-200/80 bg-gradient-to-b from-white to-slate-50 shadow-[0_16px_40px_-28px_rgba(15,23,42,0.55)] ring-1 ring-white"
+            className="relative aspect-square overflow-hidden rounded-[1.7rem] border border-slate-200/80 bg-gradient-to-b from-white to-slate-50 shadow-[0_16px_40px_-30px_rgba(15,23,42,0.5)] ring-1 ring-white"
           >
             <div
               key={activeSrc}
@@ -194,11 +194,16 @@ export const ProductGallery = forwardRef<HTMLDivElement, ProductGalleryProps>(
               }}
               {...mainImageSwipe}
             />
-            <div className="pointer-events-none absolute inset-x-3 bottom-3 z-[6] flex items-center justify-between gap-2">
+            <div className="absolute inset-x-3 bottom-3 z-[6] flex items-center justify-between gap-2">
               <span className="flex items-center gap-1 rounded-full bg-black/55 px-2.5 py-1.5 text-[10px] font-bold text-white backdrop-blur-sm">
                 <ZoomIcon className="h-3.5 w-3.5 opacity-90" />
                 تكبير
               </span>
+              {floatingAction ? (
+                <div className="pointer-events-auto min-w-0 flex-1 sm:max-w-[15rem]">
+                  {floatingAction}
+                </div>
+              ) : null}
               {list.length > 1 ? (
                 <span
                   dir="ltr"
@@ -209,9 +214,6 @@ export const ProductGallery = forwardRef<HTMLDivElement, ProductGalleryProps>(
               ) : null}
             </div>
           </div>
-          {floatingAction ? (
-            <div className="min-w-0">{floatingAction}</div>
-          ) : null}
           {list.length > 1 ? (
             <div className="flex justify-center gap-1.5 lg:hidden" aria-hidden>
               {list.map((img) => (

@@ -22,13 +22,17 @@ export const useCartStore = create<CartState>()(
       addToCart: (product: Product, quantity = 1) => {
         const items = [...get().items];
         const existing = items.find((i) => i.productId === product.id);
+        const regularPrice =
+          product.regularPrice > product.price ? product.regularPrice : undefined;
         if (existing) {
           existing.quantity += quantity;
+          existing.regularPrice = regularPrice;
         } else {
           items.push({
             productId: product.id,
             name: product.name,
             price: product.price,
+            regularPrice,
             quantity,
             thumbnail: product.thumbnail,
             sku: product.sku,

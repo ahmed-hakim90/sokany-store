@@ -1,25 +1,30 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/Button";
 import { CheckoutCouponRow } from "@/features/checkout/components/checkout-coupon-row";
 import { CheckoutFooterMeta } from "@/features/checkout/components/checkout-footer-meta";
 import { CheckoutLegalNote } from "@/features/checkout/components/checkout-legal-note";
 import { CheckoutLoadingOverlay } from "@/features/checkout/components/checkout-loading-overlay";
+import { CheckoutMobileSubmitDock } from "@/features/checkout/components/checkout-mobile-submit-dock";
 import { CheckoutPaymentForm } from "@/features/checkout/components/CheckoutPaymentForm";
 import { CheckoutReassuranceNote } from "@/features/checkout/components/checkout-reassurance-note";
 import { CheckoutShippingForm } from "@/features/checkout/components/CheckoutShippingForm";
 import { CheckoutSummary } from "@/features/checkout/components/CheckoutSummary";
-import { OrderSuccessCelebration } from "@/features/checkout/components/order-success-celebration";
 import { CheckoutSupportFooter } from "@/features/checkout/components/checkout-support-footer";
+import { CheckoutTrustStrip } from "@/features/checkout/components/checkout-trust-strip";
 import { useCheckoutForm } from "@/features/checkout/hooks/useCheckoutForm";
 
 /*
  * نموذج إتمام الطلب: على الجوال عمود واحد — الملخص أولاً (order-1) ثم حقول الدفع ثم طريقة الدفع (order-2).
  * من lg: صف أفقي بعرض أقصى أوسع — عمود النموذج يتمدد، عمود الملخص max-width مع sticky عند التمرير.
- * بعد نجاح الطلب: `OrderSuccessCelebration` (شكر + قلوب) فوق الطبقة z-[200].
+ * بعد نجاح الطلب: تُحفظ لقطة الطلب مؤقتاً ثم ينتقل العميل إلى صفحة `/order-confirmation`.
  * الشحن مجاني؛ ملاحظات الطلب داخل كتلة «بيانات الدفع»؛ مسودة الحقول في localStorage.
+ * تحسينات الموبايل: ملخص قابل للطي، dock ثابت للإجمالي والتأكيد، وشريط ضمانات قبل الإرسال.
  */
 export function CheckoutForm() {
+  const submitButtonRef = useRef<HTMLButtonElement | null>(null);
+  const [mobileDockVisible, setMobileDockVisible] = useState(true);
   const {
     values,
     errors,
@@ -28,16 +33,31 @@ export function CheckoutForm() {
     shippingFee,
     orderTotal,
     shippingMethodTitle,
+    appliedCoupon,
     cartEmpty,
     isSubmitting,
     loadingOverlayVisible,
-    orderSuccessOpen,
-    placedOrderSummary,
-    dismissOrderSuccess,
     update,
     updatePaymentMethod,
+    applyCoupon,
+    removeCoupon,
     submitOrder,
   } = useCheckoutForm();
+
+  useEffect(() => {
+    const button = submitButtonRef.current;
+    if (!button) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setMobileDockVisible(!entry.isIntersecting);
+      },
+      { threshold: 0.25 },
+    );
+
+    observer.observe(button);
+    return () => observer.disconnect();
+  }, []);
 
   /* عمود الملخص: يتقدم بصرياً على الجوال؛ يلتصق أعلى الشاشة على الشاشات العريضة أثناء التمرير */
   const summaryColumn = (
@@ -67,9 +87,15 @@ export function CheckoutForm() {
         errors={errors}
         onPaymentMethodChange={updatePaymentMethod}
       />
-      <CheckoutCouponRow />
+      <CheckoutCouponRow
+        appliedCoupon={appliedCoupon}
+        onApply={applyCoupon}
+        onRemove={removeCoupon}
+      />
       <CheckoutLegalNote />
+      <CheckoutTrustStrip />
       <Button
+        ref={submitButtonRef}
         type="button"
         loading={isSubmitting}
         disabled={cartEmpty}
@@ -86,21 +112,24 @@ export function CheckoutForm() {
 
   return (
     <>
-      <OrderSuccessCelebration
-        open={orderSuccessOpen}
-        order={placedOrderSummary}
-        onDismiss={dismissOrderSuccess}
-      />
       <CheckoutLoadingOverlay visible={loadingOverlayVisible} />
       {/* حاوية مركزية: ضيقة على الجوال/تابلت، تتسع وتتحول لصف من عمودين من lg */}
       <div
-        className="mx-auto flex min-w-0 max-w-none flex-col gap-3 pb-10 sm:max-w-xl md:max-w-2xl lg:max-w-6xl lg:flex-row lg:items-start lg:gap-10"
+        className="mx-auto flex min-w-0 max-w-none flex-col gap-3 pb-32 sm:max-w-xl md:max-w-2xl lg:max-w-6xl lg:flex-row lg:items-start lg:gap-10 lg:pb-10"
         role="group"
         aria-label="إتمام الطلب"
       >
         {summaryColumn}
         {formColumn}
       </div>
+      <CheckoutMobileSubmitDock
+        total={orderTotal}
+        itemCount={items.length}
+        visible={mobileDockVisible}
+        disabled={cartEmpty}
+        loading={isSubmitting}
+        onSubmit={() => void submitOrder()}
+      />
     </>
   );
 }

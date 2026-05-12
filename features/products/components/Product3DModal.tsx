@@ -3,14 +3,12 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Product3DViewer } from "@/features/products/components/Product3DViewer";
-import type { ProductImage } from "@/features/products/types";
 import { cn } from "@/lib/utils";
 
 export type Product3DModalProps = {
   modelSrc: string;
   productName: string;
   posterSrc?: string | null;
-  thumbnails?: ProductImage[];
   onClose: () => void;
 };
 
@@ -18,7 +16,6 @@ export function Product3DModal({
   modelSrc,
   productName,
   posterSrc,
-  thumbnails,
   onClose,
 }: Product3DModalProps) {
   const titleId = useId();
@@ -122,7 +119,6 @@ export function Product3DModal({
             modelSrc={modelSrc}
             productName={productName}
             posterSrc={posterSrc}
-            thumbnails={thumbnails}
           />
         </div>
       </div>

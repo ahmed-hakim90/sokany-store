@@ -269,6 +269,13 @@ export const createOrderPayloadSchema = z.object({
       }),
     )
     .optional(),
+  coupon_lines: z
+    .array(
+      z.object({
+        code: z.string(),
+      }),
+    )
+    .optional(),
   payment_method: z.string(),
   payment_method_title: z.string(),
   customer_note: emptyString,

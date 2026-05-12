@@ -1,32 +1,19 @@
 "use client";
 
-import { forwardRef } from "react";
+import { forwardRef, useState } from "react";
 import {
-  BadgeCheck,
-  Banknote,
-  Building2,
-  FileCheck2,
   MessageCircle,
-  RotateCcw,
   ShieldCheck,
-  Truck,
+  Share2,
+  Heart,
+  Star,
 } from "lucide-react";
-import { Link } from "next-view-transitions";
 import { Button } from "@/components/Button";
 import { PriceText } from "@/components/ui/price-text";
 import { QtyControl } from "@/components/ui/qty-control";
-import { ProductDetailBreadcrumbs } from "@/features/products/components/product-detail-breadcrumbs";
-import { ProductDetailDescriptionBlocks } from "@/features/products/components/product-detail-description-blocks";
-import { ProductDetailImageGallery } from "@/features/products/components/product-detail-image-gallery";
-import {
-  ProductSpecsList,
-  type ProductSpecItem,
-} from "@/features/products/components/ProductSpecsList";
-import { useProductMerchandising } from "@/features/products/components/product-merchandising-context";
-import { getProductBenefitBullets } from "@/features/products/lib/product-merchandising";
-import type { ProductTrustSummary } from "@/components/pages/ProductDetailPageContent";
 import type { Product } from "@/features/products/types";
-import { ROUTES, WHATSAPP_SUPPORT_URL } from "@/lib/constants";
+import { useWishlist } from "@/hooks/useWishlist";
+import { WHATSAPP_SUPPORT_URL } from "@/lib/constants";
 import { cn, formatPrice } from "@/lib/utils";
 
 function savePercent(product: Product): number | null {
@@ -34,12 +21,6 @@ function savePercent(product: Product): number | null {
   if (product.regularPrice <= product.price) return null;
   return Math.round((1 - product.price / product.regularPrice) * 100);
 }
-
-const policyIconClass =
-  "flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl shadow-sm";
-const policyTitleClass =
-  "font-display text-sm font-extrabold leading-snug text-brand-950 sm:text-[15px]";
-const policyBodyClass = "mt-1 block text-xs leading-5 text-slate-600";
 
 export const ProductDetailInfoColumn = forwardRef<
   HTMLDivElement,
@@ -49,9 +30,7 @@ export const ProductDetailInfoColumn = forwardRef<
     onQuantityChange: (next: number) => void;
     onAddToCart: () => void;
     onBuyNow?: () => void;
-    specs: ProductSpecItem[];
     canInteractCart?: boolean;
-    trustSummary?: ProductTrustSummary;
     className?: string;
   }
 >(function ProductDetailInfoColumn(
@@ -61,90 +40,142 @@ export const ProductDetailInfoColumn = forwardRef<
     onQuantityChange,
     onAddToCart,
     onBuyNow,
-    specs,
     canInteractCart = true,
-    trustSummary,
     className,
   },
   ref,
 ) {
+  const [shareCopied, setShareCopied] = useState(false);
+  const { hasHydrated: wishlistReady, isInWishlist, toggleProduct } = useWishlist();
   const compareAt =
     product.onSale && product.salePrice !== null ? product.regularPrice : null;
   const pct = savePercent(product);
-  const benefits = getProductBenefitBullets(product, 4);
   const categoryLabel = product.categories[0]?.name;
-  const merchandising = useProductMerchandising();
-  const branchTotal =
-    (trustSummary?.salesBranchesCount ?? 0) +
-    (trustSummary?.serviceBranchesCount ?? 0);
+  const ratingLabel = product.rating > 0 ? product.rating.toFixed(1) : "جديد";
+  const wishlistPressed = isInWishlist(product.id);
+
+  async function handleShare() {
+    const url = window.location.href;
+    const shareData = {
+      title: product.name,
+      text: `شاهد ${product.name} على Sokany Store`,
+      url,
+    };
+
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+        return;
+      } catch (error) {
+        if (error instanceof DOMException && error.name === "AbortError") {
+          return;
+        }
+      }
+    }
+
+    await navigator.clipboard.writeText(url);
+    setShareCopied(true);
+    window.setTimeout(() => setShareCopied(false), 1800);
+  }
 
   return (
-    <div className={cn("flex min-w-0 flex-col gap-5 lg:gap-6", className)}>
-      <ProductDetailBreadcrumbs product={product} />
-
-      <div className="min-w-0 space-y-2">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <span className="inline-flex items-baseline gap-1 rounded-2xl bg-white/95 px-3 py-2 font-display text-2xl font-extrabold text-slate-950 shadow-sm ring-1 ring-border/80">
-            {formatPrice(product.price)}
-          </span>
-          {pct != null && pct > 0 ? (
-            <span className="rounded-lg bg-brand-100 px-2.5 py-1 text-xs font-bold text-brand-900 ring-1 ring-brand-300/60">
-              وفر {pct}%
-            </span>
-          ) : null}
-        </div>
-        <h1 className="text-pretty font-display text-2xl font-bold leading-snug tracking-tight text-foreground sm:text-3xl">
-          {product.name}
-        </h1>
-        <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
-          {product.inStock ? (
-            <span className="text-emerald-700">متوفر للطلب</span>
-          ) : (
-            <span className="font-medium text-foreground">غير متوفر حالياً</span>
-          )}
-          {product.sku ? (
-            <>
-              <span className="mx-1.5 text-border">·</span>
-              <span>SKU: {product.sku}</span>
-            </>
-          ) : null}
-        </p>
-      </div>
-
-      <div
+    <div className={cn("min-w-0", className)}>
+      <article
         ref={ref}
-        className="flex flex-col gap-3 rounded-2xl border border-border/80 bg-white/90 p-4 shadow-[0_10px_28px_-22px_rgba(15,23,42,0.35)]"
+        className="rounded-3xl border border-slate-200 bg-white p-5 shadow-[0_18px_55px_-36px_rgba(15,23,42,0.42)] sm:p-6"
       >
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <p className="text-xs font-bold text-muted-foreground">السعر</p>
+        <div className="min-w-0 space-y-3">
+          <div className="flex flex-wrap items-center gap-2">
+            {categoryLabel ? (
+              <span className="rounded-full bg-rose-50 px-3 py-1 text-xs font-bold text-rose-700">
+                {categoryLabel}
+              </span>
+            ) : null}
+            {pct != null && pct > 0 ? (
+              <span className="rounded-full bg-brand-100 px-3 py-1 text-xs font-bold text-brand-900 ring-1 ring-brand-300/60">
+                خصم {pct}%
+              </span>
+            ) : null}
+          </div>
+          <h1 className="text-pretty font-display text-2xl font-bold leading-snug tracking-tight text-slate-950 sm:text-3xl">
+            {product.name}
+          </h1>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-xs text-slate-500">
+            <span className="inline-flex items-center gap-1">
+              <span className="inline-flex text-amber-400" aria-hidden>
+                {Array.from({ length: 5 }).map((_, index) => (
+                  <Star
+                    key={index}
+                    className={cn(
+                      "h-3.5 w-3.5",
+                      product.rating >= index + 1 ? "fill-current" : "fill-none text-slate-300",
+                    )}
+                  />
+                ))}
+              </span>
+              <span className="font-semibold text-slate-700">{ratingLabel}</span>
+              {product.ratingCount > 0 ? (
+                <span>({product.ratingCount} تقييم)</span>
+              ) : null}
+            </span>
+            {product.sku ? <span>SKU: {product.sku}</span> : null}
+          </div>
+        </div>
+
+        <div className="mt-5 border-t border-slate-100 pt-5">
+          <div className="flex flex-wrap items-end justify-between gap-3">
             <PriceText
               amount={product.price}
               compareAt={compareAt}
               emphasized
-              className="mt-1 text-brand-900"
+              className="text-slate-950"
               amountClassName="!text-3xl sm:!text-4xl"
             />
+            {compareAt != null ? (
+              <span className="text-sm font-medium text-slate-400 line-through">
+                {formatPrice(compareAt)}
+              </span>
+            ) : null}
           </div>
+          <p className="mt-2 text-xs text-slate-500">
+            الأسعار تشمل ضريبة القيمة المضافة عند تطبيقها. الشحن يحسب عند إتمام الطلب.
+          </p>
+        </div>
+
+        <div className="mt-5 flex flex-wrap items-center gap-3 text-sm">
+          {product.inStock ? (
+            <span className="inline-flex items-center gap-2 font-semibold text-emerald-700">
+              <span className="h-2 w-2 rounded-full bg-emerald-500" aria-hidden />
+              متوفر في المخزون
+            </span>
+          ) : (
+            <span className="font-semibold text-rose-700">غير متوفر حالياً</span>
+          )}
+          {product.stockQuantity != null ? (
+            <span className="text-xs text-slate-500">المتبقي: {product.stockQuantity}</span>
+          ) : null}
         </div>
 
         {product.inStock ? (
-          <QtyControl
-            value={quantity}
-            min={1}
-            max={99}
-            onChange={onQuantityChange}
-            disabled={!product.inStock || !canInteractCart}
-            layout="segmented"
-            className=" max-w-[11rem] self-start"
-          />
+          <div className="mt-5 flex flex-wrap items-center gap-3">
+            <span className="text-sm font-semibold text-slate-700">الكمية</span>
+            <QtyControl
+              value={quantity}
+              min={1}
+              max={99}
+              onChange={onQuantityChange}
+              disabled={!product.inStock || !canInteractCart}
+              layout="segmented"
+              className="max-w-[11rem]"
+            />
+          </div>
         ) : null}
 
-        <div className="flex flex-col gap-2.5 sm:flex-row sm:items-stretch">
+        <div className="mt-5 flex flex-col gap-2.5">
           <Button
             size="lg"
             className={cn(
-              "relative h-12 gap-0 border-0 bg-gradient-to-b from-brand-400 to-brand-500 text-base font-bold text-black shadow-md hover:from-brand-300 hover:to-brand-400 sm:flex-1",
+              "relative h-12 gap-0 border-0 bg-slate-950 text-base font-bold text-white shadow-md hover:bg-slate-800",
             )}
             disabled={!product.inStock || !canInteractCart}
             onClick={onAddToCart}
@@ -163,7 +194,7 @@ export const ProductDetailInfoColumn = forwardRef<
               type="button"
               variant="secondary"
               size="lg"
-              className="h-12  border-border bg-white text-base font-semibold text-foreground hover:bg-surface-muted sm:w-auto sm:min-w-[9.5rem]"
+              className="h-12 border-slate-300 bg-white text-base font-semibold text-slate-950 hover:bg-slate-50"
               disabled={!product.inStock || !canInteractCart}
               onClick={onBuyNow}
             >
@@ -172,180 +203,54 @@ export const ProductDetailInfoColumn = forwardRef<
           ) : null}
         </div>
 
+        <div className="mt-5 grid grid-cols-3 gap-2 border-t border-slate-100 pt-4">
+          <button
+            type="button"
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-2 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-50"
+          >
+            <ShieldCheck className="h-4 w-4" aria-hidden />
+            ضمان
+          </button>
+          <button
+            type="button"
+            className={cn(
+              "inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border px-2 text-xs font-bold transition-colors",
+              wishlistPressed
+                ? "border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100"
+                : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50",
+            )}
+            disabled={!wishlistReady}
+            aria-pressed={wishlistPressed}
+            onClick={() => toggleProduct(product)}
+          >
+            <Heart
+              className={cn("h-4 w-4", wishlistPressed && "fill-current")}
+              aria-hidden
+            />
+            {wishlistPressed ? "في المفضلة" : "مفضلة"}
+          </button>
+          <button
+            type="button"
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-2 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-50"
+            onClick={() => void handleShare()}
+          >
+            <Share2 className="h-4 w-4" aria-hidden />
+            {shareCopied ? "تم النسخ" : "مشاركة"}
+          </button>
+        </div>
+
         {WHATSAPP_SUPPORT_URL ? (
           <a
             href={`${WHATSAPP_SUPPORT_URL}${WHATSAPP_SUPPORT_URL.includes("?") ? "&" : "?"}text=${encodeURIComponent(`استفسار عن ${product.name}`)}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 text-sm font-bold text-emerald-950 transition-colors hover:bg-emerald-100"
+            className="mt-3 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 text-sm font-bold text-emerald-950 transition-colors hover:bg-emerald-100"
           >
             <MessageCircle className="h-5 w-5" aria-hidden />
             اسأل عن المنتج على واتساب
           </a>
         ) : null}
-      </div>
-
-      <section
-        className="overflow-hidden rounded-2xl border border-slate-200/85 bg-white shadow-[0_12px_32px_-24px_rgba(15,23,42,0.42)]"
-        aria-labelledby="product-policy-summary-title"
-      >
-        <div className="border-b border-slate-100 bg-gradient-to-l from-slate-950 via-slate-900 to-slate-800 px-4 py-3 text-white">
-          <p className="text-[11px] font-black uppercase tracking-[0.14em] text-accent">
-            ثقة قبل الشراء
-          </p>
-          <h2
-            id="product-policy-summary-title"
-            className="mt-1 font-display text-base font-black"
-          >
-            ملخص الضمان والشروط
-          </h2>
-        </div>
-
-        {merchandising.productCardBadgeEnabled ? (
-          <div className="flex items-center gap-3 border-b border-slate-100 bg-brand-50/40 px-4 py-3">
-            <span className={cn(policyIconClass, "bg-brand-500 text-black")}>
-              <BadgeCheck className="h-5 w-5" aria-hidden />
-            </span>
-            <span className={cn("min-w-0", policyTitleClass)}>
-              {merchandising.productCardBadgeText}
-            </span>
-          </div>
-        ) : null}
-
-        <div className="grid grid-cols-2 divide-x divide-x-reverse divide-slate-100 border-b border-slate-100 bg-slate-50/50">
-          <div className="flex min-w-0 items-center gap-2.5 p-3 sm:p-4">
-            <span
-              className={cn(
-                policyIconClass,
-                "bg-white text-brand-950 ring-1 ring-slate-200/80",
-              )}
-            >
-              <Banknote className="h-[18px] w-[18px]" aria-hidden />
-            </span>
-            <span className={policyTitleClass}>دفع عند الاستلام</span>
-          </div>
-          <div className="flex min-w-0 items-center gap-2.5 p-3 sm:p-4">
-            <span
-              className={cn(
-                policyIconClass,
-                "bg-white text-brand-950 ring-1 ring-slate-200/80",
-              )}
-            >
-              <Truck className="h-[18px] w-[18px]" aria-hidden />
-            </span>
-            <span className={policyTitleClass}>شحن لجميع المحافظات</span>
-          </div>
-        </div>
-
-        <div className="grid divide-y divide-slate-100 sm:grid-cols-3 sm:divide-x sm:divide-x-reverse sm:divide-y-0">
-          <Link
-            href={ROUTES.WARRANTY}
-            className="group flex min-w-0 gap-3 p-4 transition-colors hover:bg-slate-50"
-          >
-            <span className={cn(policyIconClass, "bg-brand-500 text-black")}>
-              <ShieldCheck className="h-5 w-5" aria-hidden />
-            </span>
-            <span className="min-w-0">
-              <span className={cn("block", policyTitleClass)}>
-                ضمان الوكيل سنة ضد عيوب الصناعة
-              </span>
-              <span className={policyBodyClass}>
-                التفاصيل الكاملة في سياسة الضمان.
-              </span>
-            </span>
-          </Link>
-
-          <Link
-            href={ROUTES.RETURNS_POLICY}
-            className="group flex min-w-0 gap-3 p-4 transition-colors hover:bg-slate-50"
-          >
-            <span className={cn(policyIconClass, "bg-brand-950 text-white")}>
-              <RotateCcw className="h-5 w-5" aria-hidden />
-            </span>
-            <span className="min-w-0">
-              <span className={cn("block", policyTitleClass)}>
-                استبدال واسترجاع
-              </span>
-              <span className={policyBodyClass}>
-                حسب الشروط والحالة المذكورة في السياسة.
-              </span>
-            </span>
-          </Link>
-
-          <Link
-            href={ROUTES.SERVICE_CENTERS}
-            className="group flex min-w-0 gap-3 p-4 transition-colors hover:bg-slate-50"
-          >
-            <span
-              className={cn(
-                policyIconClass,
-                "bg-white text-brand-950 ring-1 ring-brand-200",
-              )}
-            >
-              <Building2 className="h-5 w-5" aria-hidden />
-            </span>
-            <span className="min-w-0">
-              <span className={cn("block", policyTitleClass)}>
-                {branchTotal > 0
-                  ? `${branchTotal} فرع ومركز خدمة`
-                  : "فروع ومراكز خدمة"}
-              </span>
-              <span className={policyBodyClass}>
-                بيع وصيانة ودعم داخل مصر.
-              </span>
-            </span>
-          </Link>
-        </div>
-        <div className="flex items-start gap-2 border-t border-slate-100 bg-slate-50/80 px-4 py-3 text-xs leading-5 text-slate-600">
-          <FileCheck2 className="mt-0.5 h-4 w-4 shrink-0 text-slate-500" aria-hidden />
-          <p>
-            التفاصيل النهائية للضمان والاستبدال تُطبق حسب حالة المنتج وفاتورة الشراء.
-          </p>
-        </div>
-      </section>
-
-      {benefits.length > 0 ? (
-        <section
-          className="rounded-2xl border border-border/80 bg-white/90 p-4 shadow-[0_8px_24px_-18px_rgba(15,23,42,0.28)]"
-          aria-labelledby="product-benefits-title"
-        >
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2
-              id="product-benefits-title"
-              className="font-display text-sm font-bold text-brand-950"
-            >
-              أبرز ما يميز المنتج
-            </h2>
-            {categoryLabel ? (
-              <span className="rounded-full bg-surface-muted px-2.5 py-1 text-[11px] font-semibold text-muted-foreground">
-                {categoryLabel}
-              </span>
-            ) : null}
-          </div>
-          <ul className="mt-3 grid gap-2 sm:grid-cols-2">
-            {benefits.map((item) => (
-              <li
-                key={item}
-                className="flex min-w-0 items-start gap-2 rounded-xl bg-surface-muted/55 px-3 py-2 text-sm font-medium leading-relaxed text-slate-800"
-              >
-                <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-brand-500" />
-                <span>{item}</span>
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
-
-      <ProductSpecsList
-        items={specs}
-        title="المواصفات التقنية"
-        variant="panel"
-        className="border-t border-border/80 pt-5"
-      />
-
-      <ProductDetailDescriptionBlocks product={product} className="pt-2" />
-
-      <ProductDetailImageGallery product={product} />
+      </article>
     </div>
   );
 });

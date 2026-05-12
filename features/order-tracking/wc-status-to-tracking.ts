@@ -8,7 +8,7 @@ export type WcTrackingResult = {
 };
 
 /**
- * يحوّل حالة WooCommerce القياسية (وما يشابهها من حالات مخصصة) إلى مرحلة في شريط التتبع (0–3).
+ * يحوّل حالة WooCommerce القياسية (وما يشابهها من حالات مخصصة) إلى مرحلة في شريط التتبع (0–4).
  * حالات الشحن التفصيلية تتطلب غالباً حالات مخصصة في لوحة التحكم.
  */
 export function wcStatusToTracking(wcStatus: string): WcTrackingResult {
@@ -16,7 +16,7 @@ export function wcStatusToTracking(wcStatus: string): WcTrackingResult {
 
   if (s === "completed") {
     return {
-      currentStepIndex: 3,
+      currentStepIndex: 4,
       allCompleted: true,
       terminal: null,
       statusBadge: "تم التوصيل",
@@ -77,11 +77,19 @@ export function wcStatusToTracking(wcStatus: string): WcTrackingResult {
     };
   }
   if (
-    s.includes("deliver") ||
-    s.includes("transit") ||
     s.includes("out-for") ||
-    s.includes("driver")
+    s.includes("driver") ||
+    s.includes("courier")
   ) {
+    return {
+      currentStepIndex: 3,
+      allCompleted: false,
+      terminal: null,
+      statusBadge: "في الطريق",
+    };
+  }
+
+  if (s.includes("deliver") || s.includes("transit")) {
     return {
       currentStepIndex: 3,
       allCompleted: false,

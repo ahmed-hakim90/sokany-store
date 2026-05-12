@@ -8,6 +8,8 @@ export type CartItem = {
   wooLineItemId?: number;
   name: string;
   price: number;
+  /** Original list price when different from the active cart price. */
+  regularPrice?: number;
   quantity: number;
   thumbnail: string;
   sku: string;

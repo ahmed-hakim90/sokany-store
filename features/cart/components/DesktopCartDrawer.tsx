@@ -14,8 +14,13 @@ import { cn } from "@/lib/utils";
 import {
   CartDrawerLines,
   CartDrawerPeekFooter,
+  getCartDrawerDiscount,
 } from "@/features/cart/components/cart-drawer-body";
+import { CartFreeShippingProgressBar } from "@/features/cart/components/cart-free-shipping-progress";
+import { CartPromoRow } from "@/features/cart/components/cart-promo-row";
+import { CartUpsellSection } from "@/features/cart/components/cart-upsell-section";
 import { useCartDrawerOpenStore } from "@/features/cart/store/useCartDrawerOpenStore";
+import { getCartShippingUi } from "@/lib/cart-shipping-ui";
 
 export function DesktopCartDrawer() {
   const pathname = usePathname();
@@ -24,7 +29,8 @@ export function DesktopCartDrawer() {
   const open = useCartDrawerOpenStore((s) => s.open);
   const setOpen = useCartDrawerOpenStore((s) => s.setOpen);
   const closeDrawer = useCartDrawerOpenStore((s) => s.closeDrawer);
-  const { hasHydrated, items, updateProductQuantity, removeProduct } = useCart();
+  const { hasHydrated, items, totalPrice, updateProductQuantity, removeProduct } =
+    useCart();
 
   useEffect(() => {
     if (!lgUp) closeDrawer();
@@ -50,6 +56,9 @@ export function DesktopCartDrawer() {
   if (!lgUp) return null;
 
   const isEmpty = items.length === 0;
+  const discount = getCartDrawerDiscount(items);
+  const displaySubtotal = totalPrice + discount;
+  const shippingUi = getCartShippingUi(totalPrice);
 
   return (
     <Drawer.Root
@@ -80,7 +89,7 @@ export function DesktopCartDrawer() {
               <CloseGlyph />
             </IconButton>
             <Drawer.Title className="px-12 py-3 text-center font-display text-base font-semibold text-brand-950 sm:px-14">
-              سلة التسوق
+              سلة التسوق ({items.length})
             </Drawer.Title>
           </div>
           <Drawer.Description className="sr-only">
@@ -112,14 +121,26 @@ export function DesktopCartDrawer() {
             </div>
           ) : (
             <>
-              <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-3">
+              <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-4 py-3">
+                {shippingUi.progress ? (
+                  <CartFreeShippingProgressBar progress={shippingUi.progress} />
+                ) : null}
                 <CartDrawerLines
                   items={items}
                   onQuantityChange={updateProductQuantity}
                   onRemove={removeProduct}
                 />
+                <CartUpsellSection className="pb-0" />
+                <CartPromoRow />
               </div>
-              <CartDrawerPeekFooter onCheckout={goCheckout} showFullCartLink />
+              <CartDrawerPeekFooter
+                onCheckout={goCheckout}
+                showFullCartLink
+                subtotal={displaySubtotal}
+                total={totalPrice}
+                shippingLabel={shippingUi.shippingLabel}
+                discount={discount}
+              />
             </>
           )}
         </Drawer.Content>

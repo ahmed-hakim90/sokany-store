@@ -58,9 +58,10 @@ function ProductDetailPageSkeleton() {
  * خريطة الشكل والتقييمات في التعليق اللي تحت.
  */
 /*
- * صفحة تفاصيل المنتج (/products/[id]): عمود واحد داخل Container (حواف أفقية فقط).
- * كتلة المنتج (معرض + معلومات/شراء) بعرض كامل داخل الحاوية؛ شريط «أضف للسلة» ثابت عند التمرير بعد كتلة الشراء.
- * التقييمات: نموذج «أضف تقييماً» يظهر فقط لمسجّل اشترى نفس ‎`id`‎ بطلب ‎`completed`‎ (بدون تكرار)؛ باقي المسجّلين/الزوّار يرون القائمة إن وُجدت. على الشاشة الضيقة (أقل من md) سلايد؛ من ‎`md`‎ فما فوق قائمة. «ذات صلة» داخل ‎`max-w-7xl`‎.
+ * صفحة تفاصيل المنتج (/products/[id]): داخل Container بعرض كامل.
+ * الأعلى: مسار تصفح ثم بطاقة كبيرة؛ على lg الجاليري يمين/الشراء يسار حسب RTL، وعلى الموبايل يتكدس الجاليري ثم كارت الشراء.
+ * تحت البطاقة: شريط ثقة كامل العرض، ثم كارت تبويبات للوصف/المواصفات/صور إضافية. التقييمات والمنتجات ذات الصلة تأتي في كروت منفصلة بنفس عرض المحتوى.
+ * التقييمات: نموذج «أضف تقييماً» يظهر فقط لمسجّل اشترى نفس ‎`id`‎ بطلب ‎`completed`‎ (بدون تكرار)؛ باقي المسجّلين/الزوّار يرون القائمة إن وُجدت.
  */
 export type ProductTrustSummary = {
   salesBranchesCount: number;
@@ -145,12 +146,23 @@ export function ProductDetailPageContent({
             trustSummary={trustSummary}
           />
 
-          {/* أسفل المنتج: التقييمات داخل عمود max-w-7xl متمركز */}
-          <section className="mt-16 min-w-0 border-t border-border pt-12">
-            <div className="mx-auto w-full min-w-0 max-w-7xl">
-              <h2 className="font-display text-lg font-bold tracking-tight sm:text-xl">
-                التقييمات
-              </h2>
+          {/* كارت التقييمات: نفس لغة تبويبات تفاصيل المنتج مع حالة الأهلية */}
+          <section className="mt-10 min-w-0">
+            <div className="mx-auto w-full min-w-0 max-w-7xl overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_14px_48px_-36px_rgba(15,23,42,0.4)]">
+              <div className="flex min-w-0 flex-wrap items-center justify-between gap-3 border-b border-slate-100 bg-slate-50/70 px-4 py-3 sm:px-5">
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                    آراء العملاء
+                  </p>
+                  <h2 className="mt-1 font-display text-lg font-bold tracking-tight sm:text-xl">
+                    التقييمات
+                  </h2>
+                </div>
+                <span className="rounded-full bg-white px-3 py-1.5 text-xs font-bold text-slate-600 ring-1 ring-slate-200">
+                  {reviewsQuery.data?.length ?? 0} تقييم
+                </span>
+              </div>
+              <div className="p-4 sm:p-5">
               {isAuthenticated && !reviewElig.isReady && !reviewElig.isError && (
                 <p className="mt-3 text-sm text-zinc-600" aria-live="polite">
                   جاري التحقق من إمكانية إضافة تقييم…
@@ -243,18 +255,24 @@ export function ProductDetailPageContent({
                   />
                 )}
               </div>
+              </div>
             </div>
           </section>
 
-          {/* منتجات ذات صلة: نفس عمود max-w-7xl؛ كاروسيل كروت أوسع (عدد أقل مرئيًا) */}
-          <section className="mt-16 min-w-0 border-t border-border pt-12">
-            <div className="mx-auto w-full min-w-0 max-w-7xl">
+          {/* منتجات مشابهة: كارت مستقل بأسفل صفحة المنتج مثل مرجع التصميم */}
+          <section className="mt-10 min-w-0">
+            <div className="mx-auto w-full min-w-0 max-w-7xl rounded-3xl border border-slate-200 bg-white p-4 shadow-[0_14px_48px_-36px_rgba(15,23,42,0.4)] sm:p-5">
               <div className="flex min-w-0 flex-wrap items-center justify-between gap-4">
-                <h2 className="font-display text-lg font-bold tracking-tight sm:text-xl">
-                  منتجات ذات صلة
-                </h2>
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                    قد يعجبك أيضًا
+                  </p>
+                  <h2 className="mt-1 font-display text-lg font-bold tracking-tight sm:text-xl">
+                    منتجات مشابهة
+                  </h2>
+                </div>
                 <Link
-                  className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                  className="inline-flex h-10 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-700 transition-colors hover:bg-slate-50"
                   href={ROUTES.PRODUCTS}
                 >
                   عرض الكل

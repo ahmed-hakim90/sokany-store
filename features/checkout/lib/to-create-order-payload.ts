@@ -28,11 +28,12 @@ export function shippingFeeForMethod(_method: CheckoutFormData["shippingMethod"]
 export function toCreateOrderPayload(
   values: CheckoutFormData,
   items: CartItem[],
-  options?: { customerId?: number; firebaseUid?: string },
+  options?: { customerId?: number; firebaseUid?: string; couponCode?: string },
 ): CreateOrderPayload {
   const postcode = values.shippingPostcode.trim() || "-";
   const cityLine = cityLineForWoo(values.shippingCity, values.shippingState);
   const billingEmail = billingEmailForWoo(values.contactEmail, values.contactPhone);
+  const couponCode = options?.couponCode?.trim();
 
   const sharedLines = {
     address_1: values.shippingAddress1,
@@ -85,6 +86,7 @@ export function toCreateOrderPayload(
         : {}),
     })),
     shipping_lines: [CHECKOUT_WOO_SHIPPING],
+    ...(couponCode ? { coupon_lines: [{ code: couponCode }] } : {}),
     payment_method: values.paymentMethod,
     payment_method_title: PAYMENT_METHOD_LABELS[values.paymentMethod],
     customer_note: values.customerNote,

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useTransitionRouter } from "next-view-transitions";
 import type { ZodError } from "zod";
 import { toast } from "sonner";
 import { useCart } from "@/hooks/useCart";
@@ -19,13 +20,18 @@ import {
   loadCheckoutDraftFromStorage,
   saveCheckoutDraftToStorage,
 } from "@/features/checkout/lib/checkout-draft-storage";
+import { saveOrderConfirmationSession } from "@/features/checkout/lib/order-confirmation-session";
 import { addGuestOrderRef } from "@/features/orders/lib/local-guest-orders-storage";
 import { defaultCheckoutFormValues } from "@/features/checkout/lib/checkout-form-defaults";
 import {
   CHECKOUT_SHIPPING_DISPLAY_LABEL,
   shippingFeeForMethod,
 } from "@/features/checkout/lib/to-create-order-payload";
-import type { CheckoutFormData } from "@/features/checkout/types";
+import { ROUTES } from "@/lib/constants";
+import type {
+  CheckoutFormData,
+  CheckoutSuccessSnapshot,
+} from "@/features/checkout/types";
 function checkoutFieldErrorsFromSchema(
   error: ZodError,
 ): Partial<Record<keyof CheckoutFormData, string>> {
@@ -40,20 +46,11 @@ function checkoutFieldErrorsFromSchema(
 }
 
 export function useCheckoutForm() {
+  const router = useTransitionRouter();
   const [values, setValues] = useState<CheckoutFormData>(defaultCheckoutFormValues);
   const [rehydratedDraft, setRehydratedDraft] = useState(false);
   const [errors, setErrors] = useState<Partial<Record<keyof CheckoutFormData, string>>>({});
-  const [orderSuccessOpen, setOrderSuccessOpen] = useState(false);
-  const [placedOrderSummary, setPlacedOrderSummary] = useState<{
-    id: number;
-    orderNumber: string;
-    trackingUrl: string;
-    orderKey: string;
-  } | null>(null);
-  const dismissOrderSuccess = useCallback(() => {
-    setOrderSuccessOpen(false);
-    setPlacedOrderSummary(null);
-  }, []);
+  const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
   const { items, totalPrice, clearCart } = useCart();
   const checkoutOrder = useCheckoutOrderMutation();
 
@@ -109,26 +106,72 @@ export function useCheckoutForm() {
     setValues((prev) => ({ ...prev, paymentMethod: value }));
   };
 
+  const applyCoupon = useCallback((code: string) => {
+    const normalized = code.trim();
+    if (!normalized) {
+      toast.message("أدخل رمز الكوبون");
+      return;
+    }
+    setAppliedCoupon(normalized);
+    toast.success("تم حفظ الكوبون وسيُطبق عند تأكيد الطلب.");
+  }, []);
+
+  const removeCoupon = useCallback(() => {
+    setAppliedCoupon(null);
+    toast.message("تمت إزالة الكوبون.");
+  }, []);
+
   const runOrderMutation = useCallback(
     (firebaseUid?: string) => {
       checkoutOrder.mutate(
-        { values, items, firebaseUid },
+        { values, items, couponCode: appliedCoupon ?? undefined, firebaseUid },
         {
           onSuccess: (order) => {
+            const recipientFirstName = values.shipToDifferentAddress
+              ? values.shippingFirstName
+              : values.contactFirstName;
+            const recipientLastName = values.shipToDifferentAddress
+              ? values.shippingLastName
+              : values.contactLastName;
+            const snapshot: CheckoutSuccessSnapshot = {
+              items: items.map((item) => ({
+                productId: item.productId,
+                name: item.name,
+                price: item.price,
+                quantity: item.quantity,
+                thumbnail: item.thumbnail,
+                sku: item.sku,
+              })),
+              subtotal: totalPrice,
+              shippingFee,
+              total: orderTotal,
+              shippingMethodTitle,
+              paymentMethod: values.paymentMethod,
+              shipping: {
+                name: `${recipientFirstName} ${recipientLastName}`.trim(),
+                phone: values.contactPhone,
+                phoneAlt: values.contactPhoneAlt,
+                email: values.contactEmail,
+                address1: values.shippingAddress1,
+                address2: values.shippingAddress2,
+                city: values.shippingCity,
+                state: values.shippingState,
+                postcode: values.shippingPostcode,
+              },
+            };
+
+            saveOrderConfirmationSession({ order, snapshot });
             clearCart();
             if (order.orderKey.trim()) {
               addGuestOrderRef({ id: order.id, orderKey: order.orderKey });
             }
-            setPlacedOrderSummary({
-              id: order.id,
-              orderNumber: order.orderNumber,
-              trackingUrl: order.trackingUrl,
-              orderKey: order.orderKey,
-            });
-            setOrderSuccessOpen(true);
             clearCheckoutDraftFromStorage();
             setValues(defaultCheckoutFormValues);
             setErrors({});
+            setAppliedCoupon(null);
+            router.push(
+              `${ROUTES.ORDER_CONFIRMATION}?id=${encodeURIComponent(String(order.id))}`,
+            );
           },
           onError: (error) => {
             if (CheckoutOrderMutationError.is(error)) {
@@ -155,7 +198,7 @@ export function useCheckoutForm() {
         },
       );
     },
-    [checkoutOrder, clearCart, items, values],
+    [appliedCoupon, checkoutOrder, clearCart, items, orderTotal, router, shippingFee, shippingMethodTitle, totalPrice, values],
   );
 
   const submitOrder = useCallback(() => {
@@ -177,14 +220,14 @@ export function useCheckoutForm() {
     shippingFee,
     orderTotal,
     shippingMethodTitle,
+    appliedCoupon,
     cartEmpty,
     isSubmitting: checkoutOrder.isPending,
     loadingOverlayVisible: checkoutOrder.isPending,
-    orderSuccessOpen,
-    placedOrderSummary,
-    dismissOrderSuccess,
     update,
     updatePaymentMethod,
+    applyCoupon,
+    removeCoupon,
     submitOrder,
   };
 }

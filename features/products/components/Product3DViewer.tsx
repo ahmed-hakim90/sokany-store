@@ -2,14 +2,12 @@
 
 import type { ModelViewerElement } from "@google/model-viewer";
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { ProductImage } from "@/features/products/types";
 import { cn } from "@/lib/utils";
 
 export type Product3DViewerProps = {
   modelSrc: string;
   productName: string;
   posterSrc?: string | null;
-  thumbnails?: ProductImage[];
 };
 
 type ModelViewerProgressEvent = CustomEvent<{ totalProgress: number }>;
@@ -18,7 +16,6 @@ export function Product3DViewer({
   modelSrc,
   productName,
   posterSrc,
-  thumbnails = [],
 }: Product3DViewerProps) {
   const shellRef = useRef<HTMLDivElement>(null);
   const viewerRef = useRef<ModelViewerElement | null>(null);

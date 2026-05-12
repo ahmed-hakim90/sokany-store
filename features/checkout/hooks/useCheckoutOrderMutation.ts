@@ -18,6 +18,7 @@ import { createOrderPayloadSchema } from "@/schemas/wordpress";
 export type CheckoutOrderMutationInput = {
   values: CheckoutFormData;
   items: CartItem[];
+  couponCode?: string;
   /** اختياري — مثلاً بعد مصادقة هاتف مستقبلية */
   firebaseUid?: string;
 };
@@ -62,7 +63,7 @@ function checkoutFieldErrors(
 export function useCheckoutOrderMutation() {
   return useMutation({
     mutationKey: ["checkout", "createOrder"],
-    mutationFn: async ({ values, items, firebaseUid }: CheckoutOrderMutationInput) => {
+    mutationFn: async ({ values, items, couponCode, firebaseUid }: CheckoutOrderMutationInput) => {
       if (items.length === 0) {
         throw new CheckoutOrderMutationError({
           kind: "empty_cart",
@@ -115,6 +116,7 @@ export function useCheckoutOrderMutation() {
 
       const rawPayload = toCreateOrderPayload(data, items, {
         customerId,
+        couponCode,
         firebaseUid,
       });
       const payloadParsed = createOrderPayloadSchema.safeParse(rawPayload);

@@ -1,3 +1,5 @@
+import type { Order } from "@/features/orders/types";
+
 export type ShippingMethod = "flat_rate" | "local_pickup" | "free_shipping";
 
 export type PaymentMethod = "cod" | "card";
@@ -26,4 +28,36 @@ export type CheckoutFormData = {
   /** اختياري عند الدفع — إنشاء عميل WooCommerce ثم ربط الطلب بـ customer_id */
   createAccount: boolean;
   accountPassword: string;
+};
+
+export type CheckoutSuccessSnapshot = {
+  items: {
+    productId: number;
+    name: string;
+    price: number;
+    quantity: number;
+    thumbnail: string;
+    sku: string;
+  }[];
+  subtotal: number;
+  shippingFee: number;
+  total: number;
+  shippingMethodTitle: string;
+  paymentMethod: PaymentMethod;
+  shipping: {
+    name: string;
+    phone: string;
+    phoneAlt: string;
+    email: string;
+    address1: string;
+    address2: string;
+    city: string;
+    state: string;
+    postcode: string;
+  };
+};
+
+export type OrderConfirmationSessionPayload = {
+  order: Order;
+  snapshot: CheckoutSuccessSnapshot;
 };

@@ -141,6 +141,7 @@ export type CreateOrderPayload = {
     method_title: string;
     total?: string;
   }>;
+  coupon_lines?: Array<{ code: string }>;
   payment_method: string;
   payment_method_title: string;
   customer_note: string;

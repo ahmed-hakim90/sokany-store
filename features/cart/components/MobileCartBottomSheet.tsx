@@ -15,9 +15,14 @@ import {
   CartDrawerPeekFooter,
   cartCheckoutPillButtonClassName,
   cartCheckoutPillIconClassName,
+  getCartDrawerDiscount,
 } from "@/features/cart/components/cart-drawer-body";
+import { CartFreeShippingProgressBar } from "@/features/cart/components/cart-free-shipping-progress";
+import { CartPromoRow } from "@/features/cart/components/cart-promo-row";
+import { CartUpsellSection } from "@/features/cart/components/cart-upsell-section";
 import { mobileCommercePeekSurfaceClass } from "@/components/layout/mobile-commerce-surface";
 import { useMobileChromeCollapsedStore } from "@/components/layout/mobile-chrome-collapsed-store";
+import { getCartShippingUi } from "@/lib/cart-shipping-ui";
 
 type MobileCartBottomSheetProps = {
   showCartSummary: boolean;
@@ -72,6 +77,9 @@ export function MobileCartBottomSheet({
     lineCount > 0
       ? `${lineCount} صنف • ${totalItems} قطعة`
       : `${totalItems} قطعة`;
+  const discount = getCartDrawerDiscount(items);
+  const displaySubtotal = totalPrice + discount;
+  const shippingUi = getCartShippingUi(totalPrice);
 
   return (
     <Drawer.Root
@@ -166,8 +174,8 @@ export function MobileCartBottomSheet({
         <Drawer.Content
           className={cn(
             "fixed z-[100] flex max-h-[min(88dvh,56rem)] min-h-0 min-w-0 flex-col overflow-hidden outline-none",
-            "inset-x-4 bottom-5 max-h-[min(88dvh,56rem)] sm:inset-x-6 sm:max-w-xl",
-            "rounded-3xl border border-white/50 bg-white/90 shadow-[0_28px_64px_-18px_rgba(15,23,42,0.45)] backdrop-blur-2xl backdrop-saturate-150",
+            "inset-x-0 bottom-0",
+            "rounded-t-3xl border-t border-x-0 border-b-0 border-white/50 bg-white/95 shadow-[0_-8px_32px_-4px_rgba(15,23,42,0.18)] backdrop-blur-2xl backdrop-saturate-150",
             "pb-[env(safe-area-inset-bottom)]",
           )}
         >
@@ -182,7 +190,7 @@ export function MobileCartBottomSheet({
               <MobileCartCloseIcon />
             </button>
             <Drawer.Title className="px-10 pt-1 text-center font-display text-base font-bold tracking-tight text-slate-900">
-              سلة التسوق
+              سلة التسوق ({lineCount})
             </Drawer.Title>
           </div>
           <Drawer.Description className="sr-only">
@@ -192,16 +200,28 @@ export function MobileCartBottomSheet({
             اسحب للأسفل للإغلاق أو زر الإغلاق أعلاه
           </p>
 
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain bg-slate-100/50 px-3 py-2 sm:px-4">
+          <div className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain bg-slate-100/50 px-3 py-2 sm:px-4">
+            {shippingUi.progress ? (
+              <CartFreeShippingProgressBar progress={shippingUi.progress} />
+            ) : null}
             <CartDrawerLines
               variant="premium"
               items={items}
               onQuantityChange={updateProductQuantity}
               onRemove={removeProduct}
             />
+            <CartUpsellSection className="pb-0" />
+            <CartPromoRow />
           </div>
 
-          <CartDrawerPeekFooter variant="premium" onCheckout={goCheckout} />
+          <CartDrawerPeekFooter
+            variant="premium"
+            onCheckout={goCheckout}
+            subtotal={displaySubtotal}
+            total={totalPrice}
+            shippingLabel={shippingUi.shippingLabel}
+            discount={discount}
+          />
         </Drawer.Content>
       </Drawer.Portal>
     </Drawer.Root>

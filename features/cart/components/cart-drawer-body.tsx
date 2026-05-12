@@ -1,7 +1,7 @@
 "use client";
 
-import { memo } from "react";
-import { ArrowLeft } from "lucide-react";
+import { memo, type ReactNode } from "react";
+import { ArrowLeft, LockKeyhole, ShieldCheck, Truck } from "lucide-react";
 import { Link } from "next-view-transitions";
 import { AppImage } from "@/components/AppImage";
 import { Button } from "@/components/Button";
@@ -19,6 +19,13 @@ export const cartCheckoutPillButtonClassName =
   "inline-flex shrink-0 items-center gap-3 rounded-full border border-brand-800/12 bg-brand-300 py-1.5 ps-5 pe-2 text-sm font-black text-brand-950 shadow-md transition-[transform,background-color,box-shadow] hover:bg-brand-400/85 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600";
 export const cartCheckoutPillIconClassName =
   "flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-brand-950 shadow-sm ring-1 ring-black/[0.06]";
+
+export function getCartDrawerDiscount(items: CartItem[]): number {
+  return items.reduce((sum, item) => {
+    if (!item.regularPrice || item.regularPrice <= item.price) return sum;
+    return sum + (item.regularPrice - item.price) * item.quantity;
+  }, 0);
+}
 
 export function CartDrawerLines({
   items,
@@ -57,13 +64,27 @@ export function CartDrawerLines({
 export function CartDrawerPeekFooter({
   onCheckout,
   showFullCartLink,
+  subtotal,
+  total,
+  shippingLabel,
+  discount = 0,
+  children,
   variant = "default",
 }: {
   onCheckout: () => void;
   showFullCartLink?: boolean;
+  subtotal?: number;
+  total?: number;
+  shippingLabel?: string;
+  discount?: number;
+  children?: ReactNode;
   variant?: CartLinesVariant;
 }) {
   const premium = variant === "premium";
+  const showSummary =
+    typeof subtotal === "number" &&
+    typeof total === "number" &&
+    typeof shippingLabel === "string";
   return (
     <div
       className={cn(
@@ -73,6 +94,15 @@ export function CartDrawerPeekFooter({
           : "border-t border-border bg-white shadow-[0_-4px_20px_-6px_rgba(15,23,42,0.08)]",
       )}
     >
+      {showSummary ? (
+        <CartDrawerSummaryRows
+          subtotal={subtotal}
+          total={total}
+          shippingLabel={shippingLabel}
+          discount={discount}
+          className={premium ? "mb-3" : "mb-4"}
+        />
+      ) : null}
       {premium ? (
         <button
           type="button"
@@ -111,6 +141,82 @@ export function CartDrawerPeekFooter({
           </Link>
         </p>
       ) : null}
+      {children ?? <CartDrawerTrustBadges className="mt-4" />}
+    </div>
+  );
+}
+
+export function CartDrawerSummaryRows({
+  subtotal,
+  total,
+  shippingLabel,
+  discount = 0,
+  className,
+}: {
+  subtotal: number;
+  total: number;
+  shippingLabel: string;
+  discount?: number;
+  className?: string;
+}) {
+  const roundedDiscount = Math.max(0, Math.round(discount));
+
+  return (
+    <div className={cn("space-y-2 text-sm", className)}>
+      <div className="flex items-center justify-between gap-3 text-muted-foreground">
+        <span>المجموع الفرعي</span>
+        <span dir="ltr">{formatPrice(subtotal)}</span>
+      </div>
+      <div className="flex items-center justify-between gap-3 text-muted-foreground">
+        <span>تكلفة الشحن</span>
+        <span className="text-start font-semibold text-foreground">{shippingLabel}</span>
+      </div>
+      {roundedDiscount > 0 ? (
+        <div className="flex items-center justify-between gap-3 text-emerald-700">
+          <span>خصم</span>
+          <span dir="ltr">- {formatPrice(roundedDiscount)}</span>
+        </div>
+      ) : null}
+      <div className="flex items-center justify-between gap-3 border-t border-border/80 pt-3 text-base font-black text-brand-950">
+        <span>الإجمالي</span>
+        <PriceText amount={total} emphasized className="text-brand-950" />
+      </div>
+    </div>
+  );
+}
+
+export function CartDrawerTrustBadges({ className }: { className?: string }) {
+  return (
+    <div
+      className={cn(
+        "grid grid-cols-3 gap-2 text-center text-[11px] font-bold text-slate-600",
+        className,
+      )}
+      aria-label="مميزات الطلب"
+    >
+      <CartDrawerTrustBadge icon={<LockKeyhole className="size-4" />} label="دفع 100% آمن" />
+      <CartDrawerTrustBadge icon={<ShieldCheck className="size-4" />} label="ضمان سنتين" />
+      <CartDrawerTrustBadge icon={<Truck className="size-4" />} label="توصيل سريع" />
+    </div>
+  );
+}
+
+function CartDrawerTrustBadge({
+  icon,
+  label,
+}: {
+  icon: ReactNode;
+  label: string;
+}) {
+  return (
+    <div className="flex min-w-0 flex-col items-center gap-1 rounded-xl bg-slate-50 px-2 py-2 ring-1 ring-slate-900/[0.06]">
+      <span
+        className="flex h-7 w-7 items-center justify-center rounded-full bg-white text-brand-950 shadow-sm ring-1 ring-slate-900/[0.06]"
+        aria-hidden
+      >
+        {icon}
+      </span>
+      <span className="truncate">{label}</span>
     </div>
   );
 }

@@ -1,3 +1,7 @@
+"use client";
+
+import { ChevronDown } from "lucide-react";
+import { useState } from "react";
 import { AppImage } from "@/components/AppImage";
 import { Card } from "@/components/ui/card";
 import { PriceText } from "@/components/ui/price-text";
@@ -9,6 +13,7 @@ export type CheckoutSummaryProps = {
   subtotal: number;
   total: number;
   shippingAmount: number;
+  discountAmount?: number;
   shippingLabel?: string;
   className?: string;
   previewLimit?: number;
@@ -19,10 +24,12 @@ export function CheckoutSummary({
   subtotal,
   total,
   shippingAmount,
+  discountAmount = 0,
   shippingLabel = "الشحن",
   className,
   previewLimit = 5,
 }: CheckoutSummaryProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
   const preview = items.slice(0, previewLimit);
   const rest = items.length - preview.length;
   const shippingDisplay =
@@ -36,17 +43,37 @@ export function CheckoutSummary({
         className,
       )}
     >
-      <div className="flex items-baseline justify-between gap-3">
+      <div className="flex items-center justify-between gap-3">
         <h2 className="font-display text-lg font-semibold tracking-tight text-brand-950">
           ملخص الطلب
         </h2>
-        {items.length > 0 ? (
-          <span className="text-[11px] text-muted-foreground">{items.length} منتجات</span>
-        ) : null}
+        <div className="flex items-center gap-2">
+          {items.length > 0 ? (
+            <span className="text-[11px] text-muted-foreground">{items.length} منتجات</span>
+          ) : null}
+          {items.length > 0 ? (
+            <button
+              type="button"
+              className="inline-flex items-center gap-1 rounded-full bg-page px-2.5 py-1 text-[11px] font-bold text-brand-950 transition hover:bg-brand-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 lg:hidden"
+              onClick={() => setIsExpanded((next) => !next)}
+              aria-expanded={isExpanded}
+              aria-controls="checkout-summary-items"
+            >
+              {isExpanded ? "إخفاء المنتجات" : "عرض المنتجات"}
+              <ChevronDown
+                className={cn("h-3.5 w-3.5 transition", isExpanded && "rotate-180")}
+                aria-hidden
+              />
+            </button>
+          ) : null}
+        </div>
       </div>
 
       {preview.length > 0 ? (
-        <ul className="mt-4 space-y-2.5">
+        <ul
+          id="checkout-summary-items"
+          className={cn("mt-4 space-y-2.5", !isExpanded && "hidden lg:block")}
+        >
           {preview.map((item) => (
             <li
               key={item.productId}
@@ -74,7 +101,14 @@ export function CheckoutSummary({
         <p className="mt-4 text-sm text-muted-foreground">لا توجد منتجات في السلة.</p>
       )}
       {rest > 0 ? (
-        <p className="mt-2 text-center text-[11px] text-muted-foreground">+{rest} منتجات إضافية</p>
+        <p
+          className={cn(
+            "mt-2 text-center text-[11px] text-muted-foreground",
+            !isExpanded && "hidden lg:block",
+          )}
+        >
+          +{rest} منتجات إضافية
+        </p>
       ) : null}
 
       <div className="mt-4 space-y-2.5 border-t border-border/70 pt-4 text-sm">
@@ -97,6 +131,14 @@ export function CheckoutSummary({
             {shippingDisplay}
           </span>
         </div>
+        {discountAmount > 0 ? (
+          <div className="flex items-center justify-between gap-3 text-emerald-700">
+            <span>خصم</span>
+            <span className="font-medium tabular-nums" dir="ltr">
+              - {formatPrice(discountAmount)}
+            </span>
+          </div>
+        ) : null}
         <div className="flex items-center justify-between gap-3 border-t border-border/70 pt-3 text-base font-semibold text-brand-950">
           <span>الإجمالي</span>
           <PriceText amount={total} emphasized className="text-base text-brand-950" />
