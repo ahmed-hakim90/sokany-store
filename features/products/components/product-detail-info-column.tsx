@@ -15,7 +15,6 @@ import { Link } from "next-view-transitions";
 import { Button } from "@/components/Button";
 import { PriceText } from "@/components/ui/price-text";
 import { QtyControl } from "@/components/ui/qty-control";
-import { Product3DButton } from "@/features/products/components/Product3DButton";
 import { ProductDetailBreadcrumbs } from "@/features/products/components/product-detail-breadcrumbs";
 import { ProductDetailDescriptionBlocks } from "@/features/products/components/product-detail-description-blocks";
 import { ProductDetailImageGallery } from "@/features/products/components/product-detail-image-gallery";
@@ -53,8 +52,6 @@ export const ProductDetailInfoColumn = forwardRef<
     specs: ProductSpecItem[];
     canInteractCart?: boolean;
     trustSummary?: ProductTrustSummary;
-    product3DModelSrc?: string | null;
-    product3DPosterSrc?: string | null;
     className?: string;
   }
 >(function ProductDetailInfoColumn(
@@ -67,8 +64,6 @@ export const ProductDetailInfoColumn = forwardRef<
     specs,
     canInteractCart = true,
     trustSummary,
-    product3DModelSrc,
-    product3DPosterSrc,
     className,
   },
   ref,
@@ -176,13 +171,6 @@ export const ProductDetailInfoColumn = forwardRef<
             </Button>
           ) : null}
         </div>
-
-        <Product3DButton
-          modelSrc={product3DModelSrc}
-          productName={product.name}
-          posterSrc={product3DPosterSrc}
-          className="w-full justify-start sm:w-auto"
-        />
 
         {WHATSAPP_SUPPORT_URL ? (
           <a

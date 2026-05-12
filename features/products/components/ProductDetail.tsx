@@ -7,6 +7,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ProductDetailInfoColumn } from "@/features/products/components/product-detail-info-column";
 import { ProductDetailStickyCart } from "@/features/products/components/product-detail-sticky-cart";
+import { Product3DButton } from "@/features/products/components/Product3DButton";
 import { ProductGallery } from "@/features/products/components/ProductGallery";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import type { ProductTrustSummary } from "@/components/pages/ProductDetailPageContent";
@@ -84,6 +85,16 @@ export function ProductDetail({
           fallbackSrc={product.thumbnail}
           priority
           galleryBadge={badge}
+          floatingAction={
+            product3DModel?.src ? (
+              <Product3DButton
+                modelSrc={product3DModel.src}
+                productName={product.name}
+                posterSrc={product3DPosterSrc}
+                className="h-14 w-full justify-start rounded-2xl border-slate-200 bg-white px-3 text-sm shadow-[0_14px_34px_-24px_rgba(15,23,42,0.65)] ring-1 ring-slate-100 hover:bg-slate-50 sm:text-base"
+              />
+            ) : null
+          }
           onActiveImageChange={setFlyImageSrc}
         />
         <ProductDetailInfoColumn
@@ -98,8 +109,6 @@ export function ProductDetail({
           specs={specs ?? []}
           canInteractCart={canInteractCart}
           trustSummary={trustSummary}
-          product3DModelSrc={product3DModel?.src}
-          product3DPosterSrc={product3DPosterSrc}
         />
       </div>
 

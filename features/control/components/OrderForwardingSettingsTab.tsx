@@ -118,35 +118,76 @@ export function OrderForwardingSettingsTab() {
   return (
     <ControlFormSection
       title="إرسال الطلبات لجهة خارجية"
-      description="استخدم هذا القسم لو عندك نظام خارجي يحتاج يستقبل نسخة من كل طلب جديد بعد نجاحه في المتجر."
+      description="استخدمه فقط لو عندك نظام خارجي يحتاج نسخة من كل طلب جديد، مثل CRM أو ERP أو لوحة تشغيل خارجية."
     >
+      <div className="grid gap-3 sm:grid-cols-3">
+        <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+            الحالة
+          </p>
+          <p className="mt-2 font-display text-lg font-bold text-slate-950">
+            {settings.enabled ? "مفعّل" : "متوقف"}
+          </p>
+          <p className="mt-1 text-xs leading-5 text-slate-600">
+            {settings.enabled
+              ? "كل طلب ناجح سيُرسل للنظام الخارجي."
+              : "الطلبات ستبقى داخل المتجر فقط."}
+          </p>
+        </div>
+        <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+            رابط الاستقبال
+          </p>
+          <p className="mt-2 font-display text-lg font-bold text-slate-950">
+            {settings.apiUrl ? "موجود" : "غير مضبوط"}
+          </p>
+          <p className="mt-1 text-xs leading-5 text-slate-600">
+            هذا هو عنوان النظام الخارجي الذي سيستقبل الطلب.
+          </p>
+        </div>
+        <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+            مفتاح الحماية
+          </p>
+          <p className="mt-2 font-display text-lg font-bold text-slate-950">
+            {settings.hasSecret ? "محفوظ" : "غير موجود"}
+          </p>
+          <p className="mt-1 text-xs leading-5 text-slate-600">
+            المفتاح يمنع استقبال طلبات مزيفة من خارج الموقع.
+          </p>
+        </div>
+      </div>
+
       <form
-        className="grid gap-4 sm:grid-cols-2"
+        className="mt-5 grid gap-4 sm:grid-cols-2"
         onSubmit={(e) => {
           e.preventDefault();
           void save();
         }}
       >
-        <label className="flex items-center gap-2 sm:col-span-2">
+        <label className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50/70 p-4 sm:col-span-2">
           <input
             type="checkbox"
             checked={enabled}
             onChange={(e) => setEnabled(e.target.checked)}
+            className="mt-1"
           />
-          <span>تشغيل الإرسال التلقائي للطلبات</span>
+          <span>
+            <span className="block text-sm font-semibold text-slate-950">
+              تشغيل الإرسال التلقائي للطلبات
+            </span>
+            <span className="mt-1 block text-sm leading-6 text-muted-foreground">
+              فعّل هذا الاختيار فقط بعد التأكد أن رابط الجهة المستقبلة جاهز ويستطيع التعامل مع بيانات الطلب.
+            </span>
+          </span>
         </label>
-        <div className="sm:col-span-2 -mt-2">
-          <ControlFieldHelp>
-            فعّل الاختيار ده لو عايز كل طلب جديد يروح كمان لنظام خارجي عندك.
-          </ControlFieldHelp>
-        </div>
 
         <div className="sm:col-span-2">
           <label className="text-sm font-medium" htmlFor="order-forwarding-api-url">
             رابط الجهة المستقبلة
           </label>
           <ControlFieldHelp>
-            حط هنا رابط النظام الخارجي اللي هيستقبل بيانات الطلب بعد ما العميل يكمّل الشراء.
+            ضع هنا رابط النظام الخارجي الذي سيستقبل بيانات الطلب بعد إتمام الشراء بنجاح.
           </ControlFieldHelp>
           <input
             id="order-forwarding-api-url"
@@ -166,7 +207,7 @@ export function OrderForwardingSettingsTab() {
             مفتاح الحماية
           </label>
           <ControlFieldHelp>
-            هذا المفتاح بين الموقع والنظام الخارجي للتأكد أن الطلب المرسل حقيقي وجاي من عندك.
+            هذا المفتاح يرسل مع كل طلب في Header حتى يتأكد النظام الخارجي أن الطلب قادم من متجرك.
           </ControlFieldHelp>
           <div className="mt-1 flex flex-col gap-2 sm:flex-row">
             <input
@@ -188,12 +229,12 @@ export function OrderForwardingSettingsTab() {
                 setClearSecret(false);
               }}
             >
-              إنشاء مفتاح
+              إنشاء مفتاح آمن
             </Button>
           </div>
           <p className="mt-1 text-xs text-muted-foreground">
             الحالة الحالية: {settings.hasSecret ? "يوجد مفتاح محفوظ" : "لا يوجد مفتاح محفوظ"}.
-            بعد إنشاء مفتاح جديد اضغط حفظ لتفعيله.
+            بعد إنشاء مفتاح جديد اضغط حفظ لتفعيله، ثم استخدم نفس المفتاح في النظام الخارجي للتحقق.
           </p>
         </div>
 

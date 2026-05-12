@@ -182,15 +182,18 @@ export function WooWebhookDeliveriesPanel() {
     );
   }
 
+  const processedCount = allItems.filter((item) => item.status === "processed").length;
+  const failedCount = allItems.filter((item) => item.status === "failed").length;
+
   return (
     <div className="overflow-hidden rounded-xl border border-slate-200/90 bg-white shadow-sm ring-1 ring-slate-900/5">
       <div className="flex flex-col gap-2 border-b border-slate-100 bg-slate-50/80 px-5 py-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-            سجل آخر التحديثات
+            سجل وصول Webhooks
           </h2>
           <p className="mt-0.5 text-xs text-slate-600">
-            هنا نرى آخر ما وصل من Woo إلى الموقع، وهل تم التعامل معه بنجاح أم حدثت مشكلة.
+            هنا نرى آخر تحديثات وصلت من Woo، وهل تم التعامل معها بنجاح أم فشلت أثناء المعالجة.
           </p>
           {data.storage === "memory" && data.message ? (
             <p className="mt-1.5 rounded-md border border-amber-200/80 bg-amber-50/60 px-2 py-1.5 text-[11px] text-amber-950">
@@ -207,8 +210,24 @@ export function WooWebhookDeliveriesPanel() {
           تحديث
         </Button>
       </div>
+      <div className="grid gap-2 border-b border-slate-100 bg-white px-5 py-3 text-xs sm:grid-cols-3">
+        <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3">
+          <p className="font-semibold text-slate-500">المعروض الآن</p>
+          <p className="mt-1 font-mono text-xl font-bold text-slate-950">{allItems.length}</p>
+        </div>
+        <div className="rounded-xl border border-emerald-200 bg-emerald-50/70 p-3">
+          <p className="font-semibold text-emerald-700">تمت معالجته</p>
+          <p className="mt-1 font-mono text-xl font-bold text-emerald-950">{processedCount}</p>
+        </div>
+        <div className="rounded-xl border border-rose-200 bg-rose-50/70 p-3">
+          <p className="font-semibold text-rose-700">فشل</p>
+          <p className="mt-1 font-mono text-xl font-bold text-rose-950">{failedCount}</p>
+        </div>
+      </div>
       {allItems.length === 0 ? (
-        <div className="p-5 text-sm text-slate-600">لا توجد تحديثات مسجلة بعد.</div>
+        <div className="p-5 text-sm leading-6 text-slate-600">
+          لا توجد تحديثات مسجلة بعد. جرّب تعديل منتج في Woo أو استخدم زر تجربة Webhook من قسم الصحة.
+        </div>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full min-w-[320px] text-right text-sm">

@@ -140,31 +140,37 @@ export function StorefrontIntegrationsForm({ initial, disabled, onSave }: Props)
 
   return (
     <section className="rounded-2xl border border-border bg-white p-5 shadow-sm">
-      <h2 className="font-display text-lg font-bold">روابط Woo والتكاملات</h2>
-      <p className="mt-1 text-sm text-muted-foreground">
-        اضبط روابط Woo والويبهوك من هنا. مفاتيح Woo نفسها لا يحفظها إلا المشرف الرئيسي.
-        بعد أي تعديل راجع{" "}
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div className="min-w-0">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">
+            إعدادات المصدر
+          </p>
+          <h2 className="mt-1 font-display text-lg font-bold">روابط Woo والتكاملات</h2>
+          <p className="mt-1 max-w-3xl text-sm leading-6 text-muted-foreground">
+            هنا تحدد من أين يقرأ الموقع المنتجات والتصنيفات، وأي رابط يستخدمه Woo أو الأنظمة الخارجية لإرسال التحديثات.
+            بعد أي تعديل احفظ ثم شغّل فحص Woo من نفس الصفحة.
+          </p>
+        </div>
         <Link
           href="/control?tab=health"
-          className="font-medium text-emerald-700 underline underline-offset-2"
+          className="inline-flex h-10 shrink-0 items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50 px-4 text-sm font-medium text-emerald-800 transition-colors hover:bg-emerald-100"
         >
-          حالة الربط
-        </Link>{" "}
-        وأعد فحص Woo.
-      </p>
+          فتح فحص الربط
+        </Link>
+      </div>
 
       <div
         className="mt-4 rounded-xl border border-amber-200/90 bg-amber-50/60 p-4 text-sm text-amber-950"
         role="note"
       >
-        <p className="font-semibold">تفاصيل تقنية</p>
+        <p className="font-semibold">أهم قاعدة قبل التعديل</p>
         <p className="mt-1 leading-relaxed">
-          لو <span className="font-mono text-xs">WC_BASE_URL</span> موجود على الخادم، هيكون له الأولوية
-          على الرابط المحفوظ هنا.
+          لو <span className="font-mono text-xs">WC_BASE_URL</span> موجود على الخادم، سيأخذ الأولوية
+          على رابط Woo المحفوظ هنا. لذلك قد ترى رابطًا محفوظًا، لكن الفحص يستخدم قيمة الخادم.
         </p>
         <p className="mt-2 leading-relaxed">
           مفاتيح Woo يمكن أن تأتي من <span className="font-mono text-xs">WC_CONSUMER_*</span> في البيئة
-          أو من التخزين المشفر. مفاتيح البيئة لها الأولوية.
+          أو من التخزين المشفر. مفاتيح البيئة لها الأولوية أيضًا.
         </p>
       </div>
 
@@ -172,7 +178,7 @@ export function StorefrontIntegrationsForm({ initial, disabled, onSave }: Props)
         <div className="sm:col-span-2">
           <label className="text-sm font-medium">رابط Woo الأساسي</label>
           <ControlFieldHelp>
-            رابط الموقع الأساسي فقط، مثال: https://shop.example.com بدون /wp-json.
+            رابط متجر Woo نفسه فقط، مثال: https://shop.example.com بدون /wp-json. منه يقرأ الموقع المنتجات والتصنيفات.
           </ControlFieldHelp>
           <input
             type="url"
@@ -189,7 +195,7 @@ export function StorefrontIntegrationsForm({ initial, disabled, onSave }: Props)
         <div className="sm:col-span-2">
           <label className="text-sm font-medium">رابط المتجر العلني</label>
           <ControlFieldHelp>
-            اختياري. نستخدمه لبناء روابط استقبال التحديثات من Woo.
+            الرابط العلني لتطبيق سوكاني. نستخدمه لبناء رابط استقبال Webhooks الذي تضعه داخل Woo.
           </ControlFieldHelp>
           <input
             type="url"
@@ -205,7 +211,9 @@ export function StorefrontIntegrationsForm({ initial, disabled, onSave }: Props)
 
         <div className="sm:col-span-2">
           <label className="text-sm font-medium">رابط قراءة إضافي (اختياري)</label>
-          <ControlFieldHelp>سيبه فاضي إلا لو عندك مصدر علني منفصل للقراءة.</ControlFieldHelp>
+          <ControlFieldHelp>
+            اتركه فارغًا إلا إذا عندك مصدر قراءة علني منفصل عن رابط Woo الأساسي.
+          </ControlFieldHelp>
           <input
             type="url"
             name="publicReadBaseUrl"
@@ -221,7 +229,7 @@ export function StorefrontIntegrationsForm({ initial, disabled, onSave }: Props)
         <div className="sm:col-span-2">
           <label className="text-sm font-medium">رابط استقبال بيانات خارجية</label>
           <ControlFieldHelp>
-            رابط كامل لو فيه سيرفر خارجي هيبعت تحديثات. السر يفضل في البيئة.
+            رابط كامل فقط لو فيه سيرفر خارجي غير Woo سيرسل تحديثات للموقع. السر يفضل ضبطه على الخادم.
           </ControlFieldHelp>
           <input
             type="url"
@@ -251,12 +259,9 @@ export function StorefrontIntegrationsForm({ initial, disabled, onSave }: Props)
           <Button type="submit" disabled={disabled}>
             {disabled ? "جاري الحفظ…" : "حفظ تكاملات المتجر"}
           </Button>
-          <Link
-            href="/control?tab=health"
-            className="text-sm font-medium text-emerald-700 underline underline-offset-2"
-          >
-            فتح حالة الربط
-          </Link>
+          <p className="text-xs leading-5 text-muted-foreground">
+            بعد الحفظ استخدم “إعادة فحص Woo” للتأكد أن الرابط المستخدم فعليًا هو المتوقع.
+          </p>
         </div>
       </form>
 
@@ -268,7 +273,7 @@ export function StorefrontIntegrationsForm({ initial, disabled, onSave }: Props)
           <div>
             <h3 className="font-display text-base font-bold">مفاتيح Woo المشفرة</h3>
             <p className="mt-1 text-sm text-muted-foreground">
-              عملية حساسة: الحفظ مسموح للمشرف الرئيسي فقط، والمفاتيح لا تظهر مرة تانية بعد الحفظ.
+              هذه المفاتيح تسمح للموقع بقراءة Woo. الحفظ مسموح للمشرف الرئيسي فقط، والمفاتيح لا تظهر مرة أخرى بعد الحفظ.
             </p>
           </div>
           <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700">

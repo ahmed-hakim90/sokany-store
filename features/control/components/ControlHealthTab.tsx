@@ -8,7 +8,6 @@ import {
   ControlMiniGuide,
   ControlStatCard,
 } from "@/features/control/components/control-page-chrome";
-import { WooWebhookDeliveriesPanel } from "@/features/control/components/woo-webhook-deliveries-panel";
 import { cn } from "@/lib/utils";
 
 type HealthRes = {
@@ -176,6 +175,50 @@ export function ControlHealthTab() {
         : "غير مضبوط";
   const livePulse =
     hLabel === "ok" ? pulseOk : hLabel === "degraded" ? "bg-amber-500" : pulseBad;
+  const healthStatusCopy =
+    hLabel === "ok"
+      ? {
+          title: "الربط يعمل بشكل طبيعي",
+          description:
+            "Woo يستجيب، شكل البيانات متوافق، وسجل التحديثات لا يظهر مشكلة مؤثرة. تابع فقط آخر حدث Webhook بعد أي تعديل كبير.",
+          tone: "emerald" as const,
+        }
+      : hLabel === "degraded"
+        ? {
+            title: "الربط يعمل لكن يحتاج مراجعة",
+            description:
+              "هناك جزء واحد على الأقل يحتاج انتباهًا، مثل بطء Woo أو نقص في سجل الويبهوك. راجع الكروت الصفراء وشغّل الفحص المناسب.",
+            tone: "amber" as const,
+          }
+        : hLabel === "down"
+          ? {
+              title: "الربط يحتاج تشخيص الآن",
+              description:
+                "الفحص الحالي يشير إلى فشل واضح. ابدأ بفحص Woo ثم جرّب Webhook، وبعدها راجع مفاتيح الربط والروابط المحفوظة.",
+              tone: "rose" as const,
+            }
+          : {
+              title: loading ? "جاري تحميل حالة الربط" : "لم يتم تحميل حالة الربط",
+              description:
+                "اضغط تحديث الحالة للحصول على آخر قراءة من Woo وسجل التحديثات.",
+              tone: "slate" as const,
+            };
+  const statusToneClass =
+    healthStatusCopy.tone === "emerald"
+      ? "border-emerald-200 bg-emerald-50/80 text-emerald-950"
+      : healthStatusCopy.tone === "amber"
+        ? "border-amber-200 bg-amber-50/80 text-amber-950"
+        : healthStatusCopy.tone === "rose"
+          ? "border-rose-200 bg-rose-50/80 text-rose-950"
+          : "border-slate-200 bg-white text-slate-950";
+  const nextSteps =
+    hLabel === "ok"
+      ? ["بعد تعديل منتج في Woo راقب آخر حدث.", "لو الواجهة تأخرت، استخدم تحديث الواجهة."]
+      : hLabel === "degraded"
+        ? ["شغّل فحص شكل البيانات.", "راجع الويبهوك الناقص أو البطيء.", "حدّث الحالة بعد أي إصلاح."]
+        : hLabel === "down"
+          ? ["تأكد من رابط Woo والمفاتيح.", "شغّل تجربة وصول تحديث جديد.", "راجع رسالة الخطأ في الكارت الأحمر."]
+          : ["انتظر تحميل الفحص أو اضغط تحديث الحالة."];
   const overviewStats = [
     {
       label: "نبض Woo",
@@ -290,6 +333,30 @@ export function ControlHealthTab() {
         ) : null}
       </div>
 
+      <section className={cn("rounded-2xl border p-5 shadow-sm", statusToneClass)}>
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div className="min-w-0">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] opacity-70">
+              قراءة سريعة
+            </p>
+            <h3 className="mt-2 font-display text-xl font-bold">{healthStatusCopy.title}</h3>
+            <p className="mt-2 max-w-3xl text-sm leading-7 opacity-85">
+              {healthStatusCopy.description}
+            </p>
+          </div>
+          <div className="grid gap-2 text-sm lg:w-80">
+            {nextSteps.map((step) => (
+              <div
+                key={step}
+                className="rounded-xl border border-white/70 bg-white/75 px-3 py-2 text-slate-700 shadow-sm"
+              >
+                {step}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {overviewStats.map((item) => (
           <ControlStatCard
@@ -305,19 +372,19 @@ export function ControlHealthTab() {
 
       <section className="grid gap-3 md:grid-cols-3">
         <ControlMiniGuide
-          title="متى أجرّب تحديثًا؟"
+          title="جرّب تحديثًا"
           badge="تجربة"
-          description="بعد أي تعديل في الربط، شغّل التجربة لتتأكد أن الموقع يستقبل التحديث بدون انتظار حدث حقيقي."
+          description="استخدمها عندما تريد التأكد أن Woo يقدر ينادي الموقع وأن التحديث يصل بدون انتظار حدث حقيقي."
         />
         <ControlMiniGuide
-          title="متى أحدّث الواجهة؟"
+          title="حدّث الواجهة"
           badge="نشر"
-          description="لو عدّلت بيانات أو صورًا وما زالت الواجهة قديمة، استخدم هذا الإجراء ليظهر الجديد بسرعة."
+          description="استخدمها عندما تكون البيانات صحيحة في Woo لكن الصفحة العامة ما زالت تعرض نسخة قديمة بسبب الكاش."
         />
         <ControlMiniGuide
-          title="كيف أعرف أين المشكلة؟"
+          title="افحص شكل البيانات"
           badge="متابعة"
-          description="اللون الأخضر يعني أن التحديث مرّ بشكل جيد، أما الأحمر فيعني أن هناك خطوة فشلت وتحتاج مراجعة."
+          description="هذا الفحص يختار منتجًا عشوائيًا ويتأكد أن الحقول القادمة منه مناسبة للكود الذي يعرض المنتجات."
         />
       </section>
 
@@ -327,50 +394,7 @@ export function ControlHealthTab() {
         </div>
       ) : null}
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <div className="rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm ring-1 ring-slate-900/5">
-          <p className="text-[11px] font-semibold uppercase text-slate-500">واجهة ‎Woo (استجابة)</p>
-          <p className="mt-2 font-mono text-2xl font-bold tabular-nums text-slate-900">
-            {health?.woo?.products?.latencyMs != null
-              ? `${health.woo.products.latencyMs} ms`
-              : "—"}
-          </p>
-        </div>
-        <div className="rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm ring-1 ring-slate-900/5">
-          <p className="text-[11px] font-semibold uppercase text-slate-500">نجاح ويبهوك (24 س)</p>
-          <p className="mt-2 font-mono text-2xl font-bold tabular-nums text-slate-900">
-            {agg?.successRatePercent != null
-              ? `${agg.successRatePercent.toFixed(0)}%`
-              : "—"}
-          </p>
-          {agg?.storage === "memory" ? (
-            <p className="mt-1 text-xs text-slate-600">من ذاكرة الخادم (نفس سجل اللوحة، لا Firebase).</p>
-          ) : agg && agg.enabled === false ? (
-            <p className="mt-1 text-xs text-amber-700">لا بيانات متاحة.</p>
-          ) : null}
-        </div>
-        <div className="rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm ring-1 ring-slate-900/5">
-          <p className="text-[11px] font-semibold uppercase text-slate-500">آخر حدث (سجل)</p>
-          <p className="mt-2 line-clamp-2 font-mono text-sm font-medium text-slate-800">
-            {agg?.lastEventAt
-              ? new Date(agg.lastEventAt).toLocaleString("ar-EG", { dateStyle: "short", timeStyle: "medium" })
-              : "—"}
-          </p>
-        </div>
-        <div className="rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm ring-1 ring-slate-900/5">
-          <p className="text-[11px] font-semibold uppercase text-slate-500">آخر فحص صحة (لوحة)</p>
-          <p className="mt-2 line-clamp-2 font-mono text-sm font-medium text-slate-800">
-            {health?.at
-              ? new Date(health.at).toLocaleString("ar-EG", { dateStyle: "short", timeStyle: "medium" })
-              : "—"}
-          </p>
-          <p className="mt-1 text-xs text-slate-600">
-            يعكس وقت طلب ‎`/api/control/health-check`‎ — مكمّل لسجل الويبهوك أعلاه.
-          </p>
-        </div>
-      </div>
-
-      <div>
+      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <p className="text-sm font-bold text-slate-900">فحص ‎%‎ الصحة (مركّب)</p>
         <div className="mt-2 h-2.5 w-full max-w-sm overflow-hidden rounded-full bg-slate-200/90">
           <div
@@ -388,6 +412,29 @@ export function ControlHealthTab() {
         <p className="mt-1.5 text-xs text-slate-500">
           ‎{health != null ? `${health.healthScore}%` : "—"} — ‎Firestore + ‎Woo + ‎Schema‎
         </p>
+        <div className="mt-4 grid gap-3 text-xs text-slate-600 sm:grid-cols-3">
+          <p>
+            <span className="font-semibold text-slate-900">آخر فحص:</span>{" "}
+            {health?.at
+              ? new Date(health.at).toLocaleString("ar-EG", {
+                  dateStyle: "short",
+                  timeStyle: "medium",
+                })
+              : "—"}
+          </p>
+          <p>
+            <span className="font-semibold text-slate-900">مصدر المفاتيح:</span>{" "}
+            {credentialSourceLabel}
+          </p>
+          <p>
+            <span className="font-semibold text-slate-900">سجل الويبهوك:</span>{" "}
+            {agg?.storage === "memory"
+              ? "ذاكرة الخادم"
+              : agg && agg.enabled === false
+                ? "غير مفعل"
+                : "متاح"}
+          </p>
+        </div>
       </div>
 
       <section className="grid gap-3 lg:grid-cols-3">
@@ -437,11 +484,6 @@ export function ControlHealthTab() {
           <p>Source: {credentialSourceLabel}</p>
         </div>
       </details>
-
-      <div>
-        <h2 className="mb-3 text-sm font-bold text-slate-900">آخر التحديثات الواردة</h2>
-        <WooWebhookDeliveriesPanel />
-      </div>
     </div>
   );
 }

@@ -126,7 +126,7 @@ const variantLayout: Record<
     body: "gap-1 px-2 pb-1.5 pt-1.5 sm:gap-1.5 sm:px-2.5 sm:pb-2 sm:pt-2",
     title:
       "line-clamp-2 min-h-[2.05rem] text-product-title font-semibold leading-[var(--text-product-title--line-height)] text-foreground",
-    image: "h-[152px] w-full sm:h-[160px]",
+    image: "h-[152px] w-full sm:h-[160px] md:h-[180px] lg:h-[190px]",
   },
   desktopCatalog: {
     card: "min-w-0 gap-0 p-0",

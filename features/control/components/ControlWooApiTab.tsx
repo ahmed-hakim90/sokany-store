@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import Link from "next/link";
 import { DatabaseZap, PackageSearch, Radar, Webhook } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -61,10 +60,12 @@ function DataRow({
 
 function ProbeCard({
   title,
+  description,
   endpoint,
   probe,
 }: {
   title: string;
+  description: string;
   endpoint: string;
   probe: WooDiagnosticReport["products"];
 }) {
@@ -72,7 +73,8 @@ function ProbeCard({
     <div className="overflow-hidden rounded-xl border border-slate-200/90 bg-white shadow-sm ring-1 ring-slate-900/5">
       <div className="border-b border-slate-100 bg-slate-50/80 px-5 py-3">
         <h2 className="font-display text-sm font-bold text-slate-900">{title}</h2>
-        <p className="mt-0.5 font-mono text-[11px] text-slate-500">{endpoint}</p>
+        <p className="mt-1 text-xs leading-5 text-slate-600">{description}</p>
+        <p className="mt-2 font-mono text-[11px] text-slate-500">{endpoint}</p>
       </div>
       <div className="px-5 py-4">
         <div className="mb-4 flex flex-wrap items-center gap-2">
@@ -260,24 +262,40 @@ export function ControlWooApiTab() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center gap-2">
-        <Button
-          type="button"
-          variant="secondary"
-          className="shrink-0 border-slate-200 bg-white shadow-sm"
-          onClick={() => void load()}
-        >
-          إعادة الفحص
-        </Button>
-        <Button
-          type="button"
-          variant="secondary"
-          className="shrink-0 border-slate-200 bg-white shadow-sm"
-          onClick={copyJson}
-        >
-          {copied ? "تم النسخ" : "نسخ ملخص الحالة"}
-        </Button>
-      </div>
+      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div className="min-w-0">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">
+              فحص Woo API
+            </p>
+            <h3 className="mt-2 font-display text-xl font-bold text-slate-950">
+              هل الموقع يقرأ المنتجات والتصنيفات من المصدر الصحيح؟
+            </h3>
+            <p className="mt-2 max-w-3xl text-sm leading-7 text-slate-600">
+              هذا الجزء يوضح مصدر القراءة الحالي، وهل البيانات القادمة من Woo مناسبة
+              للعرض داخل المتجر. استخدم “إعادة فحص Woo” بعد تعديل الرابط أو المفاتيح.
+            </p>
+          </div>
+          <div className="flex shrink-0 flex-wrap items-center gap-2">
+            <Button
+              type="button"
+              variant="secondary"
+              className="shrink-0 border-slate-200 bg-white shadow-sm"
+              onClick={() => void load()}
+            >
+              إعادة فحص Woo
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              className="shrink-0 border-slate-200 bg-white shadow-sm"
+              onClick={copyJson}
+            >
+              {copied ? "تم النسخ" : "نسخ تقرير التشخيص"}
+            </Button>
+          </div>
+        </div>
+      </section>
 
       <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {overviewStats.map((item) => (
@@ -294,19 +312,19 @@ export function ControlWooApiTab() {
 
       <section className="grid gap-3 md:grid-cols-3">
         <ControlMiniGuide
-          title="لو كل شيء سليم"
-          badge="طمأنة"
-          description="هذا يعني أن الموقع يقرأ المنتجات بشكل طبيعي ويمكنك الاكتفاء بالمتابعة الدورية فقط."
+          title="مصدر البيانات"
+          badge="قراءة"
+          description="لو نوع القراءة «مباشرة»، فالواجهة تعتمد على Woo الحقيقي. لو «تجريبية»، راجع الرابط والمفاتيح."
         />
         <ControlMiniGuide
-          title="لو الرابط خطأ"
-          badge="مراجعة"
-          description="راجع روابط الربط في الإعدادات العامة وتأكد أن رابط المصدر الفعلي هو نفسه المستخدم الآن."
+          title="اختبار المنتجات والتصنيفات"
+          badge="API"
+          description="الكروت التالية تقول هل Woo رد بنجاح وهل شكل البيانات مناسب للكود."
         />
         <ControlMiniGuide
-          title="لو شكل البيانات فيه مشكلة"
-          badge="فحص"
-          description="ستظهر ملاحظات أسفل بطاقات الفحص لتوضح أي جزء قادم من المصدر يحتاج ضبط أو مراجعة."
+          title="روابط النسخ"
+          badge="Webhooks"
+          description="انسخ روابط الاستقبال كما هي عند ضبط Woo أو أي نظام خارجي؛ لا تضيف مسارات عليها يدويًا."
         />
       </section>
 
@@ -324,16 +342,24 @@ export function ControlWooApiTab() {
           <DataRow k="رابط استقبال التحديثات" v={cmsExternalDataWebhookUrl ?? "—"} />
         </div>
         <p className="mt-3 text-xs text-slate-500">
-          يمكنك تعديل هذه الروابط من{" "}
-          <Link
-            href="/control?tab=general"
-            className="font-medium text-emerald-700 underline underline-offset-2"
-          >
-            تبويب «عام»
-          </Link>
-          .
+          يمكنك تعديل هذه الروابط من نموذج «روابط Woo والتكاملات» الموجود أعلى هذا الجزء.
         </p>
       </div>
+
+      <section className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        <ProbeCard
+          title="اختبار قراءة المنتجات"
+          description="يفحص عينة من المنتجات ويتأكد أن الاستجابة سليمة وأن الحقول الأساسية مفهومة."
+          endpoint="Woo products endpoint"
+          probe={report.products}
+        />
+        <ProbeCard
+          title="اختبار قراءة التصنيفات"
+          description="يتأكد أن التصنيفات التي تبني صفحات وأقسام المتجر يمكن قراءتها من Woo."
+          endpoint="Woo categories endpoint"
+          probe={report.categories}
+        />
+      </section>
 
       <div className="overflow-hidden rounded-xl border border-slate-200/90 bg-white p-5 shadow-sm ring-1 ring-slate-900/5">
         <h2 className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
@@ -363,24 +389,11 @@ export function ControlWooApiTab() {
         <p className="mt-2 text-xs text-slate-600">
           {cmsExternalDataWebhookUrl ? (
             <>
-              الرابط أدناه محفوظ يدويًا داخل{" "}
-              <Link
-                href="/control?tab=general"
-                className="font-medium text-emerald-700 underline underline-offset-2"
-              >
-                تبويب «عام»
-              </Link>
-              .
+              الرابط أدناه محفوظ يدويًا داخل نموذج «روابط Woo والتكاملات».
             </>
           ) : (
             <>
-              الرابط أدناه تم توليده تلقائيًا من رابط الموقع الحالي. إذا أردت كتابة رابط مخصص، احفظه من{" "}
-              <Link
-                href="/control?tab=general"
-                className="font-medium text-emerald-700 underline underline-offset-2"
-              >
-                تبويب «عام»
-              </Link>.
+              الرابط أدناه تم توليده تلقائيًا من رابط الموقع الحالي. إذا أردت كتابة رابط مخصص، احفظه من نموذج «روابط Woo والتكاملات».
             </>
           )}
         </p>
@@ -398,19 +411,6 @@ export function ControlWooApiTab() {
       <WooWebhooksPanel />
 
       <WooWebhookDeliveriesPanel />
-
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        <ProbeCard
-          title="المنتجات"
-          endpoint="فحص قراءة المنتجات"
-          probe={report.products}
-        />
-        <ProbeCard
-          title="التصنيفات"
-          endpoint="فحص قراءة التصنيفات"
-          probe={report.categories}
-        />
-      </div>
 
       <div className="overflow-hidden rounded-xl border border-slate-200/90 bg-white shadow-sm ring-1 ring-slate-900/5">
         <div className="border-b border-slate-100 bg-slate-50/80 px-5 py-3">

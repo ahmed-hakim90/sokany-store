@@ -12,6 +12,7 @@ import {
   useId,
   useMemo,
   useState,
+  type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
 import { AppImage } from "@/components/AppImage";
@@ -35,6 +36,8 @@ export type ProductGalleryProps = {
   className?: string;
   /** Short label over the main image (e.g. NEW TECH). */
   galleryBadge?: string | null;
+  /** Optional high-priority action rendered over the main image. */
+  floatingAction?: ReactNode;
   /** Fires when the large preview image changes (e.g. add-to-cart fly animation). */
   onActiveImageChange?: (src: string) => void;
 };
@@ -48,6 +51,7 @@ export const ProductGallery = forwardRef<HTMLDivElement, ProductGalleryProps>(
       priority,
       className,
       galleryBadge,
+      floatingAction,
       onActiveImageChange,
     },
     ref,
@@ -205,6 +209,9 @@ export const ProductGallery = forwardRef<HTMLDivElement, ProductGalleryProps>(
               ) : null}
             </div>
           </div>
+          {floatingAction ? (
+            <div className="min-w-0">{floatingAction}</div>
+          ) : null}
           {list.length > 1 ? (
             <div className="flex justify-center gap-1.5 lg:hidden" aria-hidden>
               {list.map((img) => (

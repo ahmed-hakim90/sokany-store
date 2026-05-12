@@ -102,6 +102,7 @@ export function WooWebhooksPanel() {
   const topicsCovered = new Set(data?.sokanyWebhooks.map((w) => w.topic) ?? []);
   const requiredTopics = SOKANY_WOO_WEBHOOK_RECIPES.map((r) => r.topic);
   const missing = requiredTopics.filter((t) => !topicsCovered.has(t));
+  const readyCount = requiredTopics.length - missing.length;
 
   if (loading || err || !data) {
     return (
@@ -115,16 +116,38 @@ export function WooWebhooksPanel() {
 
   return (
     <div className="overflow-hidden rounded-xl border border-slate-200/90 bg-white p-5 shadow-sm ring-1 ring-slate-900/5">
-      <h2 className="font-display text-sm font-bold text-slate-900">
-        تجهيز التحديثات التلقائية من Woo
-      </h2>
-      <p className="mt-1 text-sm text-slate-600">
-        من هنا نراجع هل التحديثات الأساسية موجودة على Woo، ويمكننا إكمال الناقص تلقائيًا بدل ضبطه يدويًا.
-      </p>
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div className="min-w-0">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">
+            Webhooks
+          </p>
+          <h2 className="mt-1 font-display text-lg font-bold text-slate-900">
+            التحديثات التلقائية القادمة من Woo
+          </h2>
+          <p className="mt-1 max-w-3xl text-sm leading-6 text-slate-600">
+            Webhook يعني أن Woo يرسل خبرًا للموقع عند تغيير منتج أو تصنيف أو طلب.
+            لو حدث ناقص، لن يعرف الموقع بالتغيير إلا بعد فحص أو تحديث يدوي.
+          </p>
+        </div>
+        <div className="grid min-w-[14rem] grid-cols-2 gap-2 text-center">
+          <div className="rounded-xl border border-emerald-200 bg-emerald-50/70 p-3">
+            <p className="text-[11px] font-semibold text-emerald-700">جاهز</p>
+            <p className="mt-1 font-mono text-2xl font-bold text-emerald-950">
+              {readyCount}
+            </p>
+          </div>
+          <div className="rounded-xl border border-amber-200 bg-amber-50/70 p-3">
+            <p className="text-[11px] font-semibold text-amber-700">ناقص</p>
+            <p className="mt-1 font-mono text-2xl font-bold text-amber-950">
+              {missing.length}
+            </p>
+          </div>
+        </div>
+      </div>
 
       {needsSecret ? (
         <p className="mt-2 rounded-lg border border-rose-200 bg-rose-50/60 px-3 py-2 text-sm text-rose-900">
-          الربط غير مكتمل من جهة الخادم، لذلك لا يمكن إنشاء التحديثات التلقائية الآن.
+          لا يمكن إكمال Webhooks تلقائيًا قبل ضبط سر الويبهوك على الخادم. هذا السر هو الذي يثبت أن الطلب القادم فعلاً من Woo.
         </p>
       ) : null}
 
@@ -136,7 +159,7 @@ export function WooWebhooksPanel() {
           disabled={!!needsSecret || syncing}
           onClick={() => void onSync()}
         >
-          {syncing ? "جارٍ التجهيز..." : "إكمال الناقص تلقائيًا"}
+          {syncing ? "جارٍ الإصلاح..." : "إصلاح الناقص تلقائيًا"}
         </Button>
         <Button
           type="button"
@@ -150,9 +173,13 @@ export function WooWebhooksPanel() {
       </div>
 
       {missing.length > 0 ? (
-        <p className="mt-2 text-xs text-amber-800">هناك تحديثات أساسية ناقصة وتحتاج إضافة.</p>
+        <p className="mt-2 text-xs leading-5 text-amber-800">
+          يوجد {missing.length} Webhook أساسي ناقص. اضغط “إصلاح الناقص تلقائيًا” لإنشائه من اللوحة بدل ضبطه يدويًا داخل Woo.
+        </p>
       ) : (
-        <p className="mt-2 text-xs text-emerald-800">كل التحديثات الأساسية موجودة وجاهزة.</p>
+        <p className="mt-2 text-xs leading-5 text-emerald-800">
+          كل التحديثات الأساسية موجودة: تغييرات المنتجات والتصنيفات والطلبات ستصل للموقع تلقائيًا.
+        </p>
       )}
 
       {syncResult && !syncResult.ok ? (
@@ -162,7 +189,7 @@ export function WooWebhooksPanel() {
         <div className="mt-3 text-xs text-slate-600">
           {syncResult.result.created.length > 0 ? (
             <p>
-              تمت إضافة: {syncResult.result.created.map((c) => c.topic).join("، ")}
+              تم إنشاء Webhooks الناقصة: {syncResult.result.created.map((c) => c.topic).join("، ")}
             </p>
           ) : null}
           {syncResult.result.failed.length > 0 ? (
@@ -182,7 +209,7 @@ export function WooWebhooksPanel() {
 
       <CopyableCode
         className="mt-3 rounded-xl border border-slate-200/80 bg-slate-50/70 p-3"
-        description="الرابط الذي تستقبل عليه التحديثات"
+        description="انسخ هذا الرابط داخل إعدادات Woo إذا كنت تضبط Webhook يدويًا"
         value={data.deliveryUrl}
       />
 
@@ -190,9 +217,9 @@ export function WooWebhooksPanel() {
         <table className="w-full min-w-[300px] text-right text-sm">
           <thead>
             <tr className="border-b border-slate-200 text-xs text-slate-500">
-              <th className="px-2 py-2">نوع التحديث</th>
-              <th className="px-2 py-2">معناه</th>
-              <th className="px-2 py-2">الحالة</th>
+              <th className="px-2 py-2">الحدث داخل Woo</th>
+              <th className="px-2 py-2">متى نحتاجه؟</th>
+              <th className="px-2 py-2">حالته</th>
             </tr>
           </thead>
           <tbody>
