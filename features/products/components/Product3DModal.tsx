@@ -3,12 +3,14 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Product3DViewer } from "@/features/products/components/Product3DViewer";
+import type { ProductImage } from "@/features/products/types";
 import { cn } from "@/lib/utils";
 
 export type Product3DModalProps = {
   modelSrc: string;
   productName: string;
   posterSrc?: string | null;
+  thumbnails?: ProductImage[];
   onClose: () => void;
 };
 
@@ -16,6 +18,7 @@ export function Product3DModal({
   modelSrc,
   productName,
   posterSrc,
+  thumbnails,
   onClose,
 }: Product3DModalProps) {
   const titleId = useId();
@@ -61,7 +64,7 @@ export function Product3DModal({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[2600] flex items-stretch justify-center bg-black/45 p-0 backdrop-blur-md sm:items-center sm:p-5"
+      className="fixed inset-0 z-[2600] flex items-stretch justify-center bg-slate-950/68 p-0 backdrop-blur-[3px] sm:items-center sm:p-5"
       role="presentation"
     >
       <button
@@ -76,26 +79,37 @@ export function Product3DModal({
         aria-modal="true"
         aria-labelledby={titleId}
         className={cn(
-          "relative z-[1] flex h-[100svh] w-full flex-col overflow-hidden bg-slate-950 text-white shadow-2xl",
-          "sm:h-auto sm:max-h-[min(92svh,860px)] sm:max-w-6xl sm:rounded-[2rem] sm:border sm:border-white/15",
+          "relative z-[1] flex h-[100svh] w-full flex-col overflow-hidden bg-white text-slate-950 shadow-[0_30px_90px_-36px_rgba(15,23,42,0.85)]",
+          "sm:h-auto sm:max-h-[min(92svh,860px)] sm:max-w-6xl sm:rounded-[1.75rem] sm:border sm:border-white/80",
         )}
       >
-        <div className="flex items-start justify-between gap-3 border-b border-white/10 bg-white/[0.06] px-4 pb-3 pt-[max(1rem,env(safe-area-inset-top))] backdrop-blur sm:px-5 sm:pt-4">
-          <div className="min-w-0">
-            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-brand-300">
-              360° Product Experience
-            </p>
+        <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-start gap-3 border-b border-slate-100 bg-white px-4 pb-3 pt-[max(1rem,env(safe-area-inset-top))] sm:px-5 sm:pt-4">
+          <div className="flex min-w-0 items-center gap-2">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-900 shadow-sm">
+              <BoxIcon />
+            </span>
+            <div className="min-w-0">
+              <p className="text-sm font-bold text-slate-900">3D View</p>
+              <p className="hidden text-xs text-slate-500 sm:block">Interactive preview</p>
+            </div>
+          </div>
+
+          <div className="min-w-0 text-center">
             <h2
               id={titleId}
-              className="mt-1 truncate font-display text-lg font-black tracking-tight sm:text-2xl"
+              className="truncate font-display text-lg font-black tracking-tight text-slate-950 sm:text-2xl"
             >
               {productName}
             </h2>
+            <p className="mt-0.5 text-xs font-medium text-slate-500 sm:text-sm">
+              Explore the product in 3D
+            </p>
           </div>
+
           <button
             ref={closeRef}
             type="button"
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white/10 text-white ring-1 ring-white/15 transition-colors hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-300"
+            className="ms-auto flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-900 shadow-sm transition-colors hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500"
             onClick={onClose}
             aria-label="إغلاق"
           >
@@ -103,16 +117,36 @@ export function Product3DModal({
           </button>
         </div>
 
-        <div className="min-h-0 flex-1 bg-[radial-gradient(circle_at_50%_0%,rgba(250,204,21,0.14),transparent_34%),linear-gradient(180deg,rgba(15,23,42,1),rgba(2,6,23,1))] px-3 py-3 sm:px-5 sm:py-5">
+        <div className="min-h-0 flex-1 bg-[radial-gradient(circle_at_50%_0%,rgba(226,232,240,0.7),transparent_42%),linear-gradient(180deg,#ffffff,#f8fafc)] px-3 py-3 sm:px-5 sm:py-5">
           <Product3DViewer
             modelSrc={modelSrc}
             productName={productName}
             posterSrc={posterSrc}
+            thumbnails={thumbnails}
           />
         </div>
       </div>
     </div>,
     document.body,
+  );
+}
+
+function BoxIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden>
+      <path
+        d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z"
+        stroke="currentColor"
+        strokeLinejoin="round"
+        strokeWidth="1.6"
+      />
+      <path
+        d="M4 7.5l8 4.5 8-4.5M12 12v9"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeWidth="1.6"
+      />
+    </svg>
   );
 }
 

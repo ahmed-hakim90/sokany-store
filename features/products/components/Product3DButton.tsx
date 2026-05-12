@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import { useState } from "react";
 import { Button } from "@/components/Button";
+import type { ProductImage } from "@/features/products/types";
 import { cn } from "@/lib/utils";
 
 const Product3DModal = dynamic(
@@ -17,6 +18,7 @@ export type Product3DButtonProps = {
   modelSrc: string | null | undefined;
   productName: string;
   posterSrc?: string | null;
+  thumbnails?: ProductImage[];
   className?: string;
 };
 
@@ -24,6 +26,7 @@ export function Product3DButton({
   modelSrc,
   productName,
   posterSrc,
+  thumbnails,
   className,
 }: Product3DButtonProps) {
   const [open, setOpen] = useState(false);
@@ -62,6 +65,7 @@ export function Product3DButton({
           modelSrc={modelSrc}
           productName={productName}
           posterSrc={posterSrc}
+          thumbnails={thumbnails}
           onClose={() => setOpen(false)}
         />
       ) : null}

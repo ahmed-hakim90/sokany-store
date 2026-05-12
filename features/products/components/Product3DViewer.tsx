@@ -2,12 +2,14 @@
 
 import type { ModelViewerElement } from "@google/model-viewer";
 import { useCallback, useEffect, useRef, useState } from "react";
+import type { ProductImage } from "@/features/products/types";
 import { cn } from "@/lib/utils";
 
 export type Product3DViewerProps = {
   modelSrc: string;
   productName: string;
   posterSrc?: string | null;
+  thumbnails?: ProductImage[];
 };
 
 type ModelViewerProgressEvent = CustomEvent<{ totalProgress: number }>;
@@ -16,6 +18,7 @@ export function Product3DViewer({
   modelSrc,
   productName,
   posterSrc,
+  thumbnails = [],
 }: Product3DViewerProps) {
   const shellRef = useRef<HTMLDivElement>(null);
   const viewerRef = useRef<ModelViewerElement | null>(null);
@@ -119,95 +122,142 @@ export function Product3DViewer({
     );
   }
 
+  const controlItems = [
+    {
+      label: "Auto Rotate",
+      value: autoRotate ? "On" : "Off",
+      onClick: () => setAutoRotate((value) => !value),
+      icon: autoRotate ? <PauseIcon /> : <PlayIcon />,
+      primary: true,
+    },
+    {
+      label: "AR View",
+      value: "View in your space",
+      onClick: () => {
+        const viewer = viewerRef.current as (ModelViewerElement & { activateAR?: () => void }) | null;
+        viewer?.activateAR?.();
+      },
+      icon: <ARIcon />,
+      primary: false,
+    },
+    {
+      label: "Fullscreen",
+      value: "Focus mode",
+      onClick: () => void toggleFullscreen(),
+      icon: <FullscreenIcon />,
+      primary: false,
+    },
+    {
+      label: "Reset View",
+      value: "Center product",
+      onClick: resetCamera,
+      icon: <ResetIcon />,
+      primary: false,
+    },
+  ] as const;
+  const featureChips = [
+    { label: "360° Orbit", icon: <OrbitMiniIcon /> },
+    { label: "Pinch to Zoom", icon: <ZoomIcon /> },
+    { label: "AR Ready", icon: <ARIcon /> },
+    { label: "High Detail", icon: <SparkIcon /> },
+  ];
+
   return (
     <div
       ref={shellRef}
       className={cn(
-        "relative flex h-full min-h-[min(68svh,680px)] flex-col overflow-hidden rounded-[1.75rem] border border-white/12 bg-slate-950 shadow-[0_24px_80px_-42px_rgba(0,0,0,0.9)] ring-1 ring-white/10",
+        "relative flex h-full min-h-[min(72svh,680px)] flex-col overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white shadow-[0_18px_70px_-44px_rgba(15,23,42,0.45)] ring-1 ring-slate-100",
         expanded && "fixed inset-0 z-[2700] rounded-none",
       )}
     >
-      <div className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(circle_at_50%_16%,rgba(255,255,255,0.12),transparent_30%)]" />
+      <div className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(circle_at_50%_18%,rgba(226,232,240,0.8),transparent_34%)]" />
 
-      <div className="relative z-10 flex flex-wrap items-center justify-between gap-2 border-b border-white/10 bg-white/[0.04] p-3 backdrop-blur">
-        <div className="min-w-0">
-          <p className="text-xs font-bold text-white/70">اسحب للتدوير، وقرّب بإصبعين</p>
-          <p className="mt-0.5 text-[11px] font-semibold text-brand-200/90">
-            AR يظهر على الأجهزة والمتصفحات الداعمة فقط
-          </p>
+      <div className="relative z-10 grid min-h-0 flex-1 gap-4 p-4 lg:grid-cols-[minmax(0,1fr)_10rem] lg:p-5">
+        <div className="relative min-h-[46svh] overflow-hidden rounded-[1.35rem] bg-[radial-gradient(circle_at_50%_42%,#ffffff,#f1f5f9_72%)] lg:min-h-[560px]">
+          {!viewerReady ? (
+            <ViewerLoading progress={progress} label="Preparing 3D viewer..." />
+          ) : null}
+
+          {viewerReady ? (
+            <model-viewer
+              ref={viewerRef}
+              src={modelSrc}
+              poster={posterSrc ?? undefined}
+              alt={`نموذج ثلاثي الأبعاد لمنتج ${productName}`}
+              ar
+              ar-modes="webxr scene-viewer quick-look"
+              camera-controls
+              auto-rotate={autoRotate}
+              auto-rotate-delay={2500}
+              shadow-intensity={0.7}
+              environment-image="neutral"
+              exposure={1.05}
+              interaction-prompt="auto"
+              loading="lazy"
+              reveal="auto"
+              touch-action="pan-y"
+              className="h-full min-h-[46svh] w-full bg-transparent [--poster-color:transparent] [&::part(default-ar-button)]:hidden lg:min-h-[560px]"
+            >
+              <button
+                slot="ar-button"
+                type="button"
+                className="absolute bottom-4 end-4 inline-flex min-h-[44px] items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-black text-slate-950 shadow-lg transition-transform hover:scale-[1.02]"
+              >
+                <ARIcon />
+                AR View
+              </button>
+            </model-viewer>
+          ) : null}
+
+          {viewerReady && !modelLoaded && !loadError ? (
+            <ViewerLoading progress={progress} label="Loading 3D model..." />
+          ) : null}
+
+          {loadError ? (
+            <div className="absolute inset-0 z-20 grid place-items-center bg-white/88 p-6 text-center backdrop-blur">
+              <ViewerFallback title="Could not load model" body={loadError} />
+            </div>
+          ) : null}
+
+          <div className="pointer-events-none absolute inset-x-0 bottom-3 z-10 flex justify-center px-4">
+            <div className="rounded-full border border-slate-200 bg-white/88 px-3 py-2 text-center text-xs font-medium text-slate-500 shadow-sm backdrop-blur">
+              {slowNetwork && !modelLoaded && !loadError
+                ? "Slow connection, preview will appear once loaded."
+                : "Drag to rotate • Scroll to zoom • Tap to interact"}
+            </div>
+          </div>
         </div>
-        <div className="flex items-center gap-1.5">
-          <ViewerControl
-            label={autoRotate ? "إيقاف الدوران التلقائي" : "تشغيل الدوران التلقائي"}
-            onClick={() => setAutoRotate((value) => !value)}
-          >
-            {autoRotate ? <PauseIcon /> : <PlayIcon />}
-          </ViewerControl>
-          <ViewerControl label="إعادة ضبط الكاميرا" onClick={resetCamera}>
-            <ResetIcon />
-          </ViewerControl>
-          <ViewerControl label="ملء الشاشة" onClick={() => void toggleFullscreen()}>
-            <FullscreenIcon />
-          </ViewerControl>
+
+        <div className="grid grid-cols-2 gap-2 lg:flex lg:flex-col lg:justify-center">
+          {controlItems.map((item) => (
+            <ViewerControl
+              key={item.label}
+              label={item.label}
+              value={item.value}
+              onClick={item.onClick}
+              active={item.primary && autoRotate}
+            >
+              {item.icon}
+            </ViewerControl>
+          ))}
           {expanded ? (
-            <ViewerControl label="الخروج من ملء الشاشة" onClick={() => setExpanded(false)}>
+            <ViewerControl label="Exit Fullscreen" value="Close focus" onClick={() => setExpanded(false)}>
               <CloseIcon />
             </ViewerControl>
           ) : null}
         </div>
       </div>
 
-      <div className="relative z-10 min-h-0 flex-1">
-        {!viewerReady ? (
-          <ViewerLoading progress={progress} label="جاري تجهيز عارض 3D…" />
-        ) : null}
-
-        {viewerReady ? (
-          <model-viewer
-            ref={viewerRef}
-            src={modelSrc}
-            poster={posterSrc ?? undefined}
-            alt={`نموذج ثلاثي الأبعاد لمنتج ${productName}`}
-            ar
-            ar-modes="webxr scene-viewer quick-look"
-            camera-controls
-            auto-rotate={autoRotate}
-            auto-rotate-delay={2500}
-            shadow-intensity={0.85}
-            environment-image="neutral"
-            exposure={1}
-            interaction-prompt="auto"
-            loading="lazy"
-            reveal="auto"
-            touch-action="pan-y"
-            className="h-full min-h-[min(58svh,620px)] w-full bg-transparent [--poster-color:transparent] [&::part(default-ar-button)]:hidden"
+      <div className="relative z-10 grid gap-2 border-t border-slate-100 bg-white px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 sm:grid-cols-4 sm:px-5">
+        {featureChips.map((chip) => (
+          <div
+            key={chip.label}
+            className="flex min-h-14 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm font-bold text-slate-700 shadow-sm"
           >
-            <button
-              slot="ar-button"
-              type="button"
-              className="absolute bottom-4 end-4 inline-flex min-h-[44px] items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-black text-slate-950 shadow-xl ring-1 ring-white/60 transition-transform hover:scale-[1.02]"
-            >
-              <ARIcon />
-              عرض AR
-            </button>
-          </model-viewer>
-        ) : null}
-
-        {viewerReady && !modelLoaded && !loadError ? (
-          <ViewerLoading progress={progress} label="جاري تحميل النموذج…" />
-        ) : null}
-
-        {loadError ? (
-          <div className="absolute inset-0 z-20 grid place-items-center bg-slate-950/88 p-6 text-center backdrop-blur">
-            <ViewerFallback title="تعذر عرض النموذج" body={loadError} />
+            <span className="text-slate-500">{chip.icon}</span>
+            {chip.label}
           </div>
-        ) : null}
-      </div>
-
-      <div className="relative z-10 border-t border-white/10 bg-black/20 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 text-center text-xs font-medium text-white/65">
-        {slowNetwork && !modelLoaded && !loadError
-          ? "الاتصال بطيء قليلاً، سنُبقي المعاينة بمجرد اكتمال التحميل."
-          : "يمكنك تدوير المنتج، التكبير، أو فتح AR من الجهاز الداعم."}
+        ))}
       </div>
     </div>
   );
@@ -216,20 +266,20 @@ export function Product3DViewer({
 function ViewerLoading({ progress, label }: { progress: number; label: string }) {
   return (
     <div
-      className="absolute inset-0 z-10 grid place-items-center bg-slate-950/70 p-6 backdrop-blur-sm"
+      className="absolute inset-0 z-10 grid place-items-center bg-white/70 p-6 backdrop-blur-sm"
       aria-live="polite"
       aria-busy
     >
-      <div className="w-full max-w-xs rounded-3xl border border-white/10 bg-white/[0.08] p-5 text-center shadow-2xl">
-        <div className="mx-auto h-12 w-12 animate-spin rounded-full border-2 border-white/25 border-t-brand-300" />
-        <p className="mt-4 text-sm font-bold text-white">{label}</p>
-        <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-white/15">
+      <div className="w-full max-w-xs rounded-3xl border border-slate-200 bg-white p-5 text-center shadow-2xl">
+        <div className="mx-auto h-12 w-12 animate-spin rounded-full border-2 border-slate-200 border-t-slate-900" />
+        <p className="mt-4 text-sm font-bold text-slate-900">{label}</p>
+        <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-slate-100">
           <div
-            className="h-full rounded-full bg-brand-300 transition-[width]"
+            className="h-full rounded-full bg-slate-900 transition-[width]"
             style={{ width: `${progress}%` }}
           />
         </div>
-        <p className="mt-2 text-xs font-semibold text-white/60">{progress}%</p>
+        <p className="mt-2 text-xs font-semibold text-slate-500">{progress}%</p>
       </div>
     </div>
   );
@@ -237,23 +287,27 @@ function ViewerLoading({ progress, label }: { progress: number; label: string })
 
 function ViewerFallback({ title, body }: { title: string; body: string }) {
   return (
-    <div className="mx-auto max-w-sm rounded-3xl border border-white/10 bg-white/[0.08] p-6 text-center text-white shadow-2xl">
-      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-brand-200">
+    <div className="mx-auto max-w-sm rounded-3xl border border-slate-200 bg-white p-6 text-center text-slate-900 shadow-2xl">
+      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-700">
         <BoxIcon />
       </div>
       <h3 className="mt-4 font-display text-lg font-black">{title}</h3>
-      <p className="mt-2 text-sm leading-6 text-white/70">{body}</p>
+      <p className="mt-2 text-sm leading-6 text-slate-600">{body}</p>
     </div>
   );
 }
 
 function ViewerControl({
   label,
+  value,
   onClick,
+  active,
   children,
 }: {
   label: string;
+  value: string;
   onClick: () => void;
+  active?: boolean;
   children: React.ReactNode;
 }) {
   return (
@@ -261,10 +315,74 @@ function ViewerControl({
       type="button"
       aria-label={label}
       onClick={onClick}
-      className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white ring-1 ring-white/10 transition-colors hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-300"
+      className={cn(
+        "flex min-h-16 items-center gap-3 rounded-2xl border bg-white p-3 text-start text-slate-900 shadow-sm transition-colors hover:border-slate-300 hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500",
+        active ? "border-slate-300" : "border-slate-200",
+      )}
     >
-      {children}
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-50 text-slate-700">
+        {children}
+      </span>
+      <span className="min-w-0">
+        <span className="block text-sm font-black">{label}</span>
+        <span className="mt-0.5 block text-xs font-medium text-slate-500">{value}</span>
+      </span>
     </button>
+  );
+}
+
+function OrbitMiniIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden>
+      <path
+        d="M12 16a4 4 0 100-8 4 4 0 000 8z"
+        stroke="currentColor"
+        strokeWidth="1.6"
+      />
+      <path
+        d="M4 12c0-2.2 3.6-4 8-4s8 1.8 8 4-3.6 4-8 4-8-1.8-8-4z"
+        stroke="currentColor"
+        strokeWidth="1.6"
+      />
+    </svg>
+  );
+}
+
+function ZoomIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden>
+      <path
+        d="M10.5 18a7.5 7.5 0 100-15 7.5 7.5 0 000 15zM16 16l5 5"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeWidth="1.7"
+      />
+      <path
+        d="M10.5 7.5v6M7.5 10.5h6"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeWidth="1.7"
+      />
+    </svg>
+  );
+}
+
+function SparkIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden>
+      <path
+        d="M12 3l1.6 5.1L19 10l-5.4 1.9L12 17l-1.6-5.1L5 10l5.4-1.9L12 3z"
+        stroke="currentColor"
+        strokeLinejoin="round"
+        strokeWidth="1.5"
+      />
+      <path
+        d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8L19 15z"
+        stroke="currentColor"
+        strokeLinejoin="round"
+        strokeWidth="1.5"
+      />
+    </svg>
   );
 }
 
