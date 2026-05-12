@@ -63,8 +63,55 @@ function paymentMethodLabel(
   orderTitle: string | undefined,
 ) {
   if (orderTitle?.trim()) return orderTitle;
-  if (snapshot?.paymentMethod === "card") return "بطاقة بنكية";
-  return "الدفع عند الاستلام";
+  switch (snapshot?.paymentMethod) {
+    case "card": return "بطاقة بنكية";
+    case "fawry": return "فوري";
+    case "paymob": return "باي موب";
+    default: return "الدفع عند الاستلام";
+  }
+}
+
+function paymentMethodDescription(
+  snapshot: CheckoutSuccessSnapshot | null | undefined,
+  paymentStatus: "success" | "failed" | null,
+) {
+  switch (snapshot?.paymentMethod) {
+    case "fawry":
+    case "paymob":
+      if (paymentStatus === "success") return "تم تأكيد الدفع الإلكتروني بنجاح.";
+      if (paymentStatus === "failed") return "لم يكتمل الدفع. يمكنك المحاولة مجدداً من تفاصيل الطلب.";
+      return "سيتم تأكيد حالة الدفع الإلكتروني تلقائياً.";
+    case "card":
+      return "سيتم تأكيد حالة الدفع ضمن تفاصيل الطلب.";
+    default:
+      return "ادفع عند استلام طلبك من مندوب الشحن.";
+  }
+}
+
+function OnlinePaymentBanner({ status }: { status: "success" | "failed" }) {
+  if (status === "success") {
+    return (
+      <div className="flex items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800">
+        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-white">
+          <Check className="h-4 w-4" aria-hidden />
+        </span>
+        تم الدفع الإلكتروني بنجاح — سيظهر الطلب بحالة «قيد المعالجة» خلال لحظات.
+      </div>
+    );
+  }
+  return (
+    <div className="flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+      <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-red-100 font-bold text-red-600">
+        !
+      </span>
+      <div>
+        <p className="font-semibold">لم يكتمل الدفع</p>
+        <p className="mt-0.5 text-red-700/80">
+          تم حجز الطلب لكن لم يتم خصم المبلغ. يمكنك إعادة المحاولة أو التواصل مع الدعم بذكر رقم الطلب.
+        </p>
+      </div>
+    </div>
+  );
 }
 
 function SummaryRow({
@@ -192,6 +239,9 @@ export function OrderConfirmationPageContent() {
   const router = useTransitionRouter();
   const searchParams = useSearchParams();
   const orderId = searchParams.get("id")?.trim() ?? "";
+  const paymentParam = searchParams.get("payment") as "success" | "failed" | null;
+  const paymentStatus: "success" | "failed" | null =
+    paymentParam === "success" || paymentParam === "failed" ? paymentParam : null;
   const [payload, setPayload] = useState<OrderConfirmationSessionPayload | null>(null);
   const [loaded, setLoaded] = useState(false);
   const { getCartLineQuantity, setProductLineQuantity, replaceAllItems } = useCart();
@@ -263,10 +313,23 @@ export function OrderConfirmationPageContent() {
             <p className="text-sm font-medium text-brand-950">جاري تحميل تفاصيل الطلب…</p>
           </div>
         ) : !payload ? (
-          <MissingOrderState />
+          <>
+            {paymentStatus === "failed" ? (
+              <div className="space-y-4">
+                <OnlinePaymentBanner status="failed" />
+                <MissingOrderState />
+              </div>
+            ) : (
+              <MissingOrderState />
+            )}
+          </>
         ) : (
           <div className="space-y-4 md:space-y-5">
             <Stepper />
+
+            {paymentStatus ? (
+              <OnlinePaymentBanner status={paymentStatus} />
+            ) : null}
 
             <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start">
               {/* العمود الرئيسي: نجاح الطلب ثم الشحن والدفع وتفاصيل المنتجات. */}
@@ -333,18 +396,23 @@ export function OrderConfirmationPageContent() {
                   icon={<CreditCard className="h-4 w-4" aria-hidden />}
                 >
                   <div className="flex items-center gap-4">
-                    <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
+                    <div
+                      className={cn(
+                        "flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl text-white",
+                        snapshot?.paymentMethod === "fawry"
+                          ? "bg-[#1f6e43]"
+                          : snapshot?.paymentMethod === "paymob"
+                            ? "bg-[#3c4db8]"
+                            : "bg-emerald-50 text-emerald-700",
+                      )}
+                    >
                       <CreditCard className="h-8 w-8" aria-hidden />
                     </div>
                     <div className="min-w-0 text-sm leading-6 text-muted-foreground">
                       <p className="font-semibold text-brand-950">
                         {paymentMethodLabel(snapshot, order?.paymentMethodTitle)}
                       </p>
-                      <p>
-                        {snapshot?.paymentMethod === "card"
-                          ? "سيتم تأكيد حالة الدفع ضمن تفاصيل الطلب."
-                          : "ادفع عند استلام طلبك من مندوب الشحن."}
-                      </p>
+                      <p>{paymentMethodDescription(snapshot, paymentStatus)}</p>
                     </div>
                   </div>
                 </InfoCard>

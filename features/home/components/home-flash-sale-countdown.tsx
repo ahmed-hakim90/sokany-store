@@ -27,10 +27,12 @@ type HomeFlashSaleCountdownStripProps = {
   endsAtIso?: string | null;
   headline?: string;
   subline?: string;
+  ctaHref?: string;
+  ctaLabel?: string;
 };
 
 /*
- * بانر «عروض سريعة»: تدرج أزرق داكن، شارة عنوان، نص فرعي، عداد بخلايا شفافة على سطر واحد، زر CTA.
+ * بانر «عروض سريعة»: خلفية فحمية مع وهج لايم، شارة عنوان، نص فرعي، عداد بخلايا شفافة على سطر واحد، زر CTA.
  * على الموبايل والديسكتوب: عمود متمركز؛ الأرقام LTR داخل الخلايا.
  */
 export function HomeFlashSaleCountdownStrip({
@@ -39,6 +41,8 @@ export function HomeFlashSaleCountdownStrip({
   endsAtIso,
   headline = "ينتهي اليوم",
   subline = "خصومات لفترة محدودة — تنتهي مع نهاية يوم اليوم.",
+  ctaHref = ROUTES.OFFERS,
+  ctaLabel = "تسوق الآن",
 }: HomeFlashSaleCountdownStripProps) {
   const [msLeft, setMsLeft] = useState<number | null>(null);
 
@@ -94,17 +98,17 @@ export function HomeFlashSaleCountdownStrip({
   return (
     <div
       className={cn(
-        "relative flex w-full flex-col items-center gap-6 overflow-hidden rounded-[2rem] bg-gradient-to-br from-blue-800 via-blue-900 to-slate-950 p-6 text-white shadow-2xl sm:gap-8 sm:p-8",
+        "relative flex w-full flex-col items-center gap-6 overflow-hidden rounded-[2rem] border border-brand-500/30 bg-brand-950 p-6 text-white shadow-[0_24px_80px_-44px_rgba(10,10,10,0.85)] sm:gap-8 sm:p-8",
         className,
       )}
     >
       {/* وهج زخرفي */}
       <div
-        className="pointer-events-none absolute -bottom-12 -start-16 h-48 w-48 rounded-full bg-amber-400/25 blur-3xl"
+        className="pointer-events-none absolute -bottom-12 -start-16 h-48 w-48 rounded-full bg-brand-500/20 blur-3xl"
         aria-hidden
       />
       <div
-        className="pointer-events-none absolute -end-10 -top-10 h-40 w-40 rounded-full bg-amber-300/20 blur-3xl"
+        className="pointer-events-none absolute -end-10 -top-10 h-40 w-40 rounded-full bg-brand-400/15 blur-3xl"
         aria-hidden
       />
 
@@ -113,20 +117,20 @@ export function HomeFlashSaleCountdownStrip({
         className="pointer-events-none absolute end-0 top-0 p-4 opacity-[0.12] sm:p-8"
         aria-hidden
       >
-        <Zap className="size-24 text-amber-300 sm:size-[7.5rem]" strokeWidth={1.25} />
+        <Zap className="size-24 text-brand-500 sm:size-[7.5rem]" strokeWidth={1.25} />
       </div>
 
       <div className="relative z-10 flex flex-col items-center gap-2 text-center">
         <h2
           id={titleId}
-          className="inline-block rounded-full bg-yellow-400 px-4 py-1.5 text-[10px] font-black text-blue-950 shadow-sm"
+          className="inline-block rounded-full bg-brand-500 px-4 py-1.5 text-[10px] font-black text-brand-950 shadow-[0_0_24px_-10px_rgba(218,255,0,0.85)]"
         >
           عروض سريعة
         </h2>
         <p className="text-3xl font-extrabold tracking-tight text-white md:text-4xl">
           {headline}
         </p>
-        <p className="max-w-md text-sm font-medium text-blue-100">{subline}</p>
+        <p className="max-w-md text-sm font-medium text-white/75">{subline}</p>
       </div>
 
       <div
@@ -159,10 +163,10 @@ export function HomeFlashSaleCountdownStrip({
       </div>
 
       <Link
-        href={ROUTES.OFFERS}
-        className="relative z-10 flex h-11 w-full max-w-sm items-center justify-center rounded-xl border-2 border-yellow-400/90 bg-slate-950/80 px-6 text-sm font-bold text-yellow-400 shadow-[0_0_24px_-8px_rgba(250,204,21,0.45)] transition-colors hover:bg-slate-900/90 hover:text-yellow-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-yellow-400 sm:max-w-md"
+        href={ctaHref}
+        className="relative z-10 flex h-11 w-full max-w-sm items-center justify-center rounded-xl border-2 border-brand-500/90 bg-brand-950/80 px-6 text-sm font-bold text-brand-500 shadow-[0_0_24px_-8px_rgba(218,255,0,0.45)] transition-colors hover:bg-brand-500 hover:text-brand-950 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 sm:max-w-md"
       >
-        تسوق الآن
+        {ctaLabel}
       </Link>
     </div>
   );
@@ -183,12 +187,12 @@ function TimeSegment({ value, label }: { value: string; label: string }) {
   return (
     <div className="flex min-w-0 flex-1 flex-col items-center gap-2">
       <div
-        className="w-full rounded-2xl border border-white/10 bg-white/10 px-1 py-3 text-center text-2xl font-black tabular-nums tracking-tight text-white shadow-inner backdrop-blur-sm sm:px-2 sm:py-4 sm:text-3xl md:py-5 md:text-4xl"
+        className="w-full rounded-2xl border border-brand-500/20 bg-white/10 px-1 py-3 text-center text-2xl font-black tabular-nums tracking-tight text-white shadow-inner backdrop-blur-sm sm:px-2 sm:py-4 sm:text-3xl md:py-5 md:text-4xl"
         dir="ltr"
       >
         {value}
       </div>
-      <span className="text-[10px] font-bold tracking-wide text-blue-100">
+      <span className="text-[10px] font-bold tracking-wide text-white/75">
         {label}
       </span>
     </div>
@@ -199,13 +203,13 @@ function TimeSegmentPlaceholder({ label }: { label: string }) {
   return (
     <div className="flex min-w-0 flex-1 flex-col items-center gap-2">
       <div
-        className="w-full rounded-2xl border border-white/5 bg-white/5 px-1 py-3 text-center text-2xl font-black tabular-nums text-white/35 sm:px-2 sm:py-4 sm:text-3xl md:py-5 md:text-4xl"
+        className="w-full rounded-2xl border border-brand-500/10 bg-white/5 px-1 py-3 text-center text-2xl font-black tabular-nums text-white/35 sm:px-2 sm:py-4 sm:text-3xl md:py-5 md:text-4xl"
         dir="ltr"
         aria-hidden
       >
         --
       </div>
-      <span className="text-[10px] font-bold tracking-wide text-blue-100/80">
+      <span className="text-[10px] font-bold tracking-wide text-white/60">
         {label}
       </span>
     </div>

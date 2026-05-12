@@ -44,12 +44,14 @@ export function MobileCommerceChrome() {
   const reservedHeightRef = useRef(0);
   const reservedHeightKeyRef = useRef("");
 
+  const isAssistantPage = pathname === ROUTES.ASSISTANT;
   const hideFloatingCart =
     pathname === ROUTES.CART ||
     pathname === ROUTES.CHECKOUT ||
-    pathname === ROUTES.ASSISTANT;
+    isAssistantPage;
 
   const showCartSummary = totalItems > 0 && !hideFloatingCart;
+  const hideBottomNav = pathname === ROUTES.CHECKOUT || isAssistantPage;
 
   useLayoutEffect(() => {
     const el = rootRef.current;
@@ -111,35 +113,42 @@ export function MobileCommerceChrome() {
     <div
       ref={rootRef}
       data-mobile-commerce-chrome
-      className="pointer-events-none fixed inset-x-0 bottom-0 z-50 pb-[env(safe-area-inset-bottom)] lg:hidden"
+      className={cn(
+        "pointer-events-none fixed inset-x-0 bottom-0 z-50 lg:hidden",
+        !isAssistantPage && "pb-[env(safe-area-inset-bottom)]",
+      )}
     >
-      <div
-        className={cn(
-          "pointer-events-auto flex flex-col gap-3",
-          mobileCommerceChromeColumnClass,
-        )}
-      >
-        {showCartSummary ? (
-          <MobileCartBottomSheet
-            showCartSummary={showCartSummary}
-            peekHidden={cartPeekHidden}
-          />
-        ) : null}
+      {isAssistantPage ? null : (
         <div
-          ref={bottomNavRef}
-          aria-hidden={assistantOpen}
-          inert={assistantOpen ? true : undefined}
           className={cn(
-            mobileCommerceBottomNavCapsuleClassName(headerHidden),
-            "transition-[opacity,filter] duration-200 ease-out motion-reduce:transition-none",
-            assistantOpen
-              ? "pointer-events-none opacity-0 blur-[1px]"
-              : "opacity-100 blur-0",
+            "pointer-events-auto flex flex-col gap-3",
+            mobileCommerceChromeColumnClass,
           )}
         >
-          <BottomNavInner />
+          {showCartSummary ? (
+            <MobileCartBottomSheet
+              showCartSummary={showCartSummary}
+              peekHidden={cartPeekHidden}
+            />
+          ) : null}
+          {hideBottomNav ? null : (
+            <div
+              ref={bottomNavRef}
+              aria-hidden={assistantOpen}
+              inert={assistantOpen ? true : undefined}
+              className={cn(
+                mobileCommerceBottomNavCapsuleClassName(headerHidden),
+                "transition-[opacity,filter] duration-200 ease-out motion-reduce:transition-none",
+                assistantOpen
+                  ? "pointer-events-none opacity-0 blur-[1px]"
+                  : "opacity-100 blur-0",
+              )}
+            >
+              <BottomNavInner />
+            </div>
+          )}
         </div>
-      </div>
+      )}
     </div>
   );
 }

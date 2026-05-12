@@ -8,7 +8,9 @@ import {
 
 const PAYMENT_METHOD_LABELS: Record<CheckoutFormData["paymentMethod"], string> = {
   cod: "الدفع عند الاستلام",
-  card: "بطاقة (تجريبي)",
+  card: "بطاقة بنكية",
+  fawry: "فوري",
+  paymob: "باي موب",
 };
 
 /** Shown in checkout/cart; Woo order line for storefront — no user-selectable method. */

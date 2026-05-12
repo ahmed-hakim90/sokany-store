@@ -228,6 +228,32 @@ export const CMS_DEFAULT_HOME_FEATURE_VIDEO: CmsHomeFeatureVideo = {
   placement: "afterHero",
 };
 
+/** صفحة هبوط لمنتج واحد — المنتج من Woo والنسخة/عداد الفلاش من لوحة التحكم. */
+export const cmsProductLandingPageSchema = z.object({
+  enabled: z.boolean(),
+  productId: z.number().int().positive().optional(),
+  productSlug: z.string().max(200).optional(),
+  flashSale: cmsPromoFlashSchema,
+  customTitle: z.string().max(200).optional(),
+  customDescription: z.string().max(1000).optional(),
+});
+
+export type CmsProductLandingPage = z.infer<typeof cmsProductLandingPageSchema>;
+
+export const CMS_DEFAULT_PRODUCT_LANDING_PAGE: CmsProductLandingPage = {
+  enabled: false,
+  productId: undefined,
+  productSlug: undefined,
+  flashSale: {
+    enabled: false,
+    endsAt: null,
+    headline: undefined,
+    subline: undefined,
+  },
+  customTitle: undefined,
+  customDescription: undefined,
+};
+
 /**
  * `site_config` عبر `safeParse` — `headerCategoryStrip` / `homeCategoryScroller` يُتحققان لاحقاً
  * بـ schemata منفصلة حتى لا تفسد قيمة قديمة باقي الحقول.
@@ -306,6 +332,7 @@ export const cmsSiteConfigDocSchema = z.object({
   headerCategoryStrip: z.any().optional(),
   homeCategoryScroller: z.any().optional(),
   homeFeatureVideo: cmsHomeFeatureVideoSchema.optional(),
+  productLandingPage: cmsProductLandingPageSchema.optional(),
   homeProductSectionsMode: cmsHomeProductSectionsModeSchema.optional(),
   homeProductSections: cmsHomeProductSectionsArraySchema.optional(),
   /** تحكم عام في ظهور مساعد الشات على واجهة المتجر. */

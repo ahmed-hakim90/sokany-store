@@ -2,15 +2,15 @@
 
 /**
  * تنقل الديسكتوب + ميجا منيو
- * بالعامية: الصف التاني في الهيدر بيعرض الأساسيات فقط؛ الباقي في «المزيد»، والموبايل لسه على الدرج.
+ * بالعامية: الصف التاني في الهيدر بيعرض الأقسام الأب مباشرة؛ الهوفر يفتح تفاصيل كل قسم، والموبايل لسه على الدرج.
  *
  * التفاصيل البصرية تحت في تعليق التخطيط.
  */
 /*
- * شريط تنقل الديسكتوب (صف ثانٍ تحت اللوجو/البحث) + ميجا مينو للعروض؛ «المزيد» تفتح بالضغط فقط.
- * — الصف: «الرئيسية» + «العروض» + «كل التصنيفات» + زر «المزيد» في سطر واحد بلا التفاف.
- * — «المزيد»: أقسام رئيسية من WooCommerce + روابط المتجر الثانوية + المساعدة والسياسات + السوشيال.
- * — ميجا العروض: شبكة ثلاثية للعروض والاكتشاف والتلميح.
+ * شريط تنقل الديسكتوب (صف ثانٍ تحت اللوجو/البحث) + ميجا مينو للأقسام والعروض.
+ * — الصف: «الرئيسية» + «العروض» + الأقسام الأب من WooCommerce + روابط إضافية + زر «المزيد» في سطر واحد بلا التفاف.
+ * — هوفر على أي قسم أب يفتح تفاصيله: تصنيفات فرعية + روابط أولوية + صورة القسم/أول تصنيف فرعي متاحة.
+ * — «المزيد»: روابط المتجر الثانوية + المساعدة والسياسات + السوشيال.
  * — الـ lg فقط؛ الموبايل يبقى على الدرج.
  */
 
@@ -25,7 +25,6 @@ import {
   useState,
 } from "react";
 import { AppImage } from "@/components/AppImage";
-import { Container } from "@/components/Container";
 import type { Category } from "@/features/categories/types";
 import { SocialGlyph } from "@/components/layout/social-glyph";
 import { ROUTES } from "@/lib/constants";
@@ -34,8 +33,7 @@ import type { SocialLink } from "@/lib/social-links";
 import { cn } from "@/lib/utils";
 
 const MEGA_LINK_LIMIT = 12;
-/** لا تظهر تصنيفات مباشرة في الصف؛ كلها تدخل قائمة «المزيد». */
-const MEGA_TOP_LEVEL_CATEGORY_LIMIT = 0;
+const MEGA_TOP_LEVEL_CATEGORY_LIMIT = 12;
 
 export type DesktopMoreLink = { href: string; label: string };
 
@@ -236,7 +234,7 @@ export function DesktopCategoryMegaNav({
       : null;
 
     return (
-      <div className="grid gap-6 border-t border-border/60 bg-white py-6 shadow-lg md:grid-cols-12 px-4 md:gap-8">
+      <div className="grid gap-6 border-t border-border/60 bg-white px-4 py-6 shadow-lg sm:px-6 md:grid-cols-12 md:gap-8 lg:px-8">
         <div className="md:col-span-4">
           <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             تصنيفات فرعية
@@ -358,7 +356,7 @@ export function DesktopCategoryMegaNav({
   };
 
   const renderOffersMega = () => (
-    <div className="grid gap-6 border-t border-border/60 bg-white py-6 shadow-lg md:grid-cols-12 md:gap-8">
+    <div className="grid gap-6 border-t border-border/60 bg-white px-4 py-6 shadow-lg sm:px-6 md:grid-cols-12 md:gap-8 lg:px-8">
       <div className="md:col-span-4">
         <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           عروض وأسعار
@@ -699,11 +697,9 @@ export function DesktopCategoryMegaNav({
           aria-label="قائمة موسعة"
           className="absolute inset-x-0 top-full z-50 animate-fade-in motion-reduce:animate-none"
         >
-          <Container>
-            {openKey === "offers"
-              ? renderOffersMega()
-              : renderCategoryMega(openKey ?? "")}
-          </Container>
+          {openKey === "offers"
+            ? renderOffersMega()
+            : renderCategoryMega(openKey ?? "")}
         </div>
       ) : null}
     </div>

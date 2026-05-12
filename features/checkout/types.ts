@@ -2,7 +2,13 @@ import type { Order } from "@/features/orders/types";
 
 export type ShippingMethod = "flat_rate" | "local_pickup" | "free_shipping";
 
-export type PaymentMethod = "cod" | "card";
+export type PaymentMethod = "cod" | "card" | "fawry" | "paymob";
+
+/** بوابات الدفع الأونلاين التي تحتاج إعادة توجيه بعد إنشاء الطلب */
+export const ONLINE_PAYMENT_METHODS: ReadonlySet<PaymentMethod> = new Set([
+  "fawry",
+  "paymob",
+]);
 
 export type CheckoutFormData = {
   contactFirstName: string;

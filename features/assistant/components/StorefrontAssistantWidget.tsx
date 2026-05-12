@@ -6,6 +6,7 @@ import { MessageCircle, X } from "lucide-react";
 import { useMobileAssistantOpenStore } from "@/components/layout/mobile-assistant-open-store";
 import { StorefrontAssistantChatPanel } from "@/features/assistant/components/StorefrontAssistantChatPanel";
 import { ROUTES } from "@/lib/constants";
+import { cn } from "@/lib/utils";
 
 const MOBILE_ASSISTANT_QUERY = "(max-width: 1023px)";
 
@@ -17,6 +18,7 @@ export function StorefrontAssistantWidget() {
   const [showIntro, setShowIntro] = useState(false);
 
   const isAssistantPage = pathname === ROUTES.ASSISTANT;
+  const isCheckout = pathname === ROUTES.CHECKOUT;
 
   useEffect(() => {
     setAssistantOpen(isAssistantPage ? false : open);
@@ -52,7 +54,10 @@ export function StorefrontAssistantWidget() {
     <section
       dir="rtl"
       aria-label="مساعد سوكاني"
-      className="fixed start-4 z-[54] bottom-mobile-floating-actions lg:bottom-8"
+      className={cn(
+        "fixed start-4 z-[54] bottom-mobile-floating-actions lg:bottom-8",
+        isCheckout && "max-lg:hidden",
+      )}
     >
       {open ? (
         <StorefrontAssistantChatPanel

@@ -24,7 +24,7 @@ export const checkoutSchema = z
     shippingPostcode: z.string(),
     shippingCountry: z.string().min(2, "Required"),
     shippingMethod: z.enum(["flat_rate", "local_pickup", "free_shipping"]),
-    paymentMethod: z.enum(["cod", "card"]),
+    paymentMethod: z.enum(["cod", "card", "fawry", "paymob"]),
     customerNote: z.string().max(500, "الملاحظة لا تتجاوز 500 حرفاً"),
     shipToDifferentAddress: z.boolean(),
     createAccount: z.boolean(),

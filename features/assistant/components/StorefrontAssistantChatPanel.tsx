@@ -334,7 +334,7 @@ export function StorefrontAssistantChatPanel({
           onChange={(event) => setInput(event.target.value.slice(0, 600))}
           rows={2}
           placeholder="اسأل عن منتج أو سعر أو فرع..."
-          className="min-h-10 flex-1 resize-none rounded-xl border border-border bg-white px-3 py-2 text-sm outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
+          className="min-h-10 flex-1 resize-none rounded-xl border border-border bg-white px-3 py-2 text-[16px] outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 md:text-sm"
         />
         <Button
           type="submit"

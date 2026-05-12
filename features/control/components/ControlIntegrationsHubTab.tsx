@@ -4,6 +4,7 @@ import { ControlHealthTab } from "@/features/control/components/ControlHealthTab
 import { ControlWooApiTab } from "@/features/control/components/ControlWooApiTab";
 import { OrderForwardingSettingsTab } from "@/features/control/components/OrderForwardingSettingsTab";
 import { StorefrontIntegrationsForm } from "@/features/control/components/StorefrontIntegrationsForm";
+import { PaymentGatewaysSettingsForm } from "@/features/control/components/PaymentGatewaysSettingsForm";
 import type { CmsSiteConfigDoc, CmsStorefrontIntegrations } from "@/schemas/cms";
 
 type Props = {
@@ -153,6 +154,24 @@ export function ControlIntegrationsHubTab({
           </p>
         </div>
         <OrderForwardingSettingsTab />
+      </section>
+
+      <section
+        className="space-y-3 border-t border-border pt-8"
+        aria-labelledby="control-payment-gateways"
+      >
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+            الخطوة 4
+          </p>
+          <h2 id="control-payment-gateways" className="font-display text-lg font-bold text-slate-900">
+            بوابات الدفع الأونلاين
+          </h2>
+          <p className="mt-1 text-sm leading-6 text-slate-600">
+            اربط فوري وباي موب من هنا — العملاء هيشوفوا الخيارات المفعّلة في صفحة الدفع تلقائياً.
+          </p>
+        </div>
+        <PaymentGatewaysSettingsForm disabled={disabled} />
       </section>
     </div>
   );

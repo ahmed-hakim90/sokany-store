@@ -16,7 +16,7 @@ export type MobileFloatingActionsProps = {
  */
 export function MobileFloatingActions({ socialLinks }: MobileFloatingActionsProps) {
   const pathname = usePathname();
-  if (pathname === ROUTES.ASSISTANT) return null;
+  if (pathname === ROUTES.ASSISTANT || pathname === ROUTES.CHECKOUT) return null;
 
   return (
     <div

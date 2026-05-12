@@ -11,6 +11,7 @@ export const CONTROL_TAB_ORDER = [
   "product3d",
   "hero",
   "home",
+  "landing",
   "branches",
   "retailers",
   "media",
@@ -37,6 +38,7 @@ export const CONTROL_TABS_EXCLUDING_ACCESS: ControlPanelTabId[] = [
   "product3d",
   "hero",
   "home",
+  "landing",
   "branches",
   "retailers",
   "media",
@@ -52,7 +54,7 @@ export type ControlTabGroup = {
 
 export const CONTROL_TAB_GROUPS: ControlTabGroup[] = [
   { label: "تشغيل سريع", ids: ["general"] },
-  { label: "محتوى الموقع", ids: ["home", "branches", "media"] },
+  { label: "محتوى الموقع", ids: ["home", "landing", "branches", "media"] },
   { label: "المنتجات", ids: ["inventory"] },
   { label: "الربط والصحة", ids: ["health"] },
   { label: "الإدارة والحماية", ids: ["notifications", "access"] },

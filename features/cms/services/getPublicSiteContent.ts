@@ -32,6 +32,8 @@ import {
   CMS_DEFAULT_HOME_PRODUCT_SECTIONS,
   CMS_DEFAULT_HOME_PRODUCT_SECTIONS_MODE,
   CMS_DEFAULT_ASSISTANT_CONFIG,
+  CMS_DEFAULT_PRODUCT_LANDING_PAGE,
+  cmsProductLandingPageSchema,
   cmsHomeProductSectionsArraySchema,
   cmsHomeProductSectionsModeSchema,
   cmsHomeFeatureVideoSchema,
@@ -41,6 +43,7 @@ import {
   type CmsHomeProductSection,
   type CmsHomeProductSectionsMode,
   type CmsAssistantConfig,
+  type CmsProductLandingPage,
   type CmsPromoFlash,
   type CmsTopAnnouncementBar,
   type CmsSiteBranding,
@@ -79,6 +82,8 @@ export type PublicSiteContent = {
   homeCategoryScroller: CmsHomeCategoryScroller;
   /** فيديو تسويقي قابل للتحكم في موضعه من لوحة التحكم. */
   homeFeatureVideo: CmsHomeFeatureVideo;
+  /** صفحة هبوط لمنتج واحد مع عداد فلاش اختياري. */
+  productLandingPage: CmsProductLandingPage;
   /** أقسام منتجات الهوم من `site_config` — الوضع الافتراضي `auto`. */
   homeProductSectionsMode: CmsHomeProductSectionsMode;
   homeProductSections: CmsHomeProductSection[];
@@ -201,6 +206,15 @@ function mergeHomeFeatureVideo(
   return r.data;
 }
 
+function mergeProductLandingPage(
+  raw: unknown,
+  fallback: CmsProductLandingPage,
+): CmsProductLandingPage {
+  const r = cmsProductLandingPageSchema.safeParse(raw);
+  if (!r.success) return fallback;
+  return r.data;
+}
+
 function mergeHomeProductSectionsMode(
   raw: unknown,
   fallback: CmsHomeProductSectionsMode,
@@ -254,6 +268,7 @@ async function fetchPublicSiteContentUncached(): Promise<PublicSiteContent> {
     headerCategoryStrip: { ...CMS_DEFAULT_HEADER_CATEGORY_STRIP },
     homeCategoryScroller: { ...CMS_DEFAULT_HOME_CATEGORY_SCROLLER },
     homeFeatureVideo: { ...CMS_DEFAULT_HOME_FEATURE_VIDEO },
+    productLandingPage: { ...CMS_DEFAULT_PRODUCT_LANDING_PAGE },
     homeProductSectionsMode: CMS_DEFAULT_HOME_PRODUCT_SECTIONS_MODE,
     homeProductSections: [...CMS_DEFAULT_HOME_PRODUCT_SECTIONS],
     assistant: { ...CMS_DEFAULT_ASSISTANT_CONFIG },
@@ -338,6 +353,13 @@ async function fetchPublicSiteContentUncached(): Promise<PublicSiteContent> {
         ? (siteParsed.data as { homeFeatureVideo?: unknown }).homeFeatureVideo
         : undefined,
       staticBundle.homeFeatureVideo,
+    );
+
+    const productLandingPage = mergeProductLandingPage(
+      siteParsed?.success
+        ? (siteParsed.data as { productLandingPage?: unknown }).productLandingPage
+        : undefined,
+      staticBundle.productLandingPage,
     );
 
     const homeProductSectionsMode = mergeHomeProductSectionsMode(
@@ -459,6 +481,7 @@ async function fetchPublicSiteContentUncached(): Promise<PublicSiteContent> {
       headerCategoryStrip,
       homeCategoryScroller,
       homeFeatureVideo,
+      productLandingPage,
       homeProductSectionsMode,
       homeProductSections,
       assistant,
@@ -479,7 +502,7 @@ async function fetchPublicSiteContentUncached(): Promise<PublicSiteContent> {
 
 const getCachedPublicSiteContent = unstable_cache(
   async () => fetchPublicSiteContentUncached(),
-  ["storefront-cms-v5"],
+  ["storefront-cms-v6"],
   { revalidate: 60, tags: [CMS_CACHE_TAG] },
 );
 

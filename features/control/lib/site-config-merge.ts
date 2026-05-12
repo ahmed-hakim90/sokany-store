@@ -6,6 +6,7 @@ import {
   CMS_DEFAULT_HOME_PRODUCT_SECTIONS,
   CMS_DEFAULT_HOME_PRODUCT_SECTIONS_MODE,
   CMS_DEFAULT_HEADER_CATEGORY_STRIP,
+  CMS_DEFAULT_PRODUCT_LANDING_PAGE,
   CMS_DEFAULT_TOP_ANNOUNCEMENT_BAR,
   cmsHomeProductSectionsArraySchema,
   cmsSiteConfigDocSchema,
@@ -87,6 +88,10 @@ export function mergeSiteConfigPatch(
       patch.homeFeatureVideo !== undefined
         ? patch.homeFeatureVideo
         : current?.homeFeatureVideo ?? CMS_DEFAULT_HOME_FEATURE_VIDEO,
+    productLandingPage:
+      patch.productLandingPage !== undefined
+        ? patch.productLandingPage
+        : current?.productLandingPage ?? CMS_DEFAULT_PRODUCT_LANDING_PAGE,
     homeProductSectionsMode:
       patch.homeProductSectionsMode ??
       current?.homeProductSectionsMode ??

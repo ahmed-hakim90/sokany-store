@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 
 /** كبسولة التبويب السفلي — ليكويد جلاس أبيض (مع ‎`headerHidden === false`‎). يطابق مكوّنات ‎`MobileTopHeader`‎ البيضاء. */
 export const mobileBottomNavGlassRestClass = cn(
-  "overflow-hidden rounded-[1.35rem] border border-white/60",
+  "overflow-hidden rounded-t-[1.35rem] border border-white/60",
   "bg-white/85",
   "shadow-[0_12px_34px_-22px_rgba(15,23,42,0.34),0_2px_8px_-6px_rgba(15,23,42,0.14)]",
   "backdrop-blur-2xl backdrop-saturate-125",
@@ -19,7 +19,7 @@ export const mobileBottomNavGlassRestClass = cn(
 
 /** وضع سكرول/طي الكروم — ليكويد فوق ‎`brand-500`‎ (مثل ‎`mobileTopHeaderGlassSurfaceCollapsedClass`‎). */
 export const mobileBottomNavGlassCollapsedClass = cn(
-  "overflow-hidden rounded-[1.35rem] border border-brand-200/55",
+  "overflow-hidden rounded-t-[1.35rem] border border-brand-200/55",
   "bg-[color-mix(in_srgb,var(--sokany-accent)_18%,white_82%)]",
   "shadow-[0_12px_34px_-22px_rgba(15,23,42,0.36),0_2px_8px_-6px_rgba(15,23,42,0.16)]",
   "backdrop-blur-2xl backdrop-saturate-125",
@@ -87,7 +87,7 @@ export const stickyAnnouncementBottomShadowWhenTopRowHiddenClass =
 /** ‎`chromeCollapsed`‎ = ‎`headerHidden`‎ من ‎`useMobileChromeCollapsedStore`‎ (مزامنة مع الهيدر المطوي). */
 export function mobileCommerceBottomNavCapsuleClassName(chromeCollapsed: boolean) {
   return cn(
-    "mx-3 mt-0 mb-1.5",
+    "mx-0 mt-0 mb-0",
     chromeCollapsed ? mobileBottomNavGlassCollapsedClass : mobileBottomNavGlassRestClass,
     mobileCommerceCapsulePaddingXClass,
   );

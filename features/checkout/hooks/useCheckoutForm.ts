@@ -126,7 +126,7 @@ export function useCheckoutForm() {
       checkoutOrder.mutate(
         { values, items, couponCode: appliedCoupon ?? undefined, firebaseUid },
         {
-          onSuccess: (order) => {
+          onSuccess: ({ order, paymentRedirectUrl }) => {
             const recipientFirstName = values.shipToDifferentAddress
               ? values.shippingFirstName
               : values.contactFirstName;
@@ -169,6 +169,13 @@ export function useCheckoutForm() {
             setValues(defaultCheckoutFormValues);
             setErrors({});
             setAppliedCoupon(null);
+
+            if (paymentRedirectUrl) {
+              /* بوابة أونلاين: إعادة توجيه كاملة لصفحة الدفع */
+              window.location.href = paymentRedirectUrl;
+              return;
+            }
+
             router.push(
               `${ROUTES.ORDER_CONFIRMATION}?id=${encodeURIComponent(String(order.id))}`,
             );

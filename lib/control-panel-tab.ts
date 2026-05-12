@@ -13,5 +13,8 @@ export function hasControlPanelTab(
     return true;
   }
   const list = session.tabs as string[];
+  if (canonical === "landing" && list.includes("home")) {
+    return true;
+  }
   return list.includes(canonical) || list.includes(tab);
 }

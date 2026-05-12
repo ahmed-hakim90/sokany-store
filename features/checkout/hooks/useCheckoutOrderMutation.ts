@@ -10,10 +10,43 @@ import { mapPayloadIssuesToCheckoutFields } from "@/features/checkout/lib/map-or
 import { clearCheckoutAmendSession, readCheckoutAmendSession } from "@/features/checkout/lib/checkout-amend-session";
 import { toCreateOrderPayload } from "@/features/checkout/lib/to-create-order-payload";
 import type { CheckoutFormData } from "@/features/checkout/types";
+import { ONLINE_PAYMENT_METHODS } from "@/features/checkout/types";
 import type { CartItem } from "@/features/cart/types";
 import { amendGuestOrder } from "@/features/orders/services/amendGuestOrder";
 import { createOrder } from "@/features/orders/services/createOrder";
 import { createOrderPayloadSchema } from "@/schemas/wordpress";
+import { apiClient } from "@/lib/api";
+
+async function initiateOnlinePayment(
+  paymentMethod: "fawry" | "paymob",
+  params: {
+    orderId: number;
+    orderTotal: number;
+    customerName: string;
+    customerPhone: string;
+    customerEmail: string;
+    shippingCity?: string;
+    shippingState?: string;
+  },
+): Promise<string> {
+  const endpoint = paymentMethod === "fawry"
+    ? "/payments/fawry"
+    : "/payments/paymob";
+  const res = await apiClient.post(endpoint, {
+    orderId: params.orderId,
+    orderTotal: params.orderTotal,
+    customerName: params.customerName,
+    customerPhone: params.customerPhone,
+    customerEmail: params.customerEmail,
+    ...(paymentMethod === "paymob"
+      ? { shippingCity: params.shippingCity, shippingState: params.shippingState }
+      : {}),
+  });
+  const data = res.data as { redirectUrl?: string; iframeUrl?: string };
+  const url = data.redirectUrl ?? data.iframeUrl;
+  if (!url) throw new Error("لم يتم استلام رابط الدفع من البوابة");
+  return url;
+}
 
 export type CheckoutOrderMutationInput = {
   values: CheckoutFormData;
@@ -21,6 +54,12 @@ export type CheckoutOrderMutationInput = {
   couponCode?: string;
   /** اختياري — مثلاً بعد مصادقة هاتف مستقبلية */
   firebaseUid?: string;
+};
+
+export type CheckoutOrderMutationResult = {
+  order: Awaited<ReturnType<typeof createOrder>>;
+  /** رابط بوابة الدفع الأونلاين — موجود فقط لفوري وباي موب */
+  paymentRedirectUrl?: string;
 };
 
 export class CheckoutOrderMutationError extends Error {
@@ -61,7 +100,7 @@ function checkoutFieldErrors(
 }
 
 export function useCheckoutOrderMutation() {
-  return useMutation({
+  return useMutation<CheckoutOrderMutationResult, Error, CheckoutOrderMutationInput>({
     mutationKey: ["checkout", "createOrder"],
     mutationFn: async ({ values, items, couponCode, firebaseUid }: CheckoutOrderMutationInput) => {
       if (items.length === 0) {
@@ -154,7 +193,26 @@ export function useCheckoutOrderMutation() {
         }
       }
 
-      return order;
+      if (ONLINE_PAYMENT_METHODS.has(data.paymentMethod)) {
+        const orderTotal =
+          typeof order.total === "number"
+            ? order.total
+            : parseFloat(String(order.total) || "0");
+
+        const pm = data.paymentMethod as "fawry" | "paymob";
+        const paymentRedirectUrl = await initiateOnlinePayment(pm, {
+          orderId: order.id,
+          orderTotal,
+          customerName: `${data.contactFirstName} ${data.contactLastName}`.trim(),
+          customerPhone: data.contactPhone,
+          customerEmail: data.contactEmail,
+          shippingCity: data.shippingCity,
+          shippingState: data.shippingState,
+        });
+        return { order, paymentRedirectUrl };
+      }
+
+      return { order };
     },
   });
 }

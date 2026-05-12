@@ -110,7 +110,7 @@ export function BottomNavInner() {
 
   const tabClass = (active: boolean) =>
     cn(
-      "flex min-h-[3.25rem] w-full flex-col items-center justify-center gap-0.5 rounded-2xl border border-transparent px-0.5 py-1 text-xs leading-tight transition-[color,background-color,transform] duration-200 ease-out active:scale-[0.98] motion-reduce:transition-none",
+      "flex min-h-[3.75rem] w-full flex-col items-center justify-center gap-0.5 rounded-2xl border border-transparent px-0.5 py-1 text-xs leading-tight transition-[color,background-color,transform] duration-200 ease-out active:scale-[0.98] motion-reduce:transition-none",
       active
         ? "text-brand-950"
         : headerHidden
@@ -131,7 +131,7 @@ export function BottomNavInner() {
       aria-label="التنقل السفلي"
       className="bg-transparent"
     >
-      <ul className="mx-auto flex w-full max-w-none items-center justify-between gap-0 px-0.5 py-1.5 sm:px-1">
+      <ul className="mx-auto flex w-full max-w-none items-center justify-between gap-0 px-0.5 py-2 sm:px-1">
         {linkItems.map(({ href, label, key, icon: Icon }) => {
           const active =
             key === "home"

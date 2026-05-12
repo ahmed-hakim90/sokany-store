@@ -10,6 +10,7 @@ import {
 } from "@/features/control/lib/control-tabs";
 import { ControlAccessTab } from "@/features/control/components/ControlAccessTab";
 import { ControlIntegrationsHubTab } from "@/features/control/components/ControlIntegrationsHubTab";
+import { ControlLandingPageTab } from "@/features/control/components/ControlLandingPageTab";
 import { ControlProductsTab } from "@/features/control/components/ControlProductsTab";
 import {
   useControlSession,
@@ -63,14 +64,17 @@ import type {
   CmsRetailersDoc,
   CmsSpotlightsDoc,
   CmsHomeFeatureVideo,
+  CmsProductLandingPage,
 } from "@/schemas/cms";
 import {
   CMS_DEFAULT_ASSISTANT_CONFIG,
   CMS_DEFAULT_HOME_FEATURE_VIDEO,
+  CMS_DEFAULT_PRODUCT_LANDING_PAGE,
   CMS_DEFAULT_TOP_ANNOUNCEMENT_BAR,
   CMS_DEFAULT_HEADER_CATEGORY_STRIP,
   CMS_DEFAULT_HOME_CATEGORY_SCROLLER,
   cmsHomeFeatureVideoSchema,
+  cmsProductLandingPageSchema,
   cmsHeaderCategoryStripSchema,
   cmsHomeCategoryScrollerSchema,
   cmsHomeHeroDocSchema,
@@ -129,6 +133,7 @@ const BASE_TAB_LIST: { id: ControlPanelTabId; label: string }[] = [
   { id: "product3d", label: "المنتجات والمخزون و3D" },
   { id: "hero", label: "محتوى الواجهة" },
   { id: "home", label: "محتوى الواجهة" },
+  { id: "landing", label: "صفحة هبوط منتج" },
   { id: "branches", label: "الفروع والموزعين" },
   { id: "retailers", label: "الفروع والموزعين" },
   { id: "media", label: "الوسائط" },
@@ -141,6 +146,7 @@ const BASE_TAB_LIST: { id: ControlPanelTabId; label: string }[] = [
 const NAV_TAB_IDS: ControlPanelTabId[] = [
   "general",
   "home",
+  "landing",
   "branches",
   "media",
   "inventory",
@@ -228,6 +234,15 @@ const TAB_EXPLAINERS: Record<
     badge: "الواجهة",
     icon: Home,
   },
+  landing: {
+    eyebrow: "عرض فلاش",
+    title: "صفحة هبوط لمنتج واحد",
+    description:
+      "اختار منتج من WooCommerce وافتح له صفحة بيع مركّزة مع عداد فلاش ونسخة تسويقية من لوحة التحكم.",
+    bullets: ["اختيار المنتج من التحكم", "عداد عرض مستقل", "رابط قابل للمشاركة"],
+    badge: "Landing",
+    icon: Megaphone,
+  },
   branches: {
     eyebrow: "أماكن الوصول",
     title: "الفروع والموزعين",
@@ -306,6 +321,7 @@ function buildNavTabList(
   const fromBase = (id: ControlPanelTabId) => BASE_TAB_LIST.find((b) => b.id === id)!;
   const toVisibleItems = (ids: ControlPanelTabId[]) => {
     const visible = new Set(ids.map(getVisibleTabId));
+    if (visible.has("home")) visible.add("landing");
     return NAV_TAB_IDS.filter((id) => visible.has(id)).map((id) => fromBase(id));
   };
   if (scope === "full" && s) {
@@ -967,6 +983,12 @@ export function ControlPanel() {
   const homeFeatureVideo: CmsHomeFeatureVideo = homeFeatureVideoParsed.success
     ? homeFeatureVideoParsed.data
     : CMS_DEFAULT_HOME_FEATURE_VIDEO;
+  const productLandingPageParsed = cmsProductLandingPageSchema.safeParse(
+    site?.productLandingPage ?? CMS_DEFAULT_PRODUCT_LANDING_PAGE,
+  );
+  const productLandingPage: CmsProductLandingPage = productLandingPageParsed.success
+    ? productLandingPageParsed.data
+    : CMS_DEFAULT_PRODUCT_LANDING_PAGE;
 
   const homeHeroParsed = cmsHomeHeroDocSchema.safeParse(bundle.home_hero ?? { slides: [] });
   const homeHero: CmsHomeHeroDoc = homeHeroParsed.success
@@ -1465,6 +1487,15 @@ export function ControlPanel() {
       ) : null}
 
             {tab === "inventory" ? <ControlProductsTab /> : null}
+
+            {tab === "landing" ? (
+              <ControlLandingPageTab
+                key={JSON.stringify(productLandingPage)}
+                initial={productLandingPage}
+                disabled={saving === "site_config"}
+                onSave={(doc) => void saveSiteConfig({ productLandingPage: doc })}
+              />
+            ) : null}
 
       {tab === "home" ? (
         <section className="space-y-6">
