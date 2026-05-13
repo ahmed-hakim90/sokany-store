@@ -37,6 +37,7 @@ export function CheckoutForm() {
     cartEmpty,
     isSubmitting,
     loadingOverlayVisible,
+    onlinePaymentSelected,
     update,
     updatePaymentMethod,
     applyCoupon,
@@ -103,7 +104,11 @@ export function CheckoutForm() {
         className="h-14 font-bold shadow-[0_14px_34px_-18px_rgba(218,255,0,0.85)]"
         onClick={() => void submitOrder()}
       >
-        {isSubmitting ? "جاري تأكيد الطلب…" : "تأكيد الطلب والدفع"}
+        {isSubmitting
+          ? onlinePaymentSelected
+            ? "جاري تجهيز صفحة الدفع…"
+            : "جاري تأكيد الطلب…"
+          : "تأكيد الطلب والدفع"}
       </Button>
       <CheckoutSupportFooter />
       <CheckoutFooterMeta />
@@ -112,7 +117,10 @@ export function CheckoutForm() {
 
   return (
     <>
-      <CheckoutLoadingOverlay visible={loadingOverlayVisible} />
+      <CheckoutLoadingOverlay
+        visible={loadingOverlayVisible}
+        onlinePayment={onlinePaymentSelected}
+      />
       {/* حاوية مركزية: ضيقة على الجوال/تابلت، تتسع وتتحول لصف من عمودين من lg */}
       <div
         className="mx-auto flex min-w-0 max-w-none flex-col gap-3 pb-32 sm:max-w-xl md:max-w-2xl lg:max-w-6xl lg:flex-row lg:items-start lg:gap-10 lg:pb-10"

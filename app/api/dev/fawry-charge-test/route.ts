@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
       returnUrl: toAbsoluteSiteUrl(
         `/api/payments/fawry/callback?ref=${encodeURIComponent(merchantRefNum)}`,
       ),
-      paymentMethod: config.hostedPaymentMethod ?? "PayAtFawry",
+      ...(config.hostedPaymentMethod ? { paymentMethod: config.hostedPaymentMethod } : {}),
     });
     return NextResponse.json({ ok: true, result });
   } catch (e) {
@@ -58,6 +58,7 @@ export async function GET(request: NextRequest) {
           httpStatus: e.httpStatus,
           fawryStatusCode: e.fawryStatusCode,
           statusDescription: e.statusDescription,
+          classification: e.classification,
         },
         { status: 502 },
       );

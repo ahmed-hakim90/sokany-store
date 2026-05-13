@@ -115,7 +115,6 @@ export function ProductDetail({
                 modelSrc={product3DModel.src}
                 productName={product.name}
                 posterSrc={product3DPosterSrc}
-                className="h-12 min-w-0 flex-1 justify-center rounded-xl border-slate-200 bg-slate-950 px-3 text-sm text-white shadow-sm hover:bg-slate-800"
               />
             ) : null
           }

@@ -37,20 +37,20 @@ export function Product3DButton({
         variant="dark"
         size="lg"
         className={cn(
-          "group h-[58px] min-w-0 w-full max-w-[260px] overflow-hidden border border-transparent bg-slate-950 px-4 text-sm font-extrabold text-white shadow-[0_18px_50px_-30px_rgba(15,23,42,0.75)] transition-[transform,background-color,border-color,box-shadow] hover:-translate-y-0.5 hover:bg-slate-900",
+          "group h-[58px] w-full min-w-[190px] max-w-[260px] justify-center overflow-hidden rounded-full border border-white/10 bg-slate-950 px-4 text-sm font-extrabold text-white shadow-[0_20px_54px_-24px_rgba(15,23,42,0.9)] ring-1 ring-white/10 transition-[transform,background-color,border-color,box-shadow] hover:-translate-y-0.5 hover:bg-slate-900 hover:shadow-[0_24px_64px_-28px_rgba(15,23,42,0.95)]",
           className,
         )}
         onClick={() => setOpen(true)}
         aria-haspopup="dialog"
       >
         <span
-          className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-950 text-white transition-transform group-hover:scale-105"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/10 text-white ring-1 ring-white/10 transition-transform group-hover:scale-105"
           aria-hidden
         >
           <OrbitIcon />
         </span>
         <span className="flex min-w-0 flex-col items-start leading-none">
-          <span>360° View</span>
+          <span className="text-[15px]">360° View</span>
           <span className="mt-1 text-[10px] font-bold text-white/75">
             عرض ثلاثي الأبعاد
           </span>

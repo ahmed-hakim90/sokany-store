@@ -13,3 +13,12 @@ Before changing storefront branding, Arabic/Latin wordmarks, `metadata`, Open Gr
 3. [`docs/seo-system.md`](docs/seo-system.md) + [`docs/seo-reference.md`](docs/seo-reference.md) — metadata map, JSON-LD, sitemap/robots.
 
 **Architecture / Woo / PWA / deploy:** see [`docs/architecture.md`](docs/architecture.md), [`docs/woo-integration.md`](docs/woo-integration.md), [`docs/caching-strategy.md`](docs/caching-strategy.md), [`docs/pwa-behavior.md`](docs/pwa-behavior.md), [`docs/deployment-runbook.md`](docs/deployment-runbook.md), [`docs/frontend-guidelines.md`](docs/frontend-guidelines.md), [`docs/image-specs.md`](docs/image-specs.md) (also linked from [`README.md`](README.md) “Architecture & operations map”).
+
+
+{
+  "name": "grep_search",
+  "parameters": {
+    "query": "performance|slow|optimization"
+  }
+}
+

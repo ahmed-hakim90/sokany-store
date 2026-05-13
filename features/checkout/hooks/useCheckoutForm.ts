@@ -32,6 +32,11 @@ import type {
   CheckoutFormData,
   CheckoutSuccessSnapshot,
 } from "@/features/checkout/types";
+
+function isOnlinePaymentMethod(paymentMethod: CheckoutFormData["paymentMethod"]): boolean {
+  return paymentMethod === "fawry" || paymentMethod === "paymob";
+}
+
 function checkoutFieldErrorsFromSchema(
   error: ZodError,
 ): Partial<Record<keyof CheckoutFormData, string>> {
@@ -94,6 +99,7 @@ export function useCheckoutForm() {
   const orderTotal = totalPrice + shippingFee;
   const shippingMethodTitle = CHECKOUT_SHIPPING_DISPLAY_LABEL;
   const cartEmpty = items.length === 0;
+  const onlinePaymentSelected = isOnlinePaymentMethod(values.paymentMethod);
 
   const update = useCallback(<K extends keyof CheckoutFormData>(
     key: K,
@@ -186,7 +192,7 @@ export function useCheckoutForm() {
 
             if (paymentRedirectUrl) {
               /* بوابة أونلاين: إعادة توجيه كاملة لصفحة الدفع */
-              window.location.href = paymentRedirectUrl;
+              window.location.assign(paymentRedirectUrl);
               return;
             }
 
@@ -246,6 +252,7 @@ export function useCheckoutForm() {
     cartEmpty,
     isSubmitting: checkoutOrder.isPending,
     loadingOverlayVisible: checkoutOrder.isPending,
+    onlinePaymentSelected,
     update,
     updatePaymentMethod,
     applyCoupon,

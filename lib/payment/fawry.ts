@@ -1,6 +1,6 @@
 import "server-only";
 
-import { createHash } from "crypto";
+import { createHash, randomUUID } from "crypto";
 import { z } from "zod";
 import type { FawryConfig } from "@/lib/payment-gateways-store";
 import {
@@ -11,7 +11,9 @@ import {
 const FAWRY_PRODUCTION_URL = "https://atfawry.com/ECommerceWeb/Fawry/payments/charge";
 const FAWRY_SANDBOX_URL =
   "https://atfawry.fawrystaging.com/ECommerceWeb/Fawry/payments/charge";
-const FAWRY_REQUEST_TIMEOUT_MS = 10_000;
+const DEFAULT_FAWRY_REQUEST_TIMEOUT_MS = 45_000;
+const MAX_FAWRY_REQUEST_TIMEOUT_MS = 120_000;
+const FAWRY_RESPONSE_LOG_LIMIT = 16_000;
 const SEEN_MERCHANT_REFS = new Set<string>();
 
 export type FawryHostedPaymentMethod =
@@ -71,8 +73,9 @@ const fawryChargeResponseSchema = z.object({
   paymentURL: z.string().optional(),
   nextAction: z
     .object({ redirectUrl: z.string().optional(), type: z.string().optional() })
+    .passthrough()
     .optional(),
-});
+}).passthrough();
 
 export type FawryChargeResponse = z.infer<typeof fawryChargeResponseSchema>;
 
@@ -97,6 +100,7 @@ export class FawryChargeError extends Error {
   readonly httpStatus?: number;
   readonly fawryStatusCode?: number;
   readonly statusDescription?: string;
+  readonly classification?: string;
 
   constructor(params: {
     code: FawryChargeErrorCode;
@@ -105,6 +109,7 @@ export class FawryChargeError extends Error {
     httpStatus?: number;
     fawryStatusCode?: number;
     statusDescription?: string;
+    classification?: string;
     cause?: unknown;
   }) {
     super(params.message, { cause: params.cause });
@@ -114,6 +119,7 @@ export class FawryChargeError extends Error {
     this.httpStatus = params.httpStatus;
     this.fawryStatusCode = params.fawryStatusCode;
     this.statusDescription = params.statusDescription;
+    this.classification = params.classification;
   }
 }
 
@@ -148,6 +154,14 @@ function getFawryEndpoint(config: FawryConfig): string {
     .replace(/\/$/, "");
 }
 
+function getFawryRequestTimeoutMs(): number {
+  const raw = process.env.FAWRY_REQUEST_TIMEOUT_MS?.trim();
+  if (!raw) return DEFAULT_FAWRY_REQUEST_TIMEOUT_MS;
+  const parsed = Number(raw);
+  if (!Number.isFinite(parsed) || parsed <= 0) return DEFAULT_FAWRY_REQUEST_TIMEOUT_MS;
+  return Math.min(Math.round(parsed), MAX_FAWRY_REQUEST_TIMEOUT_MS);
+}
+
 function warnIfEnvironmentMismatch(endpoint: string, sandbox: boolean): string | null {
   const host = (() => {
     try {
@@ -163,6 +177,61 @@ function warnIfEnvironmentMismatch(endpoint: string, sandbox: boolean): string |
     return "production-config-uses-staging-fawry-url";
   }
   return null;
+}
+
+function productionReturnUrlWarning(returnUrl: string): string | null {
+  if (process.env.NODE_ENV !== "production" && process.env.VERCEL_ENV !== "production") {
+    return null;
+  }
+  try {
+    return new URL(returnUrl).protocol === "https:"
+      ? null
+      : "production-return-url-is-not-https";
+  } catch {
+    return "production-return-url-is-invalid";
+  }
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value && typeof value === "object" && !Array.isArray(value));
+}
+
+function stringFromRecord(record: Record<string, unknown>, key: string): string | undefined {
+  const value = record[key];
+  if (typeof value === "string" && value.trim()) return value.trim();
+  if (typeof value === "number") return String(value);
+  return undefined;
+}
+
+export function extractFawryHostedRedirectUrl(data: unknown): string | undefined {
+  if (!isRecord(data)) return undefined;
+
+  const directKeys = [
+    "redirectUrl",
+    "paymentUrl",
+    "paymentURL",
+    "payment_url",
+    "paymentLink",
+    "payment_link",
+    "checkoutUrl",
+    "checkoutURL",
+    "checkout_url",
+  ];
+  for (const key of directKeys) {
+    const value = stringFromRecord(data, key);
+    if (value) return value;
+  }
+
+  const nestedKeys = ["nextAction", "data", "result"];
+  for (const key of nestedKeys) {
+    const nested = data[key];
+    if (isRecord(nested)) {
+      const value = extractFawryHostedRedirectUrl(nested);
+      if (value) return value;
+    }
+  }
+
+  return undefined;
 }
 
 function classifyFawryFailure(
@@ -234,7 +303,9 @@ export async function initiateFawryCharge(
   paymentMethod?: FawryHostedPaymentMethod;
   referenceNumber?: string;
 }> {
+  const fawryRequestId = randomUUID();
   const endpoint = getFawryEndpoint(config);
+  const timeoutMs = getFawryRequestTimeoutMs();
   const merchantCode = config.merchantCode.trim();
   const secureKey = config.secureKey.trim();
   const merchantRefNum = req.merchantRefNum.trim();
@@ -262,6 +333,7 @@ export async function initiateFawryCharge(
 
   const warnings = [
     warnIfEnvironmentMismatch(endpoint, config.sandbox),
+    productionReturnUrlWarning(req.returnUrl),
     SEEN_MERCHANT_REFS.has(merchantRefNum) ? "merchantRefNum-seen-before-in-this-runtime" : null,
     !merchantCode ? "missing-merchant-code" : null,
     !secureKey ? "missing-secure-key" : null,
@@ -270,6 +342,22 @@ export async function initiateFawryCharge(
     !isValidEgyptianMobile(customerMobile) ? "invalid-egyptian-mobile-format" : null,
     !customerEmail ? "empty-customer-email" : null,
   ].filter(Boolean);
+
+  if (productionReturnUrlWarning(req.returnUrl)) {
+    logFawryEvent("error", "invalid production return url", {
+      fawryRequestId,
+      endpoint,
+      merchantRefNum,
+      returnUrl: req.returnUrl,
+      warning: productionReturnUrlWarning(req.returnUrl),
+    });
+    throw new FawryChargeError({
+      code: "environment_mismatch",
+      message: `Invalid production Fawry returnUrl: ${req.returnUrl}`,
+      userMessage: "رابط الرجوع من فوري غير مضبوط للإنتاج. تواصل مع الدعم.",
+      classification: "production_return_url_invalid",
+    });
+  }
 
   if (!merchantCode || !secureKey) {
     throw new FawryChargeError({
@@ -343,13 +431,23 @@ export async function initiateFawryCharge(
   };
 
   logFawryEvent(warnings.length > 0 ? "warn" : "info", "charge request", {
+    fawryRequestId,
     endpoint,
+    endpointHost: (() => {
+      try {
+        return new URL(endpoint).host;
+      } catch {
+        return "invalid-url";
+      }
+    })(),
     environmentMode: config.sandbox ? "sandbox" : "production",
     merchantCode,
     merchantRefNum,
     amount: paymentAmountText,
     currencyCode: "EGP",
+    timeoutMs,
     paymentMethod: body.paymentMethod,
+    paymentMethodSource: body.paymentMethod ? "configured" : "omitted",
     returnUrl: body.returnUrl,
     customer: {
       name: maskMiddle(body.customerName, 2),
@@ -363,7 +461,7 @@ export async function initiateFawryCharge(
   });
 
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), FAWRY_REQUEST_TIMEOUT_MS);
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
   let res: Response;
   let rawResponseBody = "";
   try {
@@ -378,17 +476,19 @@ export async function initiateFawryCharge(
   } catch (e) {
     const timedOut = e instanceof Error && e.name === "AbortError";
     logFawryEvent("error", timedOut ? "charge timeout" : "charge network error", {
+      fawryRequestId,
       endpoint,
       merchantRefNum,
       amount: paymentAmountText,
       paymentMethod: body.paymentMethod,
+      timeoutMs,
       error: e instanceof Error ? e.message : String(e),
     });
     throw new FawryChargeError({
       code: timedOut ? "network_timeout" : "network_error",
       message: timedOut ? "Fawry request timed out" : "Fawry network request failed",
       userMessage: timedOut
-        ? "انتهت مهلة الاتصال بفوري. حاول مرة أخرى."
+        ? "استغرقت فوري وقتاً أطول من المتوقع. حاول مرة أخرى بعد لحظات."
         : "تعذر الاتصال بفوري حالياً. حاول مرة أخرى.",
       cause: e,
     });
@@ -401,10 +501,11 @@ export async function initiateFawryCharge(
     responseJson = rawResponseBody ? JSON.parse(rawResponseBody) : {};
   } catch (e) {
     logFawryEvent("error", "charge non-json response", {
+      fawryRequestId,
       endpoint,
       merchantRefNum,
       httpStatus: res.status,
-      rawResponseBody: rawResponseBody.slice(0, 1000),
+      rawResponseBody: rawResponseBody.slice(0, FAWRY_RESPONSE_LOG_LIMIT),
     });
     throw new FawryChargeError({
       code: "invalid_response",
@@ -418,10 +519,11 @@ export async function initiateFawryCharge(
   const parsed = fawryChargeResponseSchema.safeParse(responseJson);
   if (!parsed.success) {
     logFawryEvent("error", "charge invalid response schema", {
+      fawryRequestId,
       endpoint,
       merchantRefNum,
       httpStatus: res.status,
-      rawResponseBody: rawResponseBody.slice(0, 1000),
+      rawResponseBody: rawResponseBody.slice(0, FAWRY_RESPONSE_LOG_LIMIT),
       parsedJson: responseJson,
       issues: parsed.error.flatten(),
     });
@@ -434,15 +536,30 @@ export async function initiateFawryCharge(
   }
 
   const data = parsed.data;
+  const redirectUrl = extractFawryHostedRedirectUrl(data);
+
   logFawryEvent("info", "charge response", {
+    fawryRequestId,
     endpoint,
     merchantRefNum,
     httpStatus: res.status,
-    rawResponseBody: rawResponseBody.slice(0, 2000),
+    statusCode: data.statusCode,
+    statusDescription: data.statusDescription,
+    hasPaymentUrl: Boolean(redirectUrl),
+    rawResponseBody: rawResponseBody.slice(0, FAWRY_RESPONSE_LOG_LIMIT),
     parsedJson: data,
   });
 
   if (!res.ok) {
+    logFawryEvent("error", "charge http failure", {
+      fawryRequestId,
+      endpoint,
+      merchantRefNum,
+      httpStatus: res.status,
+      statusCode: data.statusCode,
+      statusDescription: data.statusDescription,
+      rawResponseBody: rawResponseBody.slice(0, FAWRY_RESPONSE_LOG_LIMIT),
+    });
     throw new FawryChargeError({
       code: "fawry_unavailable",
       message: `Fawry API HTTP ${res.status}: ${rawResponseBody.slice(0, 200)}`,
@@ -455,6 +572,16 @@ export async function initiateFawryCharge(
 
   if (data.statusCode !== undefined && data.statusCode !== 200) {
     const classified = classifyFawryFailure(data);
+    logFawryEvent("error", "charge status failure", {
+      fawryRequestId,
+      endpoint,
+      merchantRefNum,
+      httpStatus: res.status,
+      statusCode: data.statusCode,
+      statusDescription: data.statusDescription,
+      classification: classified.code,
+      rawResponseBody: rawResponseBody.slice(0, FAWRY_RESPONSE_LOG_LIMIT),
+    });
     throw new FawryChargeError({
       code: classified.code,
       message: `Fawry charge failed (${data.statusCode}): ${
@@ -464,21 +591,21 @@ export async function initiateFawryCharge(
       httpStatus: res.status,
       fawryStatusCode: data.statusCode,
       statusDescription: data.statusDescription,
+      classification: classified.code,
     });
   }
 
-  const redirectUrl =
-    data.redirectUrl ?? data.nextAction?.redirectUrl ?? data.paymentUrl ?? data.paymentURL;
-
   if (!redirectUrl) {
     logFawryEvent("error", "hosted charge missing payment url", {
+      fawryRequestId,
       endpoint,
       merchantRefNum,
       httpStatus: res.status,
       statusCode: data.statusCode,
       statusDescription: data.statusDescription,
       parsedJson: data,
-      rawResponseBody: rawResponseBody.slice(0, 2000),
+      rawResponseBody: rawResponseBody.slice(0, FAWRY_RESPONSE_LOG_LIMIT),
+      classification: "missing_redirect_field",
     });
     throw new FawryChargeError({
       code: "missing_payment_url",
@@ -487,6 +614,7 @@ export async function initiateFawryCharge(
       httpStatus: res.status,
       fawryStatusCode: data.statusCode,
       statusDescription: data.statusDescription,
+      classification: "missing_redirect_field",
     });
   }
 

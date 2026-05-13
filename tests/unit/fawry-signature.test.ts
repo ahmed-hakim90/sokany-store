@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
 
-import { initiateFawryCharge } from "@/lib/payment/fawry";
+import { extractFawryHostedRedirectUrl, initiateFawryCharge } from "@/lib/payment/fawry";
 
 describe("initiateFawryCharge", () => {
   afterEach(() => {
@@ -62,5 +62,50 @@ describe("initiateFawryCharge", () => {
       "https://atfawry.fawrystaging.com/ECommerceWeb/Fawry/payments/charge",
       expect.objectContaining({ method: "POST" }),
     );
+  });
+
+  it("omits paymentMethod when the hosted request is not restricted", async () => {
+    vi.spyOn(console, "info").mockImplementation(() => undefined);
+    vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    let outboundBody: Record<string, unknown> | undefined;
+    vi.stubGlobal("fetch", vi.fn(async (_url: string | URL | Request, init?: RequestInit) => {
+      outboundBody = JSON.parse(String(init?.body));
+      return new Response(
+        JSON.stringify({
+          statusCode: 200,
+          nextAction: { redirectUrl: "https://atfawry.fawrystaging.com/checkout/ref-456" },
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } },
+      );
+    }));
+
+    const result = await initiateFawryCharge(
+      {
+        enabled: true,
+        merchantCode: "merchant-code",
+        secureKey: "secure-key",
+        sandbox: true,
+      },
+      {
+        merchantRefNum: "ref-456",
+        customerName: "Test Customer",
+        customerMobile: "01000000000",
+        customerEmail: "test@example.com",
+        returnUrl: "https://sokany-eg.com/api/payments/fawry/callback?ref=ref-456",
+        chargeItems: [
+          { itemId: "sku-12", description: "First", price: 10, quantity: 1 },
+        ],
+      },
+    );
+
+    expect(outboundBody).not.toHaveProperty("paymentMethod");
+    expect(result.redirectUrl).toBe("https://atfawry.fawrystaging.com/checkout/ref-456");
+  });
+
+  it("extracts hosted redirect URL aliases from passthrough response shapes", () => {
+    expect(extractFawryHostedRedirectUrl({
+      statusCode: 200,
+      result: { checkout_url: "https://atfawry.fawrystaging.com/checkout/alias" },
+    })).toBe("https://atfawry.fawrystaging.com/checkout/alias");
   });
 });

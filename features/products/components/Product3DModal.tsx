@@ -76,25 +76,37 @@ export function Product3DModal({
         aria-modal="true"
         aria-labelledby={titleId}
         className={cn(
-          "relative z-[1] flex h-screen-dvh w-full max-w-[100vw] flex-col overflow-hidden bg-white text-slate-950 shadow-[0_30px_90px_-36px_rgba(15,23,42,0.85)]",
+          "relative z-[1] flex h-screen-dvh w-full max-w-[100vw] flex-col overflow-hidden overflow-x-hidden bg-white text-slate-950 shadow-[0_30px_90px_-36px_rgba(15,23,42,0.85)]",
           "sm:h-auto sm:max-h-[min(92svh,860px)] sm:max-w-6xl sm:rounded-[1.75rem] sm:border sm:border-white/80",
         )}
       >
-        <div className="sticky top-0 z-20 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-start gap-3 border-b border-slate-100 bg-white px-4 pb-3 pt-[max(1rem,env(safe-area-inset-top))] shadow-sm sm:px-5 sm:pt-4">
-          <div className="flex min-w-0 items-center gap-2">
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-900 shadow-sm">
-              <BoxIcon />
-            </span>
-            <div className="min-w-0">
-              <p className="text-sm font-bold text-slate-900">3D View</p>
-              <p className="hidden text-xs text-slate-500 sm:block">Interactive preview</p>
+        <div className="sticky top-0 z-20 flex flex-col gap-3 overflow-x-hidden border-b border-slate-100 bg-white px-4 pb-3 pt-[max(1rem,env(safe-area-inset-top))] shadow-sm sm:px-5 sm:pt-4">
+          <div className="flex min-w-0 items-center justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-2">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-900 shadow-sm">
+                <BoxIcon />
+              </span>
+              <div className="min-w-0">
+                <p className="text-sm font-bold text-slate-900">3D View</p>
+                <p className="hidden text-xs text-slate-500 sm:block">Interactive preview</p>
+              </div>
             </div>
+
+            <button
+              ref={closeRef}
+              type="button"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-900 shadow-sm transition-colors hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500"
+              onClick={onClose}
+              aria-label="إغلاق"
+            >
+              <CloseIcon />
+            </button>
           </div>
 
-          <div className="min-w-0 text-center">
+          <div className="min-w-0 px-1 text-center sm:px-12">
             <h2
               id={titleId}
-              className="truncate font-display text-lg font-black tracking-tight text-slate-950 sm:text-2xl"
+              className="line-clamp-2 overflow-hidden break-words font-display text-lg font-black leading-tight tracking-tight text-slate-950 sm:text-2xl"
             >
               {productName}
             </h2>
@@ -102,19 +114,9 @@ export function Product3DModal({
               Explore the product in 3D
             </p>
           </div>
-
-          <button
-            ref={closeRef}
-            type="button"
-            className="ms-auto flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-900 shadow-sm transition-colors hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500"
-            onClick={onClose}
-            aria-label="إغلاق"
-          >
-            <CloseIcon />
-          </button>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto bg-[radial-gradient(circle_at_50%_0%,rgba(226,232,240,0.7),transparent_42%),linear-gradient(180deg,#ffffff,#f8fafc)] px-3 py-3 pb-[env(safe-area-inset-bottom)] sm:px-5 sm:py-5">
+        <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden bg-[radial-gradient(circle_at_50%_0%,rgba(226,232,240,0.7),transparent_42%),linear-gradient(180deg,#ffffff,#f8fafc)] px-3 py-3 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-5 sm:py-5">
           <Product3DViewer
             modelSrc={modelSrc}
             productName={productName}

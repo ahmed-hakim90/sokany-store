@@ -23,7 +23,6 @@ export function Product3DViewer({
   const [modelLoaded, setModelLoaded] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [progress, setProgress] = useState(0);
-  const [slowNetwork, setSlowNetwork] = useState(false);
   const [autoRotate, setAutoRotate] = useState(true);
   const [expanded, setExpanded] = useState(false);
 
@@ -46,12 +45,6 @@ export function Product3DViewer({
   }, []);
 
   useEffect(() => {
-    if (!viewerReady) return;
-    const timeout = window.setTimeout(() => setSlowNetwork(true), 4500);
-    return () => window.clearTimeout(timeout);
-  }, [viewerReady]);
-
-  useEffect(() => {
     const viewer = viewerRef.current;
     if (!viewer || !viewerReady) return;
 
@@ -59,11 +52,9 @@ export function Product3DViewer({
       setModelLoaded(true);
       setLoadError(null);
       setProgress(100);
-      setSlowNetwork(false);
     };
     const onError = () => {
       setLoadError("تعذر تحميل نموذج 3D لهذا المنتج. جرّب مرة أخرى لاحقاً.");
-      setSlowNetwork(false);
     };
     const onProgress = (event: Event) => {
       const next = Math.round(
@@ -121,13 +112,6 @@ export function Product3DViewer({
 
   const controlItems = [
     {
-      label: "Auto Rotate",
-      value: autoRotate ? "On" : "Off",
-      onClick: () => setAutoRotate((value) => !value),
-      icon: autoRotate ? <PauseIcon /> : <PlayIcon />,
-      primary: true,
-    },
-    {
       label: "AR View",
       value: "View in your space",
       onClick: () => {
@@ -136,6 +120,13 @@ export function Product3DViewer({
       },
       icon: <ARIcon />,
       primary: false,
+    },
+    {
+      label: "Auto Rotate",
+      value: autoRotate ? "On" : "Off",
+      onClick: () => setAutoRotate((value) => !value),
+      icon: autoRotate ? <PauseIcon /> : <PlayIcon />,
+      primary: true,
     },
     {
       label: "Fullscreen",
@@ -163,16 +154,16 @@ export function Product3DViewer({
     <div
       ref={shellRef}
       className={cn(
-        "relative flex h-full min-h-[clamp(320px,55dvh,620px)] max-h-[clamp(320px,55dvh,620px)] w-full flex-col overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white shadow-[0_18px_70px_-44px_rgba(15,23,42,0.45)] ring-1 ring-slate-100",
-        expanded && "fixed inset-0 z-[2700] rounded-none",
+        "relative flex w-full max-w-full flex-col overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_18px_70px_-44px_rgba(15,23,42,0.45)] ring-1 ring-slate-100",
+        expanded && "fixed inset-0 z-[2700] h-screen-dvh rounded-none",
       )}
     >
       <div className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(circle_at_50%_18%,rgba(226,232,240,0.8),transparent_34%)]" />
 
-      <div className="relative z-10 grid min-h-0 flex-1 gap-3 p-3 sm:grid-cols-1 sm:gap-3 lg:grid-cols-[minmax(0,1fr)_10rem] lg:p-5">
-        <div className="relative min-h-[clamp(320px,55dvh,620px)] max-h-[clamp(320px,55dvh,620px)] overflow-hidden rounded-[1.35rem] bg-[radial-gradient(circle_at_50%_42%,#ffffff,#f1f5f9_72%)] lg:min-h-[560px]">
+      <div className="relative z-10 grid min-h-0 flex-1 gap-3 p-3 sm:gap-3 lg:grid-cols-[minmax(0,1fr)_10rem] lg:p-5">
+        <div className="relative h-[clamp(320px,55dvh,620px)] max-h-[clamp(320px,55dvh,620px)] w-full overflow-hidden rounded-[24px] bg-[radial-gradient(circle_at_50%_42%,#ffffff,#f1f5f9_72%)] lg:h-[560px] lg:max-h-[620px]">
           {!viewerReady ? (
-            <ViewerLoading progress={progress} label="Preparing 3D viewer..." />
+            <ViewerLoading progress={progress} label="جاري تجهيز العرض ثلاثي الأبعاد..." />
           ) : null}
 
           {viewerReady ? (
@@ -207,7 +198,7 @@ export function Product3DViewer({
           ) : null}
 
           {viewerReady && !modelLoaded && !loadError ? (
-            <ViewerLoading progress={progress} label="Loading 3D model..." />
+            <ViewerLoading progress={progress} label="جاري تحميل نموذج المنتج..." />
           ) : null}
 
           {loadError ? (
@@ -215,14 +206,6 @@ export function Product3DViewer({
               <ViewerFallback title="Could not load model" body={loadError} />
             </div>
           ) : null}
-
-          <div className="pointer-events-none absolute inset-x-0 bottom-3 z-10 flex justify-center px-4">
-            <div className="rounded-full border border-slate-200 bg-white/88 px-3 py-2 text-center text-xs font-medium text-slate-500 shadow-sm backdrop-blur">
-              {slowNetwork && !modelLoaded && !loadError
-                ? "Slow connection, preview will appear once loaded."
-                : "Drag to rotate • Scroll to zoom • Tap to interact"}
-            </div>
-          </div>
         </div>
 
         <div className="grid grid-cols-2 gap-2 lg:flex lg:flex-col lg:justify-center">
@@ -245,7 +228,7 @@ export function Product3DViewer({
         </div>
       </div>
 
-      <div className="relative z-10 grid gap-2 border-t border-slate-100 bg-white px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 sm:grid-cols-4 sm:px-5">
+      <div className="relative z-10 hidden gap-2 border-t border-slate-100 bg-white px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 sm:px-5 lg:grid lg:grid-cols-4">
         {featureChips.map((chip) => (
           <div
             key={chip.label}

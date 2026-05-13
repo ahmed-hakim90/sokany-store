@@ -26,6 +26,12 @@ export const mobileBottomNavGlassCollapsedClass = cn(
   "transition-[background-color,border-color,box-shadow,opacity] duration-200 ease-out motion-reduce:transition-none",
 );
 
+export const mobileBottomNavSafeAreaRestClass =
+  "bg-white/85 backdrop-blur-2xl backdrop-saturate-125";
+
+export const mobileBottomNavSafeAreaCollapsedClass =
+  "bg-[color-mix(in_srgb,var(--sokany-accent)_18%,white_82%)] backdrop-blur-2xl backdrop-saturate-125";
+
 /** سطح أخف — شريط peek السلة (`MobileCartBottomSheet`) وشريط الإعلان (`TopAnnouncementBar`). */
 export const mobileCommercePeekSurfaceClass =
   "rounded-3xl border border-white/50 bg-white/80 shadow-[0_8px_32px_-10px_rgba(15,23,42,0.14),0_2px_8px_-4px_rgba(15,23,42,0.08)] backdrop-blur-xl backdrop-saturate-150";
@@ -90,5 +96,12 @@ export function mobileCommerceBottomNavCapsuleClassName(chromeCollapsed: boolean
     "mx-0 mt-0 mb-0",
     chromeCollapsed ? mobileBottomNavGlassCollapsedClass : mobileBottomNavGlassRestClass,
     mobileCommerceCapsulePaddingXClass,
+  );
+}
+
+export function mobileCommerceBottomNavShellClassName(chromeCollapsed: boolean) {
+  return cn(
+    "w-full",
+    chromeCollapsed ? mobileBottomNavSafeAreaCollapsedClass : mobileBottomNavSafeAreaRestClass,
   );
 }

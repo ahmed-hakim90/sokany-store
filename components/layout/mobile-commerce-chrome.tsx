@@ -16,6 +16,7 @@ import { ROUTES } from "@/lib/constants";
 import { BottomNavInner } from "@/components/layout/bottom-nav";
 import {
   mobileCommerceBottomNavCapsuleClassName,
+  mobileCommerceBottomNavShellClassName,
   mobileCommerceChromeColumnClass,
 } from "@/components/layout/mobile-commerce-surface";
 import { cn } from "@/lib/utils";
@@ -113,20 +114,17 @@ export function MobileCommerceChrome() {
     <div
       ref={rootRef}
       data-mobile-commerce-chrome
-      className="pointer-events-none fixed inset-x-0 bottom-0 z-50 lg:hidden"
+      className="pointer-events-none fixed inset-x-0 bottom-0 z-[60] flex flex-col gap-3 lg:hidden"
     >
       {isAssistantPage ? null : (
-        <div
-          className={cn(
-            "pointer-events-auto flex flex-col gap-3",
-            mobileCommerceChromeColumnClass,
-          )}
-        >
+        <>
           {showCartSummary ? (
-            <MobileCartBottomSheet
-              showCartSummary={showCartSummary}
-              peekHidden={cartPeekHidden}
-            />
+            <div className={cn("pointer-events-auto", mobileCommerceChromeColumnClass)}>
+              <MobileCartBottomSheet
+                showCartSummary={showCartSummary}
+                peekHidden={cartPeekHidden}
+              />
+            </div>
           ) : null}
           {hideBottomNav ? null : (
             <div
@@ -134,17 +132,26 @@ export function MobileCommerceChrome() {
               aria-hidden={assistantOpen}
               inert={assistantOpen ? true : undefined}
               className={cn(
-                mobileCommerceBottomNavCapsuleClassName(headerHidden),
-                "pb-[env(safe-area-inset-bottom)] transition-[opacity,filter] duration-200 ease-out motion-reduce:transition-none",
+                mobileCommerceBottomNavShellClassName(headerHidden),
+                "fixed-bottom-safe pointer-events-auto transition-[opacity,filter] duration-200 ease-out motion-reduce:transition-none",
                 assistantOpen
                   ? "pointer-events-none opacity-0 blur-[1px]"
                   : "opacity-100 blur-0",
               )}
             >
-              <BottomNavInner />
+              <div className={mobileCommerceChromeColumnClass}>
+                <div
+                  className={cn(
+                    mobileCommerceBottomNavCapsuleClassName(headerHidden),
+                    "min-h-[76px]",
+                  )}
+                >
+                  <BottomNavInner />
+                </div>
+              </div>
             </div>
           )}
-        </div>
+        </>
       )}
     </div>
   );

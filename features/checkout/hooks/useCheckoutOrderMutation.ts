@@ -26,16 +26,49 @@ type OnlinePaymentResult = {
   message?: string;
 };
 
+function responseField(data: unknown, key: string): string | undefined {
+  if (!data || typeof data !== "object" || !(key in data)) return undefined;
+  const value = (data as Record<string, unknown>)[key];
+  if (typeof value === "string" && value.trim()) return value.trim();
+  if (typeof value === "number") return String(value);
+  return undefined;
+}
+
 function apiErrorMessage(error: unknown): string {
   if (error && typeof error === "object" && "response" in error) {
     const response = (error as { response?: { data?: unknown } }).response;
     const data = response?.data;
-    if (data && typeof data === "object" && "error" in data) {
-      const message = (data as { error?: unknown }).error;
-      if (typeof message === "string" && message.trim()) return message;
+    if (data && typeof data === "object") {
+      const message = responseField(data, "error");
+      if (message) {
+        const supportCodes = [
+          responseField(data, "code"),
+          responseField(data, "fawryStatusCode")
+            ? `Fawry ${responseField(data, "fawryStatusCode")}`
+            : undefined,
+          responseField(data, "classification"),
+        ].filter(Boolean);
+        return supportCodes.length > 0
+          ? `${message} (${supportCodes.join(" / ")})`
+          : message;
+      }
     }
   }
   return error instanceof Error ? error.message : "تعذر بدء الدفع الإلكتروني.";
+}
+
+function normalizeHostedPaymentUrl(url: string): string {
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== "https:" && parsed.protocol !== "http:") {
+      throw new Error("Unsupported payment URL protocol");
+    }
+    return parsed.href;
+  } catch (e) {
+    throw new Error("رابط الدفع المستلم من البوابة غير صالح. حاول مرة أخرى أو اختر طريقة دفع أخرى.", {
+      cause: e,
+    });
+  }
 }
 
 async function initiateOnlinePayment(
@@ -69,7 +102,9 @@ async function initiateOnlinePayment(
     if (!url) {
       throw new Error("لم يتم استلام رابط الدفع من البوابة");
     }
-    return data;
+    return data.redirectUrl
+      ? { ...data, redirectUrl: normalizeHostedPaymentUrl(data.redirectUrl) }
+      : { ...data, iframeUrl: normalizeHostedPaymentUrl(url) };
   } catch (error) {
     throw new Error(apiErrorMessage(error), { cause: error });
   }

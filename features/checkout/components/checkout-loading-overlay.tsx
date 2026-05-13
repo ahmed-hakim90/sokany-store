@@ -2,7 +2,13 @@
 
 import { cn } from "@/lib/utils";
 
-export function CheckoutLoadingOverlay({ visible }: { visible: boolean }) {
+export function CheckoutLoadingOverlay({
+  visible,
+  onlinePayment,
+}: {
+  visible: boolean;
+  onlinePayment?: boolean;
+}) {
   if (!visible) return null;
 
   return (
@@ -19,9 +25,13 @@ export function CheckoutLoadingOverlay({ visible }: { visible: boolean }) {
           className="h-10 w-10 animate-spin rounded-full border-2 border-brand-500 border-t-transparent"
           aria-hidden
         />
-        <p className="text-center text-sm font-semibold text-brand-950">جاري إرسال الطلب…</p>
+        <p className="text-center text-sm font-semibold text-brand-950">
+          {onlinePayment ? "جاري تجهيز صفحة الدفع الآمنة…" : "جاري إرسال الطلب…"}
+        </p>
         <p className="max-w-[240px] text-center text-xs text-muted-foreground">
-          لا تغلق الصفحة حتى يكتمل التأكيد.
+          {onlinePayment
+            ? "سيتم تحويلك تلقائياً لإتمام الدفع. لا تغلق الصفحة."
+            : "لا تغلق الصفحة حتى يكتمل التأكيد."}
         </p>
       </div>
     </div>

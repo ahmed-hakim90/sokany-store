@@ -194,28 +194,33 @@ export const ProductGallery = forwardRef<HTMLDivElement, ProductGalleryProps>(
               }}
               {...mainImageSwipe}
             />
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[6]">
-              {floatingAction ? (
-                <div className="mx-auto flex w-full max-w-[min(78%,260px)] justify-center px-3 pb-[clamp(14px,4vw,28px)]">
-                  <div className="pointer-events-auto w-full">
-                    {floatingAction}
-                  </div>
+            {floatingAction ? (
+              <div className="pointer-events-none absolute inset-x-0 bottom-[clamp(14px,4vw,28px)] z-20 flex justify-center px-3">
+                <div className="pointer-events-auto w-[min(78%,260px)] min-w-[190px] max-w-[260px]">
+                  {floatingAction}
                 </div>
-              ) : null}
-              <div className="absolute inset-x-3 bottom-3 flex items-center justify-between gap-2">
-                <span className="flex items-center gap-1 rounded-full bg-black/55 px-2.5 py-1.5 text-[10px] font-bold text-white backdrop-blur-sm">
-                  <ZoomIcon className="h-3.5 w-3.5 opacity-90" />
-                  تكبير
-                </span>
-                {list.length > 1 ? (
-                  <span
-                    dir="ltr"
-                    className="rounded-full bg-white/90 px-2.5 py-1.5 text-[10px] font-extrabold text-slate-950 shadow-sm ring-1 ring-slate-200 backdrop-blur-sm"
-                  >
-                    {activeIndex + 1} / {list.length}
-                  </span>
-                ) : null}
               </div>
+            ) : null}
+            <div
+              className={cn(
+                "pointer-events-none absolute inset-x-3 z-10 flex items-center justify-between gap-2",
+                floatingAction
+                  ? "bottom-[calc(clamp(14px,4vw,28px)+4.25rem)]"
+                  : "bottom-3",
+              )}
+            >
+              <span className="flex items-center gap-1 rounded-full bg-black/55 px-2.5 py-1.5 text-[10px] font-bold text-white backdrop-blur-sm">
+                <ZoomIcon className="h-3.5 w-3.5 opacity-90" />
+                تكبير
+              </span>
+              {list.length > 1 ? (
+                <span
+                  dir="ltr"
+                  className="rounded-full bg-white/90 px-2.5 py-1.5 text-[10px] font-extrabold text-slate-950 shadow-sm ring-1 ring-slate-200 backdrop-blur-sm"
+                >
+                  {activeIndex + 1} / {list.length}
+                </span>
+              ) : null}
             </div>
           </div>
           {list.length > 1 ? (

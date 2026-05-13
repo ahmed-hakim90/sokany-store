@@ -9,6 +9,7 @@
  *   customerPhone  رقم الموبايل
  *   customerEmail  البريد الإلكتروني (أو سلسلة فارغة)
  */
+import { randomUUID } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { resolveFawryConfig } from "@/lib/payment-gateways-store";
@@ -22,6 +23,10 @@ const bodySchema = z.object({
   customerPhone: z.string().min(6),
   customerEmail: z.string().optional().default(""),
 });
+
+function createFawryMerchantRefNum(orderId: number): string {
+  return `sokany-${orderId}-${Date.now().toString(36)}-${randomUUID().slice(0, 8)}`;
+}
 
 export async function POST(request: NextRequest) {
   const raw = await request.json().catch(() => null);
@@ -45,10 +50,10 @@ export async function POST(request: NextRequest) {
     parsed.data;
 
   /*
-   * Stable per Woo order so retries are idempotent and double-clicks do not
-   * create unrelated payment sessions for the same order.
+   * Fawry treats merchantRefNum as a charge reference. Keep the order id
+   * extractable, but make each hosted-payment attempt unique for safe retries.
    */
-  const merchantRefNum = `sokany-${orderId}`;
+  const merchantRefNum = createFawryMerchantRefNum(orderId);
   const callbackUrl = toAbsoluteSiteUrl(
     `/api/payments/fawry/callback?ref=${encodeURIComponent(merchantRefNum)}`,
   );
@@ -68,7 +73,7 @@ export async function POST(request: NextRequest) {
         },
       ],
       returnUrl: callbackUrl,
-      paymentMethod: config.hostedPaymentMethod ?? "PayAtFawry",
+      ...(config.hostedPaymentMethod ? { paymentMethod: config.hostedPaymentMethod } : {}),
     });
 
     return NextResponse.json({
@@ -88,6 +93,7 @@ export async function POST(request: NextRequest) {
           code: e.code,
           fawryStatusCode: e.fawryStatusCode,
           statusDescription: e.statusDescription,
+          classification: e.classification,
         },
         { status: 502 },
       );
