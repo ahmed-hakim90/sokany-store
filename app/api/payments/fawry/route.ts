@@ -12,7 +12,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { resolveFawryConfig } from "@/lib/payment-gateways-store";
-import { initiateFawryCharge } from "@/lib/payment/fawry";
+import { FawryChargeError, initiateFawryCharge } from "@/lib/payment/fawry";
 import { toAbsoluteSiteUrl } from "@/lib/site";
 
 const bodySchema = z.object({
@@ -44,7 +44,11 @@ export async function POST(request: NextRequest) {
   const { orderId, orderTotal, customerName, customerPhone, customerEmail } =
     parsed.data;
 
-  const merchantRefNum = `sokany-${orderId}-${Date.now()}`;
+  /*
+   * Stable per Woo order so retries are idempotent and double-clicks do not
+   * create unrelated payment sessions for the same order.
+   */
+  const merchantRefNum = `sokany-${orderId}`;
   const callbackUrl = toAbsoluteSiteUrl(
     `/api/payments/fawry/callback?ref=${encodeURIComponent(merchantRefNum)}`,
   );
@@ -64,11 +68,30 @@ export async function POST(request: NextRequest) {
         },
       ],
       returnUrl: callbackUrl,
+      paymentMethod: config.hostedPaymentMethod ?? "PayAtFawry",
     });
 
-    return NextResponse.json({ redirectUrl: result.redirectUrl });
+    return NextResponse.json({
+      provider: "fawry",
+      redirectUrl: result.redirectUrl,
+      paymentMethod: result.paymentMethod,
+      referenceNumber: result.referenceNumber,
+      merchantRefNum: result.merchantRefNum,
+      message: "تم إنشاء جلسة الدفع عبر فوري.",
+    });
   } catch (e) {
     console.error("[POST /api/payments/fawry]", e);
+    if (e instanceof FawryChargeError) {
+      return NextResponse.json(
+        {
+          error: e.userMessage,
+          code: e.code,
+          fawryStatusCode: e.fawryStatusCode,
+          statusDescription: e.statusDescription,
+        },
+        { status: 502 },
+      );
+    }
     return NextResponse.json(
       { error: e instanceof Error ? e.message : "تعذر بدء الدفع عبر فوري" },
       { status: 502 },

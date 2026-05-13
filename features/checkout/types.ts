@@ -61,6 +61,12 @@ export type CheckoutSuccessSnapshot = {
     state: string;
     postcode: string;
   };
+  onlinePayment?: {
+    provider: "fawry" | "paymob";
+    referenceNumber?: string;
+    merchantRefNum?: string;
+    instructions?: string;
+  };
 };
 
 export type OrderConfirmationSessionPayload = {

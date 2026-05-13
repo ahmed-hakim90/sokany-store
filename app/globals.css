@@ -346,6 +346,16 @@ html::-webkit-scrollbar-thumb:hover {
   .pb-mobile-commerce {
     padding-bottom: var(--mobile-commerce-chrome-height, 12rem);
   }
+  .mobile-safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .fixed-bottom-safe {
+    bottom: 0;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .h-screen-dvh {
+    height: 100dvh;
+  }
   /** Sit fixed UI (e.g. PDP sticky CTA) above the mobile bottom nav — must stay below z-50 modals. */
   .bottom-mobile-commerce {
     bottom: var(--mobile-commerce-chrome-height, 5rem);

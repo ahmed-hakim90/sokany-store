@@ -113,10 +113,7 @@ export function MobileCommerceChrome() {
     <div
       ref={rootRef}
       data-mobile-commerce-chrome
-      className={cn(
-        "pointer-events-none fixed inset-x-0 bottom-0 z-50 lg:hidden",
-        !isAssistantPage && "pb-[env(safe-area-inset-bottom)]",
-      )}
+      className="pointer-events-none fixed inset-x-0 bottom-0 z-50 lg:hidden"
     >
       {isAssistantPage ? null : (
         <div
@@ -138,7 +135,7 @@ export function MobileCommerceChrome() {
               inert={assistantOpen ? true : undefined}
               className={cn(
                 mobileCommerceBottomNavCapsuleClassName(headerHidden),
-                "transition-[opacity,filter] duration-200 ease-out motion-reduce:transition-none",
+                "pb-[env(safe-area-inset-bottom)] transition-[opacity,filter] duration-200 ease-out motion-reduce:transition-none",
                 assistantOpen
                   ? "pointer-events-none opacity-0 blur-[1px]"
                   : "opacity-100 blur-0",

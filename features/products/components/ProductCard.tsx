@@ -28,6 +28,7 @@ import {
   PRODUCT_CARD_SHOW_SALES_COUNT,
   ROUTES,
 } from "@/lib/constants";
+import { getProductCardDisplayTitle } from "@/features/products/lib/product-card-display-title";
 import { getProductCardSalesCountText } from "@/features/products/lib/product-card-sales-count";
 import { getProductVideoEmbed } from "@/features/products/lib/product-merchandising";
 import { playCartFlyAnimation } from "@/lib/cart-fly-animation";
@@ -371,6 +372,10 @@ export function ProductCard({
     () => getProductCardSalesCountText(product, PRODUCT_CARD_SHOW_SALES_COUNT),
     [product],
   );
+  const displayTitle = useMemo(
+    () => getProductCardDisplayTitle(product.name),
+    [product.name],
+  );
   const handlePrefetch = () => {
     void prefetchProduct(product.id);
   };
@@ -533,10 +538,11 @@ export function ProductCard({
         layout.title,
         !isDetailed && "text-right",
       )}
+      title={product.name}
       onMouseEnter={handlePrefetch}
       onFocus={handlePrefetch}
     >
-      {product.name}
+      {displayTitle}
     </Link>
   );
 

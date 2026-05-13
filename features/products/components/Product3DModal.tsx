@@ -61,7 +61,7 @@ export function Product3DModal({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[2600] flex items-stretch justify-center bg-slate-950/68 p-0 backdrop-blur-[3px] sm:items-center sm:p-5"
+      className="fixed inset-0 z-[2600] flex items-stretch justify-center overflow-hidden bg-slate-950/68 p-0 backdrop-blur-[3px] sm:items-center sm:p-5"
       role="presentation"
     >
       <button
@@ -76,11 +76,11 @@ export function Product3DModal({
         aria-modal="true"
         aria-labelledby={titleId}
         className={cn(
-          "relative z-[1] flex h-[100svh] w-full flex-col overflow-hidden bg-white text-slate-950 shadow-[0_30px_90px_-36px_rgba(15,23,42,0.85)]",
+          "relative z-[1] flex h-screen-dvh w-full max-w-[100vw] flex-col overflow-hidden bg-white text-slate-950 shadow-[0_30px_90px_-36px_rgba(15,23,42,0.85)]",
           "sm:h-auto sm:max-h-[min(92svh,860px)] sm:max-w-6xl sm:rounded-[1.75rem] sm:border sm:border-white/80",
         )}
       >
-        <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-start gap-3 border-b border-slate-100 bg-white px-4 pb-3 pt-[max(1rem,env(safe-area-inset-top))] sm:px-5 sm:pt-4">
+        <div className="sticky top-0 z-20 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-start gap-3 border-b border-slate-100 bg-white px-4 pb-3 pt-[max(1rem,env(safe-area-inset-top))] shadow-sm sm:px-5 sm:pt-4">
           <div className="flex min-w-0 items-center gap-2">
             <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-900 shadow-sm">
               <BoxIcon />
@@ -114,7 +114,7 @@ export function Product3DModal({
           </button>
         </div>
 
-        <div className="min-h-0 flex-1 bg-[radial-gradient(circle_at_50%_0%,rgba(226,232,240,0.7),transparent_42%),linear-gradient(180deg,#ffffff,#f8fafc)] px-3 py-3 sm:px-5 sm:py-5">
+        <div className="min-h-0 flex-1 overflow-y-auto bg-[radial-gradient(circle_at_50%_0%,rgba(226,232,240,0.7),transparent_42%),linear-gradient(180deg,#ffffff,#f8fafc)] px-3 py-3 pb-[env(safe-area-inset-bottom)] sm:px-5 sm:py-5">
           <Product3DViewer
             modelSrc={modelSrc}
             productName={productName}

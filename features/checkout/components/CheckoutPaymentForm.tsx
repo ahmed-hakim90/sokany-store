@@ -32,20 +32,20 @@ const ALWAYS_ON_OPTIONS: PaymentOption[] = [
     description: "ادفع نقداً أو ببطاقة عند استلام الطلب من المندوب.",
     extra: <CodMethodBadges />,
   },
-  {
-    value: "card",
-    title: "بطاقة بنكية أو محفظة",
-    description:
-      "بطاقات مدى أو ميزة، أو محافظ إلكترونية مصرية على الجوال — حسب تفعيل بوابة الدفع في المتجر.",
-    extra: <CardMethodBadges />,
-  },
+  // {
+  //   value: "card",
+  //   title: "بطاقة بنكية أو محفظة",
+  //   description:
+  //     "بطاقات مدى أو ميزة، أو محافظ إلكترونية مصرية على الجوال — حسب تفعيل بوابة الدفع في المتجر.",
+  //   extra: <CardMethodBadges />,
+  // },
 ];
 
 const GATEWAY_OPTIONS: Record<"fawry" | "paymob", PaymentOption> = {
   fawry: {
     value: "fawry",
     title: "فوري",
-    description: "ادفع عبر فوري بالبطاقة أو نقداً في أي فرع فوري.",
+    description: "انتقل إلى صفحة فوري الآمنة لإتمام الدفع بالطرق المفعّلة لحساب التاجر.",
     extra: <FawryMethodBadges />,
   },
   paymob: {

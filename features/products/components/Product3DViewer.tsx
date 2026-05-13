@@ -163,14 +163,14 @@ export function Product3DViewer({
     <div
       ref={shellRef}
       className={cn(
-        "relative flex h-full min-h-[min(72svh,680px)] flex-col overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white shadow-[0_18px_70px_-44px_rgba(15,23,42,0.45)] ring-1 ring-slate-100",
+        "relative flex h-full min-h-[clamp(320px,55dvh,620px)] max-h-[clamp(320px,55dvh,620px)] w-full flex-col overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white shadow-[0_18px_70px_-44px_rgba(15,23,42,0.45)] ring-1 ring-slate-100",
         expanded && "fixed inset-0 z-[2700] rounded-none",
       )}
     >
       <div className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(circle_at_50%_18%,rgba(226,232,240,0.8),transparent_34%)]" />
 
-      <div className="relative z-10 grid min-h-0 flex-1 gap-4 p-4 lg:grid-cols-[minmax(0,1fr)_10rem] lg:p-5">
-        <div className="relative min-h-[46svh] overflow-hidden rounded-[1.35rem] bg-[radial-gradient(circle_at_50%_42%,#ffffff,#f1f5f9_72%)] lg:min-h-[560px]">
+      <div className="relative z-10 grid min-h-0 flex-1 gap-3 p-3 sm:grid-cols-1 sm:gap-3 lg:grid-cols-[minmax(0,1fr)_10rem] lg:p-5">
+        <div className="relative min-h-[clamp(320px,55dvh,620px)] max-h-[clamp(320px,55dvh,620px)] overflow-hidden rounded-[1.35rem] bg-[radial-gradient(circle_at_50%_42%,#ffffff,#f1f5f9_72%)] lg:min-h-[560px]">
           {!viewerReady ? (
             <ViewerLoading progress={progress} label="Preparing 3D viewer..." />
           ) : null}
@@ -193,7 +193,7 @@ export function Product3DViewer({
               loading="lazy"
               reveal="auto"
               touch-action="pan-y"
-              className="h-full min-h-[46svh] w-full bg-transparent [--poster-color:transparent] [&::part(default-ar-button)]:hidden lg:min-h-[560px]"
+              className="h-full w-full bg-transparent [--poster-color:transparent] [&::part(default-ar-button)]:hidden"
             >
               <button
                 slot="ar-button"

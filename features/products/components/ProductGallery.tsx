@@ -194,24 +194,28 @@ export const ProductGallery = forwardRef<HTMLDivElement, ProductGalleryProps>(
               }}
               {...mainImageSwipe}
             />
-            <div className="absolute inset-x-3 bottom-3 z-[6] flex items-center justify-between gap-2">
-              <span className="flex items-center gap-1 rounded-full bg-black/55 px-2.5 py-1.5 text-[10px] font-bold text-white backdrop-blur-sm">
-                <ZoomIcon className="h-3.5 w-3.5 opacity-90" />
-                تكبير
-              </span>
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[6]">
               {floatingAction ? (
-                <div className="pointer-events-auto min-w-0 flex-1 sm:max-w-[15rem]">
-                  {floatingAction}
+                <div className="mx-auto flex w-full max-w-[min(78%,260px)] justify-center px-3 pb-[clamp(14px,4vw,28px)]">
+                  <div className="pointer-events-auto w-full">
+                    {floatingAction}
+                  </div>
                 </div>
               ) : null}
-              {list.length > 1 ? (
-                <span
-                  dir="ltr"
-                  className="rounded-full bg-white/90 px-2.5 py-1.5 text-[10px] font-extrabold text-slate-950 shadow-sm ring-1 ring-slate-200 backdrop-blur-sm"
-                >
-                  {activeIndex + 1} / {list.length}
+              <div className="absolute inset-x-3 bottom-3 flex items-center justify-between gap-2">
+                <span className="flex items-center gap-1 rounded-full bg-black/55 px-2.5 py-1.5 text-[10px] font-bold text-white backdrop-blur-sm">
+                  <ZoomIcon className="h-3.5 w-3.5 opacity-90" />
+                  تكبير
                 </span>
-              ) : null}
+                {list.length > 1 ? (
+                  <span
+                    dir="ltr"
+                    className="rounded-full bg-white/90 px-2.5 py-1.5 text-[10px] font-extrabold text-slate-950 shadow-sm ring-1 ring-slate-200 backdrop-blur-sm"
+                  >
+                    {activeIndex + 1} / {list.length}
+                  </span>
+                ) : null}
+              </div>
             </div>
           </div>
           {list.length > 1 ? (

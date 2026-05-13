@@ -77,6 +77,12 @@ function paymentMethodDescription(
 ) {
   switch (snapshot?.paymentMethod) {
     case "fawry":
+      if (snapshot.onlinePayment?.referenceNumber) {
+        return "استخدم كود فوري الظاهر بالأسفل للدفع من أي منفذ فوري.";
+      }
+      if (paymentStatus === "success") return "تم تأكيد الدفع الإلكتروني بنجاح.";
+      if (paymentStatus === "failed") return "لم يكتمل الدفع. يمكنك المحاولة مجدداً من تفاصيل الطلب.";
+      return "سيتم تأكيد حالة الدفع الإلكتروني تلقائياً.";
     case "paymob":
       if (paymentStatus === "success") return "تم تأكيد الدفع الإلكتروني بنجاح.";
       if (paymentStatus === "failed") return "لم يكتمل الدفع. يمكنك المحاولة مجدداً من تفاصيل الطلب.";
@@ -413,6 +419,21 @@ export function OrderConfirmationPageContent() {
                         {paymentMethodLabel(snapshot, order?.paymentMethodTitle)}
                       </p>
                       <p>{paymentMethodDescription(snapshot, paymentStatus)}</p>
+                      {snapshot?.onlinePayment?.referenceNumber ? (
+                        <div className="mt-2 rounded-xl border border-[#1f6e43]/20 bg-[#1f6e43]/10 px-3 py-2 text-brand-950">
+                          <p className="text-xs font-semibold text-muted-foreground">
+                            كود فوري للدفع
+                          </p>
+                          <p dir="ltr" className="text-lg font-black tabular-nums">
+                            {snapshot.onlinePayment.referenceNumber}
+                          </p>
+                          {snapshot.onlinePayment.instructions ? (
+                            <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                              {snapshot.onlinePayment.instructions}
+                            </p>
+                          ) : null}
+                        </div>
+                      ) : null}
                     </div>
                   </div>
                 </InfoCard>

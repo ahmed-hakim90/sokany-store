@@ -98,7 +98,7 @@ export function CheckoutForm() {
         ref={submitButtonRef}
         type="button"
         loading={isSubmitting}
-        disabled={cartEmpty}
+        disabled={cartEmpty || isSubmitting}
         size="lg"
         className="h-14 font-bold shadow-[0_14px_34px_-18px_rgba(218,255,0,0.85)]"
         onClick={() => void submitOrder()}
@@ -126,7 +126,7 @@ export function CheckoutForm() {
         total={orderTotal}
         itemCount={items.length}
         visible={mobileDockVisible}
-        disabled={cartEmpty}
+        disabled={cartEmpty || isSubmitting}
         loading={isSubmitting}
         onSubmit={() => void submitOrder()}
       />

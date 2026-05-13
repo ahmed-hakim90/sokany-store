@@ -12,6 +12,10 @@ export const fawryConfigSchema = z.object({
   enabled: z.boolean().default(false),
   merchantCode: z.string().trim().min(1),
   secureKey: z.string().trim().min(1),
+  baseUrl: z.string().trim().url().optional(),
+  hostedPaymentMethod: z
+    .enum(["PayAtFawry", "CARD", "MWALLET", "VALU", "CashOnDelivery"])
+    .optional(),
   /** true = sandbox, false = production */
   sandbox: z.boolean().default(false),
 });
@@ -45,12 +49,23 @@ export type PaymentGatewaysDoc = z.infer<typeof paymentGatewaysDocSchema>;
 
 function getFawryFromEnv(): FawryConfig | null {
   const merchantCode = process.env.FAWRY_MERCHANT_CODE?.trim();
-  const secureKey = process.env.FAWRY_SECURE_KEY?.trim();
+  const secureKey =
+    process.env.FAWRY_SECURE_KEY?.trim() ||
+    process.env.FAWRY_SECRET_KEY?.trim();
   if (!merchantCode || !secureKey) return null;
+  const baseUrl = process.env.FAWRY_BASE_URL?.trim();
+  const hostedPaymentMethodRaw = process.env.FAWRY_HOSTED_PAYMENT_METHOD?.trim();
+  const hostedPaymentMethod = fawryConfigSchema.shape.hostedPaymentMethod.safeParse(
+    hostedPaymentMethodRaw || undefined,
+  );
   return {
     enabled: process.env.FAWRY_ENABLED !== "false",
     merchantCode,
     secureKey,
+    ...(baseUrl ? { baseUrl } : {}),
+    ...(hostedPaymentMethod.success && hostedPaymentMethod.data
+      ? { hostedPaymentMethod: hostedPaymentMethod.data }
+      : {}),
     sandbox: process.env.FAWRY_SANDBOX === "true",
   };
 }

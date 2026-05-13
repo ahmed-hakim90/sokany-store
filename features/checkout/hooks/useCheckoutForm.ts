@@ -126,7 +126,7 @@ export function useCheckoutForm() {
       checkoutOrder.mutate(
         { values, items, couponCode: appliedCoupon ?? undefined, firebaseUid },
         {
-          onSuccess: ({ order, paymentRedirectUrl }) => {
+          onSuccess: ({ order, paymentRedirectUrl, onlinePayment }) => {
             const recipientFirstName = values.shipToDifferentAddress
               ? values.shippingFirstName
               : values.contactFirstName;
@@ -158,6 +158,20 @@ export function useCheckoutForm() {
                 state: values.shippingState,
                 postcode: values.shippingPostcode,
               },
+              ...(onlinePayment?.provider === "fawry"
+                ? {
+                    onlinePayment: {
+                      provider: "fawry",
+                      referenceNumber: onlinePayment.referenceNumber,
+                      merchantRefNum: onlinePayment.merchantRefNum,
+                      instructions:
+                        onlinePayment.message ??
+                        "استخدم كود فوري للدفع من أي منفذ فوري أو تطبيق يدعم PayAtFawry.",
+                    },
+                  }
+                : onlinePayment?.provider === "paymob"
+                  ? { onlinePayment: { provider: "paymob" } }
+                  : {}),
             };
 
             saveOrderConfirmationSession({ order, snapshot });
@@ -209,6 +223,7 @@ export function useCheckoutForm() {
   );
 
   const submitOrder = useCallback(() => {
+    if (checkoutOrder.isPending) return;
     setErrors({});
     const checkoutParsed = checkoutSchema.safeParse(values);
     if (!checkoutParsed.success) {
@@ -217,7 +232,7 @@ export function useCheckoutForm() {
       return;
     }
     runOrderMutation();
-  }, [values, runOrderMutation]);
+  }, [checkoutOrder.isPending, values, runOrderMutation]);
 
   return {
     values,

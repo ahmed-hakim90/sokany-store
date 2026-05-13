@@ -34,10 +34,10 @@ export function Product3DButton({
     <>
       <Button
         type="button"
-        variant="secondary"
+        variant="dark"
         size="lg"
         className={cn(
-          "group h-12 overflow-hidden border-slate-200 bg-white/85 px-4 text-sm font-extrabold text-slate-950 shadow-[0_10px_30px_-22px_rgba(15,23,42,0.55)] backdrop-blur transition-[transform,background-color,border-color,box-shadow] hover:-translate-y-0.5 hover:border-slate-300 hover:bg-white hover:shadow-[0_16px_36px_-24px_rgba(15,23,42,0.65)]",
+          "group h-[58px] min-w-0 w-full max-w-[260px] overflow-hidden border border-transparent bg-slate-950 px-4 text-sm font-extrabold text-white shadow-[0_18px_50px_-30px_rgba(15,23,42,0.75)] transition-[transform,background-color,border-color,box-shadow] hover:-translate-y-0.5 hover:bg-slate-900",
           className,
         )}
         onClick={() => setOpen(true)}
@@ -51,7 +51,7 @@ export function Product3DButton({
         </span>
         <span className="flex min-w-0 flex-col items-start leading-none">
           <span>360° View</span>
-          <span className="mt-1 text-[10px] font-bold text-muted-foreground">
+          <span className="mt-1 text-[10px] font-bold text-white/75">
             عرض ثلاثي الأبعاد
           </span>
         </span>

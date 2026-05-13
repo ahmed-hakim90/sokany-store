@@ -17,6 +17,27 @@ import { createOrder } from "@/features/orders/services/createOrder";
 import { createOrderPayloadSchema } from "@/schemas/wordpress";
 import { apiClient } from "@/lib/api";
 
+type OnlinePaymentResult = {
+  redirectUrl?: string;
+  iframeUrl?: string;
+  referenceNumber?: string;
+  merchantRefNum?: string;
+  provider?: "fawry" | "paymob";
+  message?: string;
+};
+
+function apiErrorMessage(error: unknown): string {
+  if (error && typeof error === "object" && "response" in error) {
+    const response = (error as { response?: { data?: unknown } }).response;
+    const data = response?.data;
+    if (data && typeof data === "object" && "error" in data) {
+      const message = (data as { error?: unknown }).error;
+      if (typeof message === "string" && message.trim()) return message;
+    }
+  }
+  return error instanceof Error ? error.message : "تعذر بدء الدفع الإلكتروني.";
+}
+
 async function initiateOnlinePayment(
   paymentMethod: "fawry" | "paymob",
   params: {
@@ -28,24 +49,30 @@ async function initiateOnlinePayment(
     shippingCity?: string;
     shippingState?: string;
   },
-): Promise<string> {
+): Promise<OnlinePaymentResult> {
   const endpoint = paymentMethod === "fawry"
     ? "/payments/fawry"
     : "/payments/paymob";
-  const res = await apiClient.post(endpoint, {
-    orderId: params.orderId,
-    orderTotal: params.orderTotal,
-    customerName: params.customerName,
-    customerPhone: params.customerPhone,
-    customerEmail: params.customerEmail,
-    ...(paymentMethod === "paymob"
-      ? { shippingCity: params.shippingCity, shippingState: params.shippingState }
-      : {}),
-  });
-  const data = res.data as { redirectUrl?: string; iframeUrl?: string };
-  const url = data.redirectUrl ?? data.iframeUrl;
-  if (!url) throw new Error("لم يتم استلام رابط الدفع من البوابة");
-  return url;
+  try {
+    const res = await apiClient.post(endpoint, {
+      orderId: params.orderId,
+      orderTotal: params.orderTotal,
+      customerName: params.customerName,
+      customerPhone: params.customerPhone,
+      customerEmail: params.customerEmail,
+      ...(paymentMethod === "paymob"
+        ? { shippingCity: params.shippingCity, shippingState: params.shippingState }
+        : {}),
+    });
+    const data = res.data as OnlinePaymentResult;
+    const url = data.redirectUrl ?? data.iframeUrl;
+    if (!url) {
+      throw new Error("لم يتم استلام رابط الدفع من البوابة");
+    }
+    return data;
+  } catch (error) {
+    throw new Error(apiErrorMessage(error), { cause: error });
+  }
 }
 
 export type CheckoutOrderMutationInput = {
@@ -60,6 +87,7 @@ export type CheckoutOrderMutationResult = {
   order: Awaited<ReturnType<typeof createOrder>>;
   /** رابط بوابة الدفع الأونلاين — موجود فقط لفوري وباي موب */
   paymentRedirectUrl?: string;
+  onlinePayment?: OnlinePaymentResult;
 };
 
 export class CheckoutOrderMutationError extends Error {
@@ -200,7 +228,7 @@ export function useCheckoutOrderMutation() {
             : parseFloat(String(order.total) || "0");
 
         const pm = data.paymentMethod as "fawry" | "paymob";
-        const paymentRedirectUrl = await initiateOnlinePayment(pm, {
+        const onlinePayment = await initiateOnlinePayment(pm, {
           orderId: order.id,
           orderTotal,
           customerName: `${data.contactFirstName} ${data.contactLastName}`.trim(),
@@ -209,7 +237,11 @@ export function useCheckoutOrderMutation() {
           shippingCity: data.shippingCity,
           shippingState: data.shippingState,
         });
-        return { order, paymentRedirectUrl };
+        return {
+          order,
+          paymentRedirectUrl: onlinePayment.redirectUrl ?? onlinePayment.iframeUrl,
+          onlinePayment,
+        };
       }
 
       return { order };

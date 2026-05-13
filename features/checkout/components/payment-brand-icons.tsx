@@ -86,11 +86,10 @@ export function CardMethodBadges() {
 
 export function FawryMethodBadges() {
   return (
-    <PaymentMethodBadgeGroup label="يدعم فوري البطاقات البنكية، كاش فروع فوري، فودافون كاش، والمحافظ الإلكترونية.">
-      <MethodBadge tone="visa">Visa/MC</MethodBadge>
+    <PaymentMethodBadgeGroup label="يفتح صفحة فوري المستضافة بطرق الدفع المفعّلة لدى التاجر.">
+      <MethodBadge tone="visa">Hosted</MethodBadge>
       <MethodBadge tone="fawry">كاش فروع فوري</MethodBadge>
-      <MethodBadge tone="vodafone">فودافون كاش</MethodBadge>
-      <MethodBadge tone="wallet">محافظ</MethodBadge>
+      <MethodBadge tone="wallet">حسب التفعيل</MethodBadge>
     </PaymentMethodBadgeGroup>
   );
 }
