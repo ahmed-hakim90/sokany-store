@@ -7,7 +7,7 @@ import {
   RecaptchaVerifier,
   signInWithPhoneNumber,
 } from "firebase/auth";
-import { getFirebaseAuth, prepareFirebasePhoneAuth } from "@/lib/firebase";
+import { getFirebaseAuth, prepareFirebasePhoneAuth } from "@/lib/firebase-client-auth";
 import { mapFirebaseAuthLikeError } from "@/lib/firebase-auth-errors";
 
 function clearRecaptchaMountElement(containerId: string): void {

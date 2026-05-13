@@ -14,6 +14,7 @@ type FawryStatus = GatewayStatus & {
   merchantCode?: string;
   secureKey?: string;
   sandbox?: boolean;
+  runtimeOverridesFirestore?: boolean;
 };
 
 type PaymobStatus = GatewayStatus & {
@@ -63,6 +64,10 @@ function FirestoreSourceBadge() {
   );
 }
 
+function hasSavedSecret(value: string | undefined): boolean {
+  return Boolean(value?.trim());
+}
+
 function FawryForm({
   initial,
   disabled,
@@ -73,6 +78,7 @@ function FawryForm({
   onSaved: () => void;
 }) {
   const [saving, setSaving] = useState(false);
+  const hasSavedSecureKey = hasSavedSecret(initial.secureKey);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -82,7 +88,7 @@ function FawryForm({
     const enabled = fd.get("enabled") === "on";
     const sandbox = fd.get("sandbox") === "on";
 
-    if (!merchantCode || !secureKey) {
+    if (!merchantCode || (!secureKey && !hasSavedSecureKey)) {
       toast.error("يرجى ملء Merchant Code و Secure Key");
       return;
     }
@@ -108,12 +114,24 @@ function FawryForm({
             بوابة الدفع الأكثر انتشاراً في مصر — بطاقات وكاش في الفروع.
           </p>
         </div>
-        {initial.source === "env" ? <EnvSourceBadge /> : initial.source === "firestore" ? <FirestoreSourceBadge /> : null}
+        {initial.source === "env" ? (
+          <EnvSourceBadge />
+        ) : initial.source === "firestore" ? (
+          <FirestoreSourceBadge />
+        ) : null}
       </div>
 
       {initial.source === "env" ? (
         <div className="rounded-xl border border-amber-200/80 bg-amber-50/60 p-3 text-sm text-amber-900">
           الإعدادات مُقروءة من متغيرات الخادم ولا يمكن تعديلها من هنا. أضف الحقول أدناه لتجاوز قيم الخادم.
+        </div>
+      ) : null}
+
+      {initial.runtimeOverridesFirestore ? (
+        <div className="rounded-xl border border-amber-200/80 bg-amber-50/60 p-3 text-sm text-amber-900">
+          توجد إعدادات فوري محفوظة في Firestore، لكن متغيرات الخادم FAWRY_* هي التي
+          تُستخدم فعلياً وقت الدفع. وحّد القيم أو احذف متغيرات الخادم لتفعيل إعدادات
+          Firestore.
         </div>
       ) : null}
 
@@ -146,14 +164,18 @@ function FawryForm({
         <div>
           <label className="text-sm font-medium">Secure Key (Security Hash)</label>
           <ControlFieldHelp>
-            مفتاح التوقيع السري من لوحة تحكم فوري — لا تشاركه مع أحد.
+            {hasSavedSecureKey
+              ? "اتركه فارغاً للاحتفاظ بالمفتاح المحفوظ، أو أدخل المفتاح الحقيقي لاستبداله."
+              : "مفتاح التوقيع السري من لوحة تحكم فوري — لا تشاركه مع أحد."}
           </ControlFieldHelp>
           <input
             name="secureKey"
             type="password"
-            defaultValue={initial.secureKey ?? ""}
+            defaultValue=""
             dir="ltr"
-            placeholder={initial.secureKey ? "••••••••" : "أدخل المفتاح"}
+            placeholder={
+              hasSavedSecureKey ? "اتركه فارغاً للاحتفاظ بالمحفوظ" : "أدخل المفتاح"
+            }
             className="mt-1 w-full rounded-lg border border-border px-3 py-2 font-mono text-sm"
             autoComplete="new-password"
           />
@@ -200,6 +222,8 @@ function PaymobForm({
   onSaved: () => void;
 }) {
   const [saving, setSaving] = useState(false);
+  const hasSavedApiKey = hasSavedSecret(initial.apiKey);
+  const hasSavedHmacSecret = hasSavedSecret(initial.hmacSecret);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -210,7 +234,12 @@ function PaymobForm({
     const hmacSecret = String(fd.get("hmacSecret") ?? "").trim();
     const enabled = fd.get("enabled") === "on";
 
-    if (!apiKey || !integrationId || !iframeId || !hmacSecret) {
+    if (
+      (!apiKey && !hasSavedApiKey) ||
+      !integrationId ||
+      !iframeId ||
+      (!hmacSecret && !hasSavedHmacSecret)
+    ) {
       toast.error("يرجى ملء جميع حقول باي موب");
       return;
     }
@@ -240,7 +269,11 @@ function PaymobForm({
             بوابة دفع إلكتروني مصرية تدعم البطاقات والمحافظ وفوري وفودافون كاش.
           </p>
         </div>
-        {initial.source === "env" ? <EnvSourceBadge /> : initial.source === "firestore" ? <FirestoreSourceBadge /> : null}
+        {initial.source === "env" ? (
+          <EnvSourceBadge />
+        ) : initial.source === "firestore" ? (
+          <FirestoreSourceBadge />
+        ) : null}
       </div>
 
       {initial.source === "env" ? (
@@ -264,14 +297,18 @@ function PaymobForm({
         <div className="sm:col-span-2">
           <label className="text-sm font-medium">API Key</label>
           <ControlFieldHelp>
-            مفتاح API من لوحة تحكم باي موب (قسم Settings → Account Info).
+            {hasSavedApiKey
+              ? "اتركه فارغاً للاحتفاظ بمفتاح API المحفوظ، أو أدخل مفتاحاً جديداً لاستبداله."
+              : "مفتاح API من لوحة تحكم باي موب (قسم Settings → Account Info)."}
           </ControlFieldHelp>
           <input
             name="apiKey"
             type="password"
-            defaultValue={initial.apiKey ?? ""}
+            defaultValue=""
             dir="ltr"
-            placeholder={initial.apiKey ? "••••••••" : "ZXhhbXBsZV9hcGlfa2V5…"}
+            placeholder={
+              hasSavedApiKey ? "اتركه فارغاً للاحتفاظ بالمحفوظ" : "ZXhhbXBsZV9hcGlfa2V5…"
+            }
             className="mt-1 w-full rounded-lg border border-border px-3 py-2 font-mono text-sm"
             autoComplete="new-password"
           />
@@ -310,14 +347,20 @@ function PaymobForm({
         <div className="sm:col-span-2">
           <label className="text-sm font-medium">HMAC Secret</label>
           <ControlFieldHelp>
-            مفتاح التحقق من إشعارات باي موب — من قسم Developers → Webhooks.
+            {hasSavedHmacSecret
+              ? "اتركه فارغاً للاحتفاظ بمفتاح HMAC المحفوظ، أو أدخل مفتاحاً جديداً لاستبداله."
+              : "مفتاح التحقق من إشعارات باي موب — من قسم Developers → Webhooks."}
           </ControlFieldHelp>
           <input
             name="hmacSecret"
             type="password"
-            defaultValue={initial.hmacSecret ?? ""}
+            defaultValue=""
             dir="ltr"
-            placeholder={initial.hmacSecret ? "••••••••" : "أدخل الـ HMAC Secret"}
+            placeholder={
+              hasSavedHmacSecret
+                ? "اتركه فارغاً للاحتفاظ بالمحفوظ"
+                : "أدخل الـ HMAC Secret"
+            }
             className="mt-1 w-full rounded-lg border border-border px-3 py-2 font-mono text-sm"
             autoComplete="new-password"
           />

@@ -5,7 +5,7 @@ import { doc, serverTimestamp, setDoc } from "firebase/firestore";
 import { useFirebasePhoneOtp } from "@/features/auth/hooks/useFirebasePhoneOtp";
 import { STOREFRONT_CUSTOMERS_COLLECTION } from "@/features/checkout/lib/firestore-collections";
 import type { CheckoutFormData } from "@/features/checkout/types";
-import { getFirebaseFirestore } from "@/lib/firebase";
+import { getFirebaseFirestore } from "@/lib/firebase-client-firestore";
 import { firestoreCustomerSchema } from "@/schemas/firebase-customer";
 
 const RECAPTCHA_CONTAINER_ID = "checkout-recaptcha";

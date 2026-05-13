@@ -39,6 +39,28 @@ function maskSecret(s: string | undefined): string {
   return s.slice(0, 4) + "••••" + s.slice(-4);
 }
 
+function hasFawryEnvConfig(): boolean {
+  return Boolean(
+    process.env.FAWRY_MERCHANT_CODE?.trim() &&
+      (process.env.FAWRY_SECURE_KEY?.trim() || process.env.FAWRY_SECRET_KEY?.trim()),
+  );
+}
+
+function shouldPreserveSecret(value: string): boolean {
+  const trimmed = value.trim();
+  return !trimmed || trimmed.includes("•");
+}
+
+function resolveSecretValue(
+  incoming: string,
+  existing: string | undefined,
+  missingMessage: string,
+): string | NextResponse {
+  if (!shouldPreserveSecret(incoming)) return incoming;
+  if (existing?.trim()) return existing;
+  return NextResponse.json({ error: missingMessage }, { status: 400 });
+}
+
 export async function GET(request: NextRequest) {
   const auth = await requireScopeFull(request);
   if (auth instanceof NextResponse) return auth;
@@ -47,6 +69,7 @@ export async function GET(request: NextRequest) {
     const doc = await getFirestorePaymentGateways();
     const fawryEnabled = Boolean(doc?.fawry?.enabled);
     const paymobEnabled = Boolean(doc?.paymob?.enabled);
+    const fawryEnvConfigPresent = hasFawryEnvConfig();
 
     return NextResponse.json({
       fawry: doc?.fawry
@@ -56,10 +79,12 @@ export async function GET(request: NextRequest) {
             secureKey: maskSecret(doc.fawry.secureKey),
             sandbox: doc.fawry.sandbox ?? false,
             source: "firestore",
+            runtimeOverridesFirestore: fawryEnvConfigPresent,
           }
         : {
-            enabled: Boolean(process.env.FAWRY_MERCHANT_CODE && process.env.FAWRY_ENABLED !== "false"),
+            enabled: Boolean(fawryEnvConfigPresent && process.env.FAWRY_ENABLED !== "false"),
             source: "env",
+            runtimeOverridesFirestore: false,
           },
       paymob: doc?.paymob
         ? {
@@ -104,10 +129,24 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
 
-  const toSave: { fawry?: ReturnType<typeof fawryConfigSchema.parse>; paymob?: ReturnType<typeof paymobConfigSchema.parse> } = {};
+  const toSave: {
+    fawry?: ReturnType<typeof fawryConfigSchema.parse>;
+    paymob?: ReturnType<typeof paymobConfigSchema.parse>;
+  } = {};
+  const existingDoc = await getFirestorePaymentGateways();
 
   if (parsed.data.fawry) {
-    const fawryParsed = fawryConfigSchema.safeParse(parsed.data.fawry);
+    const secureKey = resolveSecretValue(
+      parsed.data.fawry.secureKey,
+      existingDoc?.fawry?.secureKey,
+      "يرجى إدخال Secure Key الحقيقي لفوري",
+    );
+    if (secureKey instanceof NextResponse) return secureKey;
+
+    const fawryParsed = fawryConfigSchema.safeParse({
+      ...parsed.data.fawry,
+      secureKey,
+    });
     if (!fawryParsed.success) {
       return NextResponse.json(
         { error: "بيانات فوري غير صحيحة", details: fawryParsed.error.flatten() },
@@ -118,7 +157,25 @@ export async function PUT(request: NextRequest) {
   }
 
   if (parsed.data.paymob) {
-    const paymobParsed = paymobConfigSchema.safeParse(parsed.data.paymob);
+    const apiKey = resolveSecretValue(
+      parsed.data.paymob.apiKey,
+      existingDoc?.paymob?.apiKey,
+      "يرجى إدخال API Key الحقيقي لباي موب",
+    );
+    if (apiKey instanceof NextResponse) return apiKey;
+
+    const hmacSecret = resolveSecretValue(
+      parsed.data.paymob.hmacSecret,
+      existingDoc?.paymob?.hmacSecret,
+      "يرجى إدخال HMAC Secret الحقيقي لباي موب",
+    );
+    if (hmacSecret instanceof NextResponse) return hmacSecret;
+
+    const paymobParsed = paymobConfigSchema.safeParse({
+      ...parsed.data.paymob,
+      apiKey,
+      hmacSecret,
+    });
     if (!paymobParsed.success) {
       return NextResponse.json(
         { error: "بيانات باي موب غير صحيحة", details: paymobParsed.error.flatten() },
