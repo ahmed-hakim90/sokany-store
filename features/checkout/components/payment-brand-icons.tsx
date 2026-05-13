@@ -78,7 +78,7 @@ export function CardMethodBadges() {
     <PaymentMethodBadgeGroup label="يدعم Visa و Mastercard و مدى و ميزة حسب بوابة الدفع المفعلة.">
       <MethodBadge tone="visa">Visa</MethodBadge>
       <MethodBadge tone="visa">Mastercard</MethodBadge>
-      <MethodBadge tone="mada">مدى</MethodBadge>
+      {/* <MethodBadge tone="mada">مدى</MethodBadge> */}
       <MethodBadge tone="meeza">ميزة</MethodBadge>
     </PaymentMethodBadgeGroup>
   );
