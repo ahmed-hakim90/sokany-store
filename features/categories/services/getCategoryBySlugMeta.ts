@@ -7,26 +7,28 @@ import { mockCategories } from "@/features/categories/mock";
 import { getSnapshotCategories } from "@/features/data-snapshot/server";
 import { WOO_BFF_UNSTABLE_CACHE_REVALIDATE_SEC } from "@/lib/woo-bff-revalidate";
 import {
-  WOO_CACHE_TAG_PRODUCTS,
   WOO_CACHE_TAG_SITEMAP,
+  wooCategorySlugTag,
 } from "@/lib/woocommerce-cache-tags";
 import { wpCategoriesSchema, wpCategorySchema } from "@/schemas/wordpress";
 import type { Category } from "@/features/categories/types";
 
-const fetchWooCategoryBySlugMetaCached = unstable_cache(
-  async (slug: string) => {
-    const woo = await createWooClient();
-    const res = await woo.get("/products/categories", {
-      params: { slug, per_page: 1 },
-    });
-    return wpCategoriesSchema.parse(res.data)[0] ?? null;
-  },
-  ["woo-category-meta-by-slug-v1"],
-  {
-    revalidate: WOO_BFF_UNSTABLE_CACHE_REVALIDATE_SEC,
-    tags: [WOO_CACHE_TAG_PRODUCTS, WOO_CACHE_TAG_SITEMAP],
-  },
-);
+function fetchWooCategoryBySlugMetaCached(slug: string) {
+  return unstable_cache(
+    async () => {
+      const woo = await createWooClient();
+      const res = await woo.get("/products/categories", {
+        params: { slug, per_page: 1 },
+      });
+      return wpCategoriesSchema.parse(res.data)[0] ?? null;
+    },
+    ["woo-category-meta-by-slug-v2", slug],
+    {
+      revalidate: WOO_BFF_UNSTABLE_CACHE_REVALIDATE_SEC,
+      tags: [wooCategorySlugTag(slug), WOO_CACHE_TAG_SITEMAP],
+    },
+  )();
+}
 
 export async function getCategoryBySlugMeta(
   slug: string,

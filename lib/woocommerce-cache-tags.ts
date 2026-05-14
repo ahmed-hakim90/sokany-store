@@ -13,3 +13,19 @@ export const WOO_CACHE_TAG_PRODUCT_TAGS = "woo-product-tags";
 export const WOO_CACHE_TAG_SITEMAP = "sitemap-woo";
 export const WOO_CACHE_TAG_ORDERS = "woo-orders";
 export const WOO_CACHE_TAG_REVIEWS = "woo-reviews";
+
+function safeCacheTagSegment(value: string | number): string {
+  return String(value).trim().toLowerCase().replace(/[^a-z0-9_-]+/g, "-");
+}
+
+export function wooProductDetailTag(id: number | string): string {
+  return `woo-product-detail:${safeCacheTagSegment(id)}`;
+}
+
+export function wooProductSlugTag(slug: string): string {
+  return `woo-product-slug:${safeCacheTagSegment(slug)}`;
+}
+
+export function wooCategorySlugTag(slug: string): string {
+  return `woo-category-slug:${safeCacheTagSegment(slug)}`;
+}

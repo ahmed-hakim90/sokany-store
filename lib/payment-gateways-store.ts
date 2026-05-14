@@ -47,6 +47,19 @@ export type PaymentGatewaysDoc = z.infer<typeof paymentGatewaysDocSchema>;
 
 // ---------- Env fallbacks ----------
 
+function getFawryHostedPaymentMethodFromEnv(): FawryConfig["hostedPaymentMethod"] {
+  const hostedPaymentMethodRaw = process.env.FAWRY_HOSTED_PAYMENT_METHOD?.trim();
+  const hostedPaymentMethod = fawryConfigSchema.shape.hostedPaymentMethod.safeParse(
+    hostedPaymentMethodRaw || undefined,
+  );
+  return hostedPaymentMethod.success ? hostedPaymentMethod.data : undefined;
+}
+
+function withFawryEnvOverrides(config: FawryConfig): FawryConfig {
+  const hostedPaymentMethod = getFawryHostedPaymentMethodFromEnv();
+  return hostedPaymentMethod ? { ...config, hostedPaymentMethod } : config;
+}
+
 function getFawryFromEnv(): FawryConfig | null {
   const merchantCode = process.env.FAWRY_MERCHANT_CODE?.trim();
   const secureKey =
@@ -54,18 +67,13 @@ function getFawryFromEnv(): FawryConfig | null {
     process.env.FAWRY_SECRET_KEY?.trim();
   if (!merchantCode || !secureKey) return null;
   const baseUrl = process.env.FAWRY_BASE_URL?.trim();
-  const hostedPaymentMethodRaw = process.env.FAWRY_HOSTED_PAYMENT_METHOD?.trim();
-  const hostedPaymentMethod = fawryConfigSchema.shape.hostedPaymentMethod.safeParse(
-    hostedPaymentMethodRaw || undefined,
-  );
+  const hostedPaymentMethod = getFawryHostedPaymentMethodFromEnv();
   return {
     enabled: process.env.FAWRY_ENABLED !== "false",
     merchantCode,
     secureKey,
     ...(baseUrl ? { baseUrl } : {}),
-    ...(hostedPaymentMethod.success && hostedPaymentMethod.data
-      ? { hostedPaymentMethod: hostedPaymentMethod.data }
-      : {}),
+    ...(hostedPaymentMethod ? { hostedPaymentMethod } : {}),
     sandbox: process.env.FAWRY_SANDBOX === "true",
   };
 }
@@ -131,7 +139,7 @@ export async function resolveFawryConfig(): Promise<FawryConfig | null> {
   const doc = await getFirestorePaymentGateways();
   if (!doc?.fawry) return null;
   const parsed = fawryConfigSchema.safeParse(doc.fawry);
-  return parsed.success ? parsed.data : null;
+  return parsed.success ? withFawryEnvOverrides(parsed.data) : null;
 }
 
 export async function resolvePaymobConfig(): Promise<PaymobConfig | null> {

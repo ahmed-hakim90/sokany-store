@@ -30,6 +30,20 @@ and PWA mode.
   show all methods enabled by Fawry.
 - `chargeItems`: item id, description, price, quantity.
 
+## Signing Modes
+
+The same Fawry charge endpoint supports two practical modes:
+
+- Hosted redirect mode: when `paymentMethod` is omitted, the app signs
+  `merchantCode + merchantRefNum + customerProfileId + returnUrl + chargeItems + secureKey`.
+  Fawry is expected to return a hosted payment URL.
+- Pay-at-Fawry code mode: when `paymentMethod=PayAtFawry`, the app signs
+  `merchantCode + merchantRefNum + customerProfileId + paymentMethod + amount + secureKey`
+  and sends a top-level `amount`. Fawry is expected to return a reference number
+  or hosted action for paying via Fawry. If Fawry returns only `referenceNumber`,
+  checkout completes locally and the order confirmation page displays the code
+  instead of redirecting to a hosted URL.
+
 ## Environment Checklist
 
 Use one consistent environment end to end. Sandbox merchant credentials should
@@ -67,6 +81,25 @@ Usually fixed by Fawry:
 - Card/payment form fields.
 - PCI-sensitive entry screens.
 - Most colors and interaction details unless Fawry enables merchant-level branding.
+
+## Diagnosing 9901
+
+`9901` with `خطأ فى كود التاجر أو كلمة السر` means Fawry rejected the
+merchant identity or secure key for the endpoint currently being used.
+
+Check these before changing request code:
+
+- The production endpoint must use the production merchant code and production
+  secure hash key.
+- The staging endpoint must use staging credentials.
+- The control panel / Firestore credentials may be the active source even when
+  `.env` contains only partial Fawry values. Env credentials fully override
+  Firestore only when both `FAWRY_MERCHANT_CODE` and `FAWRY_SECURE_KEY` (or
+  `FAWRY_SECRET_KEY`) exist.
+- Compare the `[fawry] charge request` log fields `merchantCode`,
+  `secureKeyFingerprint`, `secureKeyLength`, `environmentMode`, and `endpointHost`
+  with the values confirmed by Fawry support. `secureKeyFingerprint` is a short
+  SHA-256 prefix and is safe to share internally; never share the raw key.
 
 ## Diagnosing 9903
 

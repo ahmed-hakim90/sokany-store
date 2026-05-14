@@ -5,6 +5,7 @@ import { z } from "zod";
 import type { FawryConfig } from "@/lib/payment-gateways-store";
 import {
   buildFawryHostedSignature,
+  buildFawryReferenceSignature,
   formatFawryAmount,
 } from "@/lib/payment/fawry-signature";
 
@@ -138,6 +139,10 @@ function maskEmail(value: string | undefined): string | undefined {
   return `${local.slice(0, 2)}***@${domain}`;
 }
 
+function fingerprintSecret(value: string): string {
+  return createHash("sha256").update(value, "utf8").digest("hex").slice(0, 12);
+}
+
 function normalizePhone(value: string): string {
   const digits = value.trim().replace(/[^\d+]/g, "");
   if (digits.startsWith("+20")) return `0${digits.slice(3)}`;
@@ -238,6 +243,13 @@ function classifyFawryFailure(
   data: FawryChargeResponse,
 ): Pick<FawryChargeError, "code" | "userMessage"> {
   const statusDescription = data.statusDescription ?? "";
+  if (data.statusCode === 9901) {
+    return {
+      code: "invalid_config",
+      userMessage:
+        "كود التاجر أو مفتاح فوري غير صحيح أو لا يطابق بيئة الإنتاج/التجربة.",
+    };
+  }
   if (data.statusCode === 9929 || /ticket|تذكرة|signature/i.test(statusDescription)) {
     return {
       code: "invalid_signature",
@@ -298,7 +310,7 @@ export async function initiateFawryCharge(
   config: FawryConfig,
   req: FawryChargeRequest,
 ): Promise<{
-  redirectUrl: string;
+  redirectUrl?: string;
   merchantRefNum: string;
   paymentMethod?: FawryHostedPaymentMethod;
   referenceNumber?: string;
@@ -381,14 +393,23 @@ export async function initiateFawryCharge(
     quantity: item.quantity,
   }));
 
-  const signature = buildFawryHostedSignature({
-    merchantCode,
-    merchantRefNum,
-    customerProfileId: req.customerProfileId,
-    returnUrl: req.returnUrl,
-    chargeItems: normalizedItems,
-    secureKey,
-  });
+  const signature = req.paymentMethod
+    ? buildFawryReferenceSignature({
+        merchantCode,
+        merchantRefNum,
+        customerProfileId: req.customerProfileId,
+        paymentMethod: req.paymentMethod,
+        amount: paymentAmountText,
+        secureKey,
+      })
+    : buildFawryHostedSignature({
+        merchantCode,
+        merchantRefNum,
+        customerProfileId: req.customerProfileId,
+        returnUrl: req.returnUrl,
+        chargeItems: normalizedItems,
+        secureKey,
+      });
 
   const body = {
     merchantCode,
@@ -400,6 +421,7 @@ export async function initiateFawryCharge(
     paymentExpiry,
     language: "ar-eg",
     chargeItems: normalizedItems,
+    ...(req.paymentMethod ? { amount: paymentAmountText } : {}),
     ...(req.paymentMethod ? { paymentMethod: req.paymentMethod } : {}),
     returnUrl: req.returnUrl,
     authCaptureModePayment: false,
@@ -407,14 +429,23 @@ export async function initiateFawryCharge(
     signature,
   };
 
-  const recomputedSignature = buildFawryHostedSignature({
-    merchantCode: body.merchantCode,
-    merchantRefNum: body.merchantRefNum,
-    customerProfileId: req.customerProfileId,
-    returnUrl: body.returnUrl,
-    chargeItems: body.chargeItems,
-    secureKey,
-  });
+  const recomputedSignature = req.paymentMethod
+    ? buildFawryReferenceSignature({
+        merchantCode: body.merchantCode,
+        merchantRefNum: body.merchantRefNum,
+        customerProfileId: req.customerProfileId,
+        paymentMethod: req.paymentMethod,
+        amount: paymentAmountText,
+        secureKey,
+      })
+    : buildFawryHostedSignature({
+        merchantCode: body.merchantCode,
+        merchantRefNum: body.merchantRefNum,
+        customerProfileId: req.customerProfileId,
+        returnUrl: body.returnUrl,
+        chargeItems: body.chargeItems,
+        secureKey,
+      });
   if (recomputedSignature !== body.signature) {
     throw new FawryChargeError({
       code: "invalid_signature",
@@ -442,6 +473,8 @@ export async function initiateFawryCharge(
     })(),
     environmentMode: config.sandbox ? "sandbox" : "production",
     merchantCode,
+    secureKeyFingerprint: fingerprintSecret(secureKey),
+    secureKeyLength: secureKey.length,
     merchantRefNum,
     amount: paymentAmountText,
     currencyCode: "EGP",
@@ -595,7 +628,7 @@ export async function initiateFawryCharge(
     });
   }
 
-  if (!redirectUrl) {
+  if (!redirectUrl && !data.referenceNumber) {
     logFawryEvent("error", "hosted charge missing payment url", {
       fawryRequestId,
       endpoint,
@@ -619,7 +652,7 @@ export async function initiateFawryCharge(
   }
 
   return {
-    redirectUrl,
+    ...(redirectUrl ? { redirectUrl } : {}),
     merchantRefNum,
     paymentMethod: body.paymentMethod,
     referenceNumber: data.referenceNumber,

@@ -15,47 +15,65 @@ import { mapProduct } from "@/features/products/adapters";
 import { mockProducts } from "@/features/products/mock";
 import { getSnapshotProducts } from "@/features/data-snapshot/server";
 import { WOO_BFF_UNSTABLE_CACHE_REVALIDATE_SEC } from "@/lib/woo-bff-revalidate";
-import { WOO_CACHE_TAG_PRODUCTS } from "@/lib/woocommerce-cache-tags";
+import {
+  wooProductDetailTag,
+  wooProductSlugTag,
+} from "@/lib/woocommerce-cache-tags";
 import { wpProductSchema } from "@/schemas/wordpress";
 import type { Product } from "@/features/products/types";
 
-const fetchWooProductByIdMetaCached = unstable_cache(
-  async (id: number) => {
-    const woo = await createWooClient();
-    const res = await woo.get(`/products/${id}`);
-    return wpProductSchema.parse(res.data);
-  },
-  ["woo-product-meta-by-id-v1"],
-  { revalidate: WOO_BFF_UNSTABLE_CACHE_REVALIDATE_SEC, tags: [WOO_CACHE_TAG_PRODUCTS] },
-);
+function fetchWooProductByIdMetaCached(id: number) {
+  return unstable_cache(
+    async () => {
+      const woo = await createWooClient();
+      const res = await woo.get(`/products/${id}`);
+      return wpProductSchema.parse(res.data);
+    },
+    ["woo-product-meta-by-id-v2", String(id)],
+    {
+      revalidate: WOO_BFF_UNSTABLE_CACHE_REVALIDATE_SEC,
+      tags: [wooProductDetailTag(id)],
+    },
+  )();
+}
 
-const fetchWooProductByIdFromCollectionCached = unstable_cache(
-  async (id: number) => {
-    const woo = await createWooClient();
-    const res = await woo.get("/products", {
-      params: { include: String(id), per_page: "1" },
-    });
-    const rows = Array.isArray(res.data) ? res.data : [];
-    const first = rows[0];
-    return first ? wpProductSchema.parse(first) : null;
-  },
-  ["woo-product-meta-by-id-collection-v1"],
-  { revalidate: WOO_BFF_UNSTABLE_CACHE_REVALIDATE_SEC, tags: [WOO_CACHE_TAG_PRODUCTS] },
-);
+function fetchWooProductByIdFromCollectionCached(id: number) {
+  return unstable_cache(
+    async () => {
+      const woo = await createWooClient();
+      const res = await woo.get("/products", {
+        params: { include: String(id), per_page: "1" },
+      });
+      const rows = Array.isArray(res.data) ? res.data : [];
+      const first = rows[0];
+      return first ? wpProductSchema.parse(first) : null;
+    },
+    ["woo-product-meta-by-id-collection-v2", String(id)],
+    {
+      revalidate: WOO_BFF_UNSTABLE_CACHE_REVALIDATE_SEC,
+      tags: [wooProductDetailTag(id)],
+    },
+  )();
+}
 
-const fetchWooProductBySlugMetaCached = unstable_cache(
-  async (slug: string) => {
-    const woo = await createWooClient();
-    const res = await woo.get("/products", {
-      params: { slug, per_page: "1" },
-    });
-    const rows = Array.isArray(res.data) ? res.data : [];
-    const first = rows[0];
-    return first ? wpProductSchema.parse(first) : null;
-  },
-  ["woo-product-meta-by-slug-v1"],
-  { revalidate: WOO_BFF_UNSTABLE_CACHE_REVALIDATE_SEC, tags: [WOO_CACHE_TAG_PRODUCTS] },
-);
+function fetchWooProductBySlugMetaCached(slug: string) {
+  return unstable_cache(
+    async () => {
+      const woo = await createWooClient();
+      const res = await woo.get("/products", {
+        params: { slug, per_page: "1" },
+      });
+      const rows = Array.isArray(res.data) ? res.data : [];
+      const first = rows[0];
+      return first ? wpProductSchema.parse(first) : null;
+    },
+    ["woo-product-meta-by-slug-v2", slug],
+    {
+      revalidate: WOO_BFF_UNSTABLE_CACHE_REVALIDATE_SEC,
+      tags: [wooProductSlugTag(slug)],
+    },
+  )();
+}
 
 export async function getProductMetaBySlugOrId(
   segment: string,

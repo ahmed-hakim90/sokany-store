@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
+import { cache } from "react";
 import { ProductDetailPageContent } from "@/components/pages/ProductDetailPageContent";
 import { BreadcrumbJsonLd } from "@/components/seo/BreadcrumbJsonLd";
 import { ProductJsonLd } from "@/components/seo/ProductJsonLd";
@@ -14,6 +15,10 @@ import { getSiteUrl, toAbsoluteSiteUrl } from "@/lib/site";
 
 type PageProps = { params: Promise<{ id: string }> };
 
+export const revalidate = 300;
+
+const getCachedProductMetaBySlugOrId = cache(getProductMetaBySlugOrId);
+
 export async function generateStaticParams() {
   const slice = mockProducts.slice(0, 50);
   return [
@@ -26,7 +31,7 @@ export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
   const { id } = await params;
-  const product = await getProductMetaBySlugOrId(id);
+  const product = await getCachedProductMetaBySlugOrId(id);
   if (!product) return { title: "منتج غير موجود" };
 
   const site = getSiteUrl();
@@ -73,7 +78,7 @@ export default async function ProductPage({ params }: PageProps) {
   const { id } = await params;
 
   const [product, publicContent] = await Promise.all([
-    getProductMetaBySlugOrId(id),
+    getCachedProductMetaBySlugOrId(id),
     getPublicSiteContent(),
   ]);
   if (!product) notFound();

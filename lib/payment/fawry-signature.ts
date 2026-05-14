@@ -24,7 +24,7 @@ export type FawryReferenceSignatureInput = {
   merchantCode: string;
   merchantRefNum: string;
   customerProfileId?: string;
-  paymentMethod?: typeof FAWRY_REFERENCE_PAYMENT_METHOD;
+  paymentMethod?: string;
   amount: string | number;
   secureKey: string;
 };

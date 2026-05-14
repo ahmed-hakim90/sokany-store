@@ -2,10 +2,20 @@ import { NextResponse } from "next/server";
 import { Readable } from "node:stream";
 import { getAdminStorageBucket } from "@/lib/firebase-admin";
 import { isSafeCmsObjectPath } from "@/lib/cms-file-path";
+import { API_NO_INDEX_HEADERS } from "@/lib/api-no-index";
 
 export const runtime = "nodejs";
 
 type RouteContext = { params: Promise<{ path?: string[] }> };
+
+const MEDIA_CACHE_CONTROL = "public, max-age=3600, stale-while-revalidate=86400";
+const DEFAULT_CACHE_CONTROL = "public, max-age=0, must-revalidate";
+
+function cacheControlForCmsPath(path: string): string {
+  return /\.(avif|webp|png|jpe?g|gif|svg|ico|woff2?|ttf|otf|glb|gltf)$/i.test(path)
+    ? MEDIA_CACHE_CONTROL
+    : DEFAULT_CACHE_CONTROL;
+}
 
 /**
  * بث الملفات المرفوعة عبر تخزين الـ CMS بروابط الموقع:
@@ -13,13 +23,19 @@ type RouteContext = { params: Promise<{ path?: string[] }> };
  */
 export async function GET(request: Request, context: RouteContext) {
   if (!process.env.FIREBASE_SERVICE_ACCOUNT_JSON?.trim()) {
-    return NextResponse.json({ error: "Service unavailable" }, { status: 503 });
+    return NextResponse.json(
+      { error: "Service unavailable" },
+      { status: 503, headers: API_NO_INDEX_HEADERS },
+    );
   }
 
   const { path: rawSegments } = await context.params;
   const segments = Array.isArray(rawSegments) ? rawSegments : [];
   if (segments.length === 0) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
+    return NextResponse.json(
+      { error: "Not found" },
+      { status: 404, headers: API_NO_INDEX_HEADERS },
+    );
   }
 
   const rel = segments
@@ -32,20 +48,30 @@ export async function GET(request: Request, context: RouteContext) {
     })
     .join("/");
   if (!rel || rel.includes("..")) {
-    return NextResponse.json({ error: "Bad path" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Bad path" },
+      { status: 400, headers: API_NO_INDEX_HEADERS },
+    );
   }
 
   const objectPath = `cms/${rel}`;
   if (!isSafeCmsObjectPath(objectPath)) {
-    return NextResponse.json({ error: "Bad path" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Bad path" },
+      { status: 400, headers: API_NO_INDEX_HEADERS },
+    );
   }
 
   try {
+    const cacheControl = cacheControlForCmsPath(objectPath);
     const bucket = getAdminStorageBucket();
     const file = bucket.file(objectPath);
     const [exists] = await file.exists();
     if (!exists) {
-      return NextResponse.json({ error: "Not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Not found" },
+        { status: 404, headers: API_NO_INDEX_HEADERS },
+      );
     }
     const [metadata] = await file.getMetadata();
     const contentType = metadata.contentType || "application/octet-stream";
@@ -69,27 +95,31 @@ export async function GET(request: Request, context: RouteContext) {
             "Content-Length": String(safeEnd - safeStart + 1),
             "Content-Range": `bytes ${safeStart}-${safeEnd}/${size}`,
             "Accept-Ranges": "bytes",
-            "Cache-Control": "public, max-age=0, must-revalidate",
+            "Cache-Control": cacheControl,
             "X-Content-Type-Options": "nosniff",
+            ...API_NO_INDEX_HEADERS,
           },
         });
       }
     }
 
-    const [buf] = await file.download();
-    return new NextResponse(new Uint8Array(buf), {
+    const stream = Readable.toWeb(file.createReadStream());
+    return new NextResponse(stream as BodyInit, {
       status: 200,
       headers: {
         "Content-Type": contentType,
         ...(Number.isFinite(size) && size > 0 ? { "Content-Length": String(size) } : {}),
         "Accept-Ranges": "bytes",
-        // نفس المسار قد يُستبدل بمحتوى جديد
-        "Cache-Control": "public, max-age=0, must-revalidate",
+        "Cache-Control": cacheControl,
         "X-Content-Type-Options": "nosniff",
+        ...API_NO_INDEX_HEADERS,
       },
     });
   } catch (e) {
     console.error(e);
-    return NextResponse.json({ error: "Failed to load file" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to load file" },
+      { status: 500, headers: API_NO_INDEX_HEADERS },
+    );
   }
 }

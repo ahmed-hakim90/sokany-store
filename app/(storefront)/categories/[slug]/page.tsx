@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
+import { cache, Suspense } from "react";
 import { notFound } from "next/navigation";
 import {
   CategorySlugPageContent,
@@ -15,6 +15,10 @@ import { getSiteUrl, toAbsoluteSiteUrl } from "@/lib/site";
 
 type PageProps = { params: Promise<{ slug: string }> };
 
+export const revalidate = 300;
+
+const getCachedCategoryBySlugMeta = cache(getCategoryBySlugMeta);
+
 export async function generateStaticParams() {
   const fallbackCategories = getSnapshotCategories() ?? mockCategories;
   const uniqueSlugs = Array.from(
@@ -27,7 +31,7 @@ export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const category = await getCategoryBySlugMeta(slug);
+  const category = await getCachedCategoryBySlugMeta(slug);
   if (!category) return { title: "تصنيف غير موجود" };
 
   const site = getSiteUrl();
@@ -64,7 +68,7 @@ export async function generateMetadata({
 
 export default async function CategoryPage({ params }: PageProps) {
   const { slug } = await params;
-  const category = await getCategoryBySlugMeta(slug);
+  const category = await getCachedCategoryBySlugMeta(slug);
   if (!category) notFound();
 
   return (

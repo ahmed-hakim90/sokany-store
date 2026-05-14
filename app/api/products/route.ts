@@ -20,6 +20,7 @@ import { wooBff502Response } from "@/lib/woo-bff-catch-payload";
 import { shouldUseWooBffMockFallback } from "@/lib/woo-bff-mock-fallback";
 import { WOO_BFF_UNSTABLE_CACHE_REVALIDATE_SEC } from "@/lib/woo-bff-revalidate";
 import { WOO_CACHE_TAG_PRODUCTS } from "@/lib/woocommerce-cache-tags";
+import { API_NO_INDEX_HEADERS } from "@/lib/api-no-index";
 import { filterWcProductsExcludingOutOfStock } from "@/lib/woo-storefront-availability";
 import { fetchWooStorefrontProductsPage } from "@/features/products/services/woo-storefront-product-page";
 import type { WCCategory } from "@/features/categories/types";
@@ -95,6 +96,7 @@ export async function GET(request: NextRequest) {
       headers: {
         "X-WP-Total": cached.total,
         "X-WP-TotalPages": cached.totalPages,
+        ...API_NO_INDEX_HEADERS,
       },
     });
   } catch (error) {
@@ -172,6 +174,7 @@ export async function GET(request: NextRequest) {
         "X-WP-TotalPages": String(
           Math.max(1, Math.ceil(all.length / per_page)),
         ),
+        ...API_NO_INDEX_HEADERS,
       },
     });
   }

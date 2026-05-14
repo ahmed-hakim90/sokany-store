@@ -21,6 +21,12 @@ const wishlistToast = {
       description: name,
     });
   },
+  cleared(count: number) {
+    toast.info("تم تفريغ المفضلة", {
+      id: "wishlist-cleared",
+      description: `${count} منتج`,
+    });
+  },
 };
 
 export function useWishlist() {
@@ -28,6 +34,7 @@ export function useWishlist() {
   const items = useWishlistStore((s) => s.items);
   const addProduct = useWishlistStore((s) => s.addProduct);
   const removeProductStore = useWishlistStore((s) => s.removeProduct);
+  const clearAllStore = useWishlistStore((s) => s.clearAll);
   const toggleProductStore = useWishlistStore((s) => s.toggleProduct);
 
   const safeItems = useMemo(() => (hasHydrated ? items : []), [hasHydrated, items]);
@@ -63,12 +70,20 @@ export function useWishlist() {
 
   const totalCount = useMemo(() => safeItems.length, [safeItems]);
 
+  const clearAll = useCallback(() => {
+    const count = useWishlistStore.getState().items.length;
+    if (count === 0) return;
+    clearAllStore();
+    wishlistToast.cleared(count);
+  }, [clearAllStore]);
+
   return {
     hasHydrated,
     items: safeItems,
     totalCount,
     addProduct,
     removeFromWishlist,
+    clearAll,
     toggleProduct: toggleWithToast,
     isInWishlist,
   };

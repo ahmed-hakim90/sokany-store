@@ -8,6 +8,7 @@ import { fetchCachedWooCategories } from "@/features/categories/services/fetchCa
 import { getSnapshotCategories } from "@/features/data-snapshot/server";
 import { wooBff502Response } from "@/lib/woo-bff-catch-payload";
 import { shouldUseWooBffMockFallback } from "@/lib/woo-bff-mock-fallback";
+import { API_NO_INDEX_HEADERS } from "@/lib/api-no-index";
 
 export async function GET(request: NextRequest) {
   try {
@@ -18,6 +19,7 @@ export async function GET(request: NextRequest) {
       headers: {
         "X-WP-Total": cached.total,
         "X-WP-TotalPages": cached.totalPages,
+        ...API_NO_INDEX_HEADERS,
       },
     });
   } catch (error) {
@@ -34,6 +36,7 @@ export async function GET(request: NextRequest) {
       headers: {
         "X-WP-Total": String(data.length),
         "X-WP-TotalPages": "1",
+        ...API_NO_INDEX_HEADERS,
       },
     });
   }

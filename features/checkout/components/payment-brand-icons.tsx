@@ -66,9 +66,9 @@ function PaymentMethodBadgeGroup({
 
 export function CodMethodBadges() {
   return (
-    <PaymentMethodBadgeGroup label="يدعم الدفع نقداً، أو الدفع ببطاقة مع المندوب عند الاستلام.">
+    <PaymentMethodBadgeGroup label="يدعم الدفع نقداً.">
       <MethodBadge tone="cash">نقدي</MethodBadge>
-      <MethodBadge tone="kiosk">بطاقة مع المندوب</MethodBadge>
+      {/* <MethodBadge tone="kiosk"></MethodBadge> */}
     </PaymentMethodBadgeGroup>
   );
 }

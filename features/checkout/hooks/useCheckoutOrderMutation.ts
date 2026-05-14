@@ -100,6 +100,7 @@ async function initiateOnlinePayment(
     const data = res.data as OnlinePaymentResult;
     const url = data.redirectUrl ?? data.iframeUrl;
     if (!url) {
+      if (paymentMethod === "fawry" && data.referenceNumber) return data;
       throw new Error("لم يتم استلام رابط الدفع من البوابة");
     }
     return data.redirectUrl

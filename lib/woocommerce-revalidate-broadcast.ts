@@ -16,6 +16,9 @@ import {
   WOO_CACHE_TAG_PRODUCTS,
   WOO_CACHE_TAG_REVIEWS,
   WOO_CACHE_TAG_SITEMAP,
+  wooCategorySlugTag,
+  wooProductDetailTag,
+  wooProductSlugTag,
 } from "@/lib/woocommerce-cache-tags";
 
 /** منتجات + تاجات + سايت ماب Woo — من ويبهوك Woo أو بيانات خارجية. */
@@ -33,23 +36,32 @@ export function revalidateWooReviewTags(): void {
   revalidateTag(WOO_CACHE_TAG_REVIEWS, "max");
 }
 
-/** صفحات القوائم الرئيسية + اختياري `/products/[id]` بعد ما التاجات تتشال. */
-export function revalidateProductListingPaths(productId?: number): void {
-  revalidatePath("/");
-  revalidatePath("/products");
-  revalidatePath("/offers");
-  revalidatePath("/search");
-  revalidatePath("/categories");
-  if (productId !== undefined && Number.isFinite(productId)) {
-    revalidatePath(`/products/${productId}`);
+export function revalidateGranularProductAndCategoryTags(input: {
+  productId?: number;
+  productSlug?: string;
+  categorySlugs?: string[];
+}): void {
+  if (input.productId !== undefined && Number.isFinite(input.productId)) {
+    revalidateTag(wooProductDetailTag(input.productId), "max");
+  }
+  if (input.productSlug?.trim()) {
+    revalidateTag(wooProductSlugTag(input.productSlug), "max");
+  }
+  for (const slug of input.categorySlugs ?? []) {
+    if (slug.trim()) revalidateTag(wooCategorySlugTag(slug), "max");
   }
 }
 
-export function revalidateCategoryListingPathsAfterHook(): void {
-  revalidatePath("/");
+/** PDP محدد قدر الإمكان؛ غياب id يرجع لقائمة المنتجات فقط كـ fallback. */
+export function revalidateProductListingPaths(productId?: number): void {
+  if (productId !== undefined && Number.isFinite(productId)) {
+    revalidatePath(`/products/${productId}`);
+    return;
+  }
   revalidatePath("/products");
-  revalidatePath("/offers");
-  revalidatePath("/search");
+}
+
+export function revalidateCategoryListingPathsAfterHook(): void {
   revalidatePath("/categories", "page");
   revalidatePath("/categories", "layout");
 }

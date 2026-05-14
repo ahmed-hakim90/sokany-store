@@ -3,6 +3,7 @@ import "server-only";
 import { revalidatePath } from "next/cache";
 import { ROUTES } from "@/lib/constants";
 import {
+  revalidateGranularProductAndCategoryTags,
   revalidateCategoryListingPathsAfterHook,
   revalidateProductListingPaths,
   revalidateWooDataTags,
@@ -24,6 +25,27 @@ export function extractWooWebhookResourceId(body: unknown): number | undefined {
   return undefined;
 }
 
+function extractWooWebhookSlug(body: unknown): string | undefined {
+  if (!body || typeof body !== "object") return undefined;
+  const slug = (body as { slug?: unknown }).slug;
+  return typeof slug === "string" && slug.trim() ? slug.trim() : undefined;
+}
+
+function extractWooWebhookCategorySlugs(body: unknown): string[] {
+  if (!body || typeof body !== "object") return [];
+  const categories = (body as { categories?: unknown }).categories;
+  if (!Array.isArray(categories)) return [];
+  const slugs = new Set<string>();
+  for (const category of categories) {
+    if (!category || typeof category !== "object") continue;
+    const slug = (category as { slug?: unknown }).slug;
+    if (typeof slug === "string" && slug.trim()) {
+      slugs.add(slug.trim());
+    }
+  }
+  return [...slugs];
+}
+
 /**
  * بعد ‎`POST`‎ مُوثّق لـ ‎`/api/webhooks/woocommerce`‎.
  *
@@ -35,18 +57,27 @@ export function revalidateAfterWooCommerceWebhook(
   topic: string | null,
   payload: unknown,
 ): void {
-  revalidateWooDataTags();
-
   const t = (topic ?? "").toLowerCase().trim();
 
   if (t.startsWith("product_cat.")) {
+    const categorySlug = extractWooWebhookSlug(payload);
+    revalidateWooDataTags();
+    revalidateGranularProductAndCategoryTags({
+      categorySlugs: categorySlug ? [categorySlug] : [],
+    });
     revalidateCategoryListingPathsAfterHook();
     return;
   }
 
   if (t.startsWith("product.")) {
-    revalidateWooReviewTags();
-    revalidateProductListingPaths(extractWooWebhookResourceId(payload));
+    const productId = extractWooWebhookResourceId(payload);
+    revalidateWooDataTags();
+    revalidateGranularProductAndCategoryTags({
+      productId,
+      productSlug: extractWooWebhookSlug(payload),
+      categorySlugs: extractWooWebhookCategorySlugs(payload),
+    });
+    revalidateProductListingPaths(productId);
     return;
   }
 
@@ -57,7 +88,6 @@ export function revalidateAfterWooCommerceWebhook(
     revalidatePath(ROUTES.MY_ORDERS);
     revalidatePath(ROUTES.MY_REVIEWS);
     revalidatePath(ROUTES.ACCOUNT);
-    revalidatePath("/");
     return;
   }
 
@@ -66,6 +96,7 @@ export function revalidateAfterWooCommerceWebhook(
     return;
   }
 
+  revalidateWooDataTags();
   revalidatePath("/products");
   revalidatePath("/offers");
   revalidatePath("/categories");

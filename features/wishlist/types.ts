@@ -11,5 +11,6 @@ export type WishlistState = {
   items: WishlistItem[];
   addProduct: (product: Product) => void;
   removeProduct: (productId: number) => void;
+  clearAll: () => void;
   toggleProduct: (product: Product) => void;
 };
