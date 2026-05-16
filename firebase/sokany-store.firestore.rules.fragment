@@ -1,0 +1,27 @@
+// Sokany Store — يُدمج داخل: match /databases/{database}/documents { ... }
+// دوال مساعدة ببادئة sokanyStore_ لتفادي التعارض مع مشاريع أخرى في ملف مركزي.
+
+function sokanyStore_isControlPanelFirebaseAdmin() {
+  return request.auth != null &&
+    (request.auth.token.admin == true || request.auth.token.role == "admin");
+}
+
+function sokanyStore_isStorefrontCustomerOwner(uid) {
+  return request.auth != null && request.auth.uid == uid;
+}
+
+// عملاء المتجر (Phone Auth)
+match /storefront_customers/{uid} {
+  allow read, write: if sokanyStore_isStorefrontCustomerOwner(uid);
+}
+
+// محتوى CMS — التطبيق يقرأ/يكتب عبر Admin SDK فقط من العميل.
+match /storefront_cms/{docId} {
+  allow read, write: if false;
+}
+
+// أصول المنتجات ثلاثية الأبعاد — قراءة عامة؛ الكتابة لحسابات ذات claims إدارية.
+match /product_3d_assets/{sku} {
+  allow read: if true;
+  allow create, update, delete: if sokanyStore_isControlPanelFirebaseAdmin();
+}
