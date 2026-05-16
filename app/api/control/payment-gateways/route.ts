@@ -147,6 +147,7 @@ export async function PUT(request: NextRequest) {
   const toSave: {
     fawry?: ReturnType<typeof fawryConfigSchema.parse>;
     paymob?: ReturnType<typeof paymobConfigSchema.parse>;
+    fawryClearHostedPaymentMethod?: boolean;
   } = {};
   const existingDoc = await getFirestorePaymentGateways();
 
@@ -158,10 +159,14 @@ export async function PUT(request: NextRequest) {
     );
     if (secureKey instanceof NextResponse) return secureKey;
 
+    const rawHostedPaymentMethod = parsed.data.fawry.hostedPaymentMethod;
+    const clearHostedPaymentMethod = !rawHostedPaymentMethod?.trim();
     const fawryParsed = fawryConfigSchema.safeParse({
       ...parsed.data.fawry,
       secureKey,
-      hostedPaymentMethod: parsed.data.fawry.hostedPaymentMethod || undefined,
+      ...(clearHostedPaymentMethod
+        ? {}
+        : { hostedPaymentMethod: rawHostedPaymentMethod }),
     });
     if (!fawryParsed.success) {
       return NextResponse.json(
@@ -170,6 +175,9 @@ export async function PUT(request: NextRequest) {
       );
     }
     toSave.fawry = fawryParsed.data;
+    if (clearHostedPaymentMethod) {
+      toSave.fawryClearHostedPaymentMethod = true;
+    }
   }
 
   if (parsed.data.paymob) {
@@ -205,7 +213,8 @@ export async function PUT(request: NextRequest) {
     await savePaymentGateways(toSave, auth.uid);
     return NextResponse.json({ ok: true });
   } catch (e) {
-    console.error("[control/payment-gateways] PUT failed", e);
+    const detail = e instanceof Error ? e.message : String(e);
+    console.error("[control/payment-gateways] PUT failed:", detail, e);
     return NextResponse.json({ error: "حفظ الإعدادات فشل" }, { status: 500 });
   }
 }

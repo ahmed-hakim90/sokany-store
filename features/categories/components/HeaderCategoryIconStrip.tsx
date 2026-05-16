@@ -17,6 +17,47 @@ export type HeaderCategoryIconStripProps = {
   variant?: "toolbar" | "default";
 };
 
+const SKELETON_CIRCLE_COUNT = 5;
+
+/**
+ * Placeholder while `useSearchParams()` resolves (SSR / static prerender).
+ * Matches `HeaderCategoryIconStrip` layout and 48px header circles.
+ */
+export function HeaderCategoryIconStripSkeleton({
+  className,
+  variant = "default",
+}: Pick<HeaderCategoryIconStripProps, "className" | "variant">) {
+  return (
+    <div
+      role="navigation"
+      aria-busy="true"
+      aria-label="جاري تحميل اختصارات التصنيفات"
+      className={cn(
+        "w-full min-w-0",
+        variant === "toolbar"
+          ? "px-0 pt-1"
+          : "border-b border-border/50 px-3 pt-1 pb-2 sm:px-4 sm:pt-1.5 sm:pb-2",
+        className,
+      )}
+    >
+      <ul
+        className={cn(
+          "flex w-full min-w-0 flex-nowrap items-center justify-start gap-1.5 overflow-x-auto overscroll-x-contain pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+        )}
+      >
+        {Array.from({ length: SKELETON_CIRCLE_COUNT }, (_, i) => (
+          <li key={i} className="shrink-0">
+            <span
+              className="block h-12 w-12 animate-pulse rounded-full bg-surface-muted/80"
+              aria-hidden
+            />
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 export function HeaderCategoryIconStrip({
   config,
   className,

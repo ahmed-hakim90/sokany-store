@@ -1,7 +1,11 @@
 "use client";
 
+import { Suspense } from "react";
 import { usePathname } from "next/navigation";
-import { HeaderCategoryIconStrip } from "@/features/categories/components/HeaderCategoryIconStrip";
+import {
+  HeaderCategoryIconStrip,
+  HeaderCategoryIconStripSkeleton,
+} from "@/features/categories/components/HeaderCategoryIconStrip";
 import { ROUTES } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import type { CmsHeaderCategoryStrip } from "@/schemas/cms";
@@ -25,7 +29,9 @@ export function StorefrontHeaderCategoryStrip({
 
   return (
     <div className={cn("z-30 bg-page max-lg:bg-white lg:-mt-1", className)}>
-      <HeaderCategoryIconStrip config={config} variant="default" />
+      <Suspense fallback={<HeaderCategoryIconStripSkeleton variant="default" />}>
+        <HeaderCategoryIconStrip config={config} variant="default" />
+      </Suspense>
     </div>
   );
 }

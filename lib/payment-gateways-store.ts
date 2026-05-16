@@ -45,6 +45,30 @@ export const paymentGatewaysDocSchema = z.object({
 
 export type PaymentGatewaysDoc = z.infer<typeof paymentGatewaysDocSchema>;
 
+export type PaymentGatewaysSaveInput = Omit<
+  PaymentGatewaysDoc,
+  "updatedAt" | "updatedByUid"
+> & {
+  /** يزيل fawry.hostedPaymentMethod من مستند Firestore (اختيار «كل الطرق») */
+  fawryClearHostedPaymentMethod?: boolean;
+};
+
+/** يبني كائناً صالحاً لـ Firestore بدون قيم undefined */
+export function buildGatewayConfigForFirestore(
+  config: Record<string, unknown>,
+  options?: { hostedPaymentMethodField?: unknown },
+): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(config)) {
+    if (value === undefined) continue;
+    out[key] = value;
+  }
+  if (options && "hostedPaymentMethodField" in options) {
+    out.hostedPaymentMethod = options.hostedPaymentMethodField;
+  }
+  return out;
+}
+
 // ---------- Env fallbacks ----------
 
 function getFawryHostedPaymentMethodFromEnv(): FawryConfig["hostedPaymentMethod"] {
@@ -117,18 +141,32 @@ export async function getFirestorePaymentGateways(): Promise<PaymentGatewaysDoc 
 }
 
 export async function savePaymentGateways(
-  doc: Omit<PaymentGatewaysDoc, "updatedAt" | "updatedByUid">,
+  doc: PaymentGatewaysSaveInput,
   updatedByUid: string,
 ): Promise<void> {
   const { default: admin } = await import("firebase-admin");
-  await getDocRef().set(
-    {
-      ...doc,
-      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-      updatedByUid,
-    },
-    { merge: true },
-  );
+  const { fawryClearHostedPaymentMethod, fawry, paymob } = doc;
+
+  const payload: Record<string, unknown> = {
+    updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    updatedByUid,
+  };
+
+  if (fawry) {
+    payload.fawry = buildGatewayConfigForFirestore(
+      fawry as unknown as Record<string, unknown>,
+      fawryClearHostedPaymentMethod
+        ? { hostedPaymentMethodField: admin.firestore.FieldValue.delete() }
+        : undefined,
+    );
+  }
+  if (paymob) {
+    payload.paymob = buildGatewayConfigForFirestore(
+      paymob as unknown as Record<string, unknown>,
+    );
+  }
+
+  await getDocRef().set(payload, { merge: true });
 }
 
 // ---------- Resolved getters (env first, then Firestore) ----------
