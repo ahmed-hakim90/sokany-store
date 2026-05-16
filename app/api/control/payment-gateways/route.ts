@@ -20,6 +20,7 @@ const putBodySchema = z.object({
       enabled: z.boolean(),
       merchantCode: z.string().trim(),
       secureKey: z.string().trim(),
+      hostedPaymentMethod: fawryConfigSchema.shape.hostedPaymentMethod.or(z.literal("")).optional(),
       sandbox: z.boolean().default(false),
     })
     .optional(),
@@ -46,6 +47,12 @@ function hasFawryEnvConfig(): boolean {
   );
 }
 
+function getFawryHostedPaymentMethodFromEnv() {
+  const raw = process.env.FAWRY_HOSTED_PAYMENT_METHOD?.trim();
+  const parsed = fawryConfigSchema.shape.hostedPaymentMethod.safeParse(raw || undefined);
+  return parsed.success ? parsed.data : undefined;
+}
+
 function shouldPreserveSecret(value: string): boolean {
   const trimmed = value.trim();
   return !trimmed || trimmed.includes("•");
@@ -70,6 +77,12 @@ export async function GET(request: NextRequest) {
     const fawryEnabled = Boolean(doc?.fawry?.enabled);
     const paymobEnabled = Boolean(doc?.paymob?.enabled);
     const fawryEnvConfigPresent = hasFawryEnvConfig();
+    const fawryEnvHostedPaymentMethod = getFawryHostedPaymentMethodFromEnv();
+    const fawryRuntimeOverridesFirestore = Boolean(
+      fawryEnvConfigPresent ||
+        (fawryEnvHostedPaymentMethod &&
+          fawryEnvHostedPaymentMethod !== doc?.fawry?.hostedPaymentMethod),
+    );
 
     return NextResponse.json({
       fawry: doc?.fawry
@@ -77,12 +90,14 @@ export async function GET(request: NextRequest) {
             enabled: fawryEnabled,
             merchantCode: doc.fawry.merchantCode,
             secureKey: maskSecret(doc.fawry.secureKey),
+            hostedPaymentMethod: fawryEnvHostedPaymentMethod ?? doc.fawry.hostedPaymentMethod,
             sandbox: doc.fawry.sandbox ?? false,
             source: "firestore",
-            runtimeOverridesFirestore: fawryEnvConfigPresent,
+            runtimeOverridesFirestore: fawryRuntimeOverridesFirestore,
           }
         : {
             enabled: Boolean(fawryEnvConfigPresent && process.env.FAWRY_ENABLED !== "false"),
+            hostedPaymentMethod: fawryEnvHostedPaymentMethod,
             source: "env",
             runtimeOverridesFirestore: false,
           },
@@ -146,6 +161,7 @@ export async function PUT(request: NextRequest) {
     const fawryParsed = fawryConfigSchema.safeParse({
       ...parsed.data.fawry,
       secureKey,
+      hostedPaymentMethod: parsed.data.fawry.hostedPaymentMethod || undefined,
     });
     if (!fawryParsed.success) {
       return NextResponse.json(

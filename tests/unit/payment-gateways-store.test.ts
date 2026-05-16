@@ -7,6 +7,7 @@ const firestoreDoc = {
     enabled: true,
     merchantCode: "firestore-merchant",
     secureKey: "firestore-secure",
+    hostedPaymentMethod: "CARD",
     sandbox: false,
   },
 };
@@ -43,6 +44,23 @@ describe("resolveFawryConfig", () => {
       merchantCode: "firestore-merchant",
       secureKey: "firestore-secure",
       hostedPaymentMethod: "PayAtFawry",
+    });
+  });
+
+  it("reads the Firestore hosted payment method when env does not override it", async () => {
+    vi.stubEnv("FIREBASE_SERVICE_ACCOUNT_JSON", "{}");
+    vi.stubEnv("FAWRY_HOSTED_PAYMENT_METHOD", "");
+    vi.stubEnv("FAWRY_MERCHANT_CODE", "");
+    vi.stubEnv("FAWRY_SECURE_KEY", "");
+    vi.stubEnv("FAWRY_SECRET_KEY", "");
+
+    const { resolveFawryConfig } = await import("@/lib/payment-gateways-store");
+    const config = await resolveFawryConfig();
+
+    expect(config).toMatchObject({
+      merchantCode: "firestore-merchant",
+      secureKey: "firestore-secure",
+      hostedPaymentMethod: "CARD",
     });
   });
 });

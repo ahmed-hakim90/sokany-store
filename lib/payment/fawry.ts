@@ -4,6 +4,7 @@ import { createHash, randomUUID } from "crypto";
 import { z } from "zod";
 import type { FawryConfig } from "@/lib/payment-gateways-store";
 import {
+  FAWRY_REFERENCE_PAYMENT_METHOD,
   buildFawryHostedSignature,
   buildFawryReferenceSignature,
   formatFawryAmount,
@@ -393,7 +394,9 @@ export async function initiateFawryCharge(
     quantity: item.quantity,
   }));
 
-  const signature = req.paymentMethod
+  const usesReferencePayment = req.paymentMethod === FAWRY_REFERENCE_PAYMENT_METHOD;
+
+  const signature = usesReferencePayment
     ? buildFawryReferenceSignature({
         merchantCode,
         merchantRefNum,
@@ -421,7 +424,7 @@ export async function initiateFawryCharge(
     paymentExpiry,
     language: "ar-eg",
     chargeItems: normalizedItems,
-    ...(req.paymentMethod ? { amount: paymentAmountText } : {}),
+    ...(usesReferencePayment ? { amount: paymentAmountText } : {}),
     ...(req.paymentMethod ? { paymentMethod: req.paymentMethod } : {}),
     returnUrl: req.returnUrl,
     authCaptureModePayment: false,
@@ -429,7 +432,7 @@ export async function initiateFawryCharge(
     signature,
   };
 
-  const recomputedSignature = req.paymentMethod
+  const recomputedSignature = usesReferencePayment
     ? buildFawryReferenceSignature({
         merchantCode: body.merchantCode,
         merchantRefNum: body.merchantRefNum,
@@ -625,6 +628,29 @@ export async function initiateFawryCharge(
       fawryStatusCode: data.statusCode,
       statusDescription: data.statusDescription,
       classification: classified.code,
+    });
+  }
+
+  if (!usesReferencePayment && !redirectUrl) {
+    logFawryEvent("error", "hosted charge missing payment url", {
+      fawryRequestId,
+      endpoint,
+      merchantRefNum,
+      httpStatus: res.status,
+      statusCode: data.statusCode,
+      statusDescription: data.statusDescription,
+      parsedJson: data,
+      rawResponseBody: rawResponseBody.slice(0, FAWRY_RESPONSE_LOG_LIMIT),
+      classification: "missing_redirect_field",
+    });
+    throw new FawryChargeError({
+      code: "missing_payment_url",
+      message: "Fawry hosted checkout did not return a payment URL",
+      userMessage: "لم يتم استلام رابط صفحة الدفع من فوري. حاول مرة أخرى أو اختر طريقة دفع أخرى.",
+      httpStatus: res.status,
+      fawryStatusCode: data.statusCode,
+      statusDescription: data.statusDescription,
+      classification: "missing_redirect_field",
     });
   }
 

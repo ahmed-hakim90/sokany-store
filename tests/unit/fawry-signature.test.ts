@@ -121,6 +121,56 @@ describe("initiateFawryCharge", () => {
     expect(result.redirectUrl).toBe("https://atfawry.fawrystaging.com/checkout/ref-456");
   });
 
+  it("signs CARD restricted requests as hosted checkout without amount", async () => {
+    vi.spyOn(console, "info").mockImplementation(() => undefined);
+    vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    let outboundBody: Record<string, unknown> | undefined;
+    vi.stubGlobal("fetch", vi.fn(async (_url: string | URL | Request, init?: RequestInit) => {
+      outboundBody = JSON.parse(String(init?.body));
+      return new Response(
+        JSON.stringify({
+          statusCode: 200,
+          redirectUrl: "https://atfawry.fawrystaging.com/checkout/card-ref",
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } },
+      );
+    }));
+
+    const result = await initiateFawryCharge(
+      {
+        enabled: true,
+        merchantCode: "merchant-code",
+        secureKey: "secure-key",
+        sandbox: true,
+      },
+      {
+        merchantRefNum: "card-ref",
+        customerName: "Test Customer",
+        customerMobile: "01000000000",
+        customerEmail: "test@example.com",
+        returnUrl: "https://sokany-eg.com/api/payments/fawry/callback?ref=card-ref",
+        paymentMethod: "CARD",
+        chargeItems: [
+          { itemId: "sku-card", description: "Card item", price: 25, quantity: 2 },
+        ],
+      },
+    );
+
+    expect(outboundBody?.signature).toBe(buildFawryHostedSignature({
+      merchantCode: "merchant-code",
+      merchantRefNum: "card-ref",
+      returnUrl: "https://sokany-eg.com/api/payments/fawry/callback?ref=card-ref",
+      chargeItems: [
+        { itemId: "sku-card", price: 25, quantity: 2 },
+      ],
+      secureKey: "secure-key",
+    }));
+    expect(outboundBody?.paymentMethod).toBe("CARD");
+    expect(outboundBody).not.toHaveProperty("amount");
+    expect(result.redirectUrl).toBe("https://atfawry.fawrystaging.com/checkout/card-ref");
+    expect(result.paymentMethod).toBe("CARD");
+  });
+
   it("accepts PayAtFawry responses with only a reference number", async () => {
     vi.spyOn(console, "info").mockImplementation(() => undefined);
     vi.spyOn(console, "warn").mockImplementation(() => undefined);
@@ -157,6 +207,43 @@ describe("initiateFawryCharge", () => {
     expect(result.referenceNumber).toBe("963455679");
     expect(result.merchantRefNum).toBe("ref-789");
     expect(result.paymentMethod).toBe("PayAtFawry");
+  });
+
+  it("rejects CARD restricted responses without a hosted redirect URL", async () => {
+    vi.spyOn(console, "info").mockImplementation(() => undefined);
+    vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
+    vi.stubGlobal("fetch", vi.fn(async () => new Response(
+      JSON.stringify({
+        statusCode: 200,
+        referenceNumber: "963455680",
+        merchantRefNumber: "card-missing-url",
+      }),
+      { status: 200, headers: { "Content-Type": "application/json" } },
+    )));
+
+    await expect(initiateFawryCharge(
+      {
+        enabled: true,
+        merchantCode: "merchant-code",
+        secureKey: "secure-key",
+        sandbox: true,
+      },
+      {
+        merchantRefNum: "card-missing-url",
+        customerName: "Test Customer",
+        customerMobile: "01000000000",
+        customerEmail: "test@example.com",
+        returnUrl: "https://sokany-eg.com/api/payments/fawry/callback?ref=card-missing-url",
+        paymentMethod: "CARD",
+        chargeItems: [
+          { itemId: "sku-card", description: "Card item", price: 10, quantity: 1 },
+        ],
+      },
+    )).rejects.toMatchObject({
+      code: "missing_payment_url",
+      classification: "missing_redirect_field",
+    });
   });
 
   it("extracts hosted redirect URL aliases from passthrough response shapes", () => {

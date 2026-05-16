@@ -24,19 +24,21 @@ and PWA mode.
 - `language`: currently `ar-eg`.
 - `returnUrl`: the callback URL on this storefront.
 - `paymentExpiry`: generated server-side.
-- `paymentMethod`: optional restriction via `FAWRY_HOSTED_PAYMENT_METHOD`
-  (`PayAtFawry`, `CARD`, `MWALLET`, `VALU`, `CashOnDelivery`). If this variable
-  is omitted, the request omits `paymentMethod` and lets the merchant profile
-  show all methods enabled by Fawry.
+- `paymentMethod`: optional restriction via control-panel settings or
+  `FAWRY_HOSTED_PAYMENT_METHOD` (`CARD`, `MWALLET`, `VALU`, `CashOnDelivery`,
+  or `PayAtFawry`). If omitted, the request omits `paymentMethod` and lets the
+  merchant profile show all methods enabled by Fawry.
 - `chargeItems`: item id, description, price, quantity.
 
 ## Signing Modes
 
 The same Fawry charge endpoint supports two practical modes:
 
-- Hosted redirect mode: when `paymentMethod` is omitted, the app signs
+- Hosted redirect mode: when `paymentMethod` is omitted, or set to a hosted
+  method such as `CARD`, the app signs
   `merchantCode + merchantRefNum + customerProfileId + returnUrl + chargeItems + secureKey`.
-  Fawry is expected to return a hosted payment URL.
+  Fawry is expected to return a hosted payment URL. Hosted method restrictions
+  send `paymentMethod` but do not send top-level `amount`.
 - Pay-at-Fawry code mode: when `paymentMethod=PayAtFawry`, the app signs
   `merchantCode + merchantRefNum + customerProfileId + paymentMethod + amount + secureKey`
   and sends a top-level `amount`. Fawry is expected to return a reference number
@@ -57,7 +59,7 @@ use the staging Fawry host; production credentials should use the production hos
 | `FAWRY_SANDBOX` | Yes | `true` for staging credentials, `false` for production. |
 | `FAWRY_BASE_URL` | No | Overrides the default staging/production charge endpoint. Keep it aligned with `FAWRY_SANDBOX`. |
 | `FAWRY_REQUEST_TIMEOUT_MS` | No | Charge request timeout in milliseconds. Defaults to `45000` and caps at `120000`; use this if Fawry production is slow to create hosted sessions. |
-| `FAWRY_HOSTED_PAYMENT_METHOD` | No | Only set this if Fawry confirms the method is enabled for the merchant. Leave unset to avoid forcing `PayAtFawry`. |
+| `FAWRY_HOSTED_PAYMENT_METHOD` | No | Optional override for the control-panel method. Use `CARD` when Fawry returns `10045` and requires a card hosted page. Use `PayAtFawry` only for the reference-code flow. |
 | `NEXT_PUBLIC_SITE_URL` | Production | Must be the public HTTPS storefront origin so `returnUrl` points to a reachable callback. |
 
 The service logs warnings for common mismatches, including staging URL with
@@ -107,8 +109,9 @@ The integration logs sanitized request and response details under `[fawry]`.
 If Fawry returns `9903` after a valid hosted request, the likely causes are:
 
 - Hosted Checkout is not enabled for the merchant profile.
-- The configured `paymentMethod` is not enabled for that merchant. If unsure,
-  remove `FAWRY_HOSTED_PAYMENT_METHOD` and let Fawry show the enabled methods.
+- The configured `paymentMethod` is not enabled for that merchant. If Fawry
+  returns `10045`, set the control-panel Fawry method to the enabled method
+  confirmed by Fawry support, usually `CARD` for card checkout.
 - Sandbox credentials are being used against a production profile, or vice versa.
 - Fawry requires a different merchant secure key for hosted checkout.
 - `NEXT_PUBLIC_SITE_URL` or the callback URL is not reachable over public HTTPS

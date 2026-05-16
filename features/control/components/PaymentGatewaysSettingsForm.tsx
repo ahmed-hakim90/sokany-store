@@ -13,6 +13,7 @@ type GatewayStatus = {
 type FawryStatus = GatewayStatus & {
   merchantCode?: string;
   secureKey?: string;
+  hostedPaymentMethod?: "PayAtFawry" | "CARD" | "MWALLET" | "VALU" | "CashOnDelivery";
   sandbox?: boolean;
   runtimeOverridesFirestore?: boolean;
 };
@@ -85,6 +86,7 @@ function FawryForm({
     const fd = new FormData(e.currentTarget);
     const merchantCode = String(fd.get("merchantCode") ?? "").trim();
     const secureKey = String(fd.get("secureKey") ?? "").trim();
+    const hostedPaymentMethod = String(fd.get("hostedPaymentMethod") ?? "").trim();
     const enabled = fd.get("enabled") === "on";
     const sandbox = fd.get("sandbox") === "on";
 
@@ -95,7 +97,9 @@ function FawryForm({
 
     setSaving(true);
     try {
-      await saveGateway({ fawry: { enabled, merchantCode, secureKey, sandbox } });
+      await saveGateway({
+        fawry: { enabled, merchantCode, secureKey, hostedPaymentMethod, sandbox },
+      });
       toast.success("تم حفظ إعدادات فوري");
       onSaved();
     } catch (err) {
@@ -129,9 +133,8 @@ function FawryForm({
 
       {initial.runtimeOverridesFirestore ? (
         <div className="rounded-xl border border-amber-200/80 bg-amber-50/60 p-3 text-sm text-amber-900">
-          توجد إعدادات فوري محفوظة في Firestore، لكن متغيرات الخادم FAWRY_* هي التي
-          تُستخدم فعلياً وقت الدفع. وحّد القيم أو احذف متغيرات الخادم لتفعيل إعدادات
-          Firestore.
+          توجد إعدادات فوري محفوظة في Firestore، لكن بعض متغيرات الخادم FAWRY_* تغطيها وقت
+          الدفع. وحّد القيم أو احذف متغيرات الخادم لتفعيل إعدادات Firestore فقط.
         </div>
       ) : null}
 
@@ -179,6 +182,25 @@ function FawryForm({
             className="mt-1 w-full rounded-lg border border-border px-3 py-2 font-mono text-sm"
             autoComplete="new-password"
           />
+        </div>
+
+        <div className="sm:col-span-2">
+          <label className="text-sm font-medium">طريقة فوري المستضافة</label>
+          <ControlFieldHelp>
+            اختر CARD إذا كان حساب فوري يطلب تحديد طريقة الدفع للصفحة المستضافة. PayAtFawry يعرض كود دفع بدلاً من التحويل للبوابة.
+          </ControlFieldHelp>
+          <select
+            name="hostedPaymentMethod"
+            defaultValue={initial.hostedPaymentMethod ?? ""}
+            className="mt-1 w-full rounded-lg border border-border bg-white px-3 py-2 text-sm"
+          >
+            <option value="">كل الطرق المفعّلة على حساب فوري</option>
+            <option value="CARD">CARD — صفحة دفع البطاقات</option>
+            <option value="MWALLET">MWALLET — المحافظ الإلكترونية</option>
+            <option value="VALU">VALU</option>
+            <option value="CashOnDelivery">CashOnDelivery</option>
+            <option value="PayAtFawry">PayAtFawry — كود دفع من فروع فوري</option>
+          </select>
         </div>
 
         <div className="sm:col-span-2">
