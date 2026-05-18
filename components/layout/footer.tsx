@@ -103,7 +103,7 @@ const footerLinkListClass =
   "space-y-2.5 text-sm text-muted-foreground lg:space-y-4 lg:text-[0.9375rem]";
 
 const footerSocialButtonClass =
-  "inline-flex h-9 w-9 items-center justify-center rounded-full border border-border/80 bg-white text-brand-800 shadow-sm transition-colors hover:border-brand-200 hover:bg-surface-muted/80 hover:text-brand-950";
+  "inline-flex h-9 w-9 items-center justify-center rounded-full border border-border/80 bg-white shadow-sm transition-colors hover:border-brand-200 hover:bg-surface-muted/80";
 
 export type FooterProps = {
   socialLinks: SocialLink[];
@@ -121,7 +121,10 @@ export function Footer({
   const year = new Date().getFullYear();
 
   return (
-    <footer className="mt-auto w-full border-t border-border/80 bg-page" dir="rtl">
+    <footer
+      className="mt-auto w-full border-t border-brand-200/70 bg-brand-50"
+      dir="rtl"
+    >
       <Container
         className={cn(
           "mx-auto max-w-7xl py-6 md:py-9 lg:py-10",
@@ -197,7 +200,7 @@ function FooterServiceStrip() {
         const Icon = item.icon === "whatsapp" ? null : item.icon;
         const inner = (
           <>
-            <span className="flex min-h-10 min-w-10 items-center justify-center text-[#18a977] lg:min-h-12 lg:min-w-12">
+            <span className="flex min-h-10 min-w-10 items-center justify-center lg:min-h-12 lg:min-w-12">
               {item.icon === "whatsapp" ? (
                 <SocialGlyph socialKey="whatsapp" className="h-7 w-7 lg:h-8 lg:w-8" />
               ) : Icon ? (
@@ -410,7 +413,7 @@ function FooterSocialRow({ socialLinks }: { socialLinks: SocialLink[] }) {
           className={footerSocialButtonClass}
           aria-label={s.label}
         >
-          <SocialGlyph socialKey={s.key} className="h-3.5 w-3.5" />
+          <SocialGlyph socialKey={s.key} className="h-4 w-4" />
         </a>
       ))}
     </div>

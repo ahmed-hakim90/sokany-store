@@ -671,11 +671,11 @@ export function DesktopCategoryMegaNav({
                               href={s.href}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="inline-flex h-10 min-h-[40px] w-10 min-w-[40px] items-center justify-center rounded-full border border-border/70 bg-white text-brand-800 shadow-sm transition-colors hover:bg-surface-muted/80 hover:text-brand-950"
+                              className="inline-flex h-10 min-h-[40px] w-10 min-w-[40px] items-center justify-center rounded-full border border-border/70 bg-white shadow-sm transition-colors hover:bg-surface-muted/80"
                               aria-label={s.label}
                               onClick={() => setMoreOpen(false)}
                             >
-                              <SocialGlyph socialKey={s.key} className="h-3.5 w-3.5" />
+                              <SocialGlyph socialKey={s.key} className="h-4 w-4" />
                             </a>
                           ))}
                         </div>

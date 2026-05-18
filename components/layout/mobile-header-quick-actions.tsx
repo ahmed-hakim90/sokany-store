@@ -5,6 +5,7 @@
  *
  * المحتوى: بطاقات اختصارات (عروض، الأكثر مبيعاً…) + زر «المزيد» يفتح درج القائمة.
  * إشارة التمرير: عرض ~٢٫٣ بطاقة كاملة + قصّ الحافة + تدرّجات عند وجود محتوى مخفي (RTL).
+ * البطاقة: أيقونة + نص في صف واحد بخط صغير لتقليل الارتفاع.
  * نقاط الانكسار: الهيدر لاصق بـ lg؛ يُحمّل فقط ضمن عمود Navbar (`lg:hidden`).
  */
 import { Link } from "next-view-transitions";
@@ -157,17 +158,17 @@ function QuickChipLink({
       className={cn(
         bottomNavItemPressableClass,
         "snap-start shrink-0",
-        "flex min-h-[4.125rem] max-w-none flex-col items-center justify-center gap-1 rounded-2xl border px-2 py-2",
+        "flex min-h-[2.375rem] max-w-none flex-row items-center justify-center gap-1 rounded-xl border px-2 py-2",
         QUICK_CHIP_WIDTH_CLASS,
-        "text-[11px] font-bold leading-tight tracking-[-0.01em]",
+        "text-[10px] font-bold leading-snug tracking-[-0.01em]",
         active
           ? "border-brand-500/55 bg-brand-400/95 text-brand-950 shadow-[0_10px_22px_-16px_rgba(15,23,42,0.45)] ring-2 ring-brand-500/55"
           : "border-black/[0.06] bg-white/90 text-brand-950 shadow-[0_6px_18px_-12px_rgba(15,23,42,0.28)] backdrop-blur-sm",
         pending && "opacity-60",
       )}
     >
-      <Icon className="h-[1.225rem] w-[1.225rem] shrink-0 stroke-2 text-current" />
-      <span className="line-clamp-2 text-center">{label}</span>
+      <Icon className="h-3.5 w-3.5 shrink-0 stroke-2 text-current" aria-hidden />
+      <span className="min-w-0 truncate leading-snug">{label}</span>
     </Link>
   );
 }
@@ -193,7 +194,7 @@ export function MobileHeaderQuickActions() {
   if (isCheckout) return null;
 
   return (
-    <div className="relative -mx-[3px] min-w-0 overflow-hidden">
+    <div className="relative -mx-[3px] min-w-0 overflow-x-clip overflow-y-visible">
       {fadeStart ? (
         <div
           aria-hidden
@@ -242,7 +243,7 @@ export function MobileHeaderQuickActions() {
             aria-label="فتح قائمة أكثر من الخدمات"
             className={cn(
               bottomNavItemPressableClass,
-              "flex min-h-[4.125rem] snap-start shrink-0 flex-col items-center justify-center gap-1 rounded-2xl border border-dashed border-black/[0.1] px-2 py-2 text-[11px] font-bold text-brand-900/85",
+              "flex min-h-[2.375rem] snap-start shrink-0 flex-row items-center justify-center gap-1 rounded-xl border border-dashed border-black/[0.1] px-2 py-2 text-[10px] font-bold leading-snug text-brand-900/85",
               QUICK_CHIP_WIDTH_CLASS,
               drawerOpen &&
                 "border-brand-500/45 bg-brand-400/95 text-brand-950 ring-2 ring-brand-500/45",
@@ -253,8 +254,8 @@ export function MobileHeaderQuickActions() {
               openDrawer();
             }}
           >
-            <Menu className="h-[1.225rem] w-[1.225rem] shrink-0 stroke-2" aria-hidden />
-            <span className="line-clamp-2 text-center leading-tight">المزيد</span>
+            <Menu className="h-3.5 w-3.5 shrink-0 stroke-2" aria-hidden />
+            <span className="min-w-0 truncate leading-snug">المزيد</span>
           </button>
         </li>
       </ul>

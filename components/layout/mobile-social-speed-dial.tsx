@@ -48,7 +48,7 @@ export function MobileSocialSpeedDial({ links }: MobileSocialSpeedDialProps) {
               href={s.href}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border/80 bg-white text-brand-800 shadow-sm transition-colors hover:bg-surface-muted/80 hover:text-brand-950"
+              className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border/80 bg-white shadow-sm transition-colors hover:bg-surface-muted/80"
               aria-label={s.label}
               onClick={() => setOpen(false)}
             >

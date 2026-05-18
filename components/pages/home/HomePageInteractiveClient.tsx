@@ -311,7 +311,6 @@ export function HomePageInteractiveClient({
                   header={{
                     id: "home-bestsellers-title",
                     title: "الأكثر مبيعاً",
-                    subtitle: "المنتجات الأعلى طلباً من عملائنا",
                     viewAllHref: `${ROUTES.PRODUCTS}?orderby=popularity&order=desc`,
                   }}
                   grid={{

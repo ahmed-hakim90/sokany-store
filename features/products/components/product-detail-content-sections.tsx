@@ -38,8 +38,8 @@ export function ProductDetailContentSections({
       )}
       aria-label="تفاصيل إضافية للمنتج"
     >
-      {/* موبايل: أكورديون */}
-      <div className="divide-y divide-slate-100 lg:hidden">
+      {/* موبايل: أكورديون — padding-inline يطابق الديسكتوب حتى لا يلتصق العنوان/المحتوى بحافة الكارت */}
+      <div className="divide-y divide-slate-100 px-4 py-3 sm:px-5 sm:py-4 lg:hidden">
         <MobileAccordionSection title="الوصف" defaultOpen>
           <ProductDetailDescriptionBlocks product={product} />
           {benefits.length > 0 ? (

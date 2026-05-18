@@ -10,6 +10,8 @@ import { STOREFRONT_Z } from "@/lib/storefront-overlay-z";
 import { cn } from "@/lib/utils";
 
 const MOBILE_ASSISTANT_QUERY = "(max-width: 1023px)";
+const INTRO_SHOW_DELAY_MS = 5000;
+const INTRO_VISIBLE_MS = 6500;
 
 export function StorefrontAssistantWidget() {
   const pathname = usePathname();
@@ -34,9 +36,19 @@ export function StorefrontAssistantWidget() {
       setShowIntro(false);
       return;
     }
-    setShowIntro(true);
-    const timer = window.setTimeout(() => setShowIntro(false), 6500);
-    return () => window.clearTimeout(timer);
+
+    setShowIntro(false);
+
+    const showTimer = window.setTimeout(() => setShowIntro(true), INTRO_SHOW_DELAY_MS);
+    const hideTimer = window.setTimeout(
+      () => setShowIntro(false),
+      INTRO_SHOW_DELAY_MS + INTRO_VISIBLE_MS,
+    );
+
+    return () => {
+      window.clearTimeout(showTimer);
+      window.clearTimeout(hideTimer);
+    };
   }, [pathname, isAssistantPage, open]);
 
   function openAssistant() {
