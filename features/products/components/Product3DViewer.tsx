@@ -203,8 +203,14 @@ export function Product3DViewer({
 
           {loadError ? (
             <div className="absolute inset-0 z-20 grid place-items-center bg-white/88 p-6 text-center backdrop-blur">
-              <ViewerFallback title="Could not load model" body={loadError} />
+              <ViewerFallback title="تعذّر تحميل النموذج" body={loadError} />
             </div>
+          ) : null}
+
+          {viewerReady && modelLoaded && !loadError ? (
+            <p className="pointer-events-none absolute bottom-3 start-1/2 z-10 -translate-x-1/2 rounded-full bg-slate-900/75 px-4 py-1.5 text-xs font-semibold text-white backdrop-blur-sm max-lg:bottom-[max(0.75rem,env(safe-area-inset-bottom))]">
+              اسحب لتحريك المنتج
+            </p>
           ) : null}
         </div>
 

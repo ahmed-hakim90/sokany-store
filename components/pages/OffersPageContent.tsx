@@ -8,6 +8,7 @@ import { Container } from "@/components/Container";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorState } from "@/components/ErrorState";
 import { ScrollReveal } from "@/components/ScrollReveal";
+import { CatalogToolbar } from "@/features/catalog/components/catalog-toolbar";
 import { CatalogPagination } from "@/features/catalog/components/CatalogPagination";
 import { ProductGrid } from "@/features/products/components/ProductGrid";
 import { useProducts } from "@/features/products/hooks/useProducts";
@@ -100,25 +101,14 @@ export function OffersPageContent() {
               {showStaleNotice ? (
                 <StorefrontStaleDataNotice variant={staleVariant} />
               ) : null}
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <h2
-                    id="offers-products-title"
-                    className="font-display text-lg font-black text-brand-950 sm:text-xl"
-                  >
-                    المنتجات المخفضة
-                  </h2>
-                  <p className="mt-1 text-xs text-muted-foreground sm:text-sm">
-                    الأسعار والخصومات تتحدث حسب بيانات المتجر.
-                  </p>
-                </div>
-                {!productsQuery.isPending && items.length > 0 ? (
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1 text-xs font-bold text-brand-950 shadow-sm ring-1 ring-border/70">
-                    <Sparkles className="h-3.5 w-3.5 text-accent-foreground" aria-hidden />
-                    {productsQuery.data?.total ?? items.length} عرض
-                  </span>
-                ) : null}
-              </div>
+              <h2 id="offers-products-title" className="sr-only">
+                المنتجات المخفضة
+              </h2>
+              <CatalogToolbar
+                totalCount={productsQuery.data?.total ?? null}
+                pageCount={items.length}
+                showFilter={false}
+              />
 
               <ProductGrid
                 status={

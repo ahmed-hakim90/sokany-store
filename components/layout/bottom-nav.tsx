@@ -1,47 +1,66 @@
 "use client";
 
 /**
- * شريط التنقل السفلي (موبايل)
- * بالعامية: أيقونات أساسية + زرار القائمة اللي يفتح الدرج؛ بيستخدم نفس store الطي علشان الـ focus يرجع صح بعد الإغلاق.
+ * شريط التنقل السفلي — مبيعات Sokany (‎‎`lg:hidden`‎).
  *
- * شوف كمان: `@/components/layout/mobile-nav-drawer-open-store.ts`
+ * المعالم: خمس خانات — (‎`/‎` · التصنيفات · السلة · طلباتي · زر المزيد يفتح ‎`MobileNavDrawer`) بترتيب DOM يحقق قراءة RTL من الطرف المرئي «اليمين لليسار».
+ * علامات العد وبقية منطق الـ peek تبقى من ‎`useCart`‎ / ‎`useMobileChromeCollapsedStore`‎.
  */
+import type { LucideIcon } from "lucide-react";
+import {
+  ClipboardList,
+  Home,
+  LayoutGrid,
+  Menu,
+  ShoppingCart,
+} from "lucide-react";
 import { Link } from "next-view-transitions";
 import { useLinkStatus } from "next/link";
 import { usePathname } from "next/navigation";
 import { useRef } from "react";
-import { useMobileChromeCollapsedStore } from "@/components/layout/mobile-chrome-collapsed-store";
 import {
   mobileNavDrawerReturnFocusRef,
   useMobileNavDrawerOpenStore,
 } from "@/components/layout/mobile-nav-drawer-open-store";
+import { useMobileChromeCollapsedStore } from "@/components/layout/mobile-chrome-collapsed-store";
 import { useCart } from "@/hooks/useCart";
-import { PRODUCTS_ALL_CATALOG_HREF, ROUTES } from "@/lib/constants";
+import { ROUTES } from "@/lib/constants";
 import { bottomNavItemPressableClass } from "@/lib/nav-link-interaction";
 import { cn } from "@/lib/utils";
 
 const linkItems = [
-  { href: ROUTES.HOME, label: "الرئيسية", key: "home", icon: HomeIcon },
-  {
-    href: PRODUCTS_ALL_CATALOG_HREF,
-    label: "كل المنتجات",
-    key: "products",
-    icon: GridIcon,
-  },
-  { href: ROUTES.CART, label: "السلة", key: "cart", icon: CartIcon },
-  {
-    href: ROUTES.ABOUT,
-    label: "عن سوكاني",
-    key: "about",
-    icon: InfoIcon,
-  },
+  { href: ROUTES.HOME, label: "الرئيسية", key: "home" },
+  { href: ROUTES.CATEGORIES, label: "التصنيفات", key: "categories" },
+  { href: ROUTES.CART, label: "السلة", key: "cart" },
+  { href: ROUTES.MY_ORDERS, label: "طلباتي", key: "orders" },
 ] as const;
 
-const mainMenuItem = {
-  label: "القائمة الرئيسية",
-  key: "main-menu",
-  icon: ListIcon,
-} as const;
+type NavLinkKey = (typeof linkItems)[number]["key"];
+
+const iconByKey: Record<NavLinkKey, LucideIcon> = {
+  home: Home,
+  categories: LayoutGrid,
+  cart: ShoppingCart,
+  orders: ClipboardList,
+};
+
+const iconGlyphClass =
+  "h-[1.125rem] w-[1.125rem] shrink-0 stroke-[2.05] motion-reduce:transition-none";
+
+function tabIsActive(pathname: string | null, key: NavLinkKey, href: string) {
+  const p = pathname ?? "";
+  if (key === "home") return p === ROUTES.HOME;
+  if (key === "categories") {
+    return (
+      p === ROUTES.CATEGORIES || p.startsWith(`${ROUTES.CATEGORIES}/`)
+    );
+  }
+  if (key === "cart") {
+    return p === href || p.startsWith(`${href}/`);
+  }
+  /* orders */
+  return p === ROUTES.MY_ORDERS || p.startsWith(`${ROUTES.MY_ORDERS}/`);
+}
 
 function BottomNavLinkContents({
   active,
@@ -55,7 +74,7 @@ function BottomNavLinkContents({
   isCart: boolean;
   totalItems: number;
   label: string;
-  Icon: (typeof linkItems)[number]["icon"];
+  Icon: LucideIcon;
   tabIconShellClassName: (a: boolean) => string;
 }) {
   const { pending } = useLinkStatus();
@@ -67,12 +86,12 @@ function BottomNavLinkContents({
       )}
     >
       <span className={tabIconShellClassName(active)}>
-        <Icon />
+        <Icon className={iconGlyphClass} aria-hidden />
         {isCart && totalItems > 0 ? (
           <span
             className={cn(
-              "absolute -end-1 -top-1 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-brand-400 px-0.5 text-[8px] font-bold leading-none text-black ring-2",
-              active ? "ring-brand-100" : "ring-white/90",
+              "absolute -end-1 -top-1 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-brand-500 px-0.5 text-[8px] font-bold leading-none text-black ring-[2px]",
+              active ? "ring-brand-200" : "ring-white/92",
             )}
           >
             {totalItems > 99 ? "99+" : totalItems}
@@ -81,8 +100,8 @@ function BottomNavLinkContents({
       </span>
       <span
         className={cn(
-          "line-clamp-1 text-center text-[10px] font-medium leading-4 tracking-[-0.01em] transition-colors duration-200",
-          active ? "text-brand-900" : "text-current",
+          "line-clamp-1 text-center text-[10px] font-semibold leading-3 tracking-[-0.01em]",
+          active ? "text-brand-950" : "text-current",
         )}
       >
         {label}
@@ -98,55 +117,55 @@ function BottomNavLinkContents({
 export function BottomNavInner() {
   const pathname = usePathname();
   const { totalItems } = useCart();
-  const mainMenuButtonRef = useRef<HTMLButtonElement>(null);
-  const drawerOpen = useMobileNavDrawerOpenStore((s) => s.open);
-  const openDrawer = useMobileNavDrawerOpenStore((s) => s.openDrawer);
   const headerHidden = useMobileChromeCollapsedStore((s) => s.headerHidden);
   const cartPeekHidden = useMobileChromeCollapsedStore((s) => s.cartPeekHidden);
   const showCartPeekOnly = useMobileChromeCollapsedStore(
     (s) => s.showCartPeekOnly,
   );
-  const isCheckout = pathname === ROUTES.CHECKOUT;
+
+  const menuRef = useRef<HTMLButtonElement>(null);
+  const drawerOpen = useMobileNavDrawerOpenStore((s) => s.open);
+  const openDrawer = useMobileNavDrawerOpenStore((s) => s.openDrawer);
 
   const tabClass = (active: boolean) =>
     cn(
-      "flex min-h-[3.75rem] w-full flex-col items-center justify-center gap-0.5 rounded-2xl border border-transparent px-0.5 py-1 text-xs leading-tight transition-[color,background-color,transform] duration-200 ease-out active:scale-[0.98] motion-reduce:transition-none",
+      "flex min-h-[3.875rem] w-full flex-col items-center justify-center gap-0.5 rounded-none border-transparent px-[2px] py-1.5 text-[10px] font-semibold leading-tight outline-none ring-1 ring-transparent transition-[color,background-color,filter] duration-200 ease-out active:brightness-[0.97] motion-reduce:transition-none",
       active
         ? "text-brand-950"
         : headerHidden
-          ? "text-brand-950/65 [@media(hover:hover)]:hover:bg-black/[0.04] [@media(hover:hover)]:hover:text-brand-950"
-          : "text-slate-500 [@media(hover:hover)]:hover:bg-black/[0.025] [@media(hover:hover)]:hover:text-slate-900",
+          ? "text-brand-950/75 [@media(hover:hover)]:hover:bg-black/[0.04] [@media(hover:hover)]:hover:text-brand-950"
+          : "text-slate-500 [@media(hover:hover)]:hover:bg-black/[0.03] [@media(hover:hover)]:hover:text-slate-900",
     );
 
   const tabIconShellClass = (active: boolean) =>
     cn(
-      "relative inline-flex h-7 min-w-9 items-center justify-center rounded-full px-2 text-current transition-[background-color,color,box-shadow,transform] duration-200 ease-out motion-reduce:transition-none",
+      "relative inline-flex h-9 min-w-10 max-w-none items-center justify-center rounded-xl px-1.5 text-current motion-reduce:transition-none",
       active
-        ? "bg-brand-100 text-brand-950 shadow-[0_4px_12px_-10px_rgba(15,23,42,0.55)] ring-1 ring-brand-900/10"
+        ? "bg-brand-400/94 text-brand-950 shadow-[0_6px_16px_-8px_rgba(15,23,42,0.45)] ring-1 ring-brand-600/30"
         : "bg-transparent text-current",
+      "transition-[background-color,color,box-shadow] duration-200 ease-out motion-reduce:transition-none",
     );
 
   return (
-    <nav
-      aria-label="التنقل السفلي"
-      className="bg-transparent"
-    >
-      <ul className="mx-auto flex w-full max-w-none items-center justify-between gap-0 px-0.5 py-2 sm:px-1">
-        {linkItems.map(({ href, label, key, icon: Icon }) => {
-          const active =
-            key === "home"
-              ? pathname === ROUTES.HOME
-              : key === "products"
-                ? pathname === ROUTES.PRODUCTS
-                : pathname === href || pathname.startsWith(`${href}/`);
+    <nav aria-label="التنقل السفلي" className="bg-transparent">
+      <ul className="flex w-full touch-pan-x items-start justify-between gap-0 px-2 py-2 sm:px-3 md:justify-evenly md:gap-1">
+        {linkItems.map(({ href, label, key }) => {
+          const Icon = iconByKey[key];
+          const active = tabIsActive(pathname, key, href);
           const isCart = key === "cart";
 
           return (
-            <li key={key} className="flex min-w-0 flex-1 justify-center">
+            <li key={key} className="flex min-w-0 flex-[1_1_0] justify-center md:max-w-[5.85rem]">
               <Link
                 href={href}
                 aria-current={active ? "page" : undefined}
-                className={cn(tabClass(active), bottomNavItemPressableClass)}
+                aria-label={label}
+                className={cn(
+                  tabClass(active),
+                  bottomNavItemPressableClass,
+                  "w-full min-w-0 max-w-none rounded-xl",
+                  "focus-visible:ring-brand-400/95",
+                )}
                 {...(isCart ? { "data-cart-fly-target": "mobile" as const } : {})}
                 onClick={(e) => {
                   if (isCart && cartPeekHidden) {
@@ -167,118 +186,45 @@ export function BottomNavInner() {
             </li>
           );
         })}
-        <li className="flex min-w-0 flex-1 justify-center">
+        <li className="flex min-w-0 flex-[1_1_0] justify-center md:max-w-[5.85rem]">
           <button
-            ref={mainMenuButtonRef}
+            ref={menuRef}
             type="button"
-            disabled={isCheckout}
             aria-expanded={drawerOpen}
             aria-haspopup="dialog"
-            aria-label={mainMenuItem.label}
+            aria-label="فتح قائمة المزيد"
             className={cn(
+              tabClass(drawerOpen),
               bottomNavItemPressableClass,
-              tabClass(drawerOpen && !isCheckout),
-              isCheckout && "pointer-events-none opacity-40",
+              "w-full min-w-0 max-w-none rounded-xl",
+              "focus-visible:ring-brand-400/95",
             )}
             onClick={() => {
-              mobileNavDrawerReturnFocusRef.current = mainMenuButtonRef.current;
+              mobileNavDrawerReturnFocusRef.current = menuRef.current;
               openDrawer();
             }}
           >
-            <span
-              className={tabIconShellClass(Boolean(drawerOpen && !isCheckout))}
-            >
-              <ListIcon />
-            </span>
+            {/* أيقونة المزيد: بدون انتقال route؛ المحتوى يعكس حالة الفتح لا pending */}
             <span
               className={cn(
-                "line-clamp-1 text-center text-[10px] font-medium leading-4 tracking-[-0.01em] transition-colors duration-200",
-                drawerOpen && !isCheckout ? "text-brand-900" : "text-current",
+                "flex w-full min-w-0 max-w-full flex-1 flex-col items-center justify-center gap-0.5",
               )}
             >
-              {mainMenuItem.label}
+              <span className={tabIconShellClass(drawerOpen)}>
+                <Menu className={iconGlyphClass} aria-hidden />
+              </span>
+              <span
+                className={cn(
+                  "line-clamp-1 text-center text-[10px] font-semibold leading-3 tracking-[-0.01em]",
+                  drawerOpen ? "text-brand-950" : "text-current",
+                )}
+              >
+                المزيد
+              </span>
             </span>
           </button>
         </li>
       </ul>
     </nav>
-  );
-}
-
-/** Compact icon rhythm for the slimmer native-style mobile tab row. */
-const iconClass =
-  "h-[1.125rem] w-[1.125rem] shrink-0 stroke-[1.9] text-current sm:h-4 sm:w-4 sm:stroke-[1.7]";
-
-function HomeIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      className={iconClass}
-      fill="none"
-      stroke="currentColor"
-      aria-hidden
-    >
-      <path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1z" />
-    </svg>
-  );
-}
-
-function GridIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      className={iconClass}
-      fill="none"
-      stroke="currentColor"
-      aria-hidden
-    >
-      <path d="M4 4h7v7H4zm9 0h7v7h-7zM4 13h7v7H4zm9 0h7v7h-7z" />
-    </svg>
-  );
-}
-
-function CartIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      className={iconClass}
-      fill="none"
-      stroke="currentColor"
-      aria-hidden
-    >
-      <path d="M6 6h15l-1.5 9h-12z" />
-      <circle cx="9" cy="20" r="1" />
-      <circle cx="18" cy="20" r="1" />
-    </svg>
-  );
-}
-
-function InfoIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      className={iconClass}
-      fill="none"
-      stroke="currentColor"
-      aria-hidden
-    >
-      <circle cx="12" cy="12" r="9" />
-      <path d="M12 10v8M12 7h.01" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function ListIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      className={iconClass}
-      fill="none"
-      stroke="currentColor"
-      aria-hidden
-    >
-      <path d="M8 6h13M8 12h13M8 18h13" strokeLinecap="round" />
-      <path d="M4 6h.01M4 12h.01M4 18h.01" strokeLinecap="round" />
-    </svg>
   );
 }

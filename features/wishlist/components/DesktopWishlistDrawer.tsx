@@ -10,9 +10,17 @@ import { PriceText } from "@/components/ui/price-text";
 import { useWishlist } from "@/hooks/useWishlist";
 import { ROUTES } from "@/lib/constants";
 import { cn } from "@/lib/utils";
+import {
+  cartCheckoutPillButtonClassName,
+  cartCheckoutPillIconClassName,
+} from "@/features/cart/components/cart-drawer-body";
 import { WishlistDrawerLines } from "@/features/wishlist/components/wishlist-drawer-lines";
 import { WishlistDrawerTrustBadges } from "@/features/wishlist/components/wishlist-drawer-trust-badges";
 import { useWishlistDrawerOpenStore } from "@/features/wishlist/store/useWishlistDrawerOpenStore";
+import { STOREFRONT_Z } from "@/lib/storefront-overlay-z";
+import { surfaceCtaStripClass } from "@/lib/storefront-surfaces";
+import { StorefrontEmptyState } from "@/components/StorefrontEmptyState";
+import { ArrowLeft } from "lucide-react";
 
 /*
  * درج المفضلة:
@@ -68,11 +76,15 @@ export function DesktopWishlistDrawer() {
       shouldScaleBackground={false}
     >
       <Drawer.Portal>
-        <Drawer.Overlay className="fixed inset-0 z-[90] cursor-pointer bg-slate-900/50" />
+        <Drawer.Overlay
+          className="fixed inset-0 cursor-pointer bg-slate-900/50"
+          style={{ zIndex: STOREFRONT_Z.drawerOverlay }}
+        />
         <Drawer.Content
           id="desktop-wishlist-drawer-panel"
+          style={{ zIndex: STOREFRONT_Z.drawerPanel }}
           className={cn(
-            "fixed z-[100] flex min-w-0 flex-col bg-page outline-none",
+            "surface-panel fixed flex min-w-0 flex-col outline-none",
             /* الموبايل: عرض أقل من الشاشة بقليل عشان يبان الـ overlay والضغط عليه يقفل؛ مش full-bleed */
             "max-lg:left-0 max-lg:top-0 max-lg:bottom-0 max-lg:h-full max-lg:max-h-[100dvh] max-lg:w-[min(22rem,calc(100vw-1.5rem))] max-lg:rounded-none max-lg:border-0 max-lg:border-e max-lg:border-border/80 max-lg:pt-[env(safe-area-inset-top)] max-lg:pb-[env(safe-area-inset-bottom)] max-lg:shadow-xl",
             "lg:bottom-2 lg:left-2 lg:top-2 lg:h-[calc(100%-1rem)] lg:max-h-[calc(100dvh-1rem)] lg:w-[min(28rem,calc(100vw-1rem))] lg:max-w-lg lg:rounded-2xl lg:border lg:border-border/80 lg:pt-0 lg:pb-0",
@@ -94,7 +106,7 @@ export function DesktopWishlistDrawer() {
               <CloseGlyph />
             </IconButton>
             <Drawer.Title className="px-12 py-3 text-center font-display text-base font-semibold text-brand-950 sm:px-14">
-              سلة المفضلة
+              المفضلة ({items.length})
             </Drawer.Title>
           </div>
           <Drawer.Description className="sr-only">
@@ -104,21 +116,24 @@ export function DesktopWishlistDrawer() {
           </Drawer.Description>
 
           {isEmpty ? (
-            <div className="flex min-h-[40dvh] flex-1 flex-col items-center justify-center gap-4 px-4 py-10 text-center sm:min-h-0 sm:px-6 sm:py-12">
-              <p className="max-w-xs text-sm text-muted-foreground sm:max-w-none sm:text-base">
-                لا توجد منتجات في المفضلة بعد.
-              </p>
-              <Button
-                type="button"
-                variant="primary"
-                className="font-bold"
-                onClick={() => {
-                  closeDrawer();
-                  router.push(ROUTES.PRODUCTS);
-                }}
-              >
-                تصفح المنتجات
-              </Button>
+            <div className="flex flex-1 flex-col justify-center px-4 py-8">
+              <StorefrontEmptyState
+                title="المفضلة فارغة"
+                description="احفظ المنتجات التي تعجبك لتعود إليها لاحقاً."
+                action={
+                  <Button
+                    type="button"
+                    variant="primary"
+                    className="font-bold"
+                    onClick={() => {
+                      closeDrawer();
+                      router.push(ROUTES.PRODUCTS);
+                    }}
+                  >
+                    تصفح المنتجات
+                  </Button>
+                }
+              />
             </div>
           ) : (
             <>
@@ -133,37 +148,44 @@ export function DesktopWishlistDrawer() {
                   onOpenCart={goToCart}
                 />
                 <div className="mt-4">
-                  <WishlistDrawerLines items={items} onRemove={removeFromWishlist} />
+                  <WishlistDrawerLines
+                    variant="premium"
+                    items={items}
+                    onRemove={removeFromWishlist}
+                  />
                 </div>
               </div>
               {/*
                 الفوتر يحاكي المرجع: شريط ثقة صغير ثم صف أزرار ثابت،
                 مع احترام safe-area في أسفل شاشات الموبايل.
               */}
-              <div className="shrink-0 border-t border-border/80 bg-white px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 shadow-[0_-10px_30px_-20px_rgba(15,23,42,0.35)] sm:px-4 sm:pb-4">
+              <div
+                className={cn(
+                  surfaceCtaStripClass,
+                  "shrink-0 rounded-b-[1.35rem] border-t border-white/40 bg-white/50 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur-md sm:px-4",
+                )}
+              >
                 <WishlistDrawerTrustBadges />
-                <div className="mt-3 grid grid-cols-[0.9fr_1.1fr] gap-2">
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    size="lg"
-                    className="min-w-0 border-red-200 text-sm font-bold text-red-600 hover:bg-red-50"
-                    onClick={clearWishlist}
-                  >
-                    <TrashGlyph />
-                    تفريغ المفضلة
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="primary"
-                    size="lg"
-                    className="min-w-0 text-sm font-black"
-                    onClick={goToWishlist}
-                  >
-                    عرض المفضلة
-                    <LockGlyph />
-                  </Button>
-                </div>
+                <button
+                  type="button"
+                  className={cn(
+                    cartCheckoutPillButtonClassName,
+                    "mt-3 w-full min-w-0 justify-between py-2.5",
+                  )}
+                  onClick={goToWishlist}
+                >
+                  <span className="min-w-0 truncate">عرض المفضلة</span>
+                  <span className={cartCheckoutPillIconClassName} aria-hidden>
+                    <ArrowLeft className="size-5 rtl:rotate-180" />
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  className="mt-2 w-full text-center text-xs font-semibold text-red-600"
+                  onClick={clearWishlist}
+                >
+                  تفريغ المفضلة
+                </button>
               </div>
             </>
           )}
@@ -230,40 +252,6 @@ function CloseGlyph() {
       aria-hidden
     >
       <path d="M18 6L6 18M6 6l12 12" />
-    </svg>
-  );
-}
-
-function TrashGlyph() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      className="h-4 w-4 shrink-0"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      aria-hidden
-    >
-      <path d="M4 7h16M10 11v6M14 11v6M6 7l1 14h10l1-14" strokeLinecap="round" />
-      <path d="M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function LockGlyph() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      className="h-4 w-4 shrink-0"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.9"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-    >
-      <rect x="5" y="10" width="14" height="10" rx="2" />
-      <path d="M8 10V7a4 4 0 018 0v3" />
     </svg>
   );
 }

@@ -1,5 +1,6 @@
 export {
   Button,
+  commerceLinkClassName,
   type ButtonProps,
   type ButtonSize,
   type ButtonVariant,

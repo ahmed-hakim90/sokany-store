@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { LegalPageShell } from "@/components/layout/legal-page-shell";
+import { StorefrontPolicyPageLayout } from "@/components/layout/storefront-policy-page-layout";
 import { SITE_BRAND_TITLE_AR } from "@/lib/constants";
 import { getSiteUrl } from "@/lib/site";
 
@@ -25,13 +26,16 @@ export const metadata: Metadata = {
 
 export default function ReturnsPolicyPage() {
   return (
-    <LegalPageShell dir="rtl" lang="ar">
-      <header className="mb-6 border-b border-border/80 pb-6 sm:mb-8">
-        <h1 className="text-right font-display text-2xl font-bold text-brand-950 md:text-3xl">
-          سياسة الاسترجاع والاستبدال
-        </h1>
-      </header>
-
+    <StorefrontPolicyPageLayout
+      supportTitle="الاسترجاع والدعم"
+      supportSubtitle="روابط سريعة للضمان والفروع وخدمة العملاء"
+    >
+    <LegalPageShell
+      dir="rtl"
+      lang="ar"
+      heroTitle="سياسة الاسترجاع والاستبدال"
+      heroSubtitle="شروط وإجراءات إرجاع المنتجات لدى مؤسسة المغربي — الوكيل الحصري لسوكاني في مصر."
+    >
       <article className="prose prose-sm max-w-none text-right text-brand-950 sm:prose-base prose-headings:font-display prose-headings:text-brand-950 prose-p:leading-8 prose-li:leading-8 prose-a:font-medium prose-a:text-brand-800 prose-a:no-underline hover:prose-a:underline">
         <section>
           <h2>سياسة الاسترجاع</h2>
@@ -75,5 +79,6 @@ export default function ReturnsPolicyPage() {
         </Link>
       </p>
     </LegalPageShell>
+    </StorefrontPolicyPageLayout>
   );
 }

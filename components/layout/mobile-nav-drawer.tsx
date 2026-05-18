@@ -23,6 +23,7 @@ import { IconButton } from "@/components/ui/icon-button";
 import { CategoryIcon } from "@/features/categories/category-icon-registry";
 import type { Category } from "@/features/categories/types";
 import { CONTACT_EMAIL, PRODUCTS_ALL_CATALOG_HREF, ROUTES } from "@/lib/constants";
+import { STOREFRONT_Z } from "@/lib/storefront-overlay-z";
 import { navLinkActiveSurfaceClass, navLinkPressableClass } from "@/lib/nav-link-interaction";
 import { cn } from "@/lib/utils";
 
@@ -162,7 +163,8 @@ export function MobileNavDrawer({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[140] lg:hidden"
+      className="fixed inset-0 lg:hidden"
+      style={{ zIndex: STOREFRONT_Z.mobileNav }}
       role="presentation"
     >
       <div
@@ -188,10 +190,11 @@ export function MobileNavDrawer({
           aria-modal="true"
           aria-labelledby={titleId}
           className={cn(
-            "fixed top-0 bottom-0 left-0 z-[141] flex h-dvh min-h-dvh w-[min(20rem,88vw)] max-w-[100vw] flex-col border-s border-border/80 bg-page shadow-2xl",
+            "fixed top-0 bottom-0 left-0 flex h-dvh min-h-dvh w-[min(20rem,88vw)] max-w-[100vw] flex-col border-s border-border/80 bg-page shadow-2xl",
             "pt-[max(0.75rem,env(safe-area-inset-top))] pb-[max(0.75rem,env(safe-area-inset-bottom))]",
             "animate-mobile-nav-drawer-in",
           )}
+          style={{ zIndex: STOREFRONT_Z.mobileNavPanel }}
         >
               <h2 id={titleId} className="sr-only">
                 قائمة التنقل

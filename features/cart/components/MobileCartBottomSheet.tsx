@@ -12,6 +12,7 @@ import { cn, formatPrice } from "@/lib/utils";
 import {
   CART_CHECKOUT_CTA_LABEL,
   CartDrawerLines,
+  CartDrawerLinesSkeleton,
   CartDrawerPeekFooter,
   cartCheckoutPillButtonClassName,
   cartCheckoutPillIconClassName,
@@ -43,9 +44,11 @@ export function MobileCartBottomSheet({
     totalPrice,
     updateProductQuantity,
     removeProduct,
+    updatingLineId,
   } = useCart();
   const hideCartPeekOnly = useMobileChromeCollapsedStore((s) => s.hideCartPeekOnly);
   const [open, setOpen] = useState(false);
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
 
   useEffect(() => {
     if (!showCartSummary || totalItems === 0) {
@@ -66,6 +69,7 @@ export function MobileCartBottomSheet({
   );
 
   const goCheckout = useCallback(() => {
+    setCheckoutLoading(true);
     setOpen(false);
     router.push(ROUTES.CHECKOUT);
   }, [router]);
@@ -204,12 +208,17 @@ export function MobileCartBottomSheet({
             {shippingUi.progress ? (
               <CartFreeShippingProgressBar progress={shippingUi.progress} />
             ) : null}
-            <CartDrawerLines
-              variant="premium"
-              items={items}
-              onQuantityChange={updateProductQuantity}
-              onRemove={removeProduct}
-            />
+            {!hasHydrated ? (
+              <CartDrawerLinesSkeleton rows={Math.min(items.length || 2, 3)} />
+            ) : (
+              <CartDrawerLines
+                variant="premium"
+                items={items}
+                updatingLineId={updatingLineId}
+                onQuantityChange={updateProductQuantity}
+                onRemove={removeProduct}
+              />
+            )}
             <CartUpsellSection className="pb-0" />
             <CartPromoRow />
           </div>
@@ -217,6 +226,7 @@ export function MobileCartBottomSheet({
           <CartDrawerPeekFooter
             variant="premium"
             onCheckout={goCheckout}
+            checkoutLoading={checkoutLoading}
             subtotal={displaySubtotal}
             total={totalPrice}
             shippingLabel={shippingUi.shippingLabel}

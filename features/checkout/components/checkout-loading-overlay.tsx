@@ -1,5 +1,6 @@
 "use client";
 
+import { surfacePanelClass } from "@/lib/storefront-surfaces";
 import { cn } from "@/lib/utils";
 
 export function CheckoutLoadingOverlay({
@@ -20,7 +21,12 @@ export function CheckoutLoadingOverlay({
       aria-busy="true"
       aria-live="polite"
     >
-      <div className="flex flex-col items-center gap-4 rounded-2xl border border-white/10 bg-white px-10 py-8 shadow-xl">
+      <div
+        className={cn(
+          surfacePanelClass,
+          "flex flex-col items-center gap-4 border-white/10 px-10 py-8",
+        )}
+      >
         <span
           className="h-10 w-10 animate-spin rounded-full border-2 border-brand-500 border-t-transparent"
           aria-hidden

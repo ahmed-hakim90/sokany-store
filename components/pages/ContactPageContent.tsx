@@ -1,4 +1,5 @@
 import { LegalPageShell } from "@/components/layout/legal-page-shell";
+import { BrandSupportGrid } from "@/features/support/components/brand-support-grid";
 import {
   CONTACT_EMAIL,
   OFFICIAL_SOKANY_INFO_EMAIL,
@@ -16,15 +17,11 @@ export function ContactPageContent() {
   const officialContactPage = `${OFFICIAL_SOKANY_SITE_URL}/contact-us/`;
 
   return (
-    <LegalPageShell containerClassName="max-w-2xl">
-      <header className="mb-8 border-b border-border/80 pb-6">
-        <h1 className="font-display text-2xl font-bold text-brand-950 md:text-3xl">تواصل معنا</h1>
-        <p className="mt-3 text-[15px] leading-relaxed text-muted-foreground sm:text-base">
-          نحن هنا لمساعدتك في الاستفسارات عن المنتجات، الطلبات، والضمان. يمكنك استخدام قنوات هذا
-          المتجر أو البيانات الرسمية للوكيل أدناه.
-        </p>
-      </header>
-
+    <LegalPageShell
+      containerClassName="max-w-2xl"
+      heroTitle="تواصل معنا"
+      heroSubtitle="نحن هنا لمساعدتك في الاستفسارات عن المنتجات والطلبات والضمان — عبر قنوات المتجر أو البيانات الرسمية للوكيل."
+    >
       <section className="space-y-6 text-[15px] leading-relaxed text-brand-950 sm:text-base">
         <div>
           <h2 className="font-display text-lg font-semibold text-brand-950">متجر سوكانى (هذا الموقع)</h2>
@@ -112,6 +109,13 @@ export function ContactPageContent() {
           </p>
         </div>
       </section>
+
+      <BrandSupportGrid
+        className="mt-10 border-t border-border/70 pt-8"
+        title="خدمات أخرى"
+        subtitle="ضمان، صيانة، وفروع سوكاني"
+        titleId="contact-support-grid"
+      />
     </LegalPageShell>
   );
 }

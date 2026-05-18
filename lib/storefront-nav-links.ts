@@ -22,30 +22,34 @@ export const servicesDropdownLinks = [
   { href: ROUTES.PRIVACY, label: "سياسة الخصوصية" },
 ] as const;
 
-const mobileQuickLinks = [
-  { href: ROUTES.HOME, label: "الرئيسية" },
-  { href: ROUTES.CATEGORIES, label: "كل التصنيفات" },
-  { href: ROUTES.PRODUCTS, label: "العروض والمنتجات" },
-] as const;
-
-const mobileCategoryShortcuts = [
-  { href: ROUTES.CATEGORY("home-appliances"), label: "الأجهزة المنزلية" },
-  { href: ROUTES.CATEGORY("kitchen-supplies"), label: "المطبخ" },
-  { href: ROUTES.CATEGORY("personal-care"), label: "العناية الشخصية" },
-] as const;
-
-const mobileAboutLinks = [
-  { href: ROUTES.ABOUT, label: "من نحن" },
-  { href: ROUTES.SERVICE_CENTERS, label: "الفروع ومراكز الصيانة" },
-  { href: ROUTES.RETAILERS, label: "الموزعون المعتمدون" },
-  { href: ROUTES.MY_ORDERS, label: "تتبع الطلب" },
-] as const;
-
 /**
- * أقسام القائمة الجانبية للموبايل — البيانات مشتقة من نفس ثوابت المسارات أعلاه حيث يناسب.
+ * أقسام درج القائمة (موبايل) — ترتيب: حساب → دعم → عن المتجر.
  */
 export const mobileDrawerLinkSections = [
-  { title: "روابط سريعة", links: mobileQuickLinks },
-  { title: "تسوق حسب القسم", links: mobileCategoryShortcuts },
-  { title: "عن سوكاني", links: mobileAboutLinks },
+  {
+    title: "حسابي وطلباتي",
+    links: [
+      { href: ROUTES.ACCOUNT, label: "الحساب" },
+      { href: ROUTES.MY_ORDERS, label: "طلباتي" },
+      { href: ROUTES.ORDER_TRACKING, label: "تتبع طلب" },
+      { href: ROUTES.WISHLIST, label: "المفضلة" },
+    ],
+  },
+  {
+    title: "الدعم والفروع",
+    links: [
+      { href: ROUTES.CONTACT, label: "تواصل معنا" },
+      { href: ROUTES.SERVICE_CENTERS, label: "الفروع ومراكز الصيانة" },
+      { href: ROUTES.WARRANTY, label: "الضمان وطرق الاستخدام" },
+      { href: ROUTES.RETAILERS, label: "الموزعون المعتمدون" },
+    ],
+  },
+  {
+    title: "عن المتجر",
+    links: [
+      { href: ROUTES.HOME, label: "الرئيسية" },
+      { href: ROUTES.ABOUT, label: "من نحن" },
+      { href: ROUTES.CATEGORIES, label: "كل التصنيفات" },
+    ],
+  },
 ] as const;

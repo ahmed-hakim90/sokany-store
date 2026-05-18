@@ -1,30 +1,42 @@
 "use client";
 
 import { useCallback, useEffect, useMemo } from "react";
-import { Link } from "next-view-transitions";
 import { Container } from "@/components/Container";
 import { ScrollReveal } from "@/components/ScrollReveal";
-import { EmptyState } from "@/components/EmptyState";
 import { ErrorState } from "@/components/ErrorState";
 import { useCart } from "@/hooks/useCart";
 import { useProductsCatalog } from "@/hooks/useProductsCatalog";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 import { ROUTES } from "@/lib/constants";
 import { StorefrontStaleDataNotice } from "@/components/storefront-stale-data-notice";
-import { cn } from "@/lib/utils";
 import { focusProductSearchHeaderInput } from "@/lib/product-search-header";
+import {
+  findCategoryById,
+  getCategoryHorizontalNavCategories,
+  getChildCategories,
+  getTopLevelCategories,
+} from "@/features/catalog/lib/catalog-category-tree";
+import { CatalogBreadcrumb } from "@/features/catalog/components/catalog-breadcrumb";
+import { CatalogCategoryDiscovery } from "@/features/catalog/components/catalog-category-discovery";
+import { CatalogChildCategories } from "@/features/catalog/components/catalog-child-categories";
+import { CatalogEmptyStates } from "@/features/catalog/components/catalog-empty-states";
+import { CatalogListingLayout } from "@/features/catalog/components/catalog-listing-layout";
+import { CatalogPageHeader } from "@/features/catalog/components/catalog-page-header";
+import {
+  CatalogDiscoverySkeleton,
+  CatalogSidebarSkeleton,
+} from "@/features/catalog/components/catalog-page-skeletons";
 import { CatalogPagination } from "@/features/catalog/components/CatalogPagination";
-import { CategoryScrollerSkeleton } from "@/features/categories/components/CategoryScrollerSkeleton";
+import { CatalogStoreBanner } from "@/features/catalog/components/catalog-store-banner";
 import { CategorySidebar } from "@/features/categories/components/CategorySidebar";
-import { StickyBelowHeaderRail } from "@/features/categories/components/sticky-below-header-rail";
 import { useCategories } from "@/features/categories/hooks/useCategories";
-import { HomeCategoryExclusiveBanner } from "@/features/home/components/home-category-exclusive-banner";
 import { ProductGrid } from "@/features/products/components/ProductGrid";
 
 /*
  * صفحة الكتالوج (/products):
- * ‎`sm`‎/`lg`: شريط تصنيفات أفقي (دوائر) أولاً → عند ‎`?category=id`‎ بانر صورة التصنيف تحته → شبكة المنتجات.
- * بدون عنوان صفحة؛ التصفية من أيقونة الفلتر بجانب البحث في الهيدر.
+ * — الجوال (< lg): رأس هيرو (عنوان + عدد + ترتيب) → سكة لاصقة (دوائر) → بانر → شبكة؛ الفلتر من أيقونة الهيدر + درج التصفية.
+ * — ديسكتوب (lg+): رأس هيرو مع ترتيب في الصف نفسه → مسار → بانر | عمود شجرة + فلتر | شبكة 3–5 أعمدة.
+ * ?category= يحدّد التصنيف النشط دون تغيير المسار.
  */
 export function ProductsPageContent() {
   useEffect(() => {
@@ -46,22 +58,43 @@ export function ProductsPageContent() {
   } = useProductsCatalog();
   const { offline } = useNetworkStatus();
   const categoriesQuery = useCategories({ per_page: 100 });
-  const productNavCategories = useMemo(() => {
-    const data = categoriesQuery.data;
-    if (!data?.length) return [];
-    return data.filter((c) => c.count > 0);
-  }, [categoriesQuery.data]);
 
-  /** لبانر الصورة: أي تصنيف مُصفّى بالـ id من قائمة وو (حتى لو count=0 في لحظة معيّنة). */
-  const selectedCategoryForBanner = useMemo(() => {
+  const allCategories = useMemo(
+    () => categoriesQuery.data ?? [],
+    [categoriesQuery.data],
+  );
+  const productNavCategories = useMemo(
+    () => getTopLevelCategories(allCategories.filter((c) => c.count > 0)),
+    [allCategories],
+  );
+
+  const selectedCategory = useMemo(() => {
     if (!activeCategoryId || isFeatured) return null;
-    const full = categoriesQuery.data ?? [];
-    return full.find((c) => c.id === activeCategoryId) ?? null;
-  }, [activeCategoryId, isFeatured, categoriesQuery.data]);
+    return findCategoryById(allCategories, activeCategoryId);
+  }, [activeCategoryId, isFeatured, allCategories]);
 
-  const showCategoryRail =
-    categoriesQuery.isPending ||
-    (categoriesQuery.isSuccess && productNavCategories.length > 0);
+  const childCategories = useMemo(() => {
+    if (!selectedCategory) return [];
+    return getChildCategories(allCategories, selectedCategory.id);
+  }, [allCategories, selectedCategory]);
+
+  const catalogPeerCategories = useMemo(() => {
+    if (!selectedCategory) return [];
+    return getCategoryHorizontalNavCategories(allCategories, selectedCategory);
+  }, [allCategories, selectedCategory]);
+
+  const relatedCategories = useMemo(() => {
+    if (!selectedCategory) return productNavCategories.slice(0, 6);
+    const parentId = selectedCategory.parentId;
+    if (parentId > 0) {
+      return getChildCategories(allCategories, parentId).filter(
+        (c) => c.id !== selectedCategory.id,
+      );
+    }
+    return productNavCategories.filter((c) => c.id !== selectedCategory.id).slice(0, 6);
+  }, [allCategories, productNavCategories, selectedCategory]);
+
+  const pageTitle = selectedCategory?.name ?? "كل المنتجات";
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -91,6 +124,15 @@ export function ProductsPageContent() {
   const staleVariant =
     offline && pagedItems.length > 0 ? "offline-cache" : "api-fallback";
   const catalogFatalError = productsQuery.isError && pagedItems.length === 0;
+  const isLoadingGrid = productsQuery.isPending && pagedItems.length === 0;
+  const emptyVariant =
+    selectedCategory &&
+    !catalogParams.search &&
+    catalogParams.min_price == null &&
+    catalogParams.max_price == null &&
+    !isFeatured
+      ? "category"
+      : "filters";
 
   const catalogGrid = catalogFatalError ? (
     <ErrorState
@@ -106,11 +148,7 @@ export function ProductsPageContent() {
       ) : null}
       <ProductGrid
         status={
-          productsQuery.isPending && pagedItems.length === 0
-            ? "loading"
-            : !pagedItems.length
-              ? "empty"
-              : "ready"
+          isLoadingGrid ? "loading" : !pagedItems.length ? "empty" : "ready"
         }
         products={pagedItems}
         virtualize="auto"
@@ -118,23 +156,15 @@ export function ProductsPageContent() {
         onCartLineQuantityChange={setProductLineQuantity}
         cardVariant="mobileCompact"
         cardVariantMd="desktopCatalogWide"
-        gridClassName="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-5"
+        gridClassName="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
         empty={
-          <EmptyState
-            title="لا توجد منتجات"
-            description="جرّب بحثاً آخر أو اضبط التصفية من أيقونة الفلتر بجانب البحث."
-            action={
-              <Link
-                href={ROUTES.PRODUCTS}
-                className="inline-flex h-10 items-center justify-center rounded-md border border-border bg-white px-4 text-sm font-medium text-foreground hover:bg-surface-muted"
-              >
-                إعادة التعيين
-              </Link>
-            }
+          <CatalogEmptyStates
+            variant={emptyVariant}
+            relatedCategories={relatedCategories}
           />
         }
       />
-      {!productsQuery.isPending && !catalogFatalError && pagedItems.length > 0 ? (
+      {!isLoadingGrid && !catalogFatalError && pagedItems.length > 0 ? (
         <CatalogPagination
           currentPage={currentCatalogPage}
           totalPages={totalPages}
@@ -144,48 +174,65 @@ export function ProductsPageContent() {
     </>
   );
 
+  const discoveryRail =
+    categoriesQuery.isPending ? (
+      <CatalogDiscoverySkeleton />
+    ) : selectedCategory ? (
+      <CategorySidebar
+        variant="rail"
+        linkMode="productsQuery"
+        categories={
+          catalogPeerCategories.length > 0 ? catalogPeerCategories : [selectedCategory]
+        }
+        activeCategoryId={activeCategoryId ?? null}
+        allProductsActive={false}
+      />
+    ) : productNavCategories.length > 0 ? (
+      <CatalogCategoryDiscovery
+        categories={productNavCategories}
+        activeCategoryId={activeCategoryId ?? null}
+        allProductsActive={allActive}
+        variant="visual"
+      />
+    ) : null;
+
   return (
     <div className="flex min-h-0 min-w-0 flex-1 flex-col">
       <Container className="flex min-h-0 flex-1 flex-col sm:px-2 lg:px-8 lg:pb-10 lg:pt-2">
-        <h1 className="sr-only">كل منتجات سوكاني المصرية</h1>
-        {categoriesQuery.isPending ? (
-          <div className="min-w-0">
-            <StickyBelowHeaderRail>
-              <CategoryScrollerSkeleton />
-            </StickyBelowHeaderRail>
-          </div>
-        ) : categoriesQuery.isSuccess && productNavCategories.length > 0 ? (
-          <div className="min-w-0">
-            <StickyBelowHeaderRail>
-              <CategorySidebar
-                categories={productNavCategories}
-                variant="rail"
-                linkMode="productsQuery"
-                activeCategoryId={activeCategoryId ?? null}
-                allProductsActive={allActive}
-              />
-            </StickyBelowHeaderRail>
-          </div>
-        ) : null}
-
-        {selectedCategoryForBanner ? (
-          <div className="mt-3 min-w-0 sm:mt-4">
+        <CatalogListingLayout
+          header={
+            <CatalogPageHeader
+              title={pageTitle}
+              totalCount={productsQuery.data?.total ?? null}
+            />
+          }
+          breadcrumb={
+            <CatalogBreadcrumb categoryName={selectedCategory?.name ?? null} />
+          }
+          mobileDiscovery={discoveryRail}
+          banner={
             <ScrollReveal>
-              <HomeCategoryExclusiveBanner category={selectedCategoryForBanner} />
+              <CatalogStoreBanner selectedCategory={selectedCategory} />
             </ScrollReveal>
-          </div>
-        ) : null}
-
-        <ScrollReveal
-          className={cn(
-            "min-w-0 pb-4",
-            showCategoryRail || selectedCategoryForBanner
-              ? "mt-3 sm:mt-4"
-              : "mt-6",
-          )}
+          }
+          childCategories={
+            childCategories.length > 0 ? (
+              <CatalogChildCategories
+                className="hidden lg:block"
+                subcategories={childCategories}
+                activeCategoryId={activeCategoryId ?? null}
+              />
+            ) : null
+          }
+          categories={allCategories.filter((c) => c.count > 0)}
+          activeCategoryId={activeCategoryId ?? null}
+          allProductsActive={allActive}
+          showFilter
+          sidebarLoading={categoriesQuery.isPending}
+          sidebarSkeleton={<CatalogSidebarSkeleton />}
         >
-          {catalogGrid}
-        </ScrollReveal>
+          <ScrollReveal className="min-w-0 pb-4">{catalogGrid}</ScrollReveal>
+        </CatalogListingLayout>
       </Container>
     </div>
   );

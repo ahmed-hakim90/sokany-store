@@ -7,6 +7,7 @@ import { PriceText } from "@/components/ui/price-text";
 import type { Order } from "@/features/orders/types";
 import { orderStatusPresentation } from "@/features/orders/lib/order-status-presentation";
 import { ROUTES } from "@/lib/constants";
+import { surfacePanelClass } from "@/lib/storefront-surfaces";
 import { cn } from "@/lib/utils";
 
 export type OrderListCardProps = {
@@ -38,7 +39,8 @@ export function OrderListCard({
   return (
     <div
       className={cn(
-        "rounded-3xl border border-border/70 bg-white p-4 shadow-[0_18px_55px_-42px_rgba(15,23,42,0.45)] transition-transform sm:p-5",
+        surfacePanelClass,
+        "rounded-3xl p-4 transition-transform sm:p-5",
         "active:scale-[0.99]",
         className,
       )}

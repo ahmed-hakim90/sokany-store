@@ -9,6 +9,7 @@ import { useProducts } from "@/features/products/hooks/useProducts";
 import { useCart } from "@/hooks/useCart";
 import type { Product } from "@/features/products/types";
 import { ROUTES } from "@/lib/constants";
+import { surfacePanelClass } from "@/lib/storefront-surfaces";
 import { cn } from "@/lib/utils";
 
 export function CartUpsellSection({ className }: { className?: string }) {
@@ -49,7 +50,10 @@ export function CartUpsellSection({ className }: { className?: string }) {
   }
 
   return (
-    <section className={cn("space-y-3 pb-8", className)} aria-labelledby="cart-upsell-heading">
+    <section
+      className={cn(surfacePanelClass, "space-y-3 p-3 sm:p-4", className)}
+      aria-labelledby="cart-upsell-heading"
+    >
       <div className="flex items-end justify-between gap-2">
         <h2
           id="cart-upsell-heading"

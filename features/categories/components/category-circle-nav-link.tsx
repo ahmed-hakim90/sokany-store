@@ -26,8 +26,11 @@ export type CategoryCircleNavLinkProps = {
   scroll?: boolean;
 };
 
-const shellActive =
+const shellActiveHeader =
   "border-brand-600 bg-brand-100 text-brand-900 shadow-sm";
+/** تمييز نشط على سكة التصنيفات — ليمي متجر سوكاني */
+const shellActiveRail =
+  "border-brand-950 bg-accent text-brand-950 shadow-sm";
 const shellIdle =
   "border-border/80 bg-white text-brand-800 shadow-sm hover:bg-surface-muted/60";
 
@@ -46,9 +49,9 @@ export function CategoryCircleNavLink({
 }: CategoryCircleNavLinkProps) {
   const isRail = layout === "rail";
   const circleClass = cn(
-    "relative flex shrink-0 items-center justify-center overflow-hidden rounded-full border transition-colors",
+    "relative flex shrink-0 items-center justify-center overflow-hidden rounded-full border transition-colors duration-200",
     isRail ? "h-14 w-14 sm:h-16 sm:w-16" : "h-12 w-12",
-    isActive ? shellActive : shellIdle,
+    isActive ? (isRail ? shellActiveRail : shellActiveHeader) : shellIdle,
   );
 
   const inner = imageSrc ? (
@@ -91,7 +94,7 @@ export function CategoryCircleNavLink({
       {isRail && caption ? (
         <span
           className={cn(
-            "line-clamp-2 w-full text-center text-[11px] leading-tight sm:text-xs",
+            "line-clamp-2 w-full text-center text-[11px] leading-tight transition-colors duration-200 sm:text-xs",
             isActive ? "font-bold text-brand-950" : "font-medium text-muted-foreground",
           )}
         >

@@ -10,6 +10,8 @@ import { ErrorState } from "@/components/ErrorState";
 import { useCart } from "@/hooks/useCart";
 import { useProductDetailPage } from "@/hooks/useProductDetailPage";
 import { ROUTES } from "@/lib/constants";
+import { surfacePanelClass } from "@/lib/storefront-surfaces";
+import { cn } from "@/lib/utils";
 import type { Product } from "@/features/products/types";
 import { ProductDetail } from "@/features/products/components/ProductDetail";
 import { ProductCarouselRow } from "@/features/products/components/product-carousel-row";
@@ -147,9 +149,14 @@ export function ProductDetailPageContent({
           />
 
           {/* كارت التقييمات: نفس لغة تبويبات تفاصيل المنتج مع حالة الأهلية */}
-          <section className="mt-10 min-w-0">
-            <div className="mx-auto w-full min-w-0 max-w-7xl overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_14px_48px_-36px_rgba(15,23,42,0.4)]">
-              <div className="flex min-w-0 flex-wrap items-center justify-between gap-3 border-b border-slate-100 bg-slate-50/70 px-4 py-3 sm:px-5">
+          <section id="product-reviews-section" className="mt-10 min-w-0 scroll-mt-28">
+            <div
+              className={cn(
+                surfacePanelClass,
+                "mx-auto w-full min-w-0 max-w-7xl overflow-hidden rounded-3xl",
+              )}
+            >
+              <div className="flex min-w-0 flex-wrap items-center justify-between gap-3 border-b border-border/70 bg-surface-muted/40 px-4 py-3 sm:px-5">
                 <div>
                   <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
                     آراء العملاء
@@ -261,7 +268,12 @@ export function ProductDetailPageContent({
 
           {/* منتجات مشابهة: كارت مستقل بأسفل صفحة المنتج مثل مرجع التصميم */}
           <section className="mt-10 min-w-0">
-            <div className="mx-auto w-full min-w-0 max-w-7xl rounded-3xl border border-slate-200 bg-white p-4 shadow-[0_14px_48px_-36px_rgba(15,23,42,0.4)] sm:p-5">
+            <div
+              className={cn(
+                surfacePanelClass,
+                "mx-auto w-full min-w-0 max-w-7xl rounded-3xl p-4 sm:p-5",
+              )}
+            >
               <div className="flex min-w-0 flex-wrap items-center justify-between gap-4">
                 <div>
                   <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">

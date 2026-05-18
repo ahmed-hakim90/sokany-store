@@ -12,6 +12,8 @@ import { FormField } from "@/components/ui/form-field";
 import { login } from "@/features/auth/services/login";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import { ROUTES } from "@/lib/constants";
+import { surfacePageHeroClass, surfacePanelClass } from "@/lib/storefront-surfaces";
+import { cn } from "@/lib/utils";
 import { storefrontLoginFormSchema } from "@/schemas/auth";
 
 function fieldErrorsFromLoginSchema(
@@ -41,8 +43,9 @@ function loginFailureMessage(error: unknown): string {
 }
 
 /*
- * صفحة تسجيل الدخول (/login): بريد + كلمة مرور ووكومرس — نفس بيانات الحساب عند إنشاء عميل مع الطلب.
- * بعد النجاح: توجيه إلى `/account`. إن كانت الجلسة نشطة مسبقاً يُعاد التوجيه تلقائياً.
+ * صفحة تسجيل الدخول (/login):
+ * — الجوال: بطاقة مركزة للنموذج.
+ * — من lg: عمود ترحيب (فوائد + ضيف) | عمود النموذج.
  */
 export function LoginPageContent() {
   const router = useRouter();
@@ -125,14 +128,43 @@ export function LoginPageContent() {
     );
   }
 
+  const benefitsPanel = (
+    <div className={cn(surfacePanelClass, "hidden p-6 lg:block")}>
+      <h2 className="font-display text-lg font-bold text-brand-950">لماذا حساب سوكاني؟</h2>
+      <ul className="mt-4 space-y-3 text-sm leading-relaxed text-muted-foreground">
+        <li>متابعة الطلبات وحالتها من مكان واحد.</li>
+        <li>تقييم المنتجات بعد الاستلام.</li>
+        <li>نفس بيانات ووكومرس عند إنشاء حساب مع الطلب.</li>
+      </ul>
+      <p className="mt-6 text-sm text-brand-900/70">
+        يمكنك إتمام الطلب كضيف من{" "}
+        <Link href={ROUTES.CHECKOUT} className="font-semibold text-brand-800 underline">
+          صفحة الدفع
+        </Link>
+        .
+      </p>
+    </div>
+  );
+
   return (
-    <Container className="py-10 sm:py-14">
-      <div className="mx-auto max-w-md space-y-6">
-        {headingBlock}
+    <div className="bg-page bg-gradient-to-b from-page via-[#e8edf5]/40 to-page">
+      <Container className="py-10 sm:py-14">
+        <header className={cn(surfacePageHeroClass, "mb-8")}>
+          <h1 className="font-display text-2xl font-bold tracking-tight text-brand-950 sm:text-3xl">
+            تسجيل الدخول
+          </h1>
+          <p className="mt-2 text-sm leading-relaxed text-muted-foreground sm:text-base">
+            نفس حساب ووكومرس — تابع طلباتك وتقييماتك من مكان واحد.
+          </p>
+        </header>
+        <div className="mx-auto grid max-w-5xl gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)] lg:items-start">
+          {benefitsPanel}
+          <div className="mx-auto w-full max-w-md space-y-6 lg:max-w-none">
+            <div className="lg:hidden">{headingBlock}</div>
 
         <form
           onSubmit={(e) => void onSubmit(e)}
-          className="space-y-4 rounded-2xl border border-border bg-white p-5 shadow-sm"
+          className={cn(surfacePanelClass, "space-y-4 p-5")}
           noValidate
         >
           <FormField
@@ -171,7 +203,9 @@ export function LoginPageContent() {
             العودة للرئيسية
           </Link>
         </p>
-      </div>
-    </Container>
+          </div>
+        </div>
+      </Container>
+    </div>
   );
 }

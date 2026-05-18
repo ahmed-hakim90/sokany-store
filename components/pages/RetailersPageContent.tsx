@@ -17,6 +17,7 @@ import { Link } from "next-view-transitions";
 import { useMemo, useState } from "react";
 import { AppImage } from "@/components/AppImage";
 import { Container } from "@/components/Container";
+import { BrandSupportGrid } from "@/features/support/components/brand-support-grid";
 import {
   authorizedRetailers as staticAuthorizedRetailers,
   distinctGovernorates,
@@ -28,6 +29,7 @@ import {
   telHrefFromEgyptLocal,
   waMeUrlFromEgyptLocal,
 } from "@/lib/egypt-phone";
+import { surfacePageHeroClass } from "@/lib/storefront-surfaces";
 import { cn } from "@/lib/utils";
 
 function mapsSearchUrl(query: string): string {
@@ -82,9 +84,14 @@ export function RetailersPageContent({
   return (
     <div className="min-w-0 flex-1 bg-page pb-20 pt-2 md:pt-4">
       {/* Hero: خريطة بصرية + مقدمة */}
-      <section className="border-b border-border/80 bg-white py-10 md:py-14">
+      <section className="py-6 md:py-8">
         <Container className="mx-auto max-w-6xl">
-          <div className="grid items-center gap-10 md:grid-cols-2 md:gap-12">
+          <div
+            className={cn(
+              surfacePageHeroClass,
+              "grid items-center gap-10 md:grid-cols-2 md:gap-12",
+            )}
+          >
             <div className="space-y-6 text-start">
               <h1 className="font-display text-2xl font-bold leading-tight text-brand-950 sm:text-3xl md:text-4xl">
                 شبكة الموزعين المعتمدين
@@ -350,6 +357,14 @@ export function RetailersPageContent({
           </div>
         </Container>
       </section>
+
+      <Container className="pb-12">
+        <BrandSupportGrid
+          title="خدمات الوكيل"
+          subtitle="ضمان، صيانة، وتواصل رسمي"
+          titleId="retailers-support-grid"
+        />
+      </Container>
     </div>
   );
 }

@@ -76,7 +76,7 @@ export function MobileTopHeader({
               "overflow-hidden transition-[max-height] duration-300 ease-out motion-reduce:transition-none",
               topRowHidden
                 ? "pointer-events-none max-h-0"
-                : "max-h-[5.5rem]",
+                : "max-h-[8rem]",
             )}
           >
             {/*

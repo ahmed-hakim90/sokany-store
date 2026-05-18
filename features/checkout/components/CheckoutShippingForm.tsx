@@ -4,8 +4,9 @@ import { useId, useMemo } from "react";
 import { FormField } from "@/components/ui/form-field";
 import { SearchableSelectField } from "@/components/ui/searchable-select-field";
 import { SelectField } from "@/components/ui/select-field";
-import { Card } from "@/components/ui/card";
 import { CheckoutSectionChip } from "@/features/checkout/components/checkout-section-chip";
+import { CheckoutShippingMethodPanel } from "@/features/checkout/components/checkout-shipping-method-panel";
+import { CheckoutStepCard } from "@/features/checkout/components/checkout-step-card";
 import { getAreasForGovernorateCode } from "@/features/checkout/data/egypt-areas";
 import { EGYPT_GOVERNORATES } from "@/features/checkout/data/egypt-governorates";
 import type { CheckoutFormData } from "@/features/checkout/types";
@@ -18,9 +19,9 @@ const GOVERNORATE_OPTIONS = EGYPT_GOVERNORATES.map((governorate) => ({
 }));
 
 /*
- * بيانات الدفع — عمود واحد RTL؛ الحقول من الأعلى للأسفل كما في مرجع المتجر.
- * من sm: نفس العمود بعرض النموذج؛ لا توجد شبكة داخلية لأن الحقول عمودية بالكامل.
- * أسفل الحقول: ملاحظات الطلب ثم فاصل ثم تذكير الشحن المجاني.
+ * بيانات العميل والعنوان — بطاقتا خطوة مرقّمة (1–2) داخل عمود النموذج.
+ * الجوال: بطاقات متتابعة قبل «الشحن والدفع» و«مراجعة الطلب» في الأب.
+ * من lg: نفس الحقول داخل بطاقات مرقّمة بجانب ملخص الطلب اللاصق.
  */
 export type CheckoutShippingFormProps = {
   values: CheckoutFormData;
@@ -65,22 +66,16 @@ export function CheckoutShippingForm({
   }, [values.shippingStateCode, values.shippingCity]);
 
   return (
-    <Card
-      variant="summary"
-      className={cn(
-        "rounded-2xl border-black/[0.05] p-4 shadow-[0_8px_30px_-12px_rgba(15,23,42,0.12)] sm:p-5",
-      )}
-    >
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="font-display text-lg font-semibold tracking-tight text-brand-950">
-          بيانات الدفع
-        </h2>
-        <CheckoutSectionChip>مطلوب</CheckoutSectionChip>
-      </div>
-
-      {/* حقول الاسم والبلد والعنوان والمحافظة والمنطقة */}
-      <div className="mt-4 space-y-4">
-        <div className="space-y-3">
+    <div className="space-y-4">
+      <CheckoutStepCard
+        step={1}
+        title="بيانات العميل"
+        subtitle="الاسم والهاتف والبريد لإتمام الطلب والتواصل"
+      >
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <CheckoutSectionChip>مطلوب</CheckoutSectionChip>
+        </div>
+        <div className="mt-3 space-y-3">
           <FormField
             label="الاسم الأول"
             id="contactFirstName"
@@ -103,7 +98,80 @@ export function CheckoutShippingForm({
             autoComplete="family-name"
             required
           />
+          <FormField
+            label="رقم الهاتف"
+            id="contactPhone"
+            name="contactPhone"
+            inputMode="tel"
+            placeholder="مثال: 01012345678"
+            value={values.contactPhone}
+            onChange={(e) => onChange("contactPhone", e.target.value)}
+            error={errors.contactPhone}
+            helperText="أرقام فقط (يمكن استخدام الأرقام العربية وسيتم تحويلها تلقائيًا)"
+            autoComplete="tel"
+            required
+          />
+          <FormField
+            label="رقم تليفون آخر (اختياري)"
+            id="contactPhoneAlt"
+            name="contactPhoneAlt"
+            inputMode="tel"
+            value={values.contactPhoneAlt}
+            onChange={(e) => onChange("contactPhoneAlt", e.target.value)}
+            error={errors.contactPhoneAlt}
+            autoComplete="tel"
+          />
+          <FormField
+            label="البريد للتواصل (اختياري)"
+            id="contactEmail"
+            name="contactEmail"
+            type="email"
+            placeholder="email@example.com"
+            value={values.contactEmail}
+            onChange={(e) => onChange("contactEmail", e.target.value)}
+            error={errors.contactEmail}
+            helperText={
+              values.createAccount
+                ? "لإنشاء حساب فعلياً: أدخل بريداً صالحاً وكلمة مرور كافية؛ وإلا يُكمَل الطلب كضيف."
+                : "لإشعارات الطلب؛ يمكن تركه فارغاً لطلب الضيف."
+            }
+            autoComplete="email"
+          />
+        </div>
+        <div className="mt-4 space-y-3">
+          <label className="flex cursor-pointer items-center gap-2.5">
+            <input
+              type="checkbox"
+              checked={values.createAccount}
+              onChange={(e) => onChange("createAccount", e.target.checked)}
+              className="size-4 shrink-0 rounded border-border text-brand-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500"
+            />
+            <span className="text-start text-sm text-brand-900">
+              إنشاء حساب مع الطلب؟
+            </span>
+          </label>
+          {values.createAccount ? (
+            <FormField
+              label="كلمة المرور"
+              id="accountPassword"
+              name="accountPassword"
+              type="password"
+              autoComplete="new-password"
+              value={values.accountPassword}
+              onChange={(e) => onChange("accountPassword", e.target.value)}
+              error={errors.accountPassword}
+              helperText="ثمانية أحرف على الأقل عند إنشاء الحساب."
+            />
+          ) : null}
+        </div>
+      </CheckoutStepCard>
 
+      <CheckoutStepCard
+        step={2}
+        title="العنوان"
+        subtitle="عنوان التوصيل داخل مصر"
+      >
+        <div className="space-y-3">
           <SelectField
             label="البلد"
             id="shippingCountry"
@@ -149,85 +217,15 @@ export function CheckoutShippingForm({
             onValueChange={(next) => onChange("shippingCity", next)}
             options={shippingAreaOptions}
             placeholder={
-              values.shippingStateCode
-                ? ""
-                : "اختاري المحافظة أولاً"
+              values.shippingStateCode ? "" : "اختاري المحافظة أولاً"
             }
             helperText="قائمة بحسب المحافظة؛ يمكن تركها فارغة."
             error={errors.shippingCity}
             disabled={!values.shippingStateCode}
           />
-
-          <FormField
-            label="رقم الهاتف"
-            id="contactPhone"
-            name="contactPhone"
-            inputMode="tel"
-            placeholder="مثال: 01012345678"
-            value={values.contactPhone}
-            onChange={(e) => onChange("contactPhone", e.target.value)}
-            error={errors.contactPhone}
-            helperText="أرقام فقط (يمكن استخدام الأرقام العربية وسيتم تحويلها تلقائيًا)"
-            autoComplete="tel"
-            required
-          />
-
-          <FormField
-            label="رقم تليفون آخر (اختياري)"
-            id="contactPhoneAlt"
-            name="contactPhoneAlt"
-            inputMode="tel"
-            value={values.contactPhoneAlt}
-            onChange={(e) => onChange("contactPhoneAlt", e.target.value)}
-            error={errors.contactPhoneAlt}
-            autoComplete="tel"
-          />
-
-          <FormField
-            label="البريد للتواصل (اختياري)"
-            id="contactEmail"
-            name="contactEmail"
-            type="email"
-            placeholder="email@example.com"
-            value={values.contactEmail}
-            onChange={(e) => onChange("contactEmail", e.target.value)}
-            error={errors.contactEmail}
-            helperText={
-              values.createAccount
-                ? "لإنشاء حساب فعلياً: أدخل بريداً صالحاً وكلمة مرور كافية؛ وإلا يُكمَل الطلب كضيف."
-                : "لإشعارات الطلب؛ يمكن تركه فارغاً لطلب الضيف."
-            }
-            autoComplete="email"
-          />
         </div>
 
-        {/* خيارات: حساب جديد، عنوان شحن مختلف */}
-        <div className="space-y-3">
-          <label className="flex cursor-pointer items-center gap-2.5">
-            <input
-              type="checkbox"
-              checked={values.createAccount}
-              onChange={(e) => onChange("createAccount", e.target.checked)}
-              className="size-4 shrink-0 rounded border-border text-brand-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500"
-            />
-            <span className="text-start text-sm text-brand-900">
-              إنشاء حساب مع الطلب؟
-            </span>
-          </label>
-          {values.createAccount ? (
-            <FormField
-              label="كلمة المرور"
-              id="accountPassword"
-              name="accountPassword"
-              type="password"
-              autoComplete="new-password"
-              value={values.accountPassword}
-              onChange={(e) => onChange("accountPassword", e.target.value)}
-              error={errors.accountPassword}
-              helperText="ثمانية أحرف على الأقل عند إنشاء الحساب."
-            />
-          ) : null}
-
+        <div className="mt-4 space-y-3">
           <label className="flex cursor-pointer items-center gap-2.5">
             <input
               type="checkbox"
@@ -241,9 +239,8 @@ export function CheckoutShippingForm({
           </label>
         </div>
 
-        {/* مستلم المنزل عند اختيار عنوان شحن مختلف — الاسم فقط؛ العنوان يبقى مشتركاً */}
         {values.shipToDifferentAddress ? (
-          <div className="rounded-xl border border-border/60 bg-surface-muted/30 p-3">
+          <div className="mt-3 rounded-xl border border-border/60 bg-surface-muted/30 p-3">
             <p className="mb-3 text-xs font-medium text-muted-foreground">
               عنوان التوصيل — اسم المستلم
             </p>
@@ -274,8 +271,7 @@ export function CheckoutShippingForm({
 
         <FieldSep />
 
-        {/* ملاحظات الطلب */}
-        <div>
+        <div className="mt-4">
           <div className="flex flex-wrap items-end justify-between gap-2">
             <label
               htmlFor={noteId}
@@ -310,10 +306,8 @@ export function CheckoutShippingForm({
 
         <FieldSep />
 
-        <div className="rounded-xl border border-border/60 bg-surface-muted/40 px-3 py-2.5 text-center text-xs text-muted-foreground">
-          الشحن مجاني — لا حاجة لاختيار طريقة توصيل إضافية.
-        </div>
-      </div>
-    </Card>
+        <CheckoutShippingMethodPanel className="mt-4" />
+      </CheckoutStepCard>
+    </div>
   );
 }

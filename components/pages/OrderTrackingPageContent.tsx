@@ -3,7 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link, useTransitionRouter } from "next-view-transitions";
 import { useSearchParams } from "next/navigation";
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
   CalendarClock,
@@ -29,7 +29,9 @@ import { trackOrder } from "@/features/order-tracking/services/trackOrder";
 import { ProductCarouselRow } from "@/features/products/components/product-carousel-row";
 import { useProducts } from "@/features/products/hooks/useProducts";
 import { useCart } from "@/hooks/useCart";
+import { SearchField } from "@/components/ui/search-field";
 import { ROUTES, STALE_TIME, WHATSAPP_SUPPORT_URL } from "@/lib/constants";
+import { surfacePanelClass } from "@/lib/storefront-surfaces";
 import { cn, formatPrice } from "@/lib/utils";
 
 /**
@@ -128,7 +130,14 @@ export function OrderTrackingPageContent() {
   const searchParams = useSearchParams();
   const router = useTransitionRouter();
   const qRaw = searchParams.get("q")?.trim() ?? "";
+  const [lookupInput, setLookupInput] = useState(qRaw);
   const { getCartLineQuantity, setProductLineQuantity, replaceAllItems } = useCart();
+
+  const submitLookup = useCallback(() => {
+    const next = lookupInput.trim();
+    if (next.length < 2) return;
+    router.push(`${ROUTES.ORDER_TRACKING}?q=${encodeURIComponent(next)}`);
+  }, [lookupInput, router]);
 
   const trackQuery = useQuery({
     queryKey: ["track-order", qRaw],
@@ -199,40 +208,90 @@ export function OrderTrackingPageContent() {
 
   const showEmptyHint = qRaw.length < 2;
 
+  useEffect(() => {
+    setLookupInput(qRaw);
+  }, [qRaw]);
+
   return (
     <div className="flex min-h-[min(100dvh,1200px)] flex-col bg-page py-6 md:py-8">
       <Container
-        className={cn(
-          "mx-auto flex w-full flex-1 flex-col items-stretch px-4",
-          showTimeline ? "max-w-7xl" : "max-w-md",
-        )}
+        className="mx-auto flex w-full max-w-7xl flex-1 flex-col items-stretch px-4"
       >
-        {showEmptyHint ? (
-          <div className="w-full rounded-3xl border border-border/70 bg-white p-8 text-center shadow-sm">
-            <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-brand-500/12">
-              <Package className="h-8 w-8 text-brand-700" strokeWidth={2} aria-hidden />
-            </div>
-            <h1 className="font-display text-2xl font-bold text-brand-950">تتبع طلبك</h1>
-            <p className="mt-3 text-sm text-muted-foreground">
-              اختر طلباً من قائمة «طلباتي» ثم اضغط «تتبع الطلب» لعرض حالة الشحن.
-            </p>
+        <section
+          className={cn(
+            surfacePanelClass,
+            "mb-5 w-full p-4 sm:p-5",
+            showTimeline ? "max-w-7xl" : "max-w-md",
+          )}
+        >
+          <h1 className="font-display text-xl font-bold text-brand-950 sm:text-2xl">
+            تتبع طلبك
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            أدخل رقم الطلب من رسالة التأكيد أو من صفحة طلباتي.
+          </p>
+          <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-stretch">
+            <SearchField
+              value={lookupInput}
+              onChange={(e) => setLookupInput(e.target.value)}
+              placeholder="رقم الطلب…"
+              aria-label="رقم الطلب للتتبع"
+              className="min-w-0 flex-1"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  submitLookup();
+                }
+              }}
+            />
             <Button
               type="button"
               variant="primary"
               size="lg"
-              className="mt-8 h-14 w-full rounded-2xl text-base font-bold shadow-[0_12px_32px_-18px_rgba(218,255,0,0.75)]"
+              className="h-11 shrink-0 font-bold sm:px-8"
+              onClick={submitLookup}
+              disabled={lookupInput.trim().length < 2}
+            >
+              بحث
+            </Button>
+          </div>
+          {showEmptyHint ? (
+            <div className="mt-6 space-y-3 border-t border-border/60 pt-5 text-center">
+              <p className="text-sm text-muted-foreground">
+                أو اختر طلباً من قائمة «طلباتي» ثم اضغط «تتبع الطلب».
+              </p>
+              <Button
+                type="button"
+                variant="secondary"
+                size="lg"
+                className="h-12 w-full"
+                onClick={() => router.push(ROUTES.MY_ORDERS)}
+              >
+                الذهاب إلى طلباتي
+              </Button>
+              <Link
+                href={ROUTES.HOME}
+                className="inline-block text-sm font-semibold text-brand-800 underline-offset-4 hover:underline"
+              >
+                العودة للرئيسية
+              </Link>
+            </div>
+          ) : null}
+        </section>
+
+        {showEmptyHint ? null : (
+          <div className="mx-auto mb-4 flex w-full max-w-7xl justify-end">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="text-brand-800"
               onClick={() => router.push(ROUTES.MY_ORDERS)}
             >
-              الذهاب إلى طلباتي
+              طلباتي
             </Button>
-            <Link
-              href={ROUTES.HOME}
-              className="mt-4 inline-block text-sm font-semibold text-brand-800 underline-offset-4 hover:underline"
-            >
-              العودة للرئيسية
-            </Link>
           </div>
-        ) : null}
+        )}
 
         {!showEmptyHint && trackQuery.isPending ? (
           <div className="w-full rounded-3xl border border-border/70 bg-white p-8 text-center shadow-sm">

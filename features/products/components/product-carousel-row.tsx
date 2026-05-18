@@ -7,10 +7,12 @@ import {
   ProductCard,
 } from "@/features/products/components/ProductCard";
 import { ProductSkeleton } from "@/features/products/components/ProductSkeleton";
+import {
+  productRailCardShellClassName,
+} from "@/features/products/lib/product-card-layout";
 import { cn } from "@/lib/utils";
 
-const productCarouselCardShellClassName =
-  "w-[10.5rem] shrink-0 snap-start sm:w-44 md:w-48";
+const productCarouselCardShellClassName = productRailCardShellClassName;
 
 export type ProductCarouselRowStatus = "loading" | "empty" | "ready";
 
@@ -37,7 +39,7 @@ export function ProductCarouselRow({
     return (
       <div
         className={cn(
-          "flex min-w-0 gap-3 overflow-x-auto pb-2 pt-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+          "product-rail-scroll flex min-w-0 snap-x snap-mandatory gap-3 overflow-x-auto pb-2 pt-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
           className,
         )}
         aria-busy
@@ -66,7 +68,7 @@ export function ProductCarouselRow({
   return (
     <div
       className={cn(
-        "flex min-w-0 gap-3 overflow-x-auto scroll-smooth pb-2 pt-1 [-ms-overflow-style:none] [scrollbar-width:none] snap-x snap-mandatory [&::-webkit-scrollbar]:hidden",
+        "product-rail-scroll flex min-w-0 snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth pb-2 pt-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
         className,
       )}
       role="list"

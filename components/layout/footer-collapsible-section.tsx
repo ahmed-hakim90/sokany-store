@@ -60,16 +60,16 @@ export function FooterCollapsibleSection({
       <summary
         ref={summaryRef}
         className={cn(
-          "flex min-h-11 cursor-pointer list-none items-center justify-between gap-2 py-2.5 text-start font-display text-sm font-semibold text-brand-950",
+          "flex min-h-10 cursor-pointer list-none items-center justify-between gap-2 py-2 text-start font-display text-sm font-semibold text-brand-950",
           "[&::-webkit-details-marker]:hidden",
-          "lg:cursor-default lg:pointer-events-none lg:min-h-0 lg:py-0 lg:pb-2 lg:text-lg",
+          "lg:cursor-default lg:pointer-events-none lg:min-h-0 lg:py-0 lg:pb-1.5 lg:text-sm",
           titleClassName,
         )}
       >
         {title}
         <Chevron className="shrink-0 text-muted-foreground transition-transform duration-200 group-open:rotate-180 lg:hidden" />
       </summary>
-      <div className="pb-3 lg:pb-0">{children}</div>
+      <div className="pb-2.5 lg:pb-0">{children}</div>
     </details>
   );
 }

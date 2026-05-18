@@ -11,6 +11,11 @@ import { CategoryScrollerSkeleton } from "@/features/categories/components/Categ
 import { StickyBelowHeaderRail } from "@/features/categories/components/sticky-below-header-rail";
 import { useCategories } from "@/features/categories/hooks/useCategories";
 import type { Category } from "@/features/categories/types";
+import {
+  findCategoryBySlug,
+  getCategoryHorizontalNavCategories,
+  getTopLevelCategories,
+} from "@/features/catalog/lib/catalog-category-tree";
 
 function activeSlugFromPathname(pathname: string): string {
   if (pathname === "/categories" || pathname === "/categories/") return "";
@@ -19,26 +24,36 @@ function activeSlugFromPathname(pathname: string): string {
   return parts[1] ?? "";
 }
 
-function categoriesForNav(data: Category[], activeSlug: string) {
-  if (!data.length) return [];
-  const nonEmpty = data.filter((c) => c.count > 0);
-  if (!activeSlug) return nonEmpty;
-  if (nonEmpty.some((c) => c.slug === activeSlug)) return nonEmpty;
-  const current = data.find((c) => c.slug === activeSlug);
-  if (current) {
-    return [current, ...nonEmpty.filter((c) => c.id !== current.id)];
-  }
-  return nonEmpty;
+function sidebarCategoriesList(data: Category[]) {
+  return data.filter((c) => c.count > 0);
+}
+
+function mobileRailCategoriesList(data: Category[], activeSlug: string): Category[] {
+  const sidebar = sidebarCategoriesList(data);
+  /** مطابقة صفحة المنتجات / «وصل حديثاً»: على الفهرس السكة = تصنيفات المستوى الأعلى فقط — لا القائمة المسطّحة كاملة. */
+  if (!activeSlug) return getTopLevelCategories(sidebar);
+  const active = findCategoryBySlug(data, activeSlug);
+  if (!active) return sidebar;
+  const peers = getCategoryHorizontalNavCategories(data, active);
+  return peers.length > 0 ? peers : sidebar;
 }
 
 export default function CategoriesLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const activeSlug = activeSlugFromPathname(pathname);
   const query = useCategories({ per_page: 100 });
-  const layoutCategories = useMemo(
-    () => (query.data ? categoriesForNav(query.data, activeSlug) : []),
+  const sidebarCategories = useMemo(
+    () => (query.data ? sidebarCategoriesList(query.data) : []),
+    [query.data],
+  );
+  const railCategories = useMemo(
+    () => (query.data ? mobileRailCategoriesList(query.data, activeSlug) : []),
     [query.data, activeSlug],
   );
+  const activeCategory = useMemo(() => {
+    if (!query.data || !activeSlug) return null;
+    return findCategoryBySlug(query.data, activeSlug);
+  }, [query.data, activeSlug]);
 
   return (
     <div className="flex min-h-0 min-w-0 flex-1 flex-col">
@@ -68,9 +83,13 @@ export default function CategoriesLayout({ children }: { children: ReactNode }) 
           </div>
         ) : (
           <CategoryBrowseSplitLayout
-            categories={layoutCategories}
+            categories={sidebarCategories}
+            mobileRailCategories={railCategories}
             activeSlug={activeSlug}
             showNavChrome
+            mobileRailLinkMode="productsQuery"
+            mobileRailActiveCategoryId={activeCategory?.id ?? null}
+            mobileRailAllProductsActive={!activeSlug}
             renderMainContent={() => children}
           />
         )}

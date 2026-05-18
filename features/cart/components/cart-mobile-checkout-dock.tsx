@@ -8,6 +8,7 @@ import {
   cartCheckoutPillIconClassName,
 } from "@/features/cart/components/cart-drawer-body";
 import { formatPriceAmountCheckout } from "@/lib/format";
+import { surfaceCtaStripClass } from "@/lib/storefront-surfaces";
 import { cn, formatPrice } from "@/lib/utils";
 
 /** Sticky checkout strip above `MobileCommerceChrome` — only on small screens. */
@@ -30,7 +31,8 @@ export function CartMobileCheckoutDock({
   return (
     <div
       className={cn(
-        "fixed z-40 rounded-3xl border border-white/50 bg-white/80 px-4 py-3 shadow-[0_8px_32px_-10px_rgba(15,23,42,0.14),0_2px_8px_-4px_rgba(15,23,42,0.08)] backdrop-blur-xl backdrop-saturate-150 lg:hidden",
+        surfaceCtaStripClass,
+        "fixed z-40 rounded-3xl border border-white/50 px-4 py-3 shadow-[0_8px_32px_-10px_rgba(15,23,42,0.14),0_2px_8px_-4px_rgba(15,23,42,0.08)] lg:hidden",
         "start-4 end-4",
         "pb-[max(0.5rem,env(safe-area-inset-bottom))]",
         className,

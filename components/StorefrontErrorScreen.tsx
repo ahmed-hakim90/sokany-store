@@ -108,8 +108,9 @@ export function StorefrontErrorScreen({
             (onRetry ? (
               <Button
                 type="button"
-                variant="primary"
-                className="h-12 px-6 font-bold"
+                variant="commerce"
+                size="lg"
+                className="min-w-[11rem] px-8"
                 onClick={onRetry}
               >
                 <RefreshCw className="h-4 w-4" aria-hidden />

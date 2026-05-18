@@ -27,16 +27,37 @@ export function getCartDrawerDiscount(items: CartItem[]): number {
   }, 0);
 }
 
+export function CartDrawerLinesSkeleton({ rows = 2 }: { rows?: number }) {
+  return (
+    <ul className="space-y-3 pb-3" aria-busy="true" aria-label="جاري تحميل السلة">
+      {Array.from({ length: rows }).map((_, i) => (
+        <li
+          key={i}
+          className="flex animate-pulse gap-3 rounded-2xl border border-slate-200/90 bg-white/95 p-3"
+        >
+          <div className="h-16 w-16 shrink-0 rounded-lg bg-slate-200" />
+          <div className="min-w-0 flex-1 space-y-2">
+            <div className="h-3.5 w-[78%] rounded bg-slate-200" />
+            <div className="h-8 w-28 rounded-lg bg-slate-100" />
+          </div>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 export function CartDrawerLines({
   items,
   onQuantityChange,
   onRemove,
+  updatingLineId = null,
   listClassName,
   variant = "default",
 }: {
   items: CartItem[];
   onQuantityChange: (productId: number, quantity: number) => void;
   onRemove: (productId: number) => void;
+  updatingLineId?: number | null;
   listClassName?: string;
   variant?: CartLinesVariant;
 }) {
@@ -53,6 +74,7 @@ export function CartDrawerLines({
           key={item.productId}
           item={item}
           variant={variant}
+          isUpdating={updatingLineId === item.productId}
           onQuantityChange={onQuantityChange}
           onRemove={onRemove}
         />
@@ -63,6 +85,7 @@ export function CartDrawerLines({
 
 export function CartDrawerPeekFooter({
   onCheckout,
+  checkoutLoading = false,
   showFullCartLink,
   subtotal,
   total,
@@ -72,6 +95,7 @@ export function CartDrawerPeekFooter({
   variant = "default",
 }: {
   onCheckout: () => void;
+  checkoutLoading?: boolean;
   showFullCartLink?: boolean;
   subtotal?: number;
   total?: number;
@@ -109,10 +133,15 @@ export function CartDrawerPeekFooter({
           className={cn(
             cartCheckoutPillButtonClassName,
             "w-full min-w-0 justify-between py-2.5 sm:text-base",
+            checkoutLoading && "pointer-events-none opacity-70",
           )}
+          disabled={checkoutLoading}
+          aria-busy={checkoutLoading}
           onClick={onCheckout}
         >
-          <span className="min-w-0 truncate">{CART_CHECKOUT_CTA_LABEL}</span>
+          <span className="min-w-0 truncate">
+            {checkoutLoading ? "جاري التحويل…" : CART_CHECKOUT_CTA_LABEL}
+          </span>
           <span
             className={cartCheckoutPillIconClassName}
             aria-hidden
@@ -126,9 +155,11 @@ export function CartDrawerPeekFooter({
           variant="primary"
           size="lg"
           className="min-w-0 max-w-none font-bold"
+          disabled={checkoutLoading}
+          aria-busy={checkoutLoading}
           onClick={onCheckout}
         >
-          {CART_CHECKOUT_CTA_LABEL}
+          {checkoutLoading ? "جاري التحويل…" : CART_CHECKOUT_CTA_LABEL}
         </Button>
       )}
       {showFullCartLink ? (
@@ -225,11 +256,13 @@ const CartSheetLine = memo(function CartSheetLine({
   item,
   onQuantityChange,
   onRemove,
+  isUpdating = false,
   variant = "default",
 }: {
   item: CartItem;
   onQuantityChange: (productId: number, quantity: number) => void;
   onRemove: (productId: number) => void;
+  isUpdating?: boolean;
   variant?: CartLinesVariant;
 }) {
   const premium = variant === "premium";
@@ -292,14 +325,25 @@ const CartSheetLine = memo(function CartSheetLine({
           >
             {formatPrice(item.price)}
           </span>
-          <QtyControl
-            value={item.quantity}
-            min={1}
-            max={999}
-            touchComfortable={!premium}
-            compact={premium}
-            onChange={(q) => onQuantityChange(item.productId, q)}
-          />
+          <div className="relative">
+            {isUpdating ? (
+              <span
+                className="absolute inset-0 z-10 flex items-center justify-center rounded-full bg-white/85"
+                aria-hidden
+              >
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-brand-600 border-t-transparent" />
+              </span>
+            ) : null}
+            <QtyControl
+              value={item.quantity}
+              min={1}
+              max={999}
+              disabled={isUpdating}
+              touchComfortable={!premium}
+              compact={premium}
+              onChange={(q) => onQuantityChange(item.productId, q)}
+            />
+          </div>
         </div>
         <div className="flex justify-end">
           <PriceText

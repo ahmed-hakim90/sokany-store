@@ -22,7 +22,7 @@ const MOBILE_TOAST_BOTTOM =
 
 const toastClassNames = {
   toast: cn(
-    "surface-glass !gap-3 !rounded-3xl !border !p-4 !backdrop-blur-2xl",
+    "surface-glass !gap-3 !rounded-3xl !border !border-white/70 !p-4 !shadow-[0_20px_50px_-24px_rgba(15,23,42,0.45)] !ring-1 !ring-black/[0.04] !backdrop-blur-2xl",
     "!text-foreground",
   ),
   title: "font-display text-sm font-semibold tracking-tight text-inherit",

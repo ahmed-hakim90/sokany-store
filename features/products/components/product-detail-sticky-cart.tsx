@@ -11,12 +11,14 @@ export function ProductDetailStickyCart({
   imageSrc,
   visible,
   onAddToCart,
+  addToCartLoading = false,
   canInteractCart,
 }: {
   product: Product;
   imageSrc: string;
   visible: boolean;
   onAddToCart: () => void;
+  addToCartLoading?: boolean;
   canInteractCart: boolean;
 }) {
   const show = visible && product.inStock;
@@ -24,7 +26,7 @@ export function ProductDetailStickyCart({
 
   return (
     <div
-      className="pointer-events-none fixed inset-x-0 z-[55] max-lg:bottom-mobile-commerce lg:bottom-2 lg:left-1/2 lg:right-auto lg:w-full lg:max-w-lg lg:-translate-x-1/2"
+      className="pointer-events-none fixed inset-x-0 z-[55] max-lg:bottom-mobile-commerce lg:hidden"
       role="region"
       aria-label="إضافة سريعة للسلة"
     >
@@ -62,9 +64,10 @@ export function ProductDetailStickyCart({
           size="lg"
           className="h-11 shrink-0 gap-0 border-0 bg-gradient-to-b from-brand-400 to-brand-500 px-4 text-base font-bold text-black shadow-md hover:from-brand-300 hover:to-brand-400 sm:px-5"
           disabled={!canInteractCart}
+          loading={addToCartLoading}
           onClick={onAddToCart}
         >
-          أضف للسلة
+          {addToCartLoading ? "جاري الإضافة…" : "أضف للسلة"}
         </Button>
       </div>
     </div>

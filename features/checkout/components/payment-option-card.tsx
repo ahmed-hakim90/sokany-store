@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { surfacePanelClass } from "@/lib/storefront-surfaces";
 import { cn } from "@/lib/utils";
 
 export type PaymentOptionCardProps = {
@@ -26,10 +27,16 @@ export function PaymentOptionCard({
       aria-checked={selected}
       onClick={onSelect}
       className={cn(
-        "block w-full rounded-2xl border-2 p-3.5 text-start transition-[border-color,box-shadow,background-color,transform] active:scale-[0.99]",
+        "block w-full rounded-2xl p-3.5 text-start transition-[border-color,box-shadow,background-color,transform] active:scale-[0.99]",
         selected
-          ? "border-brand-500 bg-brand-500/12 shadow-[inset_0_0_0_1px_rgba(218,255,0,0.5),0_10px_26px_-16px_rgba(218,255,0,0.55)]"
-          : "border-transparent bg-surface-muted/55 ring-1 ring-border/60 hover:bg-white hover:ring-brand-500/25",
+          ? cn(
+              surfacePanelClass,
+              "border-2 border-brand-500 bg-brand-500/12 shadow-[inset_0_0_0_1px_rgba(218,255,0,0.5),0_10px_26px_-16px_rgba(218,255,0,0.55)]",
+            )
+          : cn(
+              surfacePanelClass,
+              "border border-transparent bg-surface-muted/40 hover:bg-white hover:ring-2 hover:ring-brand-500/20",
+            ),
       )}
     >
       <span className="block text-sm font-semibold text-brand-950">{title}</span>

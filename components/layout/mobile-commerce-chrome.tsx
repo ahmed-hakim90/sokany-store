@@ -73,7 +73,7 @@ export function MobileCommerceChrome() {
       const bottomNavBase =
         bottomNavTop != null
           ? Math.max(0, Math.ceil(window.innerHeight - bottomNavTop))
-          : 76;
+          : 64;
       const floatingActionsBottom =
         showCartSummary && !cartPeekHidden ? measuredHeight : bottomNavBase;
 
@@ -133,21 +133,19 @@ export function MobileCommerceChrome() {
               inert={assistantOpen ? true : undefined}
               className={cn(
                 mobileCommerceBottomNavShellClassName(headerHidden),
-                "fixed-bottom-safe pointer-events-auto transition-[opacity,filter] duration-200 ease-out motion-reduce:transition-none",
+                "pointer-events-auto w-full pb-[max(14px,calc(env(safe-area-inset-bottom,0px)+8px))] pt-0 transition-[opacity,filter] duration-200 ease-out motion-reduce:transition-none",
                 assistantOpen
                   ? "pointer-events-none opacity-0 blur-[1px]"
                   : "opacity-100 blur-0",
               )}
             >
-              <div className={mobileCommerceChromeColumnClass}>
-                <div
-                  className={cn(
-                    mobileCommerceBottomNavCapsuleClassName(headerHidden),
-                    "min-h-[76px]",
-                  )}
-                >
-                  <BottomNavInner />
-                </div>
+              <div
+                className={cn(
+                  mobileCommerceBottomNavCapsuleClassName(headerHidden),
+                  "min-h-[64px]",
+                )}
+              >
+                <BottomNavInner />
               </div>
             </div>
           )}

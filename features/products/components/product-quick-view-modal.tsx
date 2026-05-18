@@ -151,7 +151,7 @@ export function ProductQuickViewModal({
         aria-labelledby={titleId}
         aria-describedby={plainDesc ? descId : undefined}
         className={cn(
-          "relative z-[1] flex w-full max-w-md flex-col overflow-hidden rounded-t-2xl border border-border/80 bg-white shadow-2xl",
+          "relative z-[1] flex w-full max-w-md flex-col overflow-hidden rounded-t-2xl border border-border/80 bg-white shadow-2xl sm:max-w-lg",
           /* موبايل: ارتفاع يعتمد على الشاشة + safe-area؛ لصق من الأسفل */
           "max-h-[calc(100svh-env(safe-area-inset-bottom,0px))] self-end",
           "sm:mx-auto sm:max-h-[min(92vh,720px)] sm:self-auto",
@@ -268,7 +268,7 @@ export function ProductQuickViewModal({
           </div>
         </div>
 
-        <div className="flex flex-col gap-2 border-t border-border/60 bg-surface-muted/30 p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-2 border-t border-border/60 bg-surface-muted/30 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:flex-row sm:items-center sm:justify-between sm:pb-4">
           <Link
             href={ROUTES.PRODUCT(product.id)}
             className="text-center text-sm font-semibold text-brand-800 underline-offset-4 hover:underline"

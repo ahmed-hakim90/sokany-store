@@ -1,6 +1,6 @@
 /**
  * كلاسات Tailwind المشتركة لكروم الموبايل
- * بالعامية: جلاس/كبسولة موحّدة للناف السفلي والهيدر والـ peek؛ لو غيّرت حاجة هنا راجع المكوّنات اللي فوق في الملاحظات.
+ * بالعامية: جلاس موحّد للشريط السفلي والهيدر والـ peek؛ لو غيّرت حاجة هنا راجع المكوّنات اللي فوق في الملاحظات.
  *
  * ملاحظات:
  * - ليه ملف منفصل: نفس السطح يتكرر في أكتر من مكوّن ومش عايزين يبقى في drift.
@@ -8,22 +8,22 @@
  */
 import { cn } from "@/lib/utils";
 
-/** كبسولة التبويب السفلي — ليكويد جلاس أبيض (مع ‎`headerHidden === false`‎). يطابق مكوّنات ‎`MobileTopHeader`‎ البيضاء. */
+/** شريط التبويب السفلي — عرض كامل؛ حواف مستقيمة على مستطيل الشريط (بدون كبسولة عائمة). */
 export const mobileBottomNavGlassRestClass = cn(
-  "overflow-hidden rounded-t-[1.35rem] border border-white/60",
-  "bg-white/85",
-  "shadow-[0_12px_34px_-22px_rgba(15,23,42,0.34),0_2px_8px_-6px_rgba(15,23,42,0.14)]",
+  "overflow-hidden rounded-none",
+  "bg-white/88",
+  "shadow-[0_-4px_24px_-8px_rgba(15,23,42,0.12),0_-1px_0_rgba(15,23,42,0.06)]",
   "backdrop-blur-2xl backdrop-saturate-125",
-  "transition-[background-color,border-color,box-shadow,opacity] duration-200 ease-out motion-reduce:transition-none",
+  "transition-[background-color,box-shadow,opacity] duration-200 ease-out motion-reduce:transition-none",
 );
 
-/** وضع سكرول/طي الكروم — ليكويد فوق ‎`brand-500`‎ (مثل ‎`mobileTopHeaderGlassSurfaceCollapsedClass`‎). */
+/** وضع سكرول/طي الكروم — نفس الشريط بعرض كامل فوق خلفية الـ safe-area. */
 export const mobileBottomNavGlassCollapsedClass = cn(
-  "overflow-hidden rounded-t-[1.35rem] border border-brand-200/55",
+  "overflow-hidden rounded-none",
   "bg-[color-mix(in_srgb,var(--sokany-accent)_18%,white_82%)]",
-  "shadow-[0_12px_34px_-22px_rgba(15,23,42,0.36),0_2px_8px_-6px_rgba(15,23,42,0.16)]",
+  "shadow-[0_-4px_24px_-8px_rgba(15,23,42,0.14),0_-1px_0_rgba(15,23,42,0.07)]",
   "backdrop-blur-2xl backdrop-saturate-125",
-  "transition-[background-color,border-color,box-shadow,opacity] duration-200 ease-out motion-reduce:transition-none",
+  "transition-[background-color,box-shadow,opacity] duration-200 ease-out motion-reduce:transition-none",
 );
 
 export const mobileBottomNavSafeAreaRestClass =
@@ -43,9 +43,9 @@ export const mobileCommercePeekSurfaceClass =
  * صف الشعار يبقى داخل ‎`overflow-hidden`‎ منفصل لحركة الطي.
  */
 export const mobileTopHeaderGlassSurfaceClass = cn(
-  "rounded-b-3xl border border-white/50",
-  "bg-white/80",
-  "shadow-[0_8px_32px_-10px_rgba(15,23,42,0.14),0_2px_8px_-4px_rgba(15,23,42,0.08),0_4px_16px_-4px_rgba(15,23,42,0.1)]",
+  "rounded-b-[1.35rem] border border-white/50",
+  "bg-[color-mix(in_srgb,var(--sokany-accent)_12%,white_88%)]",
+  "shadow-[0_10px_36px_-12px_rgba(15,23,42,0.16),0_2px_10px_-4px_rgba(15,23,42,0.08)]",
   "backdrop-blur-2xl backdrop-saturate-150",
   "transition-colors duration-300 ease-out motion-reduce:transition-none",
 );
@@ -72,8 +72,6 @@ export const headerProductSearchFieldGlassClass =
 export const headerProductSearchPanelGlassClass =
   "overflow-hidden rounded-2xl border border-white/50 bg-white/90 shadow-[0_28px_64px_-18px_rgba(15,23,42,0.4)] backdrop-blur-2xl backdrop-saturate-150";
 
-export const mobileCommerceCapsulePaddingXClass = "px-2 sm:px-4 md:px-5";
-
 /** يحاذي أطراف الكبسولات مع عمود الكروم السفلي الثابت. */
 export const mobileCommerceChromeColumnClass =
   "mx-auto w-full max-w-3xl md:max-w-5xl";
@@ -93,9 +91,8 @@ export const stickyAnnouncementBottomShadowWhenTopRowHiddenClass =
 /** ‎`chromeCollapsed`‎ = ‎`headerHidden`‎ من ‎`useMobileChromeCollapsedStore`‎ (مزامنة مع الهيدر المطوي). */
 export function mobileCommerceBottomNavCapsuleClassName(chromeCollapsed: boolean) {
   return cn(
-    "mx-0 mt-0 mb-0",
+    "w-full",
     chromeCollapsed ? mobileBottomNavGlassCollapsedClass : mobileBottomNavGlassRestClass,
-    mobileCommerceCapsulePaddingXClass,
   );
 }
 

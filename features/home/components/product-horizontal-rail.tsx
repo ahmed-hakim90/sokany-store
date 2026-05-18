@@ -8,10 +8,12 @@ import { ProductWishlistHeart } from "@/features/wishlist/components/ProductWish
 import { ProductSkeleton } from "@/features/products/components/ProductSkeleton";
 import type { Product } from "@/features/products/types";
 import { useRailScrollNav } from "@/hooks/useRailScrollNav";
+import { productRailCardShellClassName } from "@/features/products/lib/product-card-layout";
+import { surfacePanelClass } from "@/lib/storefront-surfaces";
 import { cn } from "@/lib/utils";
 
 const railScrollBase =
-  "flex flex-nowrap snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain pb-2";
+  "product-rail-scroll flex flex-nowrap snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain pb-2";
 
 /** Hidden scrollbar on small screens; thin scrollbar on md+ for desktop affordance. */
 const railScrollScrollbar =
@@ -19,7 +21,7 @@ const railScrollScrollbar =
 
 const railScrollClass = cn(railScrollBase, railScrollScrollbar);
 
-const cardShellClass = "w-[148px] shrink-0 snap-start sm:w-[168px] md:w-[184px]";
+const cardShellClass = productRailCardShellClassName;
 
 export type ProductHorizontalRailStatus = "loading" | "empty" | "ready" | "error";
 
@@ -63,7 +65,10 @@ function RailNavButtons({
     <>
       <button
         type="button"
-        className="absolute start-1 top-1/2 z-10 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-white/95 text-foreground shadow-md backdrop-blur-sm transition-opacity hover:bg-white md:flex"
+        className={cn(
+          surfacePanelClass,
+          "absolute start-1 top-1/2 z-10 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full p-0 text-foreground backdrop-blur-sm transition-opacity hover:bg-white md:flex",
+        )}
         disabled={atStart}
         aria-label="السابق"
         onClick={onNext}
@@ -72,7 +77,10 @@ function RailNavButtons({
       </button>
       <button
         type="button"
-        className="absolute end-1 top-1/2 z-10 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-white/95 text-foreground shadow-md backdrop-blur-sm transition-opacity hover:bg-white md:flex"
+        className={cn(
+          surfacePanelClass,
+          "absolute end-1 top-1/2 z-10 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full p-0 text-foreground backdrop-blur-sm transition-opacity hover:bg-white md:flex",
+        )}
         disabled={atEnd}
         aria-label="التالي"
         onClick={onPrev}

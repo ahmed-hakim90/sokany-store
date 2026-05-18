@@ -120,6 +120,13 @@ export const PRODUCTS_ALL_CATALOG_HREF = `${ROUTES.PRODUCTS}?${new URLSearchPara
   order: "desc",
 }).toString()}`;
 
+/** وصل حديثاً — قائمة منتجات مرتّبة بتاريخ الإضافة (الأحدث أولاً). */
+export const PRODUCTS_NEW_ARRIVALS_HREF = `${ROUTES.PRODUCTS}?${new URLSearchParams({
+  per_page: "40",
+  orderby: "date",
+  order: "desc",
+}).toString()}`;
+
 /** @deprecated استخدم `PRODUCTS_ALL_CATALOG_HREF` — بقي للتوافق مع الروابط القديمة. */
 export const PRODUCTS_ALL_RANDOM_HREF = PRODUCTS_ALL_CATALOG_HREF;
 

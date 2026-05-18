@@ -18,6 +18,7 @@ import { DesktopCartDrawerGate } from "@/features/cart/components/desktop-cart-d
 import { CatalogFilterDrawerGate } from "@/features/catalog/components/catalog-filter-drawer-gate";
 import { StorefrontShellChrome } from "@/components/layout/storefront-shell-chrome";
 import { ProductMerchandisingProvider } from "@/features/products/components/product-merchandising-context";
+import { SearchOverlayGate } from "@/features/search/components/search-overlay-gate";
 import { DesktopWishlistDrawerGate } from "@/features/wishlist/components/desktop-wishlist-drawer-gate";
 import { StorefrontAssistantWidget } from "@/features/assistant/components/StorefrontAssistantWidget";
 import type { CmsHeaderCategoryStrip, CmsTopAnnouncementBar } from "@/schemas/cms";
@@ -74,6 +75,9 @@ export function SiteShell({
       <Suspense fallback={null}>
         <CatalogFilterDrawerGate />
       </Suspense>
+      <Suspense fallback={null}>
+        <SearchOverlayGate quickKeywords={searchQuickKeywords} />
+      </Suspense>
       {/*
         معالم الصفحة: ‎`<header>`‎ ثم ‎`<main>`‎ ثم الفوتر (‎`FooterGate`‎ → ‎`<footer>`‎).
         ‎`MobileHeroLimeAtmosphere`‎ أول طفل داخل ‎`main`‎ (‎`fixed`‎ + ‎`z-0`‎)؛ غلاف المحتوى التالي ‎`relative z-[1]`‎
@@ -84,10 +88,10 @@ export function SiteShell({
       <main
         id={STOREFRONT_MAIN_CONTENT_ID}
         tabIndex={-1}
-        className="flex min-h-0 min-w-0 max-w-none flex-1 flex-col scroll-mt-[calc(env(safe-area-inset-top,0px)+6.5rem)] max-lg:relative max-lg:z-[1] max-lg:!bg-transparent bg-page pb-mobile-commerce lg:pb-0 lg:scroll-mt-28"
+        className="flex min-h-0 min-w-0 max-w-full flex-1 flex-col overflow-x-clip scroll-mt-[calc(env(safe-area-inset-top,0px)+8.75rem)] max-lg:relative max-lg:z-[1] max-lg:!bg-transparent bg-page pb-mobile-commerce lg:pb-0 lg:scroll-mt-28"
       >
         <MobileHeroLimeAtmosphere />
-        <div className="relative z-[1] flex min-h-0 min-w-0 flex-1 flex-col pt-2">
+        <div className="relative z-[1] flex min-h-0 min-w-0 max-w-full flex-1 flex-col overflow-x-clip pt-2">
           <StorefrontShellChrome>{children}</StorefrontShellChrome>
         </div>
       </main>

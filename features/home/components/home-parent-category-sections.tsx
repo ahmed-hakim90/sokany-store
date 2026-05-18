@@ -1,9 +1,10 @@
 "use client";
 
-import { Link } from "next-view-transitions";
 import { ScrollReveal } from "@/components/ScrollReveal";
 import { ErrorState } from "@/components/ErrorState";
 import { StorefrontStaleDataNotice } from "@/components/storefront-stale-data-notice";
+import { HomeResponsiveProductSection } from "@/features/home/components/home-responsive-product-section";
+import { homeParentSectionSubtitle } from "@/features/home/lib/home-section-copy";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 import { useNearViewport } from "@/hooks/useNearViewport";
 import { ROUTES } from "@/lib/constants";
@@ -16,10 +17,7 @@ import {
   homeParentCategoryRailParams,
 } from "@/features/home/lib/home-page-product-params";
 import { parentCategoriesForHome } from "@/features/home/lib/parentCategoriesForHome";
-import { ProductGrid } from "@/features/products/components/ProductGrid";
 import { useProducts } from "@/features/products/hooks/useProducts";
-import { cn } from "@/lib/utils";
-
 export type HomeParentCategorySectionsProps = {
   categories: Category[];
   /** ترتيب يطابق أقسام الأب — صورة اختيارية ومسار اختياري لكل قسم. */
@@ -105,41 +103,37 @@ function HomeParentCategoryRow({
               bannerHref={bannerHref}
             />
 
-            <section
-              className={cn("space-y-3 rounded-2xl")}
-              aria-labelledby={`home-cat-${cat.id}-title`}
-            >
-              {stale ? <StorefrontStaleDataNotice variant={staleVariant} /> : null}
-              <div className="flex flex-col items-center gap-2 text-center">
-                <h2
-                  id={`home-cat-${cat.id}-title`}
-                  className="text-base font-bold tracking-tight text-black sm:text-lg md:text-xl"
-                >
-                  {cat.name}
-                </h2>
-                <Link
-                  href={ROUTES.CATEGORY(cat.slug)}
-                  className="text-xs font-semibold text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline sm:text-sm"
-                >
-                  عرض الكل
-                </Link>
-              </div>
-
-              <ProductGrid
-                status={q.isPending ? "loading" : "ready"}
-                products={items}
-                skeletonCount={HOME_RAIL_PER_PAGE}
-                priorityImageSlots={0}
-                simpleImageMode
-                imageMotion={false}
-                imageInteractions={false}
-                getCartLineQuantity={getCartLineQuantity}
-                onCartLineQuantityChange={onCartLineQuantityChange}
-                cardVariant="mobileCompact"
-                cardVariantMd="desktopCatalogWide"
-                gridClassName="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-5"
-              />
-            </section>
+            <HomeResponsiveProductSection
+              staleNotice={
+                stale ? <StorefrontStaleDataNotice variant={staleVariant} /> : null
+              }
+              header={{
+                id: `home-cat-${cat.id}-title`,
+                title: cat.name,
+                subtitle: homeParentSectionSubtitle(cat.slug, cat.name),
+                viewAllHref: ROUTES.CATEGORY(cat.slug),
+              }}
+              grid={{
+                status: q.isPending ? "loading" : "ready",
+                products: items,
+                skeletonCount: HOME_RAIL_PER_PAGE,
+                priorityImageSlots: 0,
+                simpleImageMode: true,
+                imageMotion: false,
+                imageInteractions: false,
+                getCartLineQuantity,
+                onCartLineQuantityChange,
+                cardVariant: "mobileCompact",
+                cardVariantMd: "desktopCatalogWide",
+                gridClassName:
+                  "grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-5",
+              }}
+              rail={{
+                status: "ready",
+                "aria-label": cat.name,
+                skeletonCount: HOME_RAIL_PER_PAGE,
+              }}
+            />
           </>
         )}
       </div>

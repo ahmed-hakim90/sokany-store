@@ -1,11 +1,15 @@
 "use client";
 
 /**
- * بطاقة منتج في الجريد
- * بالعامية: لينك للـ PDP، سلايد صور/فيديو اختياري، quick view لو مفعّل، wishlist، prefetch على التفاعل، وأنيميشن سلة اختياري.
+ * بطاقة منتج — حاوية واحدة (صورة + شارة الوكيل + عنوان + سعر + سلة).
+ *
+ * التخطيط:
+ * - موبايل (`mobileCompact`): ارتفاع صورة `clamp(170px, 48vw, 200px)`؛ شارة الوكيل تتداخل حد الصورة.
+ * - ديسكتوب (`desktopCatalog*`): صورة `190–220px`؛ عرض أقصى ~280px عبر خلية الشبكة.
+ * - ديسكتوب: رفع خفيف + معاينة سريعة عند الهوفر فقط.
  */
 import dynamic from "next/dynamic";
-import { BadgeCheck, CirclePlay, ShieldCheck } from "lucide-react";
+import { BadgeCheck, Box, Check, CirclePlay, ShoppingCart } from "lucide-react";
 import { useRouter } from "next/navigation";
 import {
   useCallback,
@@ -21,6 +25,7 @@ import { AppImage } from "@/components/AppImage";
 import { Card } from "@/components/ui/card";
 import { IconButton } from "@/components/ui/icon-button";
 import { PriceText } from "@/components/ui/price-text";
+import { QtyControl } from "@/components/ui/qty-control";
 import { cn } from "@/lib/utils";
 import { usePointerSwipe } from "@/hooks/usePointerSwipe";
 import {
@@ -32,6 +37,8 @@ import { getProductCardDisplayTitle } from "@/features/products/lib/product-card
 import { getProductCardSalesCountText } from "@/features/products/lib/product-card-sales-count";
 import { getProductVideoEmbed } from "@/features/products/lib/product-merchandising";
 import { playCartFlyAnimation } from "@/lib/cart-fly-animation";
+import { getStaticProduct3DModelBySku } from "@/lib/product-3d-map";
+import { useCartStore } from "@/features/cart/store/useCartStore";
 import { usePrefetchProduct } from "@/features/products/hooks/usePrefetchProduct";
 import type { HeartParticle } from "@/features/products/components/wishlist-heart-burst";
 import { ProductRatingDisplay } from "@/features/products/components/product-rating-display";
@@ -117,64 +124,80 @@ function saleDiscountPercent(product: Product): number | null {
   return null;
 }
 
+const catalogBodyClassName =
+  "flex min-h-0 flex-1 flex-col gap-1 px-2.5 pb-2 pt-1.5 sm:px-3 sm:pb-2.5 sm:pt-1.5";
+
+const catalogTitleClassName =
+  "line-clamp-2 min-h-[2.25rem] text-[0.8125rem] font-semibold leading-[1.25] text-foreground sm:text-product-title sm:font-bold sm:leading-[1.22]";
+
 const variantLayout: Record<
   ProductCardVariant,
   { card: string; body: string; title: string; image: string }
 > = {
-  /* بدون ‎overflow-hidden‎ على الـcard — لئلا يُقصّ ظل/حلقة أزرار التذييل (المعاينة) على موبايل. القصّ للصور فقط على مربع الصورة. */
   mobileCompact: {
-    card: "min-w-0 gap-0 p-0",
-    body: "gap-1 px-2 pb-1.5 pt-1.5 sm:gap-1.5 sm:px-2.5 sm:pb-2 sm:pt-2",
-    title:
-      "line-clamp-2 min-h-[2.05rem] text-product-title font-semibold leading-[var(--text-product-title--line-height)] text-foreground",
-    image: "h-[152px] w-full sm:h-[160px] md:h-[180px] lg:h-[190px]",
+    card: "min-w-0 gap-0 overflow-hidden p-0",
+    body: catalogBodyClassName,
+    title: catalogTitleClassName,
+    image:
+      "relative z-[2] h-[clamp(180px,52vw,216px)] w-full shrink-0 overflow-visible",
   },
   desktopCatalog: {
-    card: "min-w-0 gap-0 p-0",
-    body: "gap-1 px-2 pb-1.5 pt-1.5 sm:gap-1.5 sm:px-2.5 sm:pb-2 sm:pt-2",
-    title:
-      "line-clamp-2 min-h-[2.05rem] text-product-title font-semibold leading-[var(--text-product-title--line-height)] text-foreground",
-    image: "h-[154px] w-full sm:h-[162px] md:h-[180px] lg:h-[190px]",
+    card: "min-w-0 gap-0 overflow-hidden p-0",
+    body: catalogBodyClassName,
+    title: catalogTitleClassName,
+    image:
+      "relative z-[2] h-[200px] w-full shrink-0 overflow-visible sm:h-[210px] lg:h-[220px] xl:h-[232px]",
   },
   desktopCatalogWide: {
-    card: "min-w-0 gap-0 p-0",
-    body: "gap-1 px-2 pb-1.5 pt-1.5 sm:gap-1.5 sm:px-2.5 sm:pb-2 sm:pt-2",
-    title:
-      "line-clamp-2 min-h-[2.05rem] text-product-title font-semibold leading-[var(--text-product-title--line-height)] text-foreground",
-    image: "h-[154px] w-full sm:h-[162px] md:h-[180px] lg:h-[190px]",
+    card: "min-w-0 gap-0 overflow-hidden p-0",
+    body: catalogBodyClassName,
+    title: catalogTitleClassName,
+    image:
+      "relative z-[2] h-[200px] w-full shrink-0 overflow-visible sm:h-[210px] lg:h-[220px] xl:h-[232px]",
   },
   featured: {
-    card: "min-w-0 gap-0 p-0",
-    body: "gap-1 px-2 pb-1.5 pt-1.5 sm:gap-1.5 sm:px-2.5 sm:pb-2 sm:pt-2",
-    title:
-      "line-clamp-2 min-h-[2.05rem] text-product-title font-semibold leading-[var(--text-product-title--line-height)] text-foreground",
-    image: "h-[154px] w-full sm:h-[162px] md:h-[180px] lg:h-[190px]",
+    card: "min-w-0 gap-0 overflow-hidden p-0",
+    body: catalogBodyClassName,
+    title: catalogTitleClassName,
+    image:
+      "relative z-[2] h-[200px] w-full shrink-0 overflow-visible sm:h-[214px] lg:h-[228px]",
   },
   detailed: {
-    card: "min-w-0 p-0",
+    card: "min-w-0 overflow-hidden p-0",
     body: "gap-1.5 px-2 pb-1.5 pt-1.5 sm:px-3 sm:pb-2 sm:pt-2",
     title:
       "line-clamp-2 min-h-[2.5rem] text-base font-bold leading-tight text-foreground sm:text-lg",
-    image: "aspect-square w-full",
+    image: "relative z-[2] aspect-square w-full shrink-0 overflow-visible",
   },
 };
 
 type CardSlide = { key: string; src: string; alt: string };
 
 const productCardImageClassName =
-  "object-contain object-center p-2 transition-transform duration-200 ease-out group-hover/card:scale-105 group-active/card:scale-[0.97] motion-reduce:transition-none motion-reduce:group-hover/card:scale-100";
+  "product-card-image transition-transform duration-200 ease-out group-hover/card:scale-[1.03] group-active/card:scale-[0.98] motion-reduce:transition-none motion-reduce:group-hover/card:scale-100";
 
 const productCardSaleBadgeClassName =
-  "pointer-events-none absolute left-2 top-2 z-[3] rounded-full bg-promo-sale-bg/95 px-2 py-1 text-[10px] font-bold leading-none text-promo-sale-fg shadow-sm sm:text-[10px]";
+  "pointer-events-none absolute start-2 top-2 z-[3] rounded-full bg-promo-sale-bg/95 px-2.5 py-1 text-[10px] font-bold leading-none text-promo-sale-fg shadow-sm sm:start-2.5 sm:top-2.5 sm:text-[11px]";
 
 const productCardStatusBadgeClassName =
-  "pointer-events-none absolute left-2 top-2 z-[3] bg-white/88 px-2 py-1 text-[9px] shadow-sm ring-1 ring-white/70 backdrop-blur-sm sm:text-[10px]";
+  "pointer-events-none absolute start-2 top-2 z-[3] bg-white/92 px-2.5 py-1 text-[10px] shadow-sm ring-1 ring-amber-300/40 backdrop-blur-sm sm:start-2.5 sm:top-2.5 sm:text-[11px]";
 
 const productCardAddButtonBaseClassName =
-  "inline-flex shrink-0 items-center justify-center gap-1 rounded-lg bg-brand-500 font-bold leading-none text-black shadow-[0_8px_18px_-12px_rgba(132,204,22,0.9)] ring-1 ring-black/[0.06] transition-all duration-200 ease-out hover:bg-brand-400 group-hover/card:scale-[1.02] active:scale-[0.97] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 disabled:pointer-events-none disabled:opacity-45 disabled:group-hover/card:scale-100";
+  "inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg bg-brand-500 font-bold leading-none text-black shadow-[0_8px_18px_-12px_rgba(132,204,22,0.9)] ring-1 ring-black/[0.06] transition-all duration-200 ease-out hover:bg-brand-400 group-hover/card:scale-[1.01] active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 disabled:pointer-events-none disabled:opacity-45 disabled:group-hover/card:scale-100";
 
-const productCardMerchBadgeClassName =
-  "pointer-events-none absolute bottom-2 right-2 z-[3] inline-flex max-w-[calc(100%-1rem)] items-center gap-1 rounded-full bg-white/82 px-2 py-1 text-[9px] font-semibold leading-none text-slate-700 shadow-sm ring-1 ring-slate-200/70 backdrop-blur-sm sm:text-[10px]";
+function ProductCardAgentTag({ text }: { text: string }) {
+  return (
+    <div
+      className="pointer-events-none absolute inset-x-0 bottom-0 z-[5] flex translate-y-1/2 justify-center px-2"
+      aria-label={text}
+    >
+      <span className="inline-flex max-w-[calc(100%-0.75rem)] items-center gap-1 rounded-full bg-white/95 px-2.5 py-1 text-[10px] font-semibold leading-none text-slate-700 shadow-sm ring-1 ring-slate-200/90 sm:text-[11px]">
+        <BadgeCheck className="h-3.5 w-3.5 shrink-0 fill-blue-500 text-white" aria-hidden />
+        <span className="truncate">{text}</span>
+      </span>
+    </div>
+  );
+}
 
 function ProductCardImageStack({
   activeSlide,
@@ -372,6 +395,12 @@ export function ProductCard({
     () => getProductCardSalesCountText(product, PRODUCT_CARD_SHOW_SALES_COUNT),
     [product],
   );
+  const hasStatic3D = useMemo(
+    () => getStaticProduct3DModelBySku(product.sku) !== null,
+    [product.sku],
+  );
+  const showCatalogQuickView = PRODUCT_CARD_SHOW_QUICK_VIEW && !isDetailed;
+  const showDetailedQuickView = PRODUCT_CARD_SHOW_QUICK_VIEW && isDetailed;
   const displayTitle = useMemo(
     () => getProductCardDisplayTitle(product.name),
     [product.name],
@@ -381,6 +410,9 @@ export function ProductCard({
   };
   const lineQty = getCartLineQuantity?.(product.id) ?? 0;
   const showCartQty = Boolean(onCartLineQuantityChange);
+  const cartLineUpdatingId = useCartStore((state) => state.updatingLineId);
+  const isCartLineUpdating =
+    showCartQty && cartLineUpdatingId === product.id;
   const [justAdded, setJustAdded] = useState(false);
   const [quickViewOpen, setQuickViewOpen] = useState(false);
   const [quickViewEverOpened, setQuickViewEverOpened] = useState(false);
@@ -388,15 +420,19 @@ export function ProductCard({
     if (quickViewOpen) setQuickViewEverOpened(true);
   }, [quickViewOpen]);
   const addButtonText = !product.inStock
-    ? "نفد"
-    : justAdded
-      ? "تم"
-      : "أضف للسلة";
+    ? "نفد المخزون"
+    : isCartLineUpdating
+      ? "جاري الإضافة"
+      : justAdded
+        ? "تم"
+        : "أضف للسلة";
   const addButtonAriaLabel = !product.inStock
-    ? "المنتج غير متوفر حالياً"
-    : justAdded
-      ? "تمت الإضافة للسلة"
-      : "أضف للسلة";
+    ? "المنتج غير متوفر — نفد المخزون"
+    : isCartLineUpdating
+      ? "جاري الإضافة للسلة"
+      : justAdded
+        ? "تمت الإضافة للسلة"
+        : "أضف للسلة";
 
   const cardSlides = useMemo(() => {
     if (product.images.length > 0) {
@@ -516,7 +552,9 @@ export function ProductCard({
   const imageSizes =
     isDetailed
       ? "(max-width: 768px) 50vw, 25vw"
-      : "(max-width: 768px) 48vw, 10rem";
+      : variant === "mobileCompact"
+        ? "(max-width: 768px) 44vw, 11rem"
+        : "(max-width: 1024px) 33vw, 17rem";
 
   const handleCardClick = (e: React.MouseEvent<HTMLDivElement>) => {
     const target = e.target;
@@ -536,7 +574,7 @@ export function ProductCard({
       className={cn(
         "block min-w-0 text-foreground transition-colors hover:text-brand-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500",
         layout.title,
-        !isDetailed && "text-right",
+        !isDetailed && "text-center",
       )}
       title={product.name}
       onMouseEnter={handlePrefetch}
@@ -562,7 +600,7 @@ export function ProductCard({
       )}
       compareAtClassName="!text-ui-label !leading-[var(--text-ui-label--line-height)] !text-muted-foreground md:!text-xs"
       className={cn(
-        "min-w-0 !flex-col !items-start !gap-0.5 !gap-x-0",
+        "min-w-0 !flex-col !items-center !gap-0.5 !gap-x-0 text-center",
       )}
     />
   );
@@ -573,24 +611,18 @@ export function ProductCard({
         variant="product"
         onClick={handleCardClick}
         className={cn(
-          "group/card surface-product-card relative flex h-full min-w-0 cursor-pointer flex-col border-0 shadow-none ring-0",
-          /* transform + shadow: صريحة حتى لا تُلغى مع transition-shadow من أماكن أخرى */
+          "group/card surface-product-card relative flex h-full min-w-0 cursor-pointer flex-col overflow-hidden",
+          "border border-black/[0.06] shadow-[0_8px_24px_-14px_rgba(15,23,42,0.22)]",
           "transition-[transform,box-shadow] duration-200 ease-out",
-          "hover:-translate-y-1 hover:shadow-[0_20px_44px_-20px_rgba(15,23,42,0.38)]",
+          "hover:-translate-y-0.5 hover:shadow-[0_20px_44px_-20px_rgba(15,23,42,0.38)]",
           "active:scale-[0.985] motion-reduce:transform-none motion-reduce:transition-none",
-          isDetailed ? "rounded-xl" : "rounded-2xl",
+          isDetailed ? "rounded-xl" : "rounded-xl",
           layout.card,
           className,
         )}
       >
-        <div
-          className={cn(
-            "relative mx-auto overflow-hidden bg-white",
-            isDetailed ? "rounded-t-xl" : "rounded-t-2xl",
-            layout.image,
-          )}
-        >
-          <div ref={imageFlyRef} className="absolute inset-0 z-0">
+        <div className={cn("relative", layout.image)}>
+          <div ref={imageFlyRef} className="absolute inset-0 z-0 overflow-hidden bg-white">
             {crossfadeMs <= 0 ? (
               <AppImage
                 src={activeSlide.src}
@@ -633,7 +665,17 @@ export function ProductCard({
               aria-label={product.name}
             />
           )}
-          {!isDetailed && saleDiscount !== null ? (
+          {!product.inStock ? (
+            <div
+              className="pointer-events-none absolute inset-0 z-[2] bg-slate-950/40 backdrop-blur-[1px]"
+              aria-hidden
+            />
+          ) : null}
+          {!product.inStock ? (
+            <span className="pointer-events-none absolute start-2 top-2 z-[3] rounded-full bg-slate-900/90 px-2.5 py-1 text-[10px] font-bold leading-none text-white shadow-sm sm:start-2.5 sm:top-2.5 sm:text-[11px]">
+              غير متوفر
+            </span>
+          ) : !isDetailed && saleDiscount !== null ? (
             <span
               dir="ltr"
               className={productCardSaleBadgeClassName}
@@ -657,10 +699,25 @@ export function ProductCard({
               مميز
             </span>
           ) : null}
+          {!isDetailed && merchandising.productCardBadgeEnabled ? (
+            <ProductCardAgentTag text={merchandising.productCardBadgeText} />
+          ) : null}
           {wishlistSlot ? (
-            <div className="absolute right-2 top-2 z-[4]">
+            <div className="absolute end-2 top-2 z-[4] sm:end-2.5 sm:top-2.5 [&_button]:h-9 [&_button]:w-9 [&_button]:min-h-9 [&_button]:min-w-9 lg:[&_button]:h-10 lg:[&_button]:w-10 lg:[&_button]:min-h-10 lg:[&_button]:min-w-10">
               {wishlistSlot}
             </div>
+          ) : null}
+          {hasStatic3D ? (
+            <span
+              className={cn(
+                "pointer-events-none absolute z-[4] inline-flex items-center gap-1 rounded-full border border-white/70 bg-slate-950/88 px-2 py-1 text-[9px] font-extrabold leading-none text-white shadow-md sm:text-[10px]",
+                wishlistSlot ? "right-2 top-10" : "right-2 top-2",
+              )}
+              aria-label="عرض ثلاثي الأبعاد"
+            >
+              <Box className="h-3.5 w-3.5 shrink-0 text-brand-300" aria-hidden />
+              <span>360°</span>
+            </span>
           ) : null}
           {hasProductVideo ? (
             <span
@@ -678,17 +735,10 @@ export function ProductCard({
               <span>فيديو</span>
             </span>
           ) : null}
-          {!isDetailed && merchandising.productCardBadgeEnabled ? (
-            <span className={productCardMerchBadgeClassName}>
-              <BadgeCheck className="h-3.5 w-3.5 shrink-0 text-brand-700" aria-hidden />
-              <span className="truncate">{merchandising.productCardBadgeText}</span>
-            </span>
-          ) : null}
-
-          {PRODUCT_CARD_SHOW_QUICK_VIEW && isDetailed ? (
+          {showCatalogQuickView || showDetailedQuickView ? (
             <>
               {/* معاينة سريعة — ديسكتوب: يظهر مع الـ hover */}
-              <div className="pointer-events-none absolute inset-0 z-[2] hidden bg-gradient-to-t from-black/45 via-black/10 to-transparent opacity-0 transition-opacity duration-200 md:flex md:flex-col md:items-center md:justify-center md:group-hover/card:opacity-100">
+              <div className="pointer-events-none absolute inset-0 z-[2] hidden bg-gradient-to-t from-black/45 via-black/10 to-transparent opacity-0 transition-opacity duration-200 lg:flex lg:flex-col lg:items-center lg:justify-center lg:group-hover/card:opacity-100">
                 <button
                   type="button"
                   onClick={(e) => {
@@ -704,8 +754,8 @@ export function ProductCard({
               </div>
 
               {/* معاينة سريعة — موبايل: زر على الصورة عندما لا يوجد سلة+مفضلة في التذييل */}
-              {!showCartQty ? (
-                <div className="absolute bottom-2 left-2 z-[4] flex md:hidden">
+              {showDetailedQuickView && !showCartQty ? (
+                <div className="absolute bottom-2 left-2 z-[4] flex lg:hidden">
                   <button
                     type="button"
                     onClick={(e) => {
@@ -726,9 +776,12 @@ export function ProductCard({
 
         <div
           className={cn(
-            "relative flex min-w-0 flex-1 flex-col bg-white",
+            "relative flex min-w-0 flex-1 flex-col",
             layout.body,
-            isDetailed ? "rounded-b-xl" : "rounded-b-2xl",
+            !isDetailed && "z-[1] bg-white",
+            !isDetailed &&
+              merchandising.productCardBadgeEnabled &&
+              "pt-3.5 sm:pt-4",
           )}
         >
           {isDetailed && !product.inStock ? (
@@ -737,20 +790,6 @@ export function ProductCard({
             </span>
           ) : null}
           {titleLink}
-          {!isDetailed ? (
-            <div className="flex min-h-[1.125rem] items-center gap-1 py-px text-[10px] font-medium leading-snug text-muted-foreground">
-              <ShieldCheck className="h-3.5 w-3.5 shrink-0 self-center text-brand-700/80" aria-hidden />
-              <span className="min-w-0 truncate">ضمان الوكيل في مصر</span>
-            </div>
-          ) : null}
-          {!isDetailed ? (
-            <ProductRatingDisplay
-              rating={product.rating}
-              ratingCount={product.ratingCount}
-              size="xs"
-              className="min-h-4 min-w-0 text-muted-foreground"
-            />
-          ) : null}
           {isDetailed ? (
             <div className="mt-1 flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
               <ProductRatingDisplay
@@ -775,46 +814,72 @@ export function ProductCard({
           <div
             className={cn(
               "mt-auto",
-              showCartQty
-                ? "pt-0.5"
-                : cn("flex items-end pt-1", isDetailed && "min-h-[3.25rem]"),
+              showCartQty ? "pt-0.5" : cn("pt-0.5", isDetailed && "min-h-[3.25rem]"),
             )}
           >
             {showCartQty ? (
               <div
                 className={cn(
-                  "grid w-full min-w-0 items-center gap-1.5 sm:gap-2",
+                  "grid w-full min-w-0 items-center gap-1 sm:gap-1.5 lg:gap-2",
                   isDetailed ? "grid-cols-[minmax(0,1fr)_auto]" : "grid-cols-1",
                 )}
               >
-                <div className="min-w-0">
+                <div className="flex min-w-0 justify-center">
                   {priceBlock}
                 </div>
-                <button
-                  type="button"
-                  disabled={!product.inStock}
-                  aria-label={addButtonAriaLabel}
-                  className={cn(
-                    productCardAddButtonBaseClassName,
-                    isDetailed
-                      ? "h-9 px-2.5 text-[11px] sm:px-4 sm:text-xs"
-                      : "h-8 w-full px-2.5 text-[10px] sm:h-8 sm:px-3 sm:text-[11px]",
-                  )}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    handleAddToCart();
-                  }}
-                >
-                  <MiniCartIcon checked={justAdded} />
-                  {addButtonText}
-                </button>
+                {lineQty > 0 ? (
+                  <QtyControl
+                    value={lineQty}
+                    min={0}
+                    max={999}
+                    compact
+                    layout="segmented"
+                    equalSegments
+                    className={cn(
+                      "w-full max-w-none justify-self-end",
+                      !isDetailed && "h-10 sm:h-10",
+                    )}
+                    disabled={!product.inStock}
+                    onChange={(next) => {
+                      onCartLineQuantityChange?.(product, next);
+                    }}
+                  />
+                ) : (
+                  <button
+                    type="button"
+                    disabled={!product.inStock || isCartLineUpdating}
+                    aria-busy={isCartLineUpdating}
+                    aria-label={addButtonAriaLabel}
+                    className={cn(
+                      productCardAddButtonBaseClassName,
+                      justAdded && "border-emerald-600/40 bg-emerald-50 text-emerald-900",
+                      isDetailed
+                        ? "h-9 px-2.5 text-[11px] sm:px-4 sm:text-xs"
+                        : "h-10 w-full px-3 text-xs sm:h-10 sm:text-[13px]",
+                    )}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleAddToCart();
+                    }}
+                  >
+                    {isCartLineUpdating ? (
+                      <span
+                        className="h-3.5 w-3.5 shrink-0 animate-spin rounded-full border-2 border-current border-t-transparent"
+                        aria-hidden
+                      />
+                    ) : (
+                      <MiniCartIcon checked={justAdded} />
+                    )}
+                    {addButtonText}
+                  </button>
+                )}
               </div>
             ) : (
               <div
                 className={cn(
                   "min-h-0 min-w-0 flex-1",
-                  "flex justify-start",
+                  "flex justify-center",
                 )}
               >
                 {priceBlock}
@@ -824,7 +889,8 @@ export function ProductCard({
         </div>
       </Card>
 
-      {PRODUCT_CARD_SHOW_QUICK_VIEW && isDetailed && (quickViewOpen || quickViewEverOpened) ? (
+      {(showCatalogQuickView || showDetailedQuickView) &&
+      (quickViewOpen || quickViewEverOpened) ? (
         <ProductQuickViewModal
           product={product}
           open={quickViewOpen}
@@ -863,28 +929,11 @@ function EyeIcon({ className }: { className?: string }) {
 function MiniCartIcon({ checked }: { checked?: boolean }) {
   if (checked) {
     return (
-      <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0" aria-hidden>
-        <path
-          fill="currentColor"
-          d="M9.55 17.65l-4.1-4.1 1.4-1.45 2.7 2.7 6.75-6.75 1.45 1.45-8.2 8.15z"
-        />
-      </svg>
+      <Check className="h-4 w-4 shrink-0" aria-hidden />
     );
   }
 
-  return (
-    <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4 shrink-0" aria-hidden>
-      <path
-        d="M4 5h2.1c.45 0 .84.3.96.74L7.5 7.4m0 0 1.05 4.05h7.6a1 1 0 0 0 .96-.72l.9-3.05a.75.75 0 0 0-.72-.96H7.5Z"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <circle cx="10" cy="18" r="1.25" fill="currentColor" />
-      <circle cx="16" cy="18" r="1.25" fill="currentColor" />
-    </svg>
-  );
+  return <ShoppingCart className="h-4 w-4 shrink-0" aria-hidden />;
 }
 
 /**
@@ -951,7 +1000,12 @@ export function ProductCardWishlistIconButton({
           spawnBurst(); // أولاً التأثير البصري…
           onPress?.(); // …ثم منطق المفضلة في الأب (تبديل الحالة).
         }}
-        className="shrink-0 rounded-full border border-slate-200/90 bg-white/95 shadow-md shadow-slate-900/10 ring-1 ring-slate-900/[0.05] backdrop-blur-sm hover:bg-white"
+        className={cn(
+          "shrink-0 rounded-full border shadow-md ring-1 backdrop-blur-sm transition-colors",
+          pressed
+            ? "border-brand-500/50 bg-brand-50 text-brand-800 shadow-brand-500/15 ring-brand-500/20 hover:bg-brand-100"
+            : "border-slate-200/90 bg-white/95 text-slate-700 shadow-slate-900/10 ring-slate-900/[0.05] hover:bg-white",
+        )}
       >
         <HeartIcon filled={pressed} />
       </IconButton>

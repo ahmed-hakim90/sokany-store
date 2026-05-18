@@ -2,7 +2,9 @@
 
 import { Link } from "next-view-transitions";
 import { EmptyState } from "@/components/EmptyState";
+import { SearchNoResultsPanel } from "@/components/pages/search-no-results-panel";
 import { CatalogFilterDrawerTrigger } from "@/features/catalog/components/CatalogFilterDrawerTrigger";
+import { CatalogToolbar } from "@/features/catalog/components/catalog-toolbar";
 import { NavbarSearch } from "@/components/layout/navbar-search";
 import { ProductGrid } from "@/features/products/components/ProductGrid";
 import type { Product } from "@/features/products/types";
@@ -36,9 +38,9 @@ export type SearchPageContentProps = {
 };
 
 /*
- * صفحة `/search` (موبايل + ديسكتوب):
- * - صف بحث + زر فلتر (درج الكتالوج) يعيد بناء الرابط مع `q` والمعاملات.
- * - أسفله: حالة فارغة أو شبكة نتائج.
+ * صفحة `/search`:
+ * — الجوال: بحث + فلتر ثم شريط عدد/ترتيب لاصق ثم النتائج.
+ * — من lg: البحث في الهيدر؛ شريط الكتالوج فوق الشبكة.
  */
 export function SearchPageContent({
   query,
@@ -69,20 +71,11 @@ export function SearchPageContent({
         />
       ) : null}
 
-      {searched && !products.length ? (
-        <EmptyState
-          title="لا توجد نتائج"
-          description={
-            query
-              ? `لم نعثر على منتجات تطابق «${query}». جرّب كلمات مختلفة أو عدّل التصفية.`
-              : "لم نعثر على منتجات لهذا البحث."
-          }
-          action={<ReturnToShopLink />}
-        />
-      ) : null}
+      {searched && !products.length ? <SearchNoResultsPanel query={query} /> : null}
 
       {searched && products.length > 0 ? (
-        <div className="min-w-0">
+        <div className="min-w-0 space-y-4">
+          <CatalogToolbar pageCount={products.length} showFilter />
           <ProductGrid
             products={products}
             virtualize="auto"

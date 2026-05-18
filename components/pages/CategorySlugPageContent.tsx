@@ -14,6 +14,10 @@ import { DEFAULT_PER_PAGE, ROUTES } from "@/lib/constants";
 import { StorefrontStaleDataNotice } from "@/components/storefront-stale-data-notice";
 import { useCategories } from "@/features/categories/hooks/useCategories";
 import { useProducts } from "@/features/products/hooks/useProducts";
+import {
+  getChildCategories,
+} from "@/features/catalog/lib/catalog-category-tree";
+import { CatalogChildCategories } from "@/features/catalog/components/catalog-child-categories";
 import { CatalogPagination } from "@/features/catalog/components/CatalogPagination";
 import { HomeCategoryExclusiveBanner } from "@/features/home/components/home-category-exclusive-banner";
 import { ProductGrid } from "@/features/products/components/ProductGrid";
@@ -86,7 +90,7 @@ function CategorySlugProductsSection({
       onRetry={() => void productsQuery.refetch()}
     />
   ) : (
-    <div className="relative">
+    <div className="relative space-y-4">
       {showStaleNotice ? (
         <div className="mb-3">
           <StorefrontStaleDataNotice variant={staleVariant} />
@@ -156,8 +160,9 @@ export function CategorySlugPageLoadingFallback() {
  * التفاصيل البصرية تحت.
  */
 /*
- * محتوى صفحة تصنيف (/categories/[slug]): يُلفّه layout المشترك بشريط تصنيفات أفقي (دوائر).
- * الترتيب: بانر صورة التصنيف → عنوان ووصف ورابط «كل المنتجات» → شبكة المنتجات.
+ * محتوى صفحة تصنيف (/categories/[slug]): يُلفّه `categories/layout.tsx` بسكة أفقية لاصقة للجوال تعرض نفس منطق الكتالوج (أعلى مستوى على الفهرس؛ مع slug نشط = نشط + أبناء أو إخوة حسب الشجرة) وروابط `/products?category=`؛ الشريط الجانبي على lg يبقى بمسارات slug.
+ * الترتيب تحت السكة: بانر صورة التصنيف → عنوان ووصف ورابط «كل المنتجات» → من lg شريط «أقسام فرعية» (روابط كتالوج مثل صفحة المنتجات) → شبكة المنتجات.
+ * الاستثناءات: السكة للجوال/تابلت؛ الفرعية المرئية على الديسكتوب فقط.
  * المسافات بين الأقسام مضغوطة (‎`mt-3`‎–‎`mt-5`‎) لتقليل الشريط الرمادي (‎`bg-page`‎) الظاهر بين البانر والبطاقات.
  */
 export function CategorySlugPageContent({ slug }: { slug: string }) {
@@ -181,6 +186,11 @@ export function CategorySlugPageContent({ slug }: { slug: string }) {
   );
 
   const categoryId = activeCategory?.id;
+  const childCategories = useMemo(() => {
+    if (!navCategories || !activeCategory) return [];
+    return getChildCategories(navCategories, activeCategory.id);
+  }, [navCategories, activeCategory]);
+
   const productParams = useMemo(
     () =>
       categoryId
@@ -242,6 +252,16 @@ export function CategorySlugPageContent({ slug }: { slug: string }) {
           />
         </ScrollReveal>
       </div>
+      {childCategories.length > 0 ? (
+        <div className="mt-3 hidden lg:mt-4 lg:block">
+          <ScrollReveal>
+            <CatalogChildCategories
+              subcategories={childCategories}
+              activeCategoryId={category.id}
+            />
+          </ScrollReveal>
+        </div>
+      ) : null}
       <div className="mt-3 lg:mt-5">
         <ScrollReveal>
           <CategorySlugProductsSection

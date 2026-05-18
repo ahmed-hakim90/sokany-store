@@ -2,17 +2,19 @@
 
 import { useMemo, useSyncExternalStore } from "react";
 
-/** افتراضي: ‎`grid-cols-2` × ‎`md:grid-cols-3` × ‎`lg:grid-cols-5`‎ (كتالوج المتجر). */
+/** افتراضي: ‎`grid-cols-2` × ‎`md:grid-cols-3` × ‎`lg:grid-cols-4` × ‎`xl:grid-cols-5`‎ (كتالوج المتجر). */
 export const DEFAULT_CATALOG_GRID_COLUMN_COUNTS = {
   base: 2,
   md: 3,
-  lg: 5,
+  lg: 4,
+  xl: 5,
 } as const;
 
 export type GridColumnCounts = {
   base: number;
   md: number;
   lg: number;
+  xl?: number;
 };
 
 function resolveLayout(counts: GridColumnCounts): { columns: number; gapPx: number } {
@@ -20,7 +22,14 @@ function resolveLayout(counts: GridColumnCounts): { columns: number; gapPx: numb
     return { columns: counts.base, gapPx: 12 };
   }
   const w = window.innerWidth;
-  const columns = w >= 1024 ? counts.lg : w >= 768 ? counts.md : counts.base;
+  const columns =
+    w >= 1280 && counts.xl != null
+      ? counts.xl
+      : w >= 1024
+        ? counts.lg
+        : w >= 768
+          ? counts.md
+          : counts.base;
   const gapPx = w >= 640 ? 16 : 12;
   return { columns, gapPx };
 }
@@ -30,6 +39,7 @@ function subscribe(onStoreChange: () => void): () => void {
     return () => {};
   }
   const mqs = [
+    window.matchMedia("(min-width: 1280px)"),
     window.matchMedia("(min-width: 1024px)"),
     window.matchMedia("(min-width: 768px)"),
     window.matchMedia("(min-width: 640px)"),

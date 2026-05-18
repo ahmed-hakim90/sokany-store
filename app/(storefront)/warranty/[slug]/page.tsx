@@ -86,7 +86,13 @@ export default async function WarrantyPostPage({ params }: PageProps) {
           { name: post.title },
         ]}
       />
-      <LegalPageShell dir="rtl" lang="ar" containerClassName="max-w-5xl">
+      <LegalPageShell
+        dir="rtl"
+        lang="ar"
+        containerClassName="max-w-5xl"
+        heroTitle={post.title}
+        heroSubtitle={post.description}
+      >
         <header className="mb-6 border-b border-border/80 pb-6 sm:mb-8">
           <Link
             href="/warranty"
@@ -94,9 +100,6 @@ export default async function WarrantyPostPage({ params }: PageProps) {
           >
             طرق الاستخدام
           </Link>
-          <h1 className="text-right font-display text-2xl font-bold text-brand-950 md:text-3xl">
-            {post.title}
-          </h1>
           <div className="mt-4 flex flex-wrap items-center gap-2 text-xs font-medium text-muted-foreground sm:text-sm">
             {formattedDate ? (
               <span className="rounded-full border border-border/80 bg-surface-muted/40 px-3 py-1">

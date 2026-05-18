@@ -101,7 +101,12 @@ export function CategorySidebar({
             "snap-x snap-mandatory pb-1",
           )}
         >
-          <ul className="flex max-w-full min-w-0 flex-nowrap items-start gap-2 overflow-x-auto overscroll-x-contain px-0 pb-1 pt-2.5 [-ms-overflow-style:none] [scrollbar-width:none] sm:gap-2.5 sm:pb-1.5 sm:pt-3 [&::-webkit-scrollbar]:hidden">
+          <ul
+            className={cn(
+              "flex max-w-full min-w-0 flex-nowrap items-start gap-2 overflow-x-auto overscroll-x-contain pb-1 pt-2.5 [-ms-overflow-style:none] [scrollbar-width:none] sm:gap-2.5 sm:pb-1.5 sm:pt-3 [&::-webkit-scrollbar]:hidden",
+              "ps-[max(0.75rem,env(safe-area-inset-left))] pe-[max(0.75rem,env(safe-area-inset-right))]",
+            )}
+          >
             <li
               className="shrink-0 snap-start"
               data-category-rail-active={allActive ? true : undefined}

@@ -18,16 +18,12 @@ import {
   buildSearchPageCatalogHref,
 } from "@/lib/catalog-products-url";
 import { ROUTES } from "@/lib/constants";
+import { surfaceCtaStripClass, surfacePanelClass } from "@/lib/storefront-surfaces";
 import { cn } from "@/lib/utils";
 
-const SORT_OPTIONS = [
-  { value: "popularity:desc", label: "الأكثر مبيعاً" },
-  { value: "date:desc", label: "الأحدث" },
-  { value: "price:asc", label: "السعر: من الأقل للأعلى" },
-  { value: "price:desc", label: "السعر: من الأعلى للأقل" },
-  { value: "rating:desc", label: "الأعلى تقييماً" },
-  { value: "rand", label: "ترتيب عشوائي" },
-] as const;
+import { CATALOG_SORT_OPTIONS } from "@/features/catalog/lib/catalog-sort-label";
+
+const SORT_OPTIONS = CATALOG_SORT_OPTIONS;
 
 function parseSortFromSearchParams(sp: URLSearchParams): string {
   const orderby = sp.get("orderby") ?? "popularity";
@@ -67,7 +63,12 @@ function parseCatalogFilterDraft(searchParams: ReturnType<typeof useSearchParams
   };
 }
 
-export function CatalogFilterForm() {
+export function CatalogFilterForm({
+  layout = "drawer",
+}: {
+  /** drawer: درج موبايل؛ sidebar: عمود ثابت على الديسكتوب */
+  layout?: "drawer" | "sidebar";
+}) {
   const router = useTransitionRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -80,6 +81,14 @@ export function CatalogFilterForm() {
   const [sortValue, setSortValue] = useState(initialDraft.sortValue);
   const [priceMin, setPriceMin] = useState(initialDraft.priceMin);
   const [priceMax, setPriceMax] = useState(initialDraft.priceMax);
+
+  const reset = () => {
+    setFeatured(false);
+    setCategoryId(null);
+    setSortValue("popularity:desc");
+    setPriceMin(0);
+    setPriceMax(CATALOG_PRICE_DEFAULT_MAX);
+  };
 
   const apply = () => {
     const min_price =
@@ -115,7 +124,7 @@ export function CatalogFilterForm() {
 
     startTransition(() => {
       router.push(href, { scroll: false });
-      closeDrawer();
+      if (layout === "drawer") closeDrawer();
     });
   };
 
@@ -124,13 +133,21 @@ export function CatalogFilterForm() {
     [categoriesQuery.data],
   );
 
+  const isSidebar = layout === "sidebar";
+
   /*
-   * درج التصفية (موبايل/ضيق): ترتيب + سعر في الأعلى (أكثر استخداماً)، ثم تصنيفات
-   * داخل صندوق بارتفاع محدود وسكرول لتقصير المسار البصري. زر التطبيق لاصق أسفل منطقة السكرول.
+   * drawer: درج موبايل — سكرول داخلي وأزرار لاصقة.
+   * sidebar: عمود ديسكتوب ثابت بجانب الشبكة.
    */
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-5">
-      <section className="space-y-2 rounded-xl border border-border/70 bg-white/80 p-3 shadow-sm">
+    <div className={cn("flex min-h-0 flex-col", isSidebar ? "gap-4" : "min-h-0 flex-1")}>
+      <div
+        className={cn(
+          "space-y-5",
+          isSidebar ? "" : "min-h-0 flex-1 overflow-y-auto overscroll-y-contain pb-3",
+        )}
+      >
+      <section className={cn(surfacePanelClass, "space-y-2 p-3")}>
         <h3 className="text-xs font-bold text-muted-foreground">ترتيب وعرض</h3>
         <label className="sr-only" htmlFor="catalog-drawer-sort">
           ترتيب المنتجات
@@ -149,7 +166,7 @@ export function CatalogFilterForm() {
         </select>
       </section>
 
-      <section className="space-y-2 rounded-xl border border-border/70 bg-white/80 p-3 shadow-sm">
+      <section className={cn(surfacePanelClass, "space-y-2 p-3")}>
         <h3 className="text-xs font-bold text-muted-foreground">نطاق السعر</h3>
         <PriceRangeFilter
           key="price"
@@ -181,7 +198,12 @@ export function CatalogFilterForm() {
         ) : (
           <div className="rounded-xl border border-border/60 bg-surface-muted/25 p-2">
             <div
-              className="max-h-[min(42dvh,15rem)] space-y-1.5 overflow-y-auto overscroll-y-contain pe-0.5"
+              className={cn(
+                "space-y-1.5",
+                isSidebar
+                  ? ""
+                  : "max-h-[min(42dvh,15rem)] overflow-y-auto overscroll-y-contain pe-0.5",
+              )}
               role="group"
               aria-label="قائمة التصنيفات"
             >
@@ -226,15 +248,29 @@ export function CatalogFilterForm() {
         )}
       </section>
 
-      <div className="mt-auto border-t border-border/70 bg-page pt-3 pb-1 supports-[backdrop-filter]:backdrop-blur-[2px]">
-        <Button
-          type="button"
-          variant="primary"
-          className="w-full font-bold"
-          onClick={apply}
-        >
-          عرض النتائج
-        </Button>
+      </div>
+
+      <div
+        className={cn(
+          surfaceCtaStripClass,
+          isSidebar
+            ? "shrink-0 rounded-xl border px-3 py-3"
+            : "sticky bottom-0 z-10 -mx-4 shrink-0 border-t px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]",
+        )}
+      >
+        <div className="flex gap-2">
+          <Button type="button" variant="secondary" className="min-h-11 flex-1 font-semibold" onClick={reset}>
+            إعادة ضبط
+          </Button>
+          <Button
+            type="button"
+            variant="primary"
+            className="min-h-11 flex-[1.35] font-bold"
+            onClick={apply}
+          >
+            عرض النتائج
+          </Button>
+        </div>
       </div>
     </div>
   );

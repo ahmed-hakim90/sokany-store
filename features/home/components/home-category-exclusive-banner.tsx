@@ -1,6 +1,7 @@
 import { Link } from "next-view-transitions";
 import { AppImage } from "@/components/AppImage";
 import type { Category } from "@/features/categories/types";
+import { surfacePanelClass } from "@/lib/storefront-surfaces";
 import { cn } from "@/lib/utils";
 
 /*
@@ -36,7 +37,8 @@ export function HomeCategoryExclusiveBanner({
   return (
     <section
       className={cn(
-        "relative isolate w-full overflow-hidden rounded-2xl bg-image-well shadow-lg ring-1 ring-black/[0.06]",
+        surfacePanelClass,
+        "relative isolate w-full overflow-hidden bg-image-well p-0",
         className,
       )}
       aria-label={category.name}

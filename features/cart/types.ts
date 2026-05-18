@@ -19,9 +19,12 @@ export type CartState = {
   items: CartItem[];
   totalItems: number;
   totalPrice: number;
+  /** Line currently changing quantity (drawer / cart page spinner). */
+  updatingLineId: number | null;
   addToCart: (product: Product, quantity?: number) => void;
   removeFromCart: (productId: number) => void;
   updateQuantity: (productId: number, quantity: number) => void;
+  setUpdatingLineId: (productId: number | null) => void;
   replaceAllItems: (items: CartItem[]) => void;
   clearCart: () => void;
 };

@@ -19,9 +19,7 @@ import { ProductDetailStickyCart } from "@/features/products/components/product-
 import { Product3DButton } from "@/features/products/components/Product3DButton";
 import { ProductGallery } from "@/features/products/components/ProductGallery";
 import { ProductDetailBreadcrumbs } from "@/features/products/components/product-detail-breadcrumbs";
-import { ProductDetailDescriptionBlocks } from "@/features/products/components/product-detail-description-blocks";
-import { ProductDetailImageGallery } from "@/features/products/components/product-detail-image-gallery";
-import { ProductSpecsList } from "@/features/products/components/ProductSpecsList";
+import { ProductDetailContentSections } from "@/features/products/components/product-detail-content-sections";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import type { ProductTrustSummary } from "@/components/pages/ProductDetailPageContent";
 import type { ProductSpecItem } from "@/features/products/components/ProductSpecsList";
@@ -32,8 +30,6 @@ import type { Product } from "@/features/products/types";
 import { playCartFlyAnimation } from "@/lib/cart-fly-animation";
 import { ROUTES } from "@/lib/constants";
 import { cn } from "@/lib/utils";
-
-type ProductDetailTab = "description" | "specs" | "gallery";
 
 export function ProductDetail({
   product,
@@ -51,10 +47,10 @@ export function ProductDetail({
   trustSummary?: ProductTrustSummary;
 }) {
   const [quantity, setQuantity] = useState(1);
+  const [cartAdding, setCartAdding] = useState(false);
   const [flyImageSrc, setFlyImageSrc] = useState(
     () => product.images[0]?.src ?? product.thumbnail,
   );
-  const [activeTab, setActiveTab] = useState<ProductDetailTab>("description");
   const galleryRef = useRef<HTMLDivElement>(null);
   const purchaseRef = useRef<HTMLDivElement>(null);
   const [stickyCartVisible, setStickyCartVisible] = useState(false);
@@ -81,66 +77,72 @@ export function ProductDetail({
   }, [product.id]);
 
   const handleAddToCart = useCallback(() => {
+    if (cartAdding) return;
+    setCartAdding(true);
     onAddToCart(product, quantity);
     void playCartFlyAnimation({
       fromElement: galleryRef.current,
       imageSrc: flyImageSrc,
       prefersReducedMotion: Boolean(reduceMotion),
-    });
-  }, [flyImageSrc, onAddToCart, product, quantity, reduceMotion]);
+    }).finally(() => setCartAdding(false));
+  }, [cartAdding, flyImageSrc, onAddToCart, product, quantity, reduceMotion]);
 
   return (
     <div
       className={cn(
-        "min-w-0 space-y-8 lg:space-y-10",
-        stickyCartVisible && product.inStock && "pb-20 md:pb-24",
+        "min-w-0 space-y-6 sm:space-y-8 lg:space-y-10",
+        stickyCartVisible && product.inStock && "pb-24 max-lg:pb-mobile-commerce",
       )}
     >
       <ProductDetailBreadcrumbs product={product} className="text-xs sm:text-sm" />
 
-      <section
-        className="grid min-w-0 gap-5 rounded-[2rem] border border-slate-200 bg-white/85 p-3 shadow-[0_18px_60px_-42px_rgba(15,23,42,0.42)] sm:p-4 lg:grid-cols-[minmax(0,1.05fr)_minmax(22rem,0.95fr)] lg:gap-7"
+      <div
+        className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,1.08fr)_minmax(22rem,24rem)] lg:items-start lg:gap-8"
         aria-label="تفاصيل المنتج والشراء"
       >
-        <ProductGallery
-          ref={galleryRef}
-          images={product.images}
-          productName={product.name}
-          fallbackSrc={product.thumbnail}
-          priority
-          galleryBadge={badge}
-          floatingAction={
-            product3DModel?.src ? (
-              <Product3DButton
-                modelSrc={product3DModel.src}
-                productName={product.name}
-                posterSrc={product3DPosterSrc}
-              />
-            ) : null
-          }
-          onActiveImageChange={setFlyImageSrc}
-        />
-        <ProductDetailInfoColumn
-          ref={purchaseRef}
-          product={product}
-          quantity={quantity}
-          onQuantityChange={setQuantity}
-          onAddToCart={handleAddToCart}
-          onBuyNow={
-            onBuyNow && product.inStock ? () => onBuyNow(product, quantity) : undefined
-          }
-          canInteractCart={canInteractCart}
-        />
-      </section>
+        <div className="min-w-0 max-lg:rounded-2xl max-lg:border max-lg:border-slate-200 max-lg:bg-white max-lg:p-2 max-lg:shadow-sm lg:sticky lg:top-24 lg:self-start">
+          <ProductGallery
+            ref={galleryRef}
+            images={product.images}
+            productName={product.name}
+            fallbackSrc={product.thumbnail}
+            priority
+            galleryBadge={badge}
+            floatingAction={
+              product3DModel?.src ? (
+                <Product3DButton
+                  modelSrc={product3DModel.src}
+                  productName={product.name}
+                  posterSrc={product3DPosterSrc}
+                />
+              ) : null
+            }
+            onActiveImageChange={setFlyImageSrc}
+          />
+        </div>
+        <div className="min-w-0 lg:sticky lg:top-24 lg:self-start">
+          <ProductDetailInfoColumn
+            ref={purchaseRef}
+            product={product}
+            quantity={quantity}
+            onQuantityChange={setQuantity}
+            onAddToCart={handleAddToCart}
+            addToCartLoading={cartAdding}
+            onBuyNow={
+              onBuyNow && product.inStock ? () => onBuyNow(product, quantity) : undefined
+            }
+            canInteractCart={canInteractCart && !cartAdding}
+          />
+        </div>
+      </div>
 
       <ProductTrustStrip trustSummary={trustSummary} />
 
-      <ProductDetailContentTabs
+      <ProductDetailContentSections
         product={product}
         specs={specs ?? []}
         benefits={benefits}
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
+        reviewsSectionId="product-reviews-section"
       />
 
       <ProductDetailStickyCart
@@ -148,7 +150,8 @@ export function ProductDetail({
         imageSrc={flyImageSrc}
         visible={stickyCartVisible}
         onAddToCart={handleAddToCart}
-        canInteractCart={canInteractCart}
+        addToCartLoading={cartAdding}
+        canInteractCart={canInteractCart && !cartAdding}
       />
     </div>
   );
@@ -237,95 +240,3 @@ function ProductTrustStrip({
   );
 }
 
-function ProductDetailContentTabs({
-  product,
-  specs,
-  benefits,
-  activeTab,
-  onTabChange,
-}: {
-  product: Product;
-  specs: ProductSpecItem[];
-  benefits: string[];
-  activeTab: ProductDetailTab;
-  onTabChange: (tab: ProductDetailTab) => void;
-}) {
-  const tabs: { id: ProductDetailTab; label: string; count?: number }[] = [
-    { id: "description", label: "الوصف" },
-    { id: "specs", label: "المواصفات", count: specs.length || undefined },
-    { id: "gallery", label: "صور إضافية", count: product.images.length || undefined },
-  ];
-
-  return (
-    <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_14px_48px_-36px_rgba(15,23,42,0.4)]">
-      <div
-        className="flex gap-1 overflow-x-auto border-b border-slate-100 bg-slate-50/70 p-2"
-        role="tablist"
-        aria-label="أقسام تفاصيل المنتج"
-      >
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            type="button"
-            role="tab"
-            className={cn(
-              "inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-2xl px-4 text-sm font-bold transition-colors",
-              activeTab === tab.id
-                ? "bg-white text-slate-950 shadow-sm ring-1 ring-slate-200"
-                : "text-slate-500 hover:bg-white/70 hover:text-slate-900",
-            )}
-            onClick={() => onTabChange(tab.id)}
-            aria-selected={activeTab === tab.id}
-            aria-controls={`product-detail-panel-${tab.id}`}
-            id={`product-detail-tab-${tab.id}`}
-          >
-            {tab.label}
-            {tab.count ? (
-              <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] text-slate-500">
-                {tab.count}
-              </span>
-            ) : null}
-          </button>
-        ))}
-      </div>
-      <div
-        className="p-4 sm:p-5"
-        role="tabpanel"
-        id={`product-detail-panel-${activeTab}`}
-        aria-labelledby={`product-detail-tab-${activeTab}`}
-      >
-        {activeTab === "description" ? (
-          <div className="grid gap-5 lg:grid-cols-[minmax(0,1.35fr)_minmax(18rem,0.65fr)]">
-            <ProductDetailDescriptionBlocks product={product} />
-            {benefits.length > 0 ? (
-              <section className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
-                <h2 className="font-display text-base font-bold text-slate-950">
-                  أبرز ما يميز المنتج
-                </h2>
-                <ul className="mt-3 grid gap-2">
-                  {benefits.map((item) => (
-                    <li
-                      key={item}
-                      className="flex min-w-0 items-start gap-2 rounded-xl bg-white px-3 py-2 text-sm font-medium leading-relaxed text-slate-800"
-                    >
-                      <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-slate-950" />
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            ) : null}
-          </div>
-        ) : null}
-        {activeTab === "specs" ? (
-          <ProductSpecsList
-            items={specs}
-            title="المواصفات التقنية"
-            variant="panel"
-          />
-        ) : null}
-        {activeTab === "gallery" ? <ProductDetailImageGallery product={product} /> : null}
-      </div>
-    </section>
-  );
-}

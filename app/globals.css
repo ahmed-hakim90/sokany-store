@@ -397,6 +397,63 @@ html::-webkit-scrollbar-thumb:hover {
     border: none;
     box-shadow: none;
   }
+
+  /** Product tile image — contained in unified card shell */
+  .product-card-image {
+    object-fit: contain;
+    object-position: center;
+    padding: 0.375rem;
+  }
+
+  @media (min-width: 640px) {
+    .product-card-image {
+      padding: 0.5rem;
+    }
+  }
+
+  /** Horizontal product rails — snap inset so first/last card shadows are not clipped */
+  .product-rail-scroll {
+    scroll-padding-inline: 1rem;
+  }
+
+  @media (min-width: 640px) {
+    .product-rail-scroll {
+      scroll-padding-inline: 1.5rem;
+    }
+  }
+
+  .product-rail-card-shell {
+    width: clamp(10rem, 44vw, 11.875rem);
+    flex-shrink: 0;
+    scroll-snap-align: start;
+  }
+
+  .product-grid-cell {
+    min-width: 0;
+    width: 100%;
+    max-width: none;
+  }
+
+  @media (min-width: 1024px) {
+    .product-grid-cell {
+      max-width: 17.5rem;
+      justify-self: center;
+      margin-inline: auto;
+    }
+  }
+
+  /** Drawer / checkout panel */
+  .surface-panel {
+    background: var(--surface-elevated);
+    border: 1px solid var(--surface-elevated-border);
+    box-shadow: var(--surface-elevated-shadow);
+  }
+
+  /** Empty state placeholder */
+  .surface-empty {
+    border: 1px dashed color-mix(in srgb, var(--sokany-border) 90%, transparent);
+    background: color-mix(in srgb, var(--sokany-muted-bg) 35%, white);
+  }
 }
 
 /* محتوى ووردبريس/Elementor في صفحات الشروط — يكمّل `prose` للجداول والخرائط */

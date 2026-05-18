@@ -3,7 +3,13 @@ import { cn } from "@/lib/utils";
 /** هيكل تحميل يطابق شريط التصنيفات الأفقي (دوائر + تسمية) تحت `lg`. */
 export function CategoryScrollerSkeleton({ count = 8 }: { count?: number }) {
   return (
-    <div className="flex min-w-0 gap-2 overflow-x-hidden px-0 pb-1 pt-2.5 sm:gap-2.5 sm:pb-1.5 sm:pt-3" aria-hidden>
+    <div
+      className={cn(
+        "flex min-w-0 gap-2 overflow-x-hidden pb-1 pt-2.5 sm:gap-2.5 sm:pb-1.5 sm:pt-3",
+        "ps-[max(0.75rem,env(safe-area-inset-left))] pe-[max(0.75rem,env(safe-area-inset-right))]",
+      )}
+      aria-hidden
+    >
       {Array.from({ length: count }).map((_, i) => (
         <div key={i} className="flex shrink-0 flex-col items-center gap-1.5">
           <div

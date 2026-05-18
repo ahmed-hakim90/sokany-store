@@ -12,12 +12,15 @@ import { ProductSkeleton } from "@/features/products/components/ProductSkeleton"
 import { VirtualizedProductGrid } from "@/features/products/components/VirtualizedProductGrid";
 import type { GridColumnCounts } from "@/hooks/useGridColumns";
 import { VIRTUAL_PRODUCT_THRESHOLD } from "@/lib/constants";
+import {
+  defaultProductGridClassName,
+  productGridCellClassName,
+} from "@/features/products/lib/product-card-layout";
 import { cn } from "@/lib/utils";
 
 export type ProductGridStatus = "loading" | "empty" | "ready";
 
-const defaultGridClass =
-  "grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-5";
+const defaultGridClass = defaultProductGridClassName;
 
 export type ProductGridProps = {
   className?: string;
@@ -96,7 +99,9 @@ export function ProductGrid({
         {loading ?? (
           <>
             {Array.from({ length: nSkeleton }).map((_, i) => (
-              <ProductSkeleton key={i} />
+              <div key={i} className={productGridCellClassName}>
+                <ProductSkeleton />
+              </div>
             ))}
           </>
         )}
@@ -129,25 +134,26 @@ export function ProductGrid({
 
   return (
     <div className={cn("min-w-0", gridClass, className)}>
-      {leadingSlot ? <div className="min-w-0">{leadingSlot}</div> : null}
+      {leadingSlot ? <div className="min-w-0 lg:col-span-full">{leadingSlot}</div> : null}
       {products.map((product, index) =>
         renderItem ? (
-          <div key={product.id} className="min-w-0">
+          <div key={product.id} className={productGridCellClassName}>
             {renderItem(product)}
           </div>
         ) : (
-          <ProductCard
-            key={product.id}
-            product={product}
-            imagePriority={index < priorityImageSlots}
-            simpleImageMode={simpleImageMode}
-            imageMotion={imageMotion}
-            imageInteractions={imageInteractions}
-            getCartLineQuantity={getCartLineQuantity}
-            onCartLineQuantityChange={onCartLineQuantityChange}
-            variant={resolvedVariant}
-            wishlistSlot={<ProductWishlistHeart product={product} />}
-          />
+          <div key={product.id} className={productGridCellClassName}>
+            <ProductCard
+              product={product}
+              imagePriority={index < priorityImageSlots}
+              simpleImageMode={simpleImageMode}
+              imageMotion={imageMotion}
+              imageInteractions={imageInteractions}
+              getCartLineQuantity={getCartLineQuantity}
+              onCartLineQuantityChange={onCartLineQuantityChange}
+              variant={resolvedVariant}
+              wishlistSlot={<ProductWishlistHeart product={product} />}
+            />
+          </div>
         ),
       )}
     </div>

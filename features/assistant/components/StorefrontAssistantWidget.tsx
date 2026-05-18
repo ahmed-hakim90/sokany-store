@@ -6,6 +6,7 @@ import { MessageCircle, X } from "lucide-react";
 import { useMobileAssistantOpenStore } from "@/components/layout/mobile-assistant-open-store";
 import { StorefrontAssistantChatPanel } from "@/features/assistant/components/StorefrontAssistantChatPanel";
 import { ROUTES } from "@/lib/constants";
+import { STOREFRONT_Z } from "@/lib/storefront-overlay-z";
 import { cn } from "@/lib/utils";
 
 const MOBILE_ASSISTANT_QUERY = "(max-width: 1023px)";
@@ -55,19 +56,20 @@ export function StorefrontAssistantWidget() {
       dir="rtl"
       aria-label="مساعد سوكاني"
       className={cn(
-        "fixed start-4 z-[54] bottom-mobile-floating-actions lg:bottom-8",
+        "fixed start-4 bottom-mobile-floating-actions lg:bottom-8",
         isCheckout && "max-lg:hidden",
       )}
+      style={{ zIndex: STOREFRONT_Z.assistantFab }}
     >
       {open ? (
         <StorefrontAssistantChatPanel
-          className="absolute bottom-14 start-0 w-[min(calc(100vw-2rem),24rem)]"
+          className="absolute bottom-14 start-0 w-[min(calc(100vw-2rem),26rem)] overflow-hidden rounded-[1.35rem] border border-white/60 shadow-[0_24px_60px_-24px_rgba(15,23,42,0.45)] ring-1 ring-slate-900/[0.06] backdrop-blur-sm"
           onClose={() => setOpen(false)}
         />
       ) : null}
 
       {showIntro && !open ? (
-        <div className="absolute bottom-14 start-0 w-[min(calc(100vw-2rem),20rem)] animate-fade-in rounded-2xl border border-brand-200 bg-white p-3 text-start shadow-xl motion-reduce:animate-none">
+        <div className="absolute bottom-14 start-0 w-[min(calc(100vw-2rem),20rem)] animate-fade-in rounded-2xl border border-brand-200 bg-white p-3 text-start shadow-xl ring-1 ring-border/50 motion-reduce:animate-none">
           <button
             type="button"
             onClick={() => setShowIntro(false)}

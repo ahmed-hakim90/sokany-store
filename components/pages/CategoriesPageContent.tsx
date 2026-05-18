@@ -143,7 +143,7 @@ export function CategoriesPageLoadingFallback() {
 }
 
 /*
- * محتوى فهرس التصنيفات (/categories): يُلفّه `app/categories/layout.tsx` بشريط تصنيفات + sidebar.
+ * محتوى فهرس التصنيفات (/categories): يُلفّه `categories/layout.tsx` بشريط جانبي كامل على الديسكتوب، وسكة موبايل مطابقة للكتالوج (تصنيفات المستوى الأعلى + روابط `/products?category=`).
  * المقدمة تظهر من lg؛ تحتها قسم المنتجات الشائعة.
  */
 export function CategoriesPageContent() {

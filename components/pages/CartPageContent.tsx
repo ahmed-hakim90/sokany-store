@@ -6,7 +6,7 @@ import { useTransitionRouter } from "next-view-transitions";
 import { AppImage } from "@/components/AppImage";
 import { Button } from "@/components/Button";
 import { Container } from "@/components/Container";
-import { EmptyState } from "@/components/EmptyState";
+import { StorefrontEmptyState } from "@/components/StorefrontEmptyState";
 import { IconButton } from "@/components/ui/icon-button";
 import { QtyControl } from "@/components/ui/qty-control";
 import { CartTrashIcon } from "@/features/cart/components/cart-drawer-body";
@@ -18,7 +18,8 @@ import { CartUpsellSection } from "@/features/cart/components/cart-upsell-sectio
 import { useCart } from "@/hooks/useCart";
 import { getCartShippingUi } from "@/lib/cart-shipping-ui";
 import { ROUTES } from "@/lib/constants";
-import { formatPrice } from "@/lib/utils";
+import { surfacePanelClass } from "@/lib/storefront-surfaces";
+import { cn, formatPrice } from "@/lib/utils";
 
 /**
  * صفحة السلة
@@ -29,13 +30,13 @@ import { formatPrice } from "@/lib/utils";
 /*
  * صفحة السلة (/cart)
  *
- * — الجوال: بطاقات خفيفة ثم (ملخص + كوبون + زر إتمام) ثم «قد يعجبك أيضاً»؛ شريط إتمام ثابت فوق التنقل.
- * — من lg: عمود المنتجات | عمود ملخص + زر + كوبون؛ ثم اقتراحات بعرض الشاشة تحت الصف.
+ * — الجوال: بطاقات صنف (صورة، عنوان، سعر وحدة، كمية، إجمالي السطر)؛ dock إتمام ثابت؛ ملخص أسفل القائمة.
+ * — من lg: عمود المنتجات | ملخص لاصق (كوبون، شحن، إجمالي، CTA)؛ اقتراحات بعرض الشاشة تحت الصف.
  * — الفوتر العام مُخفى على هذا المسار عبر `FooterGate`.
  */
 export function CartPageContent() {
   const router = useTransitionRouter();
-  const { items, totalPrice, isEmpty, updateProductQuantity, removeProduct } =
+  const { items, totalPrice, isEmpty, updateProductQuantity, removeProduct, updatingLineId } =
     useCart();
 
   const shippingUi = useMemo(() => getCartShippingUi(totalPrice), [totalPrice]);
@@ -58,12 +59,18 @@ export function CartPageContent() {
       </h1>
 
       {isEmpty ? (
-        <div className="mt-6 space-y-8 sm:mt-8">
-          <EmptyState
+        <div className="mt-6 space-y-8 pb-8 sm:mt-8">
+          <StorefrontEmptyState
             title="السلة فارغة"
             description="ابدأ بإضافة منتجات من أقسامنا أو من صفحة العروض."
             action={
               <div className="flex flex-col items-center gap-4">
+                <span
+                  className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-100 text-2xl"
+                  aria-hidden
+                >
+                  🛒
+                </span>
                 <Button
                   type="button"
                   size="lg"
@@ -104,15 +111,22 @@ export function CartPageContent() {
               </div>
             }
           />
+          <CartUpsellSection />
         </div>
       ) : (
         <>
-          <div className="mt-6 grid min-w-0 gap-6 pb-28 sm:mt-8 sm:gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(260px,320px)] lg:pb-0">
+          <div className="mt-6 grid min-w-0 gap-6 pb-28 sm:mt-8 sm:gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(280px,340px)] lg:items-start lg:pb-0">
             <div className="min-w-0 space-y-3 sm:space-y-4">
-              {items.map((item) => (
+              {items.map((item) => {
+                const lineTotal = item.price * item.quantity;
+                const lineUpdating = updatingLineId === item.productId;
+                return (
                 <div
                   key={item.productId}
-                  className="flex flex-col gap-3 rounded-lg border border-black/[0.05] bg-white p-3 shadow-sm sm:flex-row sm:items-stretch sm:gap-4 sm:rounded-xl sm:border-black/[0.06] sm:p-4 sm:shadow-[0_2px_16px_-4px_rgba(15,23,42,0.07)]"
+                  className={cn(
+                    surfacePanelClass,
+                    "flex flex-col gap-3 p-3 sm:flex-row sm:items-stretch sm:gap-4 sm:p-4",
+                  )}
                 >
                   <div className="relative mx-auto h-20 w-20 shrink-0 overflow-hidden rounded-lg border border-border bg-image-well sm:mx-0 sm:h-24 sm:w-24">
                     <AppImage
@@ -144,26 +158,46 @@ export function CartPageContent() {
                         <CartTrashIcon className="h-5 w-5" />
                       </IconButton>
                     </div>
-                    <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-3">
-                      <div className="text-sm font-semibold text-foreground">
-                        {formatPrice(item.price)}
+                    <div className="flex flex-wrap items-end justify-between gap-2 sm:gap-3">
+                      <div className="min-w-0">
+                        <p className="text-xs text-muted-foreground">
+                          {formatPrice(item.price)} للوحدة
+                        </p>
+                        <div className="relative">
+                          {lineUpdating ? (
+                            <span
+                              className="absolute inset-0 z-10 flex items-center justify-center rounded-full bg-white/85"
+                              aria-hidden
+                            >
+                              <span className="h-4 w-4 animate-spin rounded-full border-2 border-brand-600 border-t-transparent" />
+                            </span>
+                          ) : null}
+                          <QtyControl
+                            value={item.quantity}
+                            min={1}
+                            max={999}
+                            disabled={lineUpdating}
+                            touchComfortable
+                            onChange={(quantity) =>
+                              updateProductQuantity(item.productId, quantity)
+                            }
+                          />
+                        </div>
                       </div>
-                      <QtyControl
-                        value={item.quantity}
-                        min={1}
-                        max={999}
-                        touchComfortable
-                        onChange={(quantity) =>
-                          updateProductQuantity(item.productId, quantity)
-                        }
-                      />
+                      <div className="text-end">
+                        <p className="text-[10px] font-medium text-muted-foreground">الإجمالي</p>
+                        <p className="text-base font-bold text-foreground">
+                          {formatPrice(lineTotal)}
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>
-              ))}
+              );
+              })}
             </div>
 
-            <aside className="hidden space-y-4 lg:block">
+            <aside className="hidden space-y-4 lg:sticky lg:top-24 lg:block lg:self-start">
               <CartSummaryPanel
                 items={items}
                 subtotal={totalPrice}

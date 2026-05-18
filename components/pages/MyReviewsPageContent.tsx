@@ -22,6 +22,7 @@ import { getReviews } from "@/features/reviews/services/getReviews";
 import type { Order, OrderItem } from "@/features/orders/types";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import { ROUTES, STALE_TIME } from "@/lib/constants";
+import { surfacePanelClass } from "@/lib/storefront-surfaces";
 import { cn } from "@/lib/utils";
 
 const PLACEHOLDER = "/images/placeholder.png";
@@ -150,7 +151,7 @@ function PageShell({
 
 function LoginPromptCard() {
   return (
-    <section className="rounded-3xl border border-border bg-white p-6 text-center shadow-sm">
+    <section className={cn(surfacePanelClass, "p-6 text-center sm:p-8")}>
       <UserRound className="mx-auto h-12 w-12 text-brand-900/25" aria-hidden />
       <h2 className="mt-4 font-display text-lg font-bold text-brand-950">
         سجّل الدخول لعرض تقييماتك
@@ -219,7 +220,7 @@ function EmptyStateCard({
   icon: LucideIcon;
 }) {
   return (
-    <section className="rounded-3xl border border-border bg-white p-6 text-center shadow-sm">
+    <section className={cn(surfacePanelClass, "p-6 text-center sm:p-8")}>
       <Icon className="mx-auto h-12 w-12 text-brand-900/25" aria-hidden />
       <h2 className="mt-4 font-display text-lg font-bold text-brand-950">
         {title}

@@ -1,7 +1,7 @@
 "use client";
 
 import { Link } from "next-view-transitions";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { AppImage } from "@/components/AppImage";
 import { cn } from "@/lib/utils";
 import { scheduleIdleCallback } from "@/lib/schedule-idle-callback";
@@ -29,6 +29,8 @@ export type HomeHeroSlide = {
   href?: string;
 };
 
+export type HomeHeroBannerVariant = "carousel" | "featured";
+
 export type HomeHeroBannerProps = {
   slides: HomeHeroSlide[];
   className?: string;
@@ -36,6 +38,11 @@ export type HomeHeroBannerProps = {
   autoplayMs?: number;
   /** من الخادم: ‎`slug`‎ → اسم التصنيف لربط ‎`slide.href`‎ بـ ‎`/categories/:slug`‎. */
   categoryNamesBySlug?: Record<string, string>;
+  /**
+   * ‎`featured`‎: بانر كبير على ‎`lg`‎ + سلايدر أفقي على الموبايل (يُستخدم من ‎`HomeHeroLayout`‎).
+   * @default "carousel"
+   */
+  variant?: HomeHeroBannerVariant;
 };
 
 function slugFromCategoryHref(href: string | undefined): string | undefined {
@@ -87,6 +94,7 @@ export function HomeHeroBanner({
   className,
   autoplayMs = 3000,
   categoryNamesBySlug,
+  variant = "carousel",
 }: HomeHeroBannerProps) {
   const scrollerRef = useRef<HTMLDivElement | null>(null);
   const indexRef = useRef(0);
@@ -209,24 +217,112 @@ export function HomeHeroBanner({
 
   if (!slides.length) return null;
 
+  const carousel = (
+    <div
+      ref={scrollerRef}
+      className="flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-[calc((100vw-330px)/2)] pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+    >
+      {slides.map((slide, index) => (
+        <HeroImageCard
+          key={`${slide.imageSrc}-${index}`}
+          slide={slide}
+          categoryNamesBySlug={categoryNamesBySlug}
+          priority={index === 0}
+          fetchPriority={index === 0 ? "high" : "low"}
+          layout="carousel"
+        />
+      ))}
+    </div>
+  );
+
+  if (variant === "featured") {
+    return (
+      <section className={cn("-mx-4 sm:mx-0", className)} aria-label="شرائح العروض الرئيسية">
+        <div className="lg:hidden">{carousel}</div>
+        <FeaturedHeroDesktop
+          slides={slides}
+          categoryNamesBySlug={categoryNamesBySlug}
+          autoplayMs={autoplayMs}
+          className="hidden lg:block"
+        />
+      </section>
+    );
+  }
+
   return (
     <section className={cn("-mx-4 sm:mx-0", className)} aria-label="شرائح العروض الرئيسية">
-      <div
-        ref={scrollerRef}
-        className="flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-[calc((100vw-330px)/2)] pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-      >
-        {/* شريحة واحدة فقط بـ priority — تقليل منافسة LCP مع البرومو والشعار */}
-        {slides.map((slide, index) => (
-          <HeroImageCard
-            key={`${slide.imageSrc}-${index}`}
-            slide={slide}
-            categoryNamesBySlug={categoryNamesBySlug}
-            priority={index === 0}
-            fetchPriority={index === 0 ? "high" : "low"}
-          />
-        ))}
-      </div>
+      {carousel}
     </section>
+  );
+}
+
+function FeaturedHeroDesktop({
+  slides,
+  categoryNamesBySlug,
+  autoplayMs,
+  className,
+}: {
+  slides: HomeHeroSlide[];
+  categoryNamesBySlug?: Record<string, string>;
+  autoplayMs: number;
+  className?: string;
+}) {
+  const featuredIndexRef = useRef(0);
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  useEffect(() => {
+    if (slides.length < 2 || autoplayMs <= 0) return;
+    const reducedMotion =
+      typeof window !== "undefined" &&
+      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    if (reducedMotion) return;
+
+    const timer = window.setInterval(() => {
+      const next = (featuredIndexRef.current + 1) % slides.length;
+      featuredIndexRef.current = next;
+      setActiveIndex(next);
+    }, autoplayMs);
+
+    return () => window.clearInterval(timer);
+  }, [slides.length, autoplayMs]);
+
+  const slide = slides[activeIndex] ?? slides[0];
+
+  return (
+    <div className={cn("relative min-w-0", className)}>
+      <HeroImageCard
+        slide={slide}
+        categoryNamesBySlug={categoryNamesBySlug}
+        priority
+        fetchPriority="high"
+        layout="featured"
+      />
+      {slides.length > 1 ? (
+        <div
+          className="absolute bottom-3 start-1/2 z-[2] flex -translate-x-1/2 gap-1.5 rtl:translate-x-1/2"
+          role="tablist"
+          aria-label="شرائح العروض"
+        >
+          {slides.map((s, i) => (
+            <button
+              key={`${s.imageSrc}-${i}`}
+              type="button"
+              role="tab"
+              aria-selected={i === activeIndex}
+              aria-label={`شريحة ${i + 1}`}
+              className={cn(
+                "h-1.5 rounded-full transition-all duration-200",
+                i === activeIndex ? "w-6 bg-white" : "w-1.5 bg-white/55",
+              )}
+              onClick={() => {
+                featuredIndexRef.current = i;
+                setActiveIndex(i);
+              }}
+            />
+          ))}
+        </div>
+      ) : null}
+    </div>
   );
 }
 
@@ -235,20 +331,26 @@ function HeroImageCard({
   categoryNamesBySlug,
   priority,
   fetchPriority,
+  layout = "carousel",
 }: {
   slide: HomeHeroSlide;
   categoryNamesBySlug?: Record<string, string>;
   priority?: boolean;
   fetchPriority?: "high" | "low" | "auto";
+  layout?: "carousel" | "featured";
 }) {
-  // Hero cards use a fixed slide frame (300×400px); explicit box size limits CLS.
+  const frameClass =
+    layout === "featured"
+      ? "relative aspect-[2.35/1] min-h-[17.5rem] w-full max-h-[26rem] overflow-hidden rounded-2xl bg-image-well shadow-sm ring-1 ring-black/[0.06]"
+      : "relative h-[25rem] w-[300px] shrink-0 snap-center overflow-hidden rounded-2xl bg-image-well shadow-sm ring-1 ring-black/[0.06]";
+
   const content = (
-    <div className="relative h-[25rem] w-[300px] shrink-0 snap-center overflow-hidden rounded-2xl bg-image-well shadow-sm ring-1 ring-black/[0.06]">
+    <div className={frameClass}>
       <AppImage
         src={slide.imageSrc}
         alt={heroSlideAlt(slide, categoryNamesBySlug)}
         fill
-        sizes="300px"
+        sizes={layout === "featured" ? "(min-width: 1024px) 70vw, 300px" : "300px"}
         className="object-cover"
         priority={priority}
         fetchPriority={fetchPriority}

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { LegalPageShell } from "@/components/layout/legal-page-shell";
+import { StorefrontPolicyPageLayout } from "@/components/layout/storefront-policy-page-layout";
 import { SITE_BRAND_TITLE_AR } from "@/lib/constants";
 import { getSiteUrl } from "@/lib/site";
 
@@ -25,13 +26,16 @@ export const metadata: Metadata = {
 
 export default function PrivacyPage() {
   return (
-    <LegalPageShell dir="rtl" lang="ar">
-      <header className="mb-6 border-b border-border/80 pb-6 sm:mb-8">
-        <h1 className="text-right font-display text-2xl font-bold text-brand-950 md:text-3xl">
-          سياسة الخصوصية وحماية البيانات
-        </h1>
-      </header>
-
+    <StorefrontPolicyPageLayout
+      supportTitle="الخصوصية والدعم"
+      supportSubtitle="روابط سريعة للضمان والاسترجاع والتواصل"
+    >
+    <LegalPageShell
+      dir="rtl"
+      lang="ar"
+      heroTitle="سياسة الخصوصية وحماية البيانات"
+      heroSubtitle="كيف نجمع بياناتك ونستخدمها ونحميها عند التسوق من متجر سوكاني."
+    >
       <article className="prose prose-sm max-w-none text-right text-brand-950 sm:prose-base prose-headings:font-display prose-headings:text-brand-950 prose-p:leading-8 prose-li:leading-8 prose-a:font-medium prose-a:text-brand-800 prose-a:no-underline hover:prose-a:underline">
         <section>
           <h2>1. مقدمة</h2>
@@ -170,5 +174,6 @@ export default function PrivacyPage() {
         </Link>
       </p>
     </LegalPageShell>
+    </StorefrontPolicyPageLayout>
   );
 }

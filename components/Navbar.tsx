@@ -14,9 +14,11 @@ import {
   NavbarSearch,
   NavbarSearchRowSkeleton,
 } from "@/components/layout/navbar-search";
+import { MobileStorefrontHeaderToolbar } from "@/components/layout/mobile-storefront-header-toolbar";
 import { CatalogFilterDrawerTrigger } from "@/features/catalog/components/CatalogFilterDrawerTrigger";
 import { useMobileChromeCollapsedStore } from "@/components/layout/mobile-chrome-collapsed-store";
 import { DesktopCategoryMegaNav } from "@/components/layout/desktop-category-mega-nav";
+import { HeaderAccountMenu } from "@/components/layout/header-account-menu";
 import { TopHeader } from "@/components/layout/top-header";
 import { useCategories } from "@/features/categories/hooks/useCategories";
 import { HOME_CATEGORIES_QUERY_PARAMS } from "@/features/home/lib/home-page-product-params";
@@ -57,11 +59,19 @@ function getServerHydrationSnapshot() {
   return false;
 }
 
-/** بيانات روابط الهيدر والدرج موجودة في `@/lib/storefront-nav-links`. */
+/**
+ * Navbar — بحث وفلترة وسلة وفئات؛ الديسكتوب يبقى كما هو؛ موبايل:
+ * —
+ * الهوية الثلاثية: المفضّلة (الجانب البصري الأيسر في RTL)، الشعار، كتلة الخط الساخن (الرقم «‎17355‎» + «خدمة العملاء» وربط اتصال ‎tel‎ بدون أيقونة).
+ * تحت ذلك: عمود عمودية — حقل بحث حبّوي، شرائح اختصارات أفقية (عروض/الكتالوج…) + «المزيد» يستدعي نفس درج الخدمات، وأخيرًا بطاقة عدم اتصال مدمجة.
+ */
 
-/** أيقونات داخل كبسولة الهيدر الزجاجية — حدود خفيفة تندمج مع الطبقة. */
-const mobileIconTapClass =
-  "inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/35 bg-white/45 text-brand-900/65 transition-colors hover:bg-white/60 hover:text-brand-950 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500";
+/** أوضاع الزّرّ الدائري الموحَّدة لموبايل (ميزة تسوق/ميزة عميل). — يحتاج ‎relative‎ لعلامات العدّ. */
+const mobileCommerceIconOrbClass =
+  "relative inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-black/[0.095] bg-white/92 text-brand-950 shadow-[0_8px_24px_-16px_rgba(15,23,42,0.55)] outline-none transition-[transform,background-color,box-shadow] duration-200 ease-out hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 motion-reduce:transition-none active:scale-[0.97]";
+
+const mobileCheckoutBackOrbClass =
+  "relative inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/55 bg-[color-mix(in_srgb,white_88%,transparent)] text-brand-900 shadow-inner outline-none transition-[background-color,color,transform] duration-200 hover:bg-white/95 active:scale-[0.96] motion-reduce:transition-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-500";
 
 export type NavbarProps = {
   /** من CMS أو الافتراضي من الثوابت عند عدم التمرير. */
@@ -79,15 +89,13 @@ function MobileCartLink({
   className,
 }: {
   totalItems: number;
+  /** يُطبَّق بعد فئات الزرّ الموحَّدة لمزيد من تخصيص الصفحة. */
   className?: string;
 }) {
   return (
     <Link
       href={ROUTES.CART}
-      className={cn(
-        "relative inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/40 bg-white/55 text-brand-950 shadow-sm transition-colors hover:bg-white/70",
-        className,
-      )}
+      className={cn(mobileCommerceIconOrbClass, className)}
       aria-label="السلة"
     >
       <svg
@@ -228,13 +236,7 @@ export function Navbar({
   const trailing = (
     <div className="hidden items-center gap-2 lg:flex">
       <MobileStoreHotline className="h-10 shrink-0 whitespace-nowrap px-1 text-sm" />
-      <Link
-        href={ROUTES.ACCOUNT}
-        className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border/80 bg-white text-brand-950 shadow-sm transition-colors hover:bg-surface-muted/50"
-        aria-label="حسابي"
-      >
-        <UserGlyph className="h-[18px] w-[18px]" />
-      </Link>
+      <HeaderAccountMenu />
       <button
         type="button"
         className="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-border/80 bg-white text-brand-950 shadow-sm transition-colors hover:bg-surface-muted/50"
@@ -280,7 +282,7 @@ export function Navbar({
   const mobileWishlistButton = (
     <button
       type="button"
-      className="relative inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/40 bg-white/55 text-brand-950 shadow-sm transition-colors hover:bg-white/70"
+      className={cn(mobileCommerceIconOrbClass)}
       aria-label="المفضلة"
       aria-expanded={desktopWishlistDrawerOpen}
       aria-haspopup="dialog"
@@ -302,7 +304,7 @@ export function Navbar({
   const mobileLeading = isCheckout ? (
     <Link
       href={ROUTES.CART}
-      className={mobileIconTapClass}
+      className={mobileCheckoutBackOrbClass}
       aria-label="العودة إلى السلة"
     >
       <BackIcon />
@@ -310,7 +312,7 @@ export function Navbar({
   ) : isAbout ? (
     mobileWishlistButton
   ) : (
-    <MobileStoreHotline />
+    <MobileStoreHotline layout="premium" />
   );
 
   const mobileWordmark = isAbout ? (
@@ -417,7 +419,10 @@ export function Navbar({
         mobileTrailing={mobileTrailing}
         mobileToolbarBelow={
           !isCheckout ? (
-            <div className="flex w-full min-w-0 flex-col gap-2 pt-1.5">{searchWithFilter}</div>
+            <MobileStorefrontHeaderToolbar
+              searchQuickKeywords={searchQuickKeywords}
+              showCatalogFilterTrigger={showCatalogFilterTrigger}
+            />
           ) : undefined
         }
         mobileSecondary={mobileSecondary}
@@ -435,22 +440,6 @@ export function Navbar({
         />
       ) : null}
     </>
-  );
-}
-
-function UserGlyph({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      className={className}
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.75"
-      aria-hidden
-    >
-      <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" strokeLinecap="round" />
-      <circle cx="12" cy="7" r="4" />
-    </svg>
   );
 }
 

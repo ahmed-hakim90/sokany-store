@@ -21,6 +21,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { Search } from "lucide-react";
 import { AppImage } from "@/components/AppImage";
 import {
   headerProductSearchFieldGlassClass,
@@ -28,10 +29,24 @@ import {
 } from "@/components/layout/mobile-commerce-surface";
 import { SearchField } from "@/components/ui/search-field";
 import { useDebounce } from "@/hooks/useDebounce";
+import { useMinLg } from "@/hooks/useMinLg";
 import { useSearchSuggestions } from "@/hooks/useSearchSuggestions";
+import { useSearchOverlayOpenStore } from "@/features/search/store/useSearchOverlayOpenStore";
 import { GLOBAL_PRODUCT_SEARCH_INPUT_ID, ROUTES } from "@/lib/constants";
+import {
+  clearRecentProductSearches,
+  getRecentProductSearches,
+  rememberProductSearch,
+} from "@/lib/recent-product-searches";
 import { DEFAULT_SEARCH_QUICK_KEYWORDS } from "@/lib/search-quick-keywords";
 import { cn, formatPrice } from "@/lib/utils";
+
+const POPULAR_CATEGORY_CHIPS = [
+  { href: ROUTES.CATEGORY("kitchen-supplies"), label: "المطبخ" },
+  { href: ROUTES.CATEGORY("home-appliances"), label: "الأجهزة المنزلية" },
+  { href: ROUTES.CATEGORY("personal-care"), label: "العناية الشخصية" },
+  { href: ROUTES.OFFERS, label: "العروض" },
+] as const;
 
 export type NavbarSearchProps = {
   /** من CMS أو القيمة الافتراضية من الخادم. */
@@ -83,9 +98,17 @@ export function NavbarSearch({
 
   const isProductsPage = pathname === ROUTES.PRODUCTS;
   const isSearchPage = pathname === ROUTES.SEARCH;
+  const lgUp = useMinLg();
+  const openSearchOverlay = useSearchOverlayOpenStore((s) => s.openOverlay);
 
   const [value, setValue] = useState("");
   const [open, setOpen] = useState(false);
+  const [recentSearches, setRecentSearches] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (!open) return;
+    setRecentSearches(getRecentProductSearches());
+  }, [open]);
 
   useEffect(() => {
     if (!isProductsPage) return;
@@ -113,8 +136,8 @@ export function NavbarSearch({
   const trimmed = value.trim();
   const canSuggest = trimmed.length >= 3;
   const suggestions = useSearchSuggestions(value);
-  const showKeywordPanel = open && !canSuggest;
-  const showProductPanel = open && canSuggest;
+  const showKeywordPanel = open && !canSuggest && lgUp;
+  const showProductPanel = open && canSuggest && lgUp;
   const loading =
     canSuggest && suggestions.isFetching && !suggestions.data;
   const dropdownOpen = showKeywordPanel || showProductPanel;
@@ -132,6 +155,8 @@ export function NavbarSearch({
   }, [open]);
 
   const goSearch = useCallback(() => {
+    const q = value.trim();
+    if (q.length >= 2) rememberProductSearch(q);
     if (isProductsPage) {
       replaceProductsSearch(router, searchParams, value);
       setOpen(false);
@@ -146,6 +171,7 @@ export function NavbarSearch({
     (keyword: string) => {
       const k = keyword.trim();
       if (!k) return;
+      rememberProductSearch(k);
       setValue(k);
       if (isProductsPage) {
         replaceProductsSearch(router, searchParams, k);
@@ -169,15 +195,24 @@ export function NavbarSearch({
         aria-haspopup="listbox"
         aria-label="بحث في المنتجات"
         data-product-search-header=""
-        placeholder="ابحث عن أجهزة سوكاني…"
+        placeholder="ابحث عن أجهزة سوكاني..."
         value={value}
         onChange={(e) => {
           setValue(e.target.value);
           if (e.target.value.trim().length >= 3) setOpen(true);
         }}
         onFocus={() => {
-          if (trimmed.length >= 0) setOpen(true);
+          if (!lgUp) {
+            openSearchOverlay(value);
+            inputRef.current?.blur();
+            return;
+          }
+          setOpen(true);
         }}
+        onClick={() => {
+          if (!lgUp) openSearchOverlay(value);
+        }}
+        readOnly={!lgUp}
         onKeyDown={(e) => {
           if (e.key === "Escape") {
             e.preventDefault();
@@ -190,22 +225,33 @@ export function NavbarSearch({
           }
         }}
         className={cn(
-          "min-w-0 max-w-none h-9 sm:h-10 lg:h-12",
+          "min-w-0 max-w-none lg:h-12 max-lg:h-12 lg:rounded-[1rem]",
           headerProductSearchFieldGlassClass,
+          "max-lg:rounded-2xl max-lg:ps-5 max-lg:ring-1 max-lg:ring-black/[0.05]",
         )}
         compact
         leading={
-          <svg
-            viewBox="0 0 24 24"
-            className="h-4 w-4"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
+          <Search
+            className="h-[1.0625rem] w-[1.0625rem] shrink-0 text-muted-foreground"
+            strokeWidth={2.05}
             aria-hidden
-          >
-            <circle cx="11" cy="11" r="7" />
-            <path d="M20 20l-3-3" strokeLinecap="round" />
-          </svg>
+          />
+        }
+        trailing={
+          value.trim() ? (
+            <button
+              type="button"
+              className="rounded-md px-1.5 py-0.5 text-xs font-bold text-muted-foreground transition-colors hover:bg-surface-muted/80 hover:text-brand-950"
+              aria-label="مسح البحث"
+              onClick={() => {
+                setValue("");
+                setOpen(true);
+                inputRef.current?.focus();
+              }}
+            >
+              مسح
+            </button>
+          ) : null
         }
       />
 
@@ -220,11 +266,56 @@ export function NavbarSearch({
           )}
           onMouseDown={(e) => e.preventDefault()}
         >
-          <p className="border-b border-slate-200/55 px-3 py-2 text-xs font-bold text-brand-950">
+          {recentSearches.length > 0 ? (
+            <>
+              <div className="flex items-center justify-between gap-2 border-b border-slate-200/55 px-3 py-2">
+                <p className="text-xs font-bold text-brand-950">عمليات البحث الأخيرة</p>
+                <button
+                  type="button"
+                  className="text-[11px] font-semibold text-brand-800 hover:underline"
+                  onClick={() => {
+                    clearRecentProductSearches();
+                    setRecentSearches([]);
+                  }}
+                >
+                  مسح الكل
+                </button>
+              </div>
+              <ul className="space-y-0.5 px-1.5 pb-1" role="list">
+                {recentSearches.map((term) => (
+                  <li key={term}>
+                    <button
+                      type="button"
+                      className="w-full rounded-lg px-2.5 py-2 text-start text-sm font-medium text-brand-950 transition-colors hover:bg-surface-muted/85"
+                      onClick={() => applyQuickKeyword(term)}
+                    >
+                      {term}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </>
+          ) : null}
+          <p className="border-b border-t border-slate-200/55 px-3 py-2 text-xs font-bold text-brand-950">
+            أقسام شائعة
+          </p>
+          <div className="flex flex-wrap gap-1.5 px-2 py-2">
+            {POPULAR_CATEGORY_CHIPS.map((chip) => (
+              <Link
+                key={chip.href}
+                href={chip.href}
+                className="rounded-full border border-border/70 bg-white/80 px-2.5 py-1 text-[11px] font-semibold text-brand-900 transition-colors hover:bg-surface-muted/90"
+                onClick={() => setOpen(false)}
+              >
+                {chip.label}
+              </Link>
+            ))}
+          </div>
+          <p className="border-b border-t border-slate-200/55 px-3 py-2 text-xs font-bold text-brand-950">
             اقتراحات سريعة
           </p>
           <ul
-            className="max-h-[min(18rem,48dvh)] space-y-0.5 overflow-y-auto overscroll-y-contain px-1.5 py-1.5"
+            className="max-h-[min(14rem,40dvh)] space-y-0.5 overflow-y-auto overscroll-y-contain px-1.5 py-1.5"
             role="list"
           >
             {quickKeywords.map((kw, index) => (
@@ -353,7 +444,9 @@ export function NavbarSearchRowSkeleton() {
       <div className="min-w-0 flex-1">
         <div
           className={cn(
-            "min-w-0 max-w-none h-9 sm:h-10 lg:h-12 rounded-2xl animate-pulse bg-white/45 shadow-[0_8px_32px_-10px_rgba(15,23,42,0.2)] backdrop-blur-2xl ring-1 ring-slate-900/8",
+            "min-w-0 max-w-none h-9 lg:h-12 lg:rounded-[1rem] max-lg:h-12",
+            "max-lg:rounded-2xl animate-pulse",
+            "bg-white/92 shadow-[0_10px_34px_-14px_rgba(15,23,42,0.22)] backdrop-blur-2xl ring-1 ring-slate-900/10",
             headerProductSearchFieldGlassClass,
           )}
         />

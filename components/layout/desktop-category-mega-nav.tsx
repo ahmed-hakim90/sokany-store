@@ -328,7 +328,7 @@ export function DesktopCategoryMegaNav({
           {spotlight ? (
             <Link
               href={parent ? ROUTES.CATEGORY(parent.slug) : ROUTES.HOME}
-              className="group block overflow-hidden rounded-xl border border-border/70 bg-surface-muted/30"
+              className="surface-panel group block overflow-hidden rounded-xl border border-border/70 bg-surface-muted/30 shadow-sm"
             >
               <div className="relative aspect-[4/3] w-full">
                 <AppImage

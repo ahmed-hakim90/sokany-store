@@ -1,5 +1,6 @@
 import { Link } from "next-view-transitions";
 import { AppImage } from "@/components/AppImage";
+import { surfacePanelClass } from "@/lib/storefront-surfaces";
 import { cn } from "@/lib/utils";
 
 export type HomePromoCardProps = {
@@ -39,7 +40,10 @@ export function HomePromoCard({
       */}
       <Link
         href={href}
-        className="relative block w-full overflow-hidden rounded-2xl border border-black/10 shadow-md"
+        className={cn(
+          surfacePanelClass,
+          "relative block w-full overflow-hidden border-black/10 p-0 shadow-md",
+        )}
         aria-label={a11yLabel}
       >
         <div className="relative h-[min(240px,70dvh)] w-full">

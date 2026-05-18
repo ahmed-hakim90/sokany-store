@@ -18,7 +18,6 @@ test.use({
   viewport: iphone13.viewport,
   userAgent: iphone13.userAgent,
   deviceScaleFactor: iphone13.deviceScaleFactor,
-  isMobile: iphone13.isMobile,
   hasTouch: iphone13.hasTouch,
   locale: "ar-EG",
 });
@@ -103,17 +102,23 @@ test.describe("Sokany storefront audit", () => {
     }
   });
 
-  test("الفوتر على الموبايل: روابط الشريط السفلي مخفية داخل «روابط» (لا تكرار بصري)", async ({
+  test("الفوتر على الموبايل: أقسام الروابط تعمل داخل أكورديون بدون تكرار بصري", async ({
     page,
   }) => {
     await page.goto(ROUTES.HOME, { waitUntil: "domcontentloaded" });
-    await page.locator("footer").getByText("روابط", { exact: true }).click();
     const footer = page.locator("footer");
-    await expect(footer.getByRole("link", { name: "إتمام الطلب" })).toBeVisible();
-    await expect(footer.getByRole("link", { name: "الرئيسية", exact: true })).toBeHidden();
-    await expect(footer.getByRole("link", { name: "المنتجات", exact: true })).toBeHidden();
-    await expect(footer.getByRole("link", { name: "السلة", exact: true })).toBeHidden();
-    await expect(footer.getByRole("link", { name: "من نحن", exact: true })).toBeHidden();
+
+    await footer.getByText("تسوق", { exact: true }).click();
+    await expect(footer.getByRole("link", { name: "كل المنتجات" })).toBeVisible();
+    await expect(footer.getByRole("link", { name: "العروض" })).toBeVisible();
+
+    await footer.getByText("خدمة العملاء", { exact: true }).click();
+    await expect(footer.getByRole("link", { name: "تتبع الطلب" })).toBeVisible();
+    await expect(footer.getByRole("link", { name: "الضمان" })).toBeVisible();
+
+    await footer.getByText("روابط مهمة", { exact: true }).click();
+    await expect(footer.getByRole("link", { name: "من نحن" })).toBeVisible();
+    await expect(footer.getByRole("link", { name: "الشروط والأحكام" })).toBeVisible();
   });
 
   test("التنقل: روابط درج القائمة (نفس مسارات Navbar) ترجع 200", async ({
@@ -144,7 +149,7 @@ test.describe("Sokany storefront audit", () => {
     expect(trackJson.found).toBe(true);
 
     await page.goto(`${ROUTES.ORDER_TRACKING}?q=12345`, { waitUntil: "domcontentloaded" });
-    await expect(page.getByText("تم استلام الطلب", { exact: false })).toBeVisible({
+    await expect(page.getByText("تم استلام الطلب", { exact: false }).first()).toBeVisible({
       timeout: 15_000,
     });
   });

@@ -7,13 +7,15 @@ import {
   Share2,
   Heart,
   Star,
+  Truck,
 } from "lucide-react";
+import { Link } from "next-view-transitions";
 import { Button } from "@/components/Button";
 import { PriceText } from "@/components/ui/price-text";
 import { QtyControl } from "@/components/ui/qty-control";
 import type { Product } from "@/features/products/types";
 import { useWishlist } from "@/hooks/useWishlist";
-import { WHATSAPP_SUPPORT_URL } from "@/lib/constants";
+import { ROUTES, WHATSAPP_SUPPORT_URL } from "@/lib/constants";
 import { cn, formatPrice } from "@/lib/utils";
 
 function savePercent(product: Product): number | null {
@@ -22,6 +24,9 @@ function savePercent(product: Product): number | null {
   return Math.round((1 - product.price / product.regularPrice) * 100);
 }
 
+const cardClass =
+  "rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5 lg:rounded-3xl lg:shadow-[0_18px_55px_-36px_rgba(15,23,42,0.42)]";
+
 export const ProductDetailInfoColumn = forwardRef<
   HTMLDivElement,
   {
@@ -29,6 +34,7 @@ export const ProductDetailInfoColumn = forwardRef<
     quantity: number;
     onQuantityChange: (next: number) => void;
     onAddToCart: () => void;
+    addToCartLoading?: boolean;
     onBuyNow?: () => void;
     canInteractCart?: boolean;
     className?: string;
@@ -39,6 +45,7 @@ export const ProductDetailInfoColumn = forwardRef<
     quantity,
     onQuantityChange,
     onAddToCart,
+    addToCartLoading = false,
     onBuyNow,
     canInteractCart = true,
     className,
@@ -56,93 +63,112 @@ export const ProductDetailInfoColumn = forwardRef<
 
   async function handleShare() {
     const url = window.location.href;
-    const shareData = {
-      title: product.name,
-      text: `شاهد ${product.name} على Sokany Store`,
-      url,
-    };
-
     if (navigator.share) {
       try {
-        await navigator.share(shareData);
+        await navigator.share({
+          title: product.name,
+          text: `شاهد ${product.name} على Sokany Store`,
+          url,
+        });
         return;
       } catch (error) {
-        if (error instanceof DOMException && error.name === "AbortError") {
-          return;
-        }
+        if (error instanceof DOMException && error.name === "AbortError") return;
       }
     }
-
     await navigator.clipboard.writeText(url);
     setShareCopied(true);
     window.setTimeout(() => setShareCopied(false), 1800);
   }
 
+  const titleBlock = (
+    <div className="min-w-0 space-y-3">
+      <div className="flex flex-wrap items-center gap-2">
+        {categoryLabel ? (
+          <span className="rounded-full bg-rose-50 px-3 py-1 text-xs font-bold text-rose-700">
+            {categoryLabel}
+          </span>
+        ) : null}
+        {pct != null && pct > 0 ? (
+          <span className="rounded-full bg-brand-100 px-3 py-1 text-xs font-bold text-brand-900 ring-1 ring-brand-300/60">
+            خصم {pct}%
+          </span>
+        ) : null}
+      </div>
+      <h1 className="text-pretty font-display text-2xl font-bold leading-snug tracking-tight text-slate-950 sm:text-3xl">
+        {product.name}
+      </h1>
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-xs text-slate-500">
+        <span className="inline-flex items-center gap-1">
+          <span className="inline-flex text-amber-400" aria-hidden>
+            {Array.from({ length: 5 }).map((_, index) => (
+              <Star
+                key={index}
+                className={cn(
+                  "h-3.5 w-3.5",
+                  product.rating >= index + 1 ? "fill-current" : "fill-none text-slate-300",
+                )}
+              />
+            ))}
+          </span>
+          <span className="font-semibold text-slate-700">{ratingLabel}</span>
+          {product.ratingCount > 0 ? <span>({product.ratingCount} تقييم)</span> : null}
+        </span>
+        {product.sku ? <span dir="ltr">SKU: {product.sku}</span> : null}
+      </div>
+    </div>
+  );
+
+  const priceBlock = (
+    <>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <PriceText
+          amount={product.price}
+          compareAt={compareAt}
+          emphasized
+          className="text-slate-950"
+          amountClassName="!text-3xl sm:!text-4xl"
+        />
+        {compareAt != null ? (
+          <span className="text-sm font-medium text-slate-400 line-through">
+            {formatPrice(compareAt)}
+          </span>
+        ) : null}
+      </div>
+      <p className="mt-2 text-xs text-slate-500">
+        الأسعار تشمل ضريبة القيمة المضافة عند تطبيقها. الشحن يُحسب عند إتمام الطلب.
+      </p>
+      {product.price >= 500 ? (
+        <p className="mt-2 text-xs font-medium text-slate-600">تقسيط حتى 24 شهر</p>
+      ) : null}
+    </>
+  );
+
   return (
-    <div className={cn("min-w-0", className)}>
-      <article
-        ref={ref}
-        className="rounded-3xl border border-slate-200 bg-white p-5 shadow-[0_18px_55px_-36px_rgba(15,23,42,0.42)] sm:p-6"
-      >
-        <div className="min-w-0 space-y-3">
-          <div className="flex flex-wrap items-center gap-2">
-            {categoryLabel ? (
-              <span className="rounded-full bg-rose-50 px-3 py-1 text-xs font-bold text-rose-700">
-                {categoryLabel}
-              </span>
-            ) : null}
-            {pct != null && pct > 0 ? (
-              <span className="rounded-full bg-brand-100 px-3 py-1 text-xs font-bold text-brand-900 ring-1 ring-brand-300/60">
-                خصم {pct}%
-              </span>
-            ) : null}
-          </div>
-          <h1 className="text-pretty font-display text-2xl font-bold leading-snug tracking-tight text-slate-950 sm:text-3xl">
-            {product.name}
-          </h1>
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-xs text-slate-500">
-            <span className="inline-flex items-center gap-1">
-              <span className="inline-flex text-amber-400" aria-hidden>
-                {Array.from({ length: 5 }).map((_, index) => (
-                  <Star
-                    key={index}
-                    className={cn(
-                      "h-3.5 w-3.5",
-                      product.rating >= index + 1 ? "fill-current" : "fill-none text-slate-300",
-                    )}
-                  />
-                ))}
-              </span>
-              <span className="font-semibold text-slate-700">{ratingLabel}</span>
-              {product.ratingCount > 0 ? (
-                <span>({product.ratingCount} تقييم)</span>
-              ) : null}
+    <div className={cn("min-w-0 space-y-3", className)}>
+      <article className={cn(cardClass, "lg:hidden")}>{titleBlock}</article>
+      <article className={cn(cardClass, "lg:hidden")}>{priceBlock}</article>
+
+      <article ref={ref} className={cn(cardClass, "lg:p-6")}>
+        <div className="hidden lg:block">{titleBlock}</div>
+        <div className="mt-0 hidden border-t border-slate-100 pt-5 lg:block">{priceBlock}</div>
+
+        <ul className="mt-4 space-y-2 border-b border-slate-100 pb-4 text-xs text-slate-600">
+          <li className="flex gap-2">
+            <Truck className="mt-0.5 h-4 w-4 shrink-0 text-slate-500" aria-hidden />
+            <span>توصيل خلال 1–3 أيام عمل لمعظم محافظات مصر</span>
+          </li>
+          <li className="flex gap-2">
+            <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-slate-500" aria-hidden />
+            <span>
+              ضمان وكيل سوكاني —{" "}
+              <Link href={ROUTES.WARRANTY} className="font-semibold text-brand-800 hover:underline">
+                تفاصيل الضمان
+              </Link>
             </span>
-            {product.sku ? <span>SKU: {product.sku}</span> : null}
-          </div>
-        </div>
+          </li>
+        </ul>
 
-        <div className="mt-5 border-t border-slate-100 pt-5">
-          <div className="flex flex-wrap items-end justify-between gap-3">
-            <PriceText
-              amount={product.price}
-              compareAt={compareAt}
-              emphasized
-              className="text-slate-950"
-              amountClassName="!text-3xl sm:!text-4xl"
-            />
-            {compareAt != null ? (
-              <span className="text-sm font-medium text-slate-400 line-through">
-                {formatPrice(compareAt)}
-              </span>
-            ) : null}
-          </div>
-          <p className="mt-2 text-xs text-slate-500">
-            الأسعار تشمل ضريبة القيمة المضافة عند تطبيقها. الشحن يحسب عند إتمام الطلب.
-          </p>
-        </div>
-
-        <div className="mt-5 flex flex-wrap items-center gap-3 text-sm">
+        <div className="mt-4 flex flex-wrap items-center gap-3 text-sm">
           {product.inStock ? (
             <span className="inline-flex items-center gap-2 font-semibold text-emerald-700">
               <span className="h-2 w-2 rounded-full bg-emerald-500" aria-hidden />
@@ -157,7 +183,7 @@ export const ProductDetailInfoColumn = forwardRef<
         </div>
 
         {product.inStock ? (
-          <div className="mt-5 flex flex-wrap items-center gap-3">
+          <div className="mt-4 flex flex-wrap items-center gap-3">
             <span className="text-sm font-semibold text-slate-700">الكمية</span>
             <QtyControl
               value={quantity}
@@ -171,17 +197,18 @@ export const ProductDetailInfoColumn = forwardRef<
           </div>
         ) : null}
 
-        <div className="mt-5 flex flex-col gap-2.5">
+        <div className="mt-4 flex flex-col gap-2.5">
           <Button
             size="lg"
-            className={cn(
-              "relative h-12 gap-0 border-0 bg-slate-950 text-base font-bold text-white shadow-md hover:bg-slate-800",
-            )}
+            className="relative h-12 gap-0 border-0 bg-slate-950 text-base font-bold text-white shadow-md hover:bg-slate-800"
             disabled={!product.inStock || !canInteractCart}
+            loading={addToCartLoading}
             onClick={onAddToCart}
             aria-label="أضف إلى السلة"
           >
-            <span className="relative z-10 text-center">أضف إلى السلة</span>
+            <span className="relative z-10 text-center">
+              {addToCartLoading ? "جاري الإضافة…" : "أضف إلى السلة"}
+            </span>
             <span
               className="absolute start-3 top-1/2 z-0 -translate-y-1/2 sm:start-4"
               aria-hidden
@@ -203,14 +230,14 @@ export const ProductDetailInfoColumn = forwardRef<
           ) : null}
         </div>
 
-        <div className="mt-5 grid grid-cols-3 gap-2 border-t border-slate-100 pt-4">
-          <button
-            type="button"
+        <div className="mt-4 grid grid-cols-3 gap-2 border-t border-slate-100 pt-4">
+          <Link
+            href={ROUTES.WARRANTY}
             className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-2 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-50"
           >
             <ShieldCheck className="h-4 w-4" aria-hidden />
             ضمان
-          </button>
+          </Link>
           <button
             type="button"
             className={cn(
@@ -231,7 +258,7 @@ export const ProductDetailInfoColumn = forwardRef<
           </button>
           <button
             type="button"
-            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-2 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-50"
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-border/80 bg-surface-muted/30 px-2 text-xs font-bold text-brand-950 transition-colors hover:bg-white"
             onClick={() => void handleShare()}
           >
             <Share2 className="h-4 w-4" aria-hidden />

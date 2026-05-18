@@ -7,11 +7,66 @@ import { AppImage } from "@/components/AppImage";
 import { Button } from "@/components/Button";
 import { IconButton } from "@/components/ui/icon-button";
 import { PriceText } from "@/components/ui/price-text";
+import { wcStatusToTracking } from "@/features/order-tracking/wc-status-to-tracking";
 import { formatWooCouponLines, formatWooShippingLines } from "@/features/orders/lib/woo-excess-labels";
+import { orderStatusPresentation } from "@/features/orders/lib/order-status-presentation";
 import type { BillingAddress, ShippingAddress } from "@/features/user/types";
 import type { Order } from "@/features/orders/types";
-import { ROUTES } from "@/lib/constants";
-import { formatPrice } from "@/lib/utils";
+import { ROUTES, WHATSAPP_SUPPORT_URL } from "@/lib/constants";
+import { surfacePanelClass } from "@/lib/storefront-surfaces";
+import { cn, formatPrice } from "@/lib/utils";
+
+const TRACKING_STEPS = [
+  "تم الاستلام",
+  "قيد التجهيز",
+  "جاري الشحن",
+  "في الطريق",
+  "تم التوصيل",
+] as const;
+
+function OrderStatusTimeline({ order }: { order: Order }) {
+  const tracking = wcStatusToTracking(order.status);
+  if (tracking.terminal) {
+    return (
+      <p className="rounded-xl border border-amber-200/80 bg-amber-50/80 px-3 py-2 text-xs font-medium text-amber-950">
+        {tracking.statusBadge}
+      </p>
+    );
+  }
+
+  return (
+    <ol className="grid grid-cols-5 gap-1" aria-label="مراحل الطلب">
+      {TRACKING_STEPS.map((label, index) => {
+        const done = tracking.allCompleted || index <= tracking.currentStepIndex;
+        const current = !tracking.allCompleted && index === tracking.currentStepIndex;
+        return (
+          <li key={label} className="flex min-w-0 flex-col items-center gap-1 text-center">
+            <span
+              className={cn(
+                "flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold",
+                done
+                  ? "bg-brand-500 text-black"
+                  : "bg-surface-muted text-muted-foreground",
+                current && "ring-2 ring-brand-500/40 ring-offset-1",
+              )}
+              aria-hidden
+            >
+              {index + 1}
+            </span>
+            <span
+              className={cn(
+                "line-clamp-2 text-[9px] font-medium leading-tight",
+                done ? "text-brand-950" : "text-muted-foreground",
+              )}
+            >
+              {label}
+            </span>
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
 
 export type OrderDetailsModalProps = {
   order: Order | null;
@@ -106,6 +161,13 @@ export function OrderDetailsModal({
 
   const billing = order.billing;
   const shipping = order.shipping as ShippingAddress;
+  const status = orderStatusPresentation(order);
+  const whatsAppHref =
+    WHATSAPP_SUPPORT_URL && order.id
+      ? `${WHATSAPP_SUPPORT_URL}${WHATSAPP_SUPPORT_URL.includes("?") ? "&" : "?"}text=${encodeURIComponent(
+          `استفسار عن طلب #${order.orderNumber || order.id}`,
+        )}`
+      : null;
 
   return createPortal(
     <div
@@ -122,14 +184,26 @@ export function OrderDetailsModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className="relative flex max-h-[min(92vh,720px)] w-full max-w-lg flex-col rounded-t-2xl border border-border bg-white shadow-2xl sm:rounded-2xl"
+        className={cn(
+          surfacePanelClass,
+          "relative flex max-h-[min(92vh,720px)] w-full max-w-lg flex-col rounded-t-2xl sm:rounded-2xl",
+        )}
       >
         <header className="flex shrink-0 items-start justify-between gap-3 border-b border-border/80 px-4 py-3 sm:px-5">
           <div className="min-w-0">
             <h2 id={titleId} className="font-display text-lg font-semibold text-brand-950">
-              طلب #{order.id}
+              طلب #{order.orderNumber || order.id}
             </h2>
             <p className="mt-1 text-xs text-brand-900/60">{dateLabel}</p>
+            <span
+              className={cn(
+                "mt-2 inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-bold",
+                status.className,
+              )}
+            >
+              <span className="h-1.5 w-1.5 rounded-full bg-current" aria-hidden />
+              {status.label}
+            </span>
           </div>
           <IconButton
             ref={closeRef}
@@ -145,6 +219,13 @@ export function OrderDetailsModal({
         </header>
 
         <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3 sm:px-5">
+          <section className={cn(surfacePanelClass, "mb-4 p-3")} aria-label="مراحل الطلب">
+            <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              تتبع الطلب
+            </p>
+            <OrderStatusTimeline order={order} />
+          </section>
+
           <div className="space-y-4 rounded-xl border border-border/70 bg-surface-muted/25 p-3 text-sm text-brand-900/90">
             <div>
               <p className="text-xs font-semibold uppercase tracking-wide text-brand-900/55">
@@ -250,6 +331,23 @@ export function OrderDetailsModal({
             >
               تتبع الطلب
             </Link>
+            {whatsAppHref ? (
+              <a
+                href={whatsAppHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex h-10 w-full items-center justify-center rounded-md border border-emerald-200 bg-emerald-50 text-sm font-semibold text-emerald-900 transition-colors hover:bg-emerald-100"
+              >
+                تواصل مع الدعم
+              </a>
+            ) : (
+              <Link
+                href={ROUTES.CONTACT}
+                className="inline-flex h-10 w-full items-center justify-center rounded-md border border-border bg-white text-sm font-semibold text-foreground transition-colors hover:bg-surface-muted"
+              >
+                تواصل مع الدعم
+              </Link>
+            )}
             {canAmend && onAmend ? (
               <Button
                 type="button"

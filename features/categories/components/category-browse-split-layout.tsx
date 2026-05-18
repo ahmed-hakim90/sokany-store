@@ -7,7 +7,21 @@ import type { Category } from "@/features/categories/types";
 import { cn } from "@/lib/utils";
 
 export type CategoryBrowseSplitLayoutProps = {
+  /** قائمة التصنيفات للشريط الجانبي على الديسكتوب (قائمة كاملة). */
   categories: Category[];
+  /**
+   * تصنيفات سكة الموبايل الأفقية؛ إن لم تُمرَّر، تُستخدم `categories`.
+   * على مسارات slug يُفضَّل صف أبناء/إخوة بينما يبقى الشريط الجانبي بالقائمة الكاملة.
+   */
+  mobileRailCategories?: Category[];
+  /**
+   * سكة الموبايل: روابط `/products?category=` مثل الكتالوج و«وصل حديثاً»، أو روابط `/categories/...` الافتراضية.
+   * الشريط الجانبي على lg يبقى بـ slug ما لم يُغيَّر لاحقاً.
+   */
+  mobileRailLinkMode?: "slug" | "productsQuery";
+  mobileRailActiveCategoryId?: number | null;
+  /** مع `productsQuery`: تمييز «الكل» على `/categories` بدون slug نشط. */
+  mobileRailAllProductsActive?: boolean;
   activeSlug: string;
   showNavChrome: boolean;
   /** يُعرض فوق المحتوى الرئيسي من `lg` فما فوق (مثلاً فلاتر إضافية). */
@@ -18,18 +32,23 @@ export type CategoryBrowseSplitLayoutProps = {
 
 export function CategoryBrowseSplitLayout({
   categories,
+  mobileRailCategories,
+  mobileRailLinkMode = "slug",
+  mobileRailActiveCategoryId = null,
+  mobileRailAllProductsActive = false,
   activeSlug,
   showNavChrome,
   desktopTopContent,
   renderMainContent,
 }: CategoryBrowseSplitLayoutProps) {
   const main = renderMainContent();
+  const railCategories = mobileRailCategories ?? categories;
 
   return (
     <>
       {/*
-       * تحت lg: عمود — شريط تصنيفات أفقي (لاصق أسفل الهيدر) ثم المحتوى؛ التمرير على مستند الصفحة (بدون overflow-y داخلي على الموبايل — يتعارض مع اللمس على iOS).
-       * من lg: شبكة بعرض كامل — sidebar + محتوى بدون حد أقصى للارتفاع حتى يبقى الفوتر أسفل الصفحة.
+       * تحت lg: سكة أفقية لاصقة — القائمة والمنطق يطابقان الكتالوج عند `mobileRailLinkMode="productsQuery"` (أعلى مستوى ثم أقران/أبناء حسب الشجرة)؛ روابط `/products?category=`؛ زر «الكل» → `/products`.
+       * من lg: sidebar كامل بروابط `/categories/...` كما هو؛ المحتوى بدون حد أقصى للارتفاع حتى يبقى الفوتر أسفل الصفحة.
        */}
       <div
         className={cn(
@@ -40,9 +59,12 @@ export function CategoryBrowseSplitLayout({
           <div className="w-full min-w-0 shrink-0 lg:hidden">
             <StickyBelowHeaderRail>
               <CategorySidebar
-                categories={categories}
+                categories={railCategories}
                 activeSlug={activeSlug}
                 variant="rail"
+                linkMode={mobileRailLinkMode}
+                activeCategoryId={mobileRailActiveCategoryId}
+                allProductsActive={mobileRailAllProductsActive}
               />
             </StickyBelowHeaderRail>
           </div>

@@ -366,7 +366,7 @@ export function MyOrdersPageContent() {
   };
 
   return (
-    <div className="min-h-[60vh] bg-surface-muted/40 pb-24 pt-4 md:pb-16 md:pt-6">
+    <div className="min-h-[60vh] overflow-x-clip bg-surface-muted/40 pt-4 md:pt-6">
       <Container className="mx-auto w-full max-w-7xl">
         {/* الرأس: عنوان الصفحة ومسار التنقل، ثم شريط الحساب/الضيف الذي يشبه مرجع لوحة الطلبات. */}
         <header className="mb-6 space-y-4">

@@ -27,13 +27,13 @@ export async function OfficialWpPageContent({
   const page = await fetchSokanyWpPage(slug, { internalPostBasePath });
   const title = heading ?? page?.title ?? "المحتوى";
 
+  const heroSubtitle =
+    "نص معتمد من الموقع الرسمي لوكيل سوكاني في مصر — مؤسسة المغربي.";
+
   if (!page?.html) {
     return (
-      <LegalPageShell dir="rtl" lang="ar">
-        <h1 className="text-right font-display text-2xl font-bold text-brand-950 md:text-3xl">
-          {title}
-        </h1>
-        <p className="mt-4 text-[15px] leading-relaxed text-muted-foreground sm:text-base">
+      <LegalPageShell dir="rtl" lang="ar" heroTitle={title} heroSubtitle={heroSubtitle}>
+        <p className="text-[15px] leading-relaxed text-muted-foreground sm:text-base">
           تعذّر تحميل المحتوى من الموقع الرسمي مؤقتاً. يمكنك{" "}
           <a
             href={`${OFFICIAL_SOKANY_SITE_URL}/${slug}/`}
@@ -50,13 +50,7 @@ export async function OfficialWpPageContent({
   }
 
   return (
-    <LegalPageShell dir="rtl" lang="ar">
-      <header className="mb-6 border-b border-border/80 pb-6 sm:mb-8">
-        <h1 className="text-right font-display text-2xl font-bold text-brand-950 md:text-3xl">
-          {title}
-        </h1>
-      </header>
-
+    <LegalPageShell dir="rtl" lang="ar" heroTitle={title} heroSubtitle={heroSubtitle}>
       <div className="min-w-0 overflow-x-auto [-webkit-overflow-scrolling:touch]">
         <article
           dir="rtl"

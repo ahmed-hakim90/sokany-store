@@ -21,7 +21,7 @@ import { ScrollReveal } from "@/components/ScrollReveal";
  */
 export function AboutPageContent() {
   return (
-    <div className="bg-page pb-6 pt-1 md:pb-12 md:pt-2">
+    <div className="overflow-x-clip bg-page pb-6 pt-1 md:pb-12 md:pt-2">
       <Container className="flex flex-col gap-14 sm:gap-16 md:gap-20">
         {/* كل مكوّن أدناه يشغل كامل عرض الحاوية؛ التباعد الرأسي بين المكوّنات فقط — يظهر تدريجياً عند الاقتراب من الشاشة */}
         <ScrollReveal>

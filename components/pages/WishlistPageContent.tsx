@@ -3,18 +3,35 @@
 import { useTransitionRouter } from "next-view-transitions";
 import { Button } from "@/components/Button";
 import { Container } from "@/components/Container";
+import { StorefrontEmptyState } from "@/components/StorefrontEmptyState";
+import { ProductCarouselRow } from "@/features/products/components/product-carousel-row";
+import { useProducts } from "@/features/products/hooks/useProducts";
 import { WishlistDrawerLines } from "@/features/wishlist/components/wishlist-drawer-lines";
+import { useCart } from "@/hooks/useCart";
 import { useWishlist } from "@/hooks/useWishlist";
 import { ROUTES } from "@/lib/constants";
+import { surfacePanelClass } from "@/lib/storefront-surfaces";
+import { cn } from "@/lib/utils";
 
 /*
- * صفحة المفضلة (/wishlist): عمود واحد داخل Container؛ على الشاشات الصغيرة حواف مريحة،
- * ومن md فما فوق عرض أقصى للقائمة (max-w-2xl) لتسهيل القراءة.
+ * صفحة المفضلة (/wishlist):
+ * — الجوال: عنوان ثم قائمة بطاقات premium أو حالة فارغة مع توصيات.
+ * — من md: عرض أوسع (max-w-3xl) لبطاقات أفقية مثل درج المفضلة.
  */
 export function WishlistPageContent() {
   const router = useTransitionRouter();
   const { hasHydrated, items, removeFromWishlist } = useWishlist();
+  const { getCartLineQuantity, setProductLineQuantity } = useCart();
   const isEmpty = items.length === 0;
+  const bestSellersQuery = useProducts(
+    { orderby: "popularity", per_page: 8 },
+    { enabled: hasHydrated && isEmpty },
+  );
+  const carouselStatus = bestSellersQuery.isLoading
+    ? "loading"
+    : (bestSellersQuery.data?.items.length ?? 0) > 0
+      ? "ready"
+      : "empty";
 
   if (!hasHydrated) {
     return (
@@ -31,7 +48,7 @@ export function WishlistPageContent() {
 
   return (
     <Container className="w-full min-w-0 max-w-full py-6 sm:py-8 md:py-10">
-      <div className="mx-auto w-full min-w-0 max-w-2xl">
+      <div className="mx-auto w-full min-w-0 max-w-3xl">
         <h1 className="font-display text-xl font-semibold text-balance text-brand-950 sm:text-2xl md:text-3xl">
           المفضلة
         </h1>
@@ -40,22 +57,47 @@ export function WishlistPageContent() {
         </p>
 
         {isEmpty ? (
-          <div className="mt-8 flex w-full min-w-0 flex-col items-center justify-center gap-4 rounded-2xl border border-border/80 bg-surface-muted/40 px-3 py-10 text-center sm:px-8 sm:py-16">
-            <p className="max-w-sm text-pretty text-sm text-muted-foreground sm:max-w-none sm:text-base">
-              لا توجد منتجات في المفضلة بعد.
-            </p>
-            <Button
-              type="button"
-              variant="primary"
-              className="font-bold"
-              onClick={() => router.push(ROUTES.PRODUCTS)}
-            >
-              تصفح المنتجات
-            </Button>
+          <div className="mt-8 space-y-8">
+            <StorefrontEmptyState
+              title="المفضلة فارغة"
+              description="احفظ المنتجات التي تعجبك لتعود إليها لاحقاً."
+              action={
+                <Button
+                  type="button"
+                  variant="commerce"
+                  size="lg"
+                  className="px-8"
+                  onClick={() => router.push(ROUTES.PRODUCTS)}
+                >
+                  تصفح المنتجات
+                </Button>
+              }
+            />
+            <section aria-labelledby="wishlist-bestsellers-heading">
+              <h2
+                id="wishlist-bestsellers-heading"
+                className="font-display text-base font-semibold text-brand-950 sm:text-lg"
+              >
+                الأكثر مبيعاً
+              </h2>
+              <ProductCarouselRow
+                className="mt-4"
+                status={carouselStatus}
+                products={bestSellersQuery.data?.items ?? []}
+                getCartLineQuantity={getCartLineQuantity}
+                onCartLineQuantityChange={setProductLineQuantity}
+              />
+            </section>
           </div>
         ) : (
-          <div className="mt-6 w-full min-w-0 sm:mt-8">
-            <WishlistDrawerLines items={items} onRemove={removeFromWishlist} />
+          <div
+            className={cn(surfacePanelClass, "mt-6 w-full min-w-0 p-3 sm:mt-8 sm:p-4")}
+          >
+            <WishlistDrawerLines
+              variant="premium"
+              items={items}
+              onRemove={removeFromWishlist}
+            />
           </div>
         )}
       </div>

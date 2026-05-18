@@ -2,44 +2,33 @@
 
 import { Link } from "next-view-transitions";
 import { useStoreHotline } from "@/features/store/hooks/useStoreHotline";
+import {
+  latinDigitsFromHotline,
+  STORE_HOTLINE_FALLBACK,
+} from "@/features/store/lib/hotline-digits";
 import { cn } from "@/lib/utils";
 
-const FALLBACK = "17355";
-
-const ARABIC_INDIC = "٠١٢٣٤٥٦٧٨٩";
-const EXT_ARABIC_INDIC = "۰۱۲۳۴۵۶۷۸۹";
-
-function toLatinDigitChar(ch: string): string | null {
-  if (ch >= "0" && ch <= "9") return ch;
-  const i = ARABIC_INDIC.indexOf(ch);
-  if (i >= 0) return String(i);
-  const j = EXT_ARABIC_INDIC.indexOf(ch);
-  if (j >= 0) return String(j);
-  return null;
-}
-
-/** Latin digits only (0–9), for display and `tel:` — supports Arabic-Indic input. */
-function latinDigitsFromHotline(value: string): string {
-  let out = "";
-  for (const ch of value) {
-    const d = toLatinDigitChar(ch);
-    if (d) out += d;
-  }
-  return out || FALLBACK;
-}
-
-function HotlineDigits({ digits }: { digits: string }) {
+function HotlineDigits({
+  digits,
+  className,
+}: {
+  digits: string;
+  className?: string;
+}) {
   return (
     <span
       dir="ltr"
       lang="en"
-      className="inline-flex min-w-0 items-baseline gap-px font-wordmark tabular-nums"
+      className={cn(
+        "inline-flex min-w-0 items-baseline gap-px font-wordmark tabular-nums font-semibold text-brand-950",
+        className,
+      )}
     >
       {digits.split("").map((ch, i) =>
         ch === "3" ? (
           <span
             key={`${i}-${ch}`}
-            className="text-lg font-bold leading-none text-red-600 sm:text-xl"
+            className="text-xl font-black leading-none text-red-600"
           >
             {ch}
           </span>
@@ -53,9 +42,18 @@ function HotlineDigits({ digits }: { digits: string }) {
   );
 }
 
-export function MobileStoreHotline({ className }: { className?: string }) {
+export type MobileStoreHotlineProps = {
+  className?: string;
+  /** `premium`: الرقم مع تسمية «خدمة العملاء» (هيدر الموبايل)؛ `inline`: السطر المعتاد (ديمو/الديسكتوب). */
+  layout?: "inline" | "premium";
+};
+
+export function MobileStoreHotline({
+  className,
+  layout = "inline",
+}: MobileStoreHotlineProps) {
   const { data, isPending } = useStoreHotline();
-  const raw = data?.hotline?.trim() || FALLBACK;
+  const raw = data?.hotline?.trim() || STORE_HOTLINE_FALLBACK;
   const tel = latinDigitsFromHotline(raw);
 
   if (isPending) {
@@ -63,6 +61,8 @@ export function MobileStoreHotline({ className }: { className?: string }) {
       <span
         className={cn(
           "inline-flex h-11 min-w-0 max-w-none shrink-0 items-center whitespace-nowrap font-wordmark text-sm font-semibold tracking-tight text-muted-foreground/35",
+          layout === "premium" &&
+            "h-11 min-w-[4.75rem] max-w-[9rem] items-center rounded-2xl border border-black/[0.06] bg-white/85 px-2 py-1.5 shadow-sm",
           "animate-pulse",
           className,
         )}
@@ -70,8 +70,28 @@ export function MobileStoreHotline({ className }: { className?: string }) {
         dir="ltr"
         lang="en"
       >
-        {FALLBACK}
+        {STORE_HOTLINE_FALLBACK}
       </span>
+    );
+  }
+
+  if (layout === "premium") {
+    return (
+      <Link
+        href={`tel:${tel}`}
+        className={cn(
+          "inline-flex max-w-none min-w-0 shrink-0 touch-manipulation flex-col items-start gap-1 rounded-2xl px-2 py-1.5 leading-none",
+          "text-brand-950 transition-[background-color,box-shadow,color] duration-200 ease-out",
+          "outline-none hover:bg-white/70 hover:shadow-sm focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2",
+          className,
+        )}
+        aria-label={`خدمة العملاء — الاتصال على ${tel}`}
+      >
+        <HotlineDigits digits={tel} className="text-[15px] font-black" />
+        <span className="text-[10px] font-bold text-brand-900/75">
+          خدمة العملاء
+        </span>
+      </Link>
     );
   }
 

@@ -16,6 +16,7 @@ import {
   homeCustomSectionProductParams,
 } from "@/features/home/lib/home-page-product-params";
 import { ProductGrid } from "@/features/products/components/ProductGrid";
+import { defaultProductGridClassName } from "@/features/products/lib/product-card-layout";
 import { useProducts } from "@/features/products/hooks/useProducts";
 import type { Category } from "@/features/categories/types";
 import type { Product } from "@/features/products/types";
@@ -161,7 +162,7 @@ function HomeCustomSectionRow({
                   onCartLineQuantityChange={onCartLineQuantityChange}
                   cardVariant="mobileCompact"
                   cardVariantMd="desktopCatalogWide"
-                  gridClassName="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-5"
+                  gridClassName={defaultProductGridClassName}
                   empty={
                     <EmptyState
                       title="لا توجد منتجات في هذا القسم حالياً"

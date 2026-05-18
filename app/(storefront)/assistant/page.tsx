@@ -35,28 +35,28 @@ export default function AssistantPage() {
         رأس الصفحة: يشرح حدود المساعد قبل صندوق المحادثة.
         موبايل: مخفي بصرياً لتوفير مساحة للشات؛ ديسكتوب: يتمركز مع نفس عرض لوحة الشات.
       */}
-      <div className="sr-only mx-auto mb-4 max-w-3xl text-start lg:not-sr-only">
+      <header className="mx-auto mb-3 max-w-3xl text-start sm:mb-4">
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-700">
           مساعد المتجر
         </p>
-        <h1 className="mt-2 font-display text-2xl font-bold tracking-tight text-brand-950 sm:text-3xl">
+        <h1 className="mt-1 font-display text-xl font-bold tracking-tight text-brand-950 sm:mt-2 sm:text-3xl">
           اسأل مساعد سوكاني
         </h1>
-        <p className="mt-2 text-sm leading-6 text-muted-foreground">
-          يساعدك في اختيار المنتجات ومعرفة الفروع والضمان وسياسات المتجر. لا
-          يستخدم بيانات الطلبات أو الحسابات.
+        <p className="mt-1.5 line-clamp-2 text-sm leading-6 text-muted-foreground sm:mt-2">
+          يساعدك في اختيار المنتجات ومعرفة الفروع والضمان وسياسات المتجر. لا يستخدم بيانات
+          الطلبات أو الحسابات.
         </p>
-      </div>
+      </header>
 
       {/*
         منطقة المحادثة: كارت واحد مرن يحتوي الرسائل والاقتراحات وحقل الكتابة.
         موبايل: تأخذ المساحة المتاحة كلها ولا تسمح بتمرير الصفحة؛ lg: عرض مقروء في المنتصف.
       */}
       <section
-        className="mx-auto flex min-h-0 w-full max-w-3xl flex-1 flex-col pb-3 lg:pb-0"
+        className="mx-auto flex min-h-0 w-full max-w-3xl flex-1 flex-col overflow-hidden rounded-[1.35rem] border border-white/60 pb-3 shadow-[0_24px_60px_-28px_rgba(15,23,42,0.35)] ring-1 ring-slate-900/[0.05] lg:pb-0"
         aria-label="محادثة مساعد سوكاني"
       >
-        <StorefrontAssistantChatPanel variant="page" />
+        <StorefrontAssistantChatPanel variant="page" className="min-h-0 flex-1 border-0 shadow-none" />
       </section>
     </Container>
   );

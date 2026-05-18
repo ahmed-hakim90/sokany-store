@@ -5,6 +5,7 @@ import { useState } from "react";
 import { AppImage } from "@/components/AppImage";
 import { Card } from "@/components/ui/card";
 import { PriceText } from "@/components/ui/price-text";
+import { surfacePanelClass } from "@/lib/storefront-surfaces";
 import { cn, formatPrice } from "@/lib/utils";
 import type { CartItem } from "@/features/cart/types";
 
@@ -39,7 +40,8 @@ export function CheckoutSummary({
     <Card
       variant="summary"
       className={cn(
-        "h-fit rounded-2xl border-black/[0.05] p-4 shadow-[0_8px_30px_-12px_rgba(15,23,42,0.12)] sm:p-5",
+        surfacePanelClass,
+        "h-fit rounded-2xl p-4 sm:p-5 lg:shadow-[var(--surface-elevated-shadow)]",
         className,
       )}
     >

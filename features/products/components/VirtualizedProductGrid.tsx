@@ -16,6 +16,7 @@ import {
 } from "@/hooks/useGridColumns";
 import { useMinMd } from "@/hooks/useMinMd";
 import type { Product } from "@/features/products/types";
+import { productGridCellClassName } from "@/features/products/lib/product-card-layout";
 import { cn } from "@/lib/utils";
 import {
   ProductCard,
@@ -63,7 +64,7 @@ export function VirtualizedProductGrid({
   const { columns, gapPx } = useGridColumns(virtualColumnCounts);
 
   const rowCount = Math.ceil(products.length / columns);
-  const estimatedRowHeight = columns <= 2 ? 320 : 360;
+  const estimatedRowHeight = columns <= 2 ? 318 : 352;
 
   const parentRef = useRef<HTMLDivElement>(null);
   const [scrollMargin, setScrollMargin] = useState(0);
@@ -137,7 +138,7 @@ export function VirtualizedProductGrid({
                 const imagePriority = flatIndex < priorityImageSlots;
 
                 return (
-                  <div key={product.id} className="min-w-0">
+                  <div key={product.id} className={productGridCellClassName}>
                     {renderItem ? (
                       renderItem(product)
                     ) : (

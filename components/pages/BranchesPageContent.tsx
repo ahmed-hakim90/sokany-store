@@ -7,12 +7,14 @@ import {
   Wrench,
 } from "lucide-react";
 import { Container } from "@/components/Container";
+import { BrandSupportGrid } from "@/features/support/components/brand-support-grid";
 import { branchesData as staticBranchesData } from "@/features/branches/data";
 import type { PublicBranchesData } from "@/features/cms/services/getPublicSiteContent";
 import {
   telHrefFromEgyptLocal,
   waMeUrlFromEgyptLocal,
 } from "@/lib/egypt-phone";
+import { surfacePageHeroClass } from "@/lib/storefront-surfaces";
 import { cn } from "@/lib/utils";
 
 function mapsSearchUrl(address: string): string {
@@ -37,15 +39,14 @@ export function BranchesPageContent({
 }: BranchesPageContentProps) {
   return (
     <div className="min-w-0 flex-1 bg-page pb-20 pt-2 md:pt-4">
-      <div className="border-b border-border/80 bg-white py-8 text-center md:py-10">
-        <Container className="max-w-4xl">
-          <header className="space-y-3">
-            <h1 className="font-display text-2xl font-bold leading-tight text-brand-950 sm:text-3xl md:text-4xl">
-              مراكز الصيانة والفروع
-            </h1>
-            <p className="text-sm leading-relaxed text-muted-foreground md:text-base">
-              شركة المغربي — الوكيل الحصري لسوكانى في مصر
-            </p>
+      <Container className="max-w-4xl pt-4 md:pt-6">
+        <header className={cn(surfacePageHeroClass, "text-center")}>
+          <h1 className="font-display text-2xl font-bold leading-tight text-brand-950 sm:text-3xl md:text-4xl">
+            مراكز الصيانة والفروع
+          </h1>
+          <p className="mt-2 text-sm leading-relaxed text-muted-foreground md:text-base">
+            شركة المغربي — الوكيل الحصري لسوكانى في مصر
+          </p>
             <div
               className="mx-auto mt-4 inline-flex max-w-full flex-wrap items-center justify-center gap-2 rounded-full border border-amber-200/80 bg-amber-50 px-4 py-2.5 text-sm font-medium text-amber-800"
               role="status"
@@ -53,9 +54,8 @@ export function BranchesPageContent({
               <Clock className="h-4 w-4 shrink-0" aria-hidden />
               <span>مواعيد العمل: يومياً من 10 صباحاً إلى 8 مساءً</span>
             </div>
-          </header>
-        </Container>
-      </div>
+        </header>
+      </Container>
 
       <Container className="mx-auto mt-6 max-w-4xl space-y-10 md:mt-8 md:space-y-12">
         {/* قسم فروع البيع: بطاقة مميزة بلون أزرق للتمييز عن الصيانة */}
@@ -189,6 +189,12 @@ export function BranchesPageContent({
             })}
           </ul>
         </section>
+        <BrandSupportGrid
+          className="mt-10"
+          title="روابط مساعدة"
+          subtitle="ضمان، تواصل، وسياسات المتجر"
+          titleId="branches-support-grid"
+        />
       </Container>
 
       <footer className="mt-10 px-4 text-center">

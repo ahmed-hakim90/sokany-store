@@ -61,7 +61,7 @@ export function Product3DModal({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[2600] flex items-stretch justify-center overflow-hidden bg-slate-950/68 p-0 backdrop-blur-[3px] sm:items-center sm:p-5"
+      className="fixed inset-0 z-[2600] flex items-stretch justify-center overflow-hidden bg-slate-950/68 p-0 backdrop-blur-[3px] max-lg:px-[max(0px,env(safe-area-inset-left))] max-lg:pe-[max(0px,env(safe-area-inset-right))] sm:items-center sm:p-5"
       role="presentation"
     >
       <button
@@ -87,8 +87,8 @@ export function Product3DModal({
                 <BoxIcon />
               </span>
               <div className="min-w-0">
-                <p className="text-sm font-bold text-slate-900">3D View</p>
-                <p className="hidden text-xs text-slate-500 sm:block">Interactive preview</p>
+                <p className="text-sm font-bold text-slate-900">عرض 360°</p>
+                <p className="hidden text-xs text-slate-500 sm:block">معاينة تفاعلية للمنتج</p>
               </div>
             </div>
 
@@ -111,18 +111,27 @@ export function Product3DModal({
               {productName}
             </h2>
             <p className="mt-0.5 text-xs font-medium text-slate-500 sm:text-sm">
-              Explore the product in 3D
+              اسحب لتدوير المنتج واستكشاف التفاصيل
             </p>
           </div>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden bg-[radial-gradient(circle_at_50%_0%,rgba(226,232,240,0.7),transparent_42%),linear-gradient(180deg,#ffffff,#f8fafc)] px-3 py-3 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-5 sm:py-5">
+        <div className="relative min-h-0 flex-1 overflow-y-auto overflow-x-hidden bg-[radial-gradient(circle_at_50%_0%,rgba(226,232,240,0.7),transparent_42%),linear-gradient(180deg,#ffffff,#f8fafc)] px-3 py-3 pb-[max(4.5rem,env(safe-area-inset-bottom))] sm:px-5 sm:py-5 sm:pb-5">
           <Product3DViewer
             modelSrc={modelSrc}
             productName={productName}
             posterSrc={posterSrc}
           />
         </div>
+
+        <button
+          type="button"
+          className="absolute bottom-[max(1rem,env(safe-area-inset-bottom))] end-4 z-30 flex h-12 min-w-[7rem] items-center justify-center gap-2 rounded-full border border-slate-200 bg-white/95 px-4 text-sm font-bold text-slate-900 shadow-lg backdrop-blur-sm sm:hidden"
+          onClick={onClose}
+        >
+          <CloseIcon />
+          إغلاق
+        </button>
       </div>
     </div>,
     document.body,

@@ -9,9 +9,11 @@ import { StorefrontStaleDataNotice } from "@/components/storefront-stale-data-no
 import { useCart } from "@/hooks/useCart";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 import { useNearViewport } from "@/hooks/useNearViewport";
-import { HomeHeroBanner } from "@/features/home/components/home-hero-banner";
+import { HomeBrandSupportGrid } from "@/features/home/components/home-brand-support-grid";
+import { HomeCategoryDiscovery } from "@/features/home/components/home-category-discovery";
+import { HomeHeroLayout } from "@/features/home/components/home-hero-layout";
 import { HomeProductRailPlaceholder } from "@/features/home/components/home-product-rail-placeholder";
-import { ProductGrid } from "@/features/products/components/ProductGrid";
+import { HomeResponsiveProductSection } from "@/features/home/components/home-responsive-product-section";
 import { ROUTES } from "@/lib/constants";
 import { useCategories } from "@/features/categories/hooks/useCategories";
 import {
@@ -151,18 +153,34 @@ export function HomePageInteractiveClient({
 
   const eagerPrioritySlots = 2;
 
+  const homeGridShared = {
+    simpleImageMode: true as const,
+    imageMotion: false as const,
+    imageInteractions: false as const,
+    getCartLineQuantity,
+    onCartLineQuantityChange: setProductLineQuantity,
+    cardVariant: "mobileCompact" as const,
+    cardVariantMd: "desktopCatalogWide" as const,
+    gridClassName:
+      "grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-5",
+  };
+
   return (
     <>
       {renderFeatureVideo("top")}
       {renderHomePromo("top")}
       {heroSlides.length > 0 ? (
-        <HomeHeroBanner
+        <HomeHeroLayout
           slides={heroSlides}
           categoryNamesBySlug={heroCategoryNamesBySlug}
         />
       ) : null}
       {renderFeatureVideo("afterHero")}
       {renderHomePromo("afterHero")}
+
+      <ScrollReveal>
+        <HomeCategoryDiscovery categories={categories.data ?? []} />
+      </ScrollReveal>
 
       {!flashSaleSectionEnabled
         ? null
@@ -194,53 +212,56 @@ export function HomePageInteractiveClient({
             const flashStaleVariant =
               offline && flashItems.length > 0 ? "offline-cache" : "api-fallback";
             return (
-              <ScrollReveal
-                as="section"
-                className="space-y-4"
-                aria-labelledby="home-flash-sales-title"
-              >
-                {flashStale ? (
-                  <StorefrontStaleDataNotice variant={flashStaleVariant} />
-                ) : null}
+              <ScrollReveal className="space-y-4">
                 <HomeFlashSaleCountdownStrip
                   className="w-full"
                   endsAtIso={promoFlash?.endsAtIso}
                   headline={promoFlash?.headline}
                   subline={promoFlash?.subline}
                 />
-                <ProductGrid
-                  status={
-                    flashSales.isPending
-                      ? "loading"
-                      : !flashItems.length
-                        ? "empty"
-                        : "ready"
+                <HomeResponsiveProductSection
+                  staleNotice={
+                    flashStale ? (
+                      <StorefrontStaleDataNotice variant={flashStaleVariant} />
+                    ) : null
                   }
-                  products={flashItems}
-                  skeletonCount={railSkeletonCount()}
-                  priorityImageSlots={eagerPrioritySlots}
-                  simpleImageMode
-                  imageMotion={false}
-                  imageInteractions={false}
-                  getCartLineQuantity={getCartLineQuantity}
-                  onCartLineQuantityChange={setProductLineQuantity}
-                  cardVariant="mobileCompact"
-                  cardVariantMd="desktopCatalogWide"
-                  gridClassName="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-5"
-                  empty={
-                    <EmptyState
-                      title="لا توجد عروض نشطة حالياً"
-                      description="تصفح المنتجات للمزيد."
-                      action={
-                        <Button
-                          type="button"
-                          onClick={() => router.push(ROUTES.PRODUCTS)}
-                        >
-                          المنتجات
-                        </Button>
-                      }
-                    />
-                  }
+                  header={{
+                    id: "home-flash-sales-title",
+                    title: "عروض الشهر",
+                    subtitle: "خصومات محدودة على مختارات سوكاني",
+                    viewAllHref: ROUTES.OFFERS,
+                  }}
+                  grid={{
+                    ...homeGridShared,
+                    status:
+                      flashSales.isPending
+                        ? "loading"
+                        : !flashItems.length
+                          ? "empty"
+                          : "ready",
+                    products: flashItems,
+                    skeletonCount: railSkeletonCount(),
+                    priorityImageSlots: eagerPrioritySlots,
+                    empty: (
+                      <EmptyState
+                        title="لا توجد عروض نشطة حالياً"
+                        description="تصفح المنتجات للمزيد."
+                        action={
+                          <Button
+                            type="button"
+                            onClick={() => router.push(ROUTES.PRODUCTS)}
+                          >
+                            المنتجات
+                          </Button>
+                        }
+                      />
+                    ),
+                  }}
+                  rail={{
+                    status: "ready",
+                    "aria-label": "عروض الشهر",
+                    skeletonCount: railSkeletonCount(),
+                  }}
                 />
               </ScrollReveal>
             );
@@ -256,21 +277,8 @@ export function HomePageInteractiveClient({
 
       {renderFeatureVideo("afterPromo")}
 
-      <ScrollReveal
-        as="section"
-        className="space-y-4"
-        aria-labelledby="home-bestsellers-title"
-      >
-        <div ref={bestViewport.ref} className="space-y-4">
-          <div className="flex flex-col items-center gap-2 text-center">
-            <h2
-              id="home-bestsellers-title"
-              className="text-base font-bold tracking-tight text-black sm:text-lg md:text-xl"
-            >
-              الأكثر مبيعاً
-            </h2>
-          </div>
-
+      <ScrollReveal>
+        <div ref={bestViewport.ref}>
           {!flashSaleSectionEnabled || bestViewport.near ? (
             (() => {
               const bestItems = homeBestsellers.data?.items ?? [];
@@ -294,30 +302,30 @@ export function HomePageInteractiveClient({
                   : "api-fallback";
               const bestEager = !flashSaleSectionEnabled;
               return (
-                <>
-                  {bestStale ? (
-                    <StorefrontStaleDataNotice variant={bestStaleVariant} />
-                  ) : null}
-                  <ProductGrid
-                    status={
+                <HomeResponsiveProductSection
+                  staleNotice={
+                    bestStale ? (
+                      <StorefrontStaleDataNotice variant={bestStaleVariant} />
+                    ) : null
+                  }
+                  header={{
+                    id: "home-bestsellers-title",
+                    title: "الأكثر مبيعاً",
+                    subtitle: "المنتجات الأعلى طلباً من عملائنا",
+                    viewAllHref: `${ROUTES.PRODUCTS}?orderby=popularity&order=desc`,
+                  }}
+                  grid={{
+                    ...homeGridShared,
+                    status:
                       homeBestsellers.isPending
                         ? "loading"
                         : !bestItems.length
                           ? "empty"
-                          : "ready"
-                    }
-                    products={bestItems}
-                    skeletonCount={railSkeletonCount()}
-                    priorityImageSlots={bestEager ? eagerPrioritySlots : 0}
-                    simpleImageMode
-                    imageMotion={false}
-                    imageInteractions={false}
-                    getCartLineQuantity={getCartLineQuantity}
-                    onCartLineQuantityChange={setProductLineQuantity}
-                    cardVariant="mobileCompact"
-                    cardVariantMd="desktopCatalogWide"
-                    gridClassName="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-5"
-                    empty={
+                          : "ready",
+                    products: bestItems,
+                    skeletonCount: railSkeletonCount(),
+                    priorityImageSlots: bestEager ? eagerPrioritySlots : 0,
+                    empty: (
                       <EmptyState
                         title="لا توجد منتجات لعرضها في هذا القسم حالياً"
                         description="تصفح الكتالوج الكامل."
@@ -330,9 +338,14 @@ export function HomePageInteractiveClient({
                           </Button>
                         }
                       />
-                    }
-                  />
-                </>
+                    ),
+                  }}
+                  rail={{
+                    status: "ready",
+                    "aria-label": "الأكثر مبيعاً",
+                    skeletonCount: railSkeletonCount(),
+                  }}
+                />
               );
             })()
           ) : (
@@ -372,47 +385,35 @@ export function HomePageInteractiveClient({
           offline && newItems.length > 0 ? "offline-cache" : "api-fallback";
 
         return (
-          <ScrollReveal
-            as="section"
-            className="space-y-4"
-            aria-labelledby="home-new-arrivals-title"
-          >
-            <div className="flex flex-col items-center gap-2 text-center">
-              <h2
-                id="home-new-arrivals-title"
-                className="text-base font-bold tracking-tight text-black sm:text-lg md:text-xl"
-              >
-                وصل حديثاً
-              </h2>
-            </div>
-            <div ref={newViewport.ref} className="space-y-4">
+          <ScrollReveal>
+            <div ref={newViewport.ref}>
               {!newViewport.near ? (
                 <HomeProductRailPlaceholder aria-label="قسم وصل حديثاً" />
               ) : (
-                <>
-                  {newStale ? (
-                    <StorefrontStaleDataNotice variant={newStaleVariant} />
-                  ) : null}
-                  <ProductGrid
-                    status={
+                <HomeResponsiveProductSection
+                  staleNotice={
+                    newStale ? (
+                      <StorefrontStaleDataNotice variant={newStaleVariant} />
+                    ) : null
+                  }
+                  header={{
+                    id: "home-new-arrivals-title",
+                    title: "وصل حديثاً",
+                    subtitle: "أحدث الإضافات إلى كتالوج سوكاني",
+                    viewAllHref: `${ROUTES.PRODUCTS}?orderby=date&order=desc`,
+                  }}
+                  grid={{
+                    ...homeGridShared,
+                    status:
                       newArrivals.isPending
                         ? "loading"
                         : !newItems.length
                           ? "empty"
-                          : "ready"
-                    }
-                    products={newItems}
-                    skeletonCount={railSkeletonCount()}
-                    priorityImageSlots={0}
-                    simpleImageMode
-                    imageMotion={false}
-                    imageInteractions={false}
-                    getCartLineQuantity={getCartLineQuantity}
-                    onCartLineQuantityChange={setProductLineQuantity}
-                    cardVariant="mobileCompact"
-                    cardVariantMd="desktopCatalogWide"
-                    gridClassName="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-5"
-                    empty={
+                          : "ready",
+                    products: newItems,
+                    skeletonCount: railSkeletonCount(),
+                    priorityImageSlots: 0,
+                    empty: (
                       <EmptyState
                         title="لا توجد منتجات جديدة حالياً"
                         description="تصفح الكتالوج الكامل."
@@ -425,15 +426,24 @@ export function HomePageInteractiveClient({
                           </Button>
                         }
                       />
-                    }
-                  />
-                </>
+                    ),
+                  }}
+                  rail={{
+                    status: "ready",
+                    "aria-label": "وصل حديثاً",
+                    skeletonCount: railSkeletonCount(),
+                  }}
+                />
               )}
             </div>
           </ScrollReveal>
         );
       })()}
       {renderHomePromo("afterNewArrivals")}
+
+      <ScrollReveal>
+        <HomeBrandSupportGrid />
+      </ScrollReveal>
 
       {homeProductSectionsMode === "custom" ||
       homeProductSectionsMode === "hybrid" ? (

@@ -53,7 +53,7 @@ export const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>(
         className={cn(
           "min-w-0 flex-1 border-0 bg-transparent text-foreground outline-none ring-0 placeholder:text-foreground/70",
           compact
-            ? "py-1.5 text-base lg:text-xs"
+            ? "py-1.5 max-lg:py-2 text-base lg:text-xs"
             : "py-2 text-base lg:text-sm",
           leading ? "ps-1" : "ps-3",
           trailing ? "pe-1" : "pe-3",

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { StorefrontPolicyPageLayout } from "@/components/layout/storefront-policy-page-layout";
 import { OfficialWpPageContent } from "@/components/pages/OfficialWpPageContent";
 import { SITE_BRAND_TITLE_AR } from "@/lib/constants";
 import { getSiteUrl } from "@/lib/site";
@@ -23,5 +24,12 @@ export const metadata: Metadata = {
 };
 
 export default function TermsPage() {
-  return <OfficialWpPageContent slug="terms-and-conditions" heading="الشروط والأحكام" />;
+  return (
+    <StorefrontPolicyPageLayout
+      supportTitle="السياسات والدعم"
+      supportSubtitle="روابط سريعة للضمان والاسترجاع والتواصل"
+    >
+      <OfficialWpPageContent slug="terms-and-conditions" heading="الشروط والأحكام" />
+    </StorefrontPolicyPageLayout>
+  );
 }

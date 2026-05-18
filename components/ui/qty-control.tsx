@@ -16,6 +16,8 @@ export type QtyControlProps = {
   touchComfortable?: boolean;
   /** Slimmer capsule for premium cart cards. */
   compact?: boolean;
+  /** Make segmented +/-/value occupy equal columns across the full control. */
+  equalSegments?: boolean;
 };
 
 export function QtyControl({
@@ -28,6 +30,7 @@ export function QtyControl({
   layout = "pill",
   touchComfortable = false,
   compact = false,
+  equalSegments = false,
 }: QtyControlProps) {
   const decDisabled = disabled || value <= min;
   const incDisabled = disabled || value >= max;
@@ -37,7 +40,8 @@ export function QtyControl({
   return (
     <div
       className={cn(
-        "inline-flex overflow-hidden border border-border bg-white",
+        equalSegments ? "grid grid-cols-3" : "inline-flex",
+        "overflow-hidden border border-border bg-white",
         segmented
           ? "items-stretch rounded-xl bg-surface-muted/90 p-0 shadow-[inset_0_1px_0_rgba(255,255,255,0.65)]"
           : compact
@@ -56,9 +60,11 @@ export function QtyControl({
         className={cn(
           "border-0",
           segmented
-            ? touchComfortable
-              ? "rounded-none px-2 py-2 hover:bg-white/70"
-              : "rounded-none px-3 py-2.5 hover:bg-white/70"
+            ? equalSegments
+              ? "h-full w-full rounded-none px-0 py-0 hover:bg-white/70"
+              : touchComfortable
+                ? "rounded-none px-2 py-2 hover:bg-white/70"
+                : "rounded-none px-3 py-2.5 hover:bg-white/70"
             : compact
               ? "h-8 w-8 shrink-0 rounded-full text-slate-700 hover:bg-white/90"
               : "rounded-full",
@@ -71,6 +77,7 @@ export function QtyControl({
           "flex min-w-10 items-center justify-center text-sm font-semibold tabular-nums text-foreground",
           segmented ? "border-x border-border/80 bg-white px-2" : "min-w-8 text-center",
           compact && "min-w-8 text-xs font-bold text-slate-900",
+          equalSegments && "h-full min-w-0 px-0 text-sm",
         )}
         aria-live="polite"
       >
@@ -86,9 +93,11 @@ export function QtyControl({
         className={cn(
           "border-0",
           segmented
-            ? touchComfortable
-              ? "rounded-none px-2 py-2 hover:bg-white/70"
-              : "rounded-none px-3 py-2.5 hover:bg-white/70"
+            ? equalSegments
+              ? "h-full w-full rounded-none px-0 py-0 hover:bg-white/70"
+              : touchComfortable
+                ? "rounded-none px-2 py-2 hover:bg-white/70"
+                : "rounded-none px-3 py-2.5 hover:bg-white/70"
             : compact
               ? "h-8 w-8 shrink-0 rounded-full text-slate-700 hover:bg-white/90"
               : "rounded-full",

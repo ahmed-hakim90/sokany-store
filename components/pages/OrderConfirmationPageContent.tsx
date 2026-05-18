@@ -10,6 +10,7 @@ import {
   Headphones,
   LockKeyhole,
   MapPinned,
+  MessageCircle,
   PackageCheck,
   RotateCcw,
   ShieldCheck,
@@ -29,7 +30,12 @@ import type { CartItem } from "@/features/cart/types";
 import { ProductCarouselRow } from "@/features/products/components/product-carousel-row";
 import { useProducts } from "@/features/products/hooks/useProducts";
 import { useCart } from "@/hooks/useCart";
-import { ROUTES } from "@/lib/constants";
+import { orderStatusPresentation } from "@/features/orders/lib/order-status-presentation";
+import { ROUTES, WHATSAPP_SUPPORT_URL } from "@/lib/constants";
+import {
+  surfaceCtaStripClass,
+  surfacePanelClass,
+} from "@/lib/storefront-surfaces";
 import { cn, formatPrice } from "@/lib/utils";
 
 /*
@@ -94,29 +100,51 @@ function paymentMethodDescription(
   }
 }
 
-function OnlinePaymentBanner({ status }: { status: "success" | "failed" }) {
+function OnlinePaymentBanner({
+  status,
+  cancelled,
+}: {
+  status: "success" | "failed";
+  cancelled?: boolean;
+}) {
   if (status === "success") {
     return (
-      <div className="flex items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800">
-        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-white">
+      <section
+        className={cn(
+          surfacePanelClass,
+          "flex items-center gap-3 border-emerald-200/90 bg-gradient-to-l from-emerald-50/90 to-white p-4 text-sm font-semibold text-emerald-800",
+        )}
+        role="status"
+      >
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-white shadow-sm">
           <Check className="h-4 w-4" aria-hidden />
         </span>
         تم الدفع الإلكتروني بنجاح — سيظهر الطلب بحالة «قيد المعالجة» خلال لحظات.
-      </div>
+      </section>
     );
   }
   return (
-    <div className="flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
-      <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-red-100 font-bold text-red-600">
+    <section
+      className={cn(
+        surfacePanelClass,
+        "flex items-start gap-3 border-red-200/90 bg-gradient-to-l from-red-50/90 to-white p-4 text-sm text-red-800",
+      )}
+      role="alert"
+    >
+      <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-red-600 text-sm font-black text-white shadow-sm">
         !
       </span>
-      <div>
-        <p className="font-semibold">لم يكتمل الدفع</p>
-        <p className="mt-0.5 text-red-700/80">
-          تم حجز الطلب لكن لم يتم خصم المبلغ. يمكنك إعادة المحاولة أو التواصل مع الدعم بذكر رقم الطلب.
+      <div className="min-w-0 text-start">
+        <p className="font-display text-base font-bold text-red-900">
+          {cancelled ? "تم إلغاء الدفع" : "لم يكتمل الدفع"}
+        </p>
+        <p className="mt-1 text-sm leading-6 text-red-800/90">
+          {cancelled
+            ? "عدت من بوابة الدفع دون إتمام العملية. الطلب محفوظ — يمكنك إعادة المحاولة أو اختيار الدفع عند الاستلام."
+            : "تم حجز الطلب لكن لم يتم خصم المبلغ. يمكنك إعادة المحاولة أو التواصل مع الدعم بذكر رقم الطلب."}
         </p>
       </div>
-    </div>
+    </section>
   );
 }
 
@@ -196,10 +224,7 @@ function InfoCard({
 }) {
   return (
     <section
-      className={cn(
-        "rounded-2xl border border-border/70 bg-white p-4 shadow-sm sm:p-5",
-        className,
-      )}
+      className={cn(surfacePanelClass, "p-4 sm:p-5", className)}
     >
       <div className="mb-4 flex items-center justify-between gap-3">
         <h2 className="font-display text-base font-bold text-brand-950">{title}</h2>
@@ -216,7 +241,7 @@ function MissingOrderState() {
   const router = useTransitionRouter();
 
   return (
-    <div className="rounded-3xl border border-border/70 bg-white p-8 text-center shadow-sm">
+    <section className={cn(surfacePanelClass, "p-6 text-center sm:p-8")}>
       <PackageCheck className="mx-auto h-12 w-12 text-brand-900" aria-hidden />
       <h1 className="mt-4 font-display text-2xl font-bold text-brand-950">
         رقم الطلب غير متاح
@@ -226,7 +251,7 @@ function MissingOrderState() {
         طلباتي أو إدخال رقم الطلب في صفحة التتبع.
       </p>
       <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-center">
-        <Button type="button" variant="primary" onClick={() => router.push(ROUTES.MY_ORDERS)}>
+        <Button type="button" variant="commerce" onClick={() => router.push(ROUTES.MY_ORDERS)}>
           طلباتي
         </Button>
         <Button
@@ -237,7 +262,7 @@ function MissingOrderState() {
           تتبع الطلب
         </Button>
       </div>
-    </div>
+    </section>
   );
 }
 
@@ -245,9 +270,14 @@ export function OrderConfirmationPageContent() {
   const router = useTransitionRouter();
   const searchParams = useSearchParams();
   const orderId = searchParams.get("id")?.trim() ?? "";
-  const paymentParam = searchParams.get("payment") as "success" | "failed" | null;
+  const paymentParam = searchParams.get("payment");
+  const paymentCancelled = paymentParam === "cancel";
   const paymentStatus: "success" | "failed" | null =
-    paymentParam === "success" || paymentParam === "failed" ? paymentParam : null;
+    paymentParam === "success" || paymentParam === "failed" || paymentCancelled
+      ? paymentCancelled
+        ? "failed"
+        : (paymentParam as "success" | "failed")
+      : null;
   const [payload, setPayload] = useState<OrderConfirmationSessionPayload | null>(null);
   const [loaded, setLoaded] = useState(false);
   const { getCartLineQuantity, setProductLineQuantity, replaceAllItems } = useCart();
@@ -288,6 +318,14 @@ export function OrderConfirmationPageContent() {
   const total = order?.total ?? snapshot?.total ?? 0;
   const discount = Math.max(0, subtotal + shippingTotal - total);
   const displayOrderRef = order?.orderNumber || (order?.id ? String(order.id) : "");
+  const customerName = snapshot?.shipping.name?.trim() || "عميلنا العزيز";
+  const orderStatus = order ? orderStatusPresentation(order) : null;
+  const whatsAppHref = useMemo(() => {
+    if (!WHATSAPP_SUPPORT_URL || !displayOrderRef) return null;
+    const text = `مرحباً، أود متابعة طلبي رقم #${displayOrderRef}`;
+    const sep = WHATSAPP_SUPPORT_URL.includes("?") ? "&" : "?";
+    return `${WHATSAPP_SUPPORT_URL}${sep}text=${encodeURIComponent(text)}`;
+  }, [displayOrderRef]);
   const carouselStatus = recommendations.isPending
     ? "loading"
     : recommendations.data?.items.length
@@ -322,7 +360,7 @@ export function OrderConfirmationPageContent() {
           <>
             {paymentStatus === "failed" ? (
               <div className="space-y-4">
-                <OnlinePaymentBanner status="failed" />
+                <OnlinePaymentBanner status="failed" cancelled={paymentCancelled} />
                 <MissingOrderState />
               </div>
             ) : (
@@ -330,34 +368,99 @@ export function OrderConfirmationPageContent() {
             )}
           </>
         ) : (
-          <div className="space-y-4 md:space-y-5">
+          <>
+          <div className="space-y-4 pb-28 md:space-y-5 md:pb-0">
             <Stepper />
 
             {paymentStatus ? (
-              <OnlinePaymentBanner status={paymentStatus} />
+              <OnlinePaymentBanner status={paymentStatus} cancelled={paymentCancelled} />
             ) : null}
 
             <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start">
               {/* العمود الرئيسي: نجاح الطلب ثم الشحن والدفع وتفاصيل المنتجات. */}
               <main className="space-y-4">
-                <section className="rounded-2xl border border-emerald-100 bg-white p-6 text-center shadow-sm">
-                  <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 ring-8 ring-emerald-50/70">
+                <section
+                  className={cn(
+                    surfacePanelClass,
+                    paymentStatus === "failed"
+                      ? "border-amber-200/90 bg-gradient-to-b from-white to-amber-50/40 p-5 text-center sm:p-6"
+                      : "border-emerald-100/90 bg-gradient-to-b from-white to-emerald-50/35 p-5 text-center sm:p-6",
+                  )}
+                >
+                  <div
+                    className={cn(
+                      "mx-auto flex h-14 w-14 items-center justify-center rounded-full ring-8",
+                      paymentStatus === "failed"
+                        ? "bg-amber-50 text-amber-700 ring-amber-50/70"
+                        : "bg-emerald-50 text-emerald-600 ring-emerald-50/70",
+                    )}
+                  >
                     <Check className="h-8 w-8" aria-hidden />
                   </div>
                   <h1 className="mt-4 font-display text-2xl font-bold text-brand-950 sm:text-3xl">
-                    تم إتمام طلبك بنجاح!
+                    {paymentStatus === "failed"
+                      ? `تم استلام طلبك، ${customerName}`
+                      : `شكراً ${customerName}!`}
                   </h1>
                   <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                    شكراً لك. تم استلام طلبك وسنرسل لك تفاصيل التأكيد والمتابعة قريباً.
+                    {paymentStatus === "failed"
+                      ? "الطلب مسجّل — أكمل الدفع لاحقاً من التتبع أو تواصل مع الدعم."
+                      : "تم استلام طلبك بنجاح. سنرسل لك تفاصيل التأكيد والمتابعة قريباً."}
                   </p>
                   {displayOrderRef ? (
-                    <p className="mt-3 text-sm font-bold text-emerald-700">
+                    <p className="mt-2 text-sm font-bold text-emerald-800">
                       رقم الطلب{" "}
                       <span dir="ltr" className="tabular-nums">
                         #{displayOrderRef}
                       </span>
                     </p>
                   ) : null}
+                  {orderStatus ? (
+                    <p className="mt-3">
+                      <span
+                        className={cn(
+                          "inline-flex rounded-full px-3 py-1 text-xs font-bold",
+                          orderStatus.className,
+                        )}
+                      >
+                        {orderStatus.label}
+                      </span>
+                    </p>
+                  ) : null}
+                  <p className="mx-auto mt-4 max-w-md rounded-xl border border-emerald-100/80 bg-emerald-50/60 px-3 py-2.5 text-xs leading-5 text-emerald-900">
+                    <Truck className="mb-0.5 inline h-4 w-4 align-text-bottom" aria-hidden />{" "}
+                    التوصيل المتوقع خلال 1–3 أيام عمل. سنتواصل معك على رقم الهاتف المسجّل عند
+                    خروج الشحنة.
+                  </p>
+                  <div className="mt-5 hidden flex-wrap justify-center gap-2 sm:flex">
+                    <Button
+                      type="button"
+                      variant="primary"
+                      size="sm"
+                      onClick={() => router.push(trackHref)}
+                    >
+                      تتبع الطلب
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => router.push(ROUTES.HOME)}
+                    >
+                      متابعة التسوق
+                    </Button>
+                    {whatsAppHref ? (
+                      <a
+                        href={whatsAppHref}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl border border-emerald-200 bg-white px-3 text-sm font-bold text-emerald-800 transition-colors hover:bg-emerald-50"
+                      >
+                        <MessageCircle className="h-4 w-4" aria-hidden />
+                        واتساب
+                      </a>
+                    ) : null}
+                  </div>
                 </section>
 
                 <InfoCard
@@ -563,21 +666,33 @@ export function OrderConfirmationPageContent() {
                   <p className="mt-1 text-sm leading-6 text-muted-foreground">
                     فريق الدعم متاح لمتابعة طلبك أو تعديل بيانات التواصل.
                   </p>
-                  <Button
-                    type="button"
-                    variant="dark"
-                    className="mt-4 w-full"
-                    onClick={() => router.push(ROUTES.CONTACT)}
-                  >
-                    تواصل معنا
-                  </Button>
+                  {whatsAppHref ? (
+                    <a
+                      href={whatsAppHref}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-4 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#1f6e43] px-4 text-sm font-bold text-white transition-colors hover:bg-[#185a37]"
+                    >
+                      <MessageCircle className="h-4 w-4" aria-hidden />
+                      تواصل عبر واتساب
+                    </a>
+                  ) : (
+                    <Button
+                      type="button"
+                      variant="dark"
+                      className="mt-4 w-full"
+                      onClick={() => router.push(ROUTES.CONTACT)}
+                    >
+                      تواصل معنا
+                    </Button>
+                  )}
                 </section>
 
               </aside>
             </div>
 
             {/* توصيات ما بعد الشراء: صف أفقي على الجوال والديسكتوب لإبقاء العميل داخل المتجر. */}
-            <section className="rounded-2xl border border-border/70 bg-white p-4 shadow-sm sm:p-5">
+            <section className={cn(surfacePanelClass, "p-4 sm:p-5")}>
               <div className="mb-4 flex items-center justify-between gap-3">
                 <div>
                   <h2 className="font-display text-lg font-bold text-brand-950">
@@ -602,6 +717,35 @@ export function OrderConfirmationPageContent() {
               />
             </section>
           </div>
+
+          <div
+            className={cn(
+              surfaceCtaStripClass,
+              "fixed inset-x-0 z-40 flex gap-2 border-t px-4 py-3 shadow-[0_-8px_32px_-12px_rgba(15,23,42,0.12)] sm:hidden",
+              "pb-[max(0.5rem,env(safe-area-inset-bottom))]",
+            )}
+            style={{
+              bottom: "var(--mobile-commerce-chrome-height, 4.5rem)",
+            }}
+          >
+            <Button
+              type="button"
+              variant="primary"
+              className="min-h-11 flex-1 font-bold"
+              onClick={() => router.push(trackHref)}
+            >
+              تتبع الطلب
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              className="min-h-11 flex-1 font-bold"
+              onClick={() => router.push(ROUTES.HOME)}
+            >
+              متابعة التسوق
+            </Button>
+          </div>
+          </>
         )}
       </Container>
     </div>

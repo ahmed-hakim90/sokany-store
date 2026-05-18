@@ -201,10 +201,10 @@ export function StorefrontAssistantChatPanel({
   return (
     <div
       className={cn(
-        "overflow-hidden border border-border/80 bg-white shadow-2xl",
+        "overflow-hidden border border-border/80 bg-white/95 shadow-2xl backdrop-blur-md",
         isPage
           ? "flex min-h-0 flex-1 flex-col rounded-[1.75rem] shadow-xl lg:min-h-[38rem]"
-          : "rounded-2xl",
+          : "flex max-h-[min(70dvh,34rem)] flex-col rounded-[1.35rem]",
         className,
       )}
     >

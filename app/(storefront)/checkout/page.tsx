@@ -24,12 +24,13 @@ export const metadata: Metadata = {
 };
 
 /*
- * غلاف صفحة إتمام الطلب: خلفية الصفحة + Container بمسافة علوية بسيطة (أكبر قليلاً من md).
- * التخطيط التفصيلي للنموذج داخل CheckoutForm.
+ * غلاف صفحة إتمام الطلب (/checkout)
+ * — الجوال: Container ضيق؛ بطاقات خطوات داخل CheckoutForm + dock إرسال ثابت.
+ * — من lg: نفس الغلاف بعرض أوسع؛ النموذج صفّان (حقول | ملخص لاصق) داخل CheckoutForm.
  */
 export default function CheckoutPage() {
   return (
-    <div className="min-h-0 min-w-0 flex-1 bg-page">
+    <div className="min-h-0 min-w-0 flex-1 bg-page max-lg:pb-32">
       <Container className="pt-3 md:pt-4">
         <h1 className="sr-only">إتمام الطلب</h1>
         <CheckoutForm />
