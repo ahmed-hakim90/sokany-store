@@ -1,21 +1,26 @@
 import type { Metadata } from "next";
 import { AboutPageContent } from "@/components/pages/AboutPageContent";
+import { AboutPartnershipJsonLd } from "@/components/seo/AboutPartnershipJsonLd";
 import { BreadcrumbJsonLd } from "@/components/seo/BreadcrumbJsonLd";
-import { SITE_BRAND_TITLE_AR } from "@/lib/constants";
+import { FaqPageJsonLd } from "@/components/seo/FaqPageJsonLd";
+import { getPublicSiteContent } from "@/features/cms/services/getPublicSiteContent";
+import {
+  ABOUT_LANDING_META,
+  aboutLandingFaq,
+  aboutPartnershipJsonLd,
+} from "@/features/about/content/about-landing-content";
 import { getSiteUrl } from "@/lib/site";
 
-const title = `من نحن | ${SITE_BRAND_TITLE_AR}`;
-const description =
-  "أكثر من 10 سنوات من سوكاني في مصر: الجودة، التكنولوجيا، والتصميم — مع مؤسسة المغربي كوكيل حصري، ضمان، صيانة، وتوزيع معتمد.";
+const { title, description, keywords } = ABOUT_LANDING_META;
 
 export const metadata: Metadata = {
-  title,
+  title: { absolute: title },
   description,
+  keywords: [...keywords],
   openGraph: {
     title,
     description,
     url: `${getSiteUrl()}/about`,
-    siteName: SITE_BRAND_TITLE_AR,
     locale: "ar_EG",
     type: "website",
   },
@@ -23,10 +28,25 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
 };
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const { branding } = await getPublicSiteContent();
+
   return (
     <>
-      <BreadcrumbJsonLd items={[{ name: "الرئيسية", href: "/" }, { name: "من نحن" }]} />
+      <BreadcrumbJsonLd
+        items={[
+          { name: "الرئيسية", href: "/" },
+          { name: "من نحن", href: "/about" },
+        ]}
+      />
+      <AboutPartnershipJsonLd
+        distributorName={aboutPartnershipJsonLd.distributorName}
+        brandName={aboutPartnershipJsonLd.brandName}
+        description={aboutPartnershipJsonLd.description}
+        logoUrl={branding.organizationLogoUrl}
+        telephone={branding.supportPhoneDisplay}
+      />
+      <FaqPageJsonLd items={aboutLandingFaq} />
       <AboutPageContent />
     </>
   );

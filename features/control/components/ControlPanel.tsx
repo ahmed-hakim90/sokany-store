@@ -73,9 +73,14 @@ import {
   CMS_DEFAULT_TOP_ANNOUNCEMENT_BAR,
   CMS_DEFAULT_HEADER_CATEGORY_STRIP,
   CMS_DEFAULT_HOME_CATEGORY_SCROLLER,
+  CMS_DEFAULT_PRODUCTS_CATALOG_BANNER,
+  CMS_DEFAULT_STOREFRONT_COUPONS,
+  CMS_DEFAULT_STOREFRONT_PROMO_BAR,
   cmsHomeFeatureVideoSchema,
   cmsProductLandingPageSchema,
   cmsHeaderCategoryStripSchema,
+  cmsProductsCatalogBannerSchema,
+  cmsStorefrontCouponsDocSchema,
   cmsHomeCategoryScrollerSchema,
   cmsHomeHeroDocSchema,
   cmsBranchesDocSchema,
@@ -88,6 +93,9 @@ import {
   AnnouncementBarForm,
   ControlImageUrlField,
   HeaderCategoryStripForm,
+  ProductsCatalogBannerForm,
+  StorefrontCouponsForm,
+  StorefrontPromoBarForm,
   HomeCategoryScrollerForm,
   HeroSlidesForm,
   RetailersForm,
@@ -977,6 +985,8 @@ export function ControlPanel() {
     subline: "",
   };
   const ann = site?.topAnnouncementBar ?? CMS_DEFAULT_TOP_ANNOUNCEMENT_BAR;
+  const promoBar =
+    site?.storefrontPromoBar ?? CMS_DEFAULT_STOREFRONT_PROMO_BAR;
   const homeFeatureVideoParsed = cmsHomeFeatureVideoSchema.safeParse(
     site?.homeFeatureVideo ?? CMS_DEFAULT_HOME_FEATURE_VIDEO,
   );
@@ -989,6 +999,22 @@ export function ControlPanel() {
   const productLandingPage: CmsProductLandingPage = productLandingPageParsed.success
     ? productLandingPageParsed.data
     : CMS_DEFAULT_PRODUCT_LANDING_PAGE;
+
+  const productsCatalogBannerParsed = cmsProductsCatalogBannerSchema.safeParse(
+    (site as { productsCatalogBanner?: unknown } | null)?.productsCatalogBanner ??
+      CMS_DEFAULT_PRODUCTS_CATALOG_BANNER,
+  );
+  const productsCatalogBanner = productsCatalogBannerParsed.success
+    ? productsCatalogBannerParsed.data
+    : CMS_DEFAULT_PRODUCTS_CATALOG_BANNER;
+
+  const storefrontCouponsParsed = cmsStorefrontCouponsDocSchema.safeParse(
+    (site as { storefrontCoupons?: unknown } | null)?.storefrontCoupons ??
+      CMS_DEFAULT_STOREFRONT_COUPONS,
+  );
+  const storefrontCouponsDoc = storefrontCouponsParsed.success
+    ? storefrontCouponsParsed.data
+    : CMS_DEFAULT_STOREFRONT_COUPONS;
 
   const homeHeroParsed = cmsHomeHeroDocSchema.safeParse(bundle.home_hero ?? { slides: [] });
   const homeHero: CmsHomeHeroDoc = homeHeroParsed.success
@@ -1466,6 +1492,27 @@ export function ControlPanel() {
             })()}
             disabled={saving === "site_config"}
             onSave={(doc) => void saveSiteConfig({ headerCategoryStrip: doc })}
+          />
+
+          <ProductsCatalogBannerForm
+            key={JSON.stringify(productsCatalogBanner)}
+            initial={productsCatalogBanner}
+            disabled={saving === "site_config"}
+            onSave={(doc) => void saveSiteConfig({ productsCatalogBanner: doc })}
+          />
+
+          <StorefrontPromoBarForm
+            key={JSON.stringify(promoBar)}
+            initial={promoBar}
+            disabled={saving === "site_config"}
+            onSave={(bar) => void saveSiteConfig({ storefrontPromoBar: bar })}
+          />
+
+          <StorefrontCouponsForm
+            key={JSON.stringify(storefrontCouponsDoc)}
+            initial={storefrontCouponsDoc}
+            disabled={saving === "site_config"}
+            onSave={(doc) => void saveSiteConfig({ storefrontCoupons: doc })}
           />
 
           <section className="rounded-2xl border border-amber-200/80 bg-amber-50/50 p-5">

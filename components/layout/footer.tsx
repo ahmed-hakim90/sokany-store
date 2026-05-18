@@ -67,7 +67,7 @@ const FOOTER_SHOP_LINKS = [
 const FOOTER_CUSTOMER_LINKS = [
   { href: ROUTES.ORDER_TRACKING, label: "تتبع الطلب" },
   { href: ROUTES.RETURNS_POLICY, label: "سياسة الاستبدال والاسترجاع" },
-  { href: ROUTES.WARRANTY, label: "الضمان" },
+  { href: ROUTES.WARRANTY, label: "الضمان وطرق الاستخدام" },
   { href: ROUTES.SERVICE_CENTERS, label: "الصيانة" },
   { href: ROUTES.CONTACT, label: "تواصل معنا" },
 ] as const;
@@ -122,7 +122,7 @@ export function Footer({
 
   return (
     <footer
-      className="mt-auto w-full border-t border-brand-200/70 bg-brand-50"
+      className="mt-auto w-full border-t border-brand-200/70 bg-white/50"
       dir="rtl"
     >
       <Container

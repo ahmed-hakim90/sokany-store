@@ -82,7 +82,7 @@ export default async function WarrantyPostPage({ params }: PageProps) {
       <BreadcrumbJsonLd
         items={[
           { name: "الرئيسية", href: "/" },
-          { name: "طرق الاستخدام", href: "/warranty" },
+          { name: "ضمان سوكاني", href: "/warranty" },
           { name: post.title },
         ]}
       />
@@ -98,7 +98,7 @@ export default async function WarrantyPostPage({ params }: PageProps) {
             href="/warranty"
             className="mb-4 inline-flex text-sm font-medium text-brand-800 underline-offset-2 hover:underline"
           >
-            طرق الاستخدام
+            ضمان سوكاني
           </Link>
           <div className="mt-4 flex flex-wrap items-center gap-2 text-xs font-medium text-muted-foreground sm:text-sm">
             {formattedDate ? (

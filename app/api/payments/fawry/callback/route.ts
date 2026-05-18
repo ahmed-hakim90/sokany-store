@@ -22,7 +22,10 @@ function getParams(req: NextRequest): Record<string, string> {
   return out;
 }
 
-async function handleFawryCallback(params: Record<string, string>) {
+async function handleFawryCallback(
+  params: Record<string, string>,
+  options: { updateWoo: boolean },
+) {
   const config = await resolveFawryConfig();
   if (!config) return { success: false, orderId: null };
 
@@ -34,30 +37,28 @@ async function handleFawryCallback(params: Record<string, string>) {
     signature,
   } = params;
 
-  if (!merchantRefNum || !orderRefNum || !orderStatus) {
+  if (!merchantRefNum || !orderRefNum || !orderStatus || !signature || !config.secureKey) {
     return { success: false, orderId: null };
   }
 
   const orderId = extractOrderIdFromFawryRef(merchantRefNum);
 
-  if (signature && config.secureKey) {
-    const valid = verifyFawryCallbackSignature({
-      merchantRefNum,
-      orderRefNum,
-      paymentAmount: paymentAmount ?? "0",
-      orderStatus,
-      secureKey: config.secureKey,
-      signature,
-    });
-    if (!valid) {
-      console.warn("[fawry/callback] invalid signature", { merchantRefNum });
-      return { success: false, orderId };
-    }
+  const valid = verifyFawryCallbackSignature({
+    merchantRefNum,
+    orderRefNum,
+    paymentAmount: paymentAmount ?? "0",
+    orderStatus,
+    secureKey: config.secureKey,
+    signature,
+  });
+  if (!valid) {
+    console.warn("[fawry/callback] invalid signature", { merchantRefNum });
+    return { success: false, orderId };
   }
 
   const paid = orderStatus === "PAID" || orderStatus === "200";
 
-  if (paid && orderId) {
+  if (options.updateWoo && paid && orderId) {
     try {
       const woo = await createWooClient();
       await woo.put(`/orders/${orderId}`, {
@@ -75,7 +76,7 @@ async function handleFawryCallback(params: Record<string, string>) {
 
 export async function GET(request: NextRequest) {
   const params = getParams(request);
-  const { success, orderId } = await handleFawryCallback(params);
+  const { success, orderId } = await handleFawryCallback(params, { updateWoo: false });
 
   const confirmationPath =
     orderId != null
@@ -88,6 +89,9 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => ({})) as Record<string, string>;
   const params = { ...getParams(request), ...body };
-  const { success, orderId } = await handleFawryCallback(params);
+  const { success, orderId } = await handleFawryCallback(params, { updateWoo: true });
+  if (!success) {
+    return NextResponse.json({ received: false, success, orderId }, { status: 401 });
+  }
   return NextResponse.json({ received: true, success, orderId });
 }

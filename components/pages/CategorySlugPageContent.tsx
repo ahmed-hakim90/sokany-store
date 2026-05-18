@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo } from "react";
-import { useSearchParams } from "next/navigation";
 import { Link } from "next-view-transitions";
 import { useTransitionRouter } from "next-view-transitions";
 import { Button } from "@/components/Button";
@@ -13,12 +12,12 @@ import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 import { DEFAULT_PER_PAGE, ROUTES } from "@/lib/constants";
 import { StorefrontStaleDataNotice } from "@/components/storefront-stale-data-notice";
 import { useCategories } from "@/features/categories/hooks/useCategories";
-import { useProducts } from "@/features/products/hooks/useProducts";
+import { useFlattenedInfiniteProducts } from "@/hooks/useFlattenedInfiniteProducts";
 import {
   getChildCategories,
 } from "@/features/catalog/lib/catalog-category-tree";
 import { CatalogChildCategories } from "@/features/catalog/components/catalog-child-categories";
-import { CatalogPagination } from "@/features/catalog/components/CatalogPagination";
+import { CatalogInfiniteScrollSentinel } from "@/features/catalog/components/catalog-infinite-scroll-sentinel";
 import { HomeCategoryExclusiveBanner } from "@/features/home/components/home-category-exclusive-banner";
 import { ProductGrid } from "@/features/products/components/ProductGrid";
 import { ProductSkeleton } from "@/features/products/components/ProductSkeleton";
@@ -52,42 +51,45 @@ function CategorySlugHeader({
 }
 
 function CategorySlugProductsSection({
-  productsQuery,
+  items,
+  infiniteQuery,
+  responseFromCache,
+  hasNextPage,
+  fetchNextPage,
+  isFetchingNextPage,
   getCartLineQuantity,
   onCartLineQuantityChange,
   router,
-  categorySlug,
-  page,
 }: {
-  productsQuery: ReturnType<typeof useProducts>;
+  items: Product[];
+  infiniteQuery: ReturnType<typeof useFlattenedInfiniteProducts>["infiniteQuery"];
+  responseFromCache: boolean;
+  hasNextPage: boolean;
+  fetchNextPage: () => void;
+  isFetchingNextPage: boolean;
   getCartLineQuantity: (productId: number) => number;
   onCartLineQuantityChange: (product: Product, next: number) => void;
   router: ReturnType<typeof useTransitionRouter>;
-  categorySlug: string;
-  page: number;
 }) {
-  const items = productsQuery.data?.items;
   const { offline } = useNetworkStatus();
-  const fromApiCache = productsQuery.data?.responseSource === "cache-fallback";
-  const hasItems = Boolean(items?.length);
+  const hasItems = items.length > 0;
   const showStaleNotice =
-    (fromApiCache && hasItems) ||
+    (responseFromCache && hasItems) ||
     (offline && hasItems) ||
-    (productsQuery.isError && hasItems);
+    (infiniteQuery.isError && hasItems);
   const staleVariant =
     offline && hasItems ? "offline-cache" : "api-fallback";
-  const fatal = productsQuery.isError && !hasItems;
+  const fatal = infiniteQuery.isError && !hasItems;
   const showRefreshSkeleton =
-    productsQuery.isFetching &&
-    !productsQuery.isPending &&
+    infiniteQuery.isFetching &&
+    !infiniteQuery.isPending &&
     !fatal &&
-    Boolean(items?.length);
-  const totalPages = productsQuery.data?.totalPages ?? 1;
+    hasItems;
 
   return fatal ? (
     <ErrorState
-      message={productsQuery.error.message}
-      onRetry={() => void productsQuery.refetch()}
+      message={infiniteQuery.error?.message ?? "تعذر تحميل المنتجات"}
+      onRetry={() => void infiniteQuery.refetch()}
     />
   ) : (
     <div className="relative space-y-4">
@@ -98,13 +100,13 @@ function CategorySlugProductsSection({
       ) : null}
       <ProductGrid
         status={
-          productsQuery.isPending || showRefreshSkeleton
+          infiniteQuery.isPending || showRefreshSkeleton
             ? "loading"
-            : !items?.length
+            : !items.length
               ? "empty"
               : "ready"
         }
-        products={items ?? []}
+        products={items}
         virtualize="auto"
         getCartLineQuantity={getCartLineQuantity}
         onCartLineQuantityChange={onCartLineQuantityChange}
@@ -123,15 +125,11 @@ function CategorySlugProductsSection({
           />
         }
       />
-      {!productsQuery.isPending && !fatal && items && items.length > 0 ? (
-        <CatalogPagination
-          currentPage={page}
-          totalPages={totalPages}
-          getHref={(p) =>
-            p <= 1
-              ? ROUTES.CATEGORY(categorySlug)
-              : `${ROUTES.CATEGORY(categorySlug)}?page=${p}`
-          }
+      {!infiniteQuery.isPending && !fatal && items.length > 0 ? (
+        <CatalogInfiniteScrollSentinel
+          hasMore={hasNextPage}
+          isLoadingMore={isFetchingNextPage}
+          onLoadMore={fetchNextPage}
         />
       ) : null}
     </div>
@@ -167,16 +165,11 @@ export function CategorySlugPageLoadingFallback() {
  */
 export function CategorySlugPageContent({ slug }: { slug: string }) {
   const router = useTransitionRouter();
-  const searchParams = useSearchParams();
-  const page = useMemo(
-    () => Math.max(1, parseInt(searchParams.get("page") ?? "1", 10) || 1),
-    [searchParams],
-  );
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     window.scrollTo(0, 0);
-  }, [slug, page]);
+  }, [slug]);
 
   const categoriesNav = useCategories({ per_page: 100 });
   const navCategories = categoriesNav.data;
@@ -197,14 +190,13 @@ export function CategorySlugPageContent({ slug }: { slug: string }) {
         ? {
             category: categoryId,
             per_page: DEFAULT_PER_PAGE,
-            page,
             include_children: true,
           }
         : undefined,
-    [categoryId, page],
+    [categoryId],
   );
 
-  const productsQuery = useProducts(productParams, {
+  const catalogInfinite = useFlattenedInfiniteProducts(productParams, {
     enabled: Boolean(categoryId),
   });
   const { getCartLineQuantity, setProductLineQuantity } = useCart();
@@ -265,12 +257,15 @@ export function CategorySlugPageContent({ slug }: { slug: string }) {
       <div className="mt-3 lg:mt-5">
         <ScrollReveal>
           <CategorySlugProductsSection
-            productsQuery={productsQuery}
+            items={catalogInfinite.items}
+            infiniteQuery={catalogInfinite.infiniteQuery}
+            responseFromCache={catalogInfinite.responseFromCache}
+            hasNextPage={catalogInfinite.hasNextPage}
+            fetchNextPage={catalogInfinite.fetchNextPage}
+            isFetchingNextPage={catalogInfinite.isFetchingNextPage}
             getCartLineQuantity={getCartLineQuantity}
             onCartLineQuantityChange={setProductLineQuantity}
             router={router}
-            categorySlug={slug}
-            page={page}
           />
         </ScrollReveal>
       </div>

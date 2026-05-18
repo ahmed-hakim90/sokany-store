@@ -13,7 +13,7 @@ export type MobileTopHeaderProps = {
   trailing: React.ReactNode;
   /** Inline-start control (search icon, back arrow, etc.). */
   leading: React.ReactNode;
-  /** صف كامل تحت صف الشعار: بحث + شريط التصنيفات — يبقى عند سكرول الإخفاء. */
+  /** صف كامل تحت صف الشعار: اختصارات أفقية — يبقى عند سكرول الإخفاء. */
   toolbarBelow?: React.ReactNode;
   /**
    * مع `toolbarBelow`: `true` يطوي صف الشعار فقط (سكرول للأسفل).
@@ -31,7 +31,7 @@ const whiteShellHPad =
 /*
  * موبايل (< lg): `safe-area-inset-top` على `SiteShell` — غلاف ‎`TopHeader` موبايل **بدون** خلفية.
  * السطح: ‎`mobileTopHeaderGlassSurfaceClass`‎ (أبيض) / ‎`…CollapsedClass`‎ (ليم عند ‎`topRowHidden`‎) — مثل ‎`MobileCartBottomSheet` + peek.
- * `topRowHidden` + `toolbarBelow`: ينهار صف الشعار فقط؛ البحث والتصنيفات يبقون.
+ * `topRowHidden` + `toolbarBelow`: ينهار صف الشعار فقط؛ شرائح الاختصارات تبقى.
  * صف الشعار: شبكة ‎`auto` | ‎`1fr` | ‎`auto`‎ + حواف داخليّة (بدل هوامس سالبة) وتغليف منفصل بـ
  * ‎`overflow-hidden`‎ لطي الصف فقط. الغلاف الزجاجي الخارجي بلا ‎`overflow-hidden`‎ حتى لا تُقصّ لوحات اقتراحات البحث.
  */
@@ -47,7 +47,7 @@ export function MobileTopHeader({
   const logoRow = (
     <div
       className={cn(
-        "grid w-full min-h-[3.5rem] grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-1.5 px-0.5 min-[400px]:gap-x-2",
+        "grid w-full min-h-[4rem] grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-1.5 px-0.5 min-[400px]:gap-x-2",
       )}
     >
       <div className="flex min-w-0 shrink-0 items-center justify-self-start">
@@ -76,7 +76,7 @@ export function MobileTopHeader({
               "overflow-hidden transition-[max-height] duration-300 ease-out motion-reduce:transition-none",
               topRowHidden
                 ? "pointer-events-none max-h-0"
-                : "max-h-[8rem]",
+                : "max-h-[5.5rem]",
             )}
           >
             {/*

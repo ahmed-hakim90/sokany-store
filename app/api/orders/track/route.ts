@@ -3,7 +3,6 @@
  * بالعامية: البحث برقم/مفتاح مع دعم mock ووسم كاش للطلبات؛ بيحوّل حالة Woo لخطوات عرض للمتسوق.
  */
 import { NextRequest, NextResponse } from "next/server";
-import axios from "axios";
 import { unstable_cache } from "next/cache";
 import { wcStatusToTracking } from "@/features/order-tracking/wc-status-to-tracking";
 import { createWooClient } from "@/lib/create-woo-client";
@@ -13,11 +12,16 @@ import { normalizeDigits } from "@/lib/phone-digits";
 import { toAbsoluteSiteUrl } from "@/lib/site";
 import { parsePrice } from "@/lib/utils";
 import { WOO_CACHE_TAG_ORDERS } from "@/lib/woocommerce-cache-tags";
+import { enforceOrderTrackingRateLimit } from "@/lib/public-api-rate-limit";
+import {
+  fetchAndVerifyGuestOrder,
+  GuestOrderAccessError,
+  type WCOrderParsed,
+} from "@/features/orders/lib/guest-order-server";
 import {
   trackOrderResponseSchema,
   type TrackOrderResponse,
 } from "@/schemas/order-tracking";
-import { wpOrderSchema, wpOrdersSchema } from "@/schemas/wordpress";
 
 const PLACEHOLDER_PATH = "/images/placeholder.png";
 
@@ -84,29 +88,6 @@ function mockResponse(q: string): TrackOrderResponse {
     },
     source: "mock",
   };
-}
-
-async function fetchOrderById(
-  woo: Awaited<ReturnType<typeof createWooClient>>,
-  id: number,
-) {
-  try {
-    const res = await woo.get(`/orders/${id}`);
-    return wpOrderSchema.parse(res.data);
-  } catch (e) {
-    if (axios.isAxiosError(e) && e.response?.status === 404) return null;
-    throw e;
-  }
-}
-
-function phonesMatch(a: string, b: string): boolean {
-  if (!a || !b) return false;
-  if (a === b) return true;
-  const tail = (x: string, n: number) => x.slice(-Math.min(n, x.length));
-  if (a.length >= 9 && b.length >= 9 && tail(a, 9) === tail(b, 9)) return true;
-  if (a.length >= 10 && b.length >= 10 && tail(a, 10) === tail(b, 10))
-    return true;
-  return false;
 }
 
 function asRecord(value: unknown): Record<string, unknown> | null {
@@ -208,37 +189,10 @@ function extractCarrier(meta: Array<{ key: string; value: unknown }> | null | un
   };
 }
 
-async function findOrderByPhone(
-  woo: Awaited<ReturnType<typeof createWooClient>>,
-  digits: string,
-) {
-  if (digits.length < 8) return null;
-  const searches = [digits, digits.slice(-10), digits.slice(-9)].filter(
-    (s, i, arr) => s.length >= 4 && arr.indexOf(s) === i,
-  );
-
-  for (const search of searches) {
-    const res = await woo.get("/orders", {
-      params: {
-        search,
-        per_page: 50,
-        orderby: "date",
-        order: "desc",
-      },
-    });
-    const parsed = wpOrdersSchema.safeParse(res.data);
-    if (!parsed.success) continue;
-    for (const order of parsed.data) {
-      const phone = normalizeDigits(order.billing.phone ?? "");
-      if (phonesMatch(phone, digits)) {
-        return order;
-      }
-    }
-  }
-  return null;
-}
-
-async function trackOrderUncached(qRaw: string): Promise<TrackOrderResponse> {
+async function trackOrderUncached(
+  qRaw: string,
+  orderKeyRaw: string,
+): Promise<TrackOrderResponse> {
   if (USE_MOCK) {
     return trackOrderResponseSchema.parse(mockResponse(qRaw));
   }
@@ -249,8 +203,9 @@ async function trackOrderUncached(qRaw: string): Promise<TrackOrderResponse> {
 
   const woo = await createWooClient();
   const digits = normalizeDigits(qRaw);
+  const orderKey = orderKeyRaw.trim();
 
-  let order: Awaited<ReturnType<typeof fetchOrderById>> = null;
+  let order: WCOrderParsed | null = null;
 
   const tryOrderId =
     /^\d+$/.test(digits) &&
@@ -258,12 +213,15 @@ async function trackOrderUncached(qRaw: string): Promise<TrackOrderResponse> {
     digits.length <= 9 &&
     !digits.startsWith("0");
 
-  if (tryOrderId) {
-    order = await fetchOrderById(woo, parseInt(digits, 10));
-  }
-
-  if (!order && digits.length >= 8) {
-    order = await findOrderByPhone(woo, digits);
+  if (tryOrderId && orderKey) {
+    try {
+      order = await fetchAndVerifyGuestOrder(woo, parseInt(digits, 10), orderKey);
+    } catch (e) {
+      if (e instanceof GuestOrderAccessError) {
+        return trackOrderResponseSchema.parse({ found: false });
+      }
+      throw e;
+    }
   }
 
   if (!order) {
@@ -320,19 +278,23 @@ async function trackOrderUncached(qRaw: string): Promise<TrackOrderResponse> {
 }
 
 const trackOrderCached = unstable_cache(
-  async (qRaw: string) => trackOrderUncached(qRaw),
+  async (qRaw: string, orderKey: string) => trackOrderUncached(qRaw, orderKey),
   ["woo-order-tracking-v2"],
   { revalidate: 300, tags: [WOO_CACHE_TAG_ORDERS] },
 );
 
 export async function GET(request: NextRequest) {
+  const limited = enforceOrderTrackingRateLimit(request);
+  if (limited) return limited;
+
   const qRaw = request.nextUrl.searchParams.get("q")?.trim() ?? "";
+  const orderKey = request.nextUrl.searchParams.get("k")?.trim() ?? "";
   if (qRaw.length < 2 || qRaw.length > 80) {
     return NextResponse.json({ error: "Invalid query" }, { status: 400 });
   }
 
   try {
-    const body = await trackOrderCached(qRaw);
+    const body = await trackOrderCached(qRaw, orderKey);
     return NextResponse.json(body);
   } catch (e) {
     console.error(e);

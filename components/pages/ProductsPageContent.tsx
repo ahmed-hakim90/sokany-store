@@ -1,13 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { Container } from "@/components/Container";
 import { ScrollReveal } from "@/components/ScrollReveal";
 import { ErrorState } from "@/components/ErrorState";
 import { useCart } from "@/hooks/useCart";
 import { useProductsCatalog } from "@/hooks/useProductsCatalog";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
-import { ROUTES } from "@/lib/constants";
 import { StorefrontStaleDataNotice } from "@/components/storefront-stale-data-notice";
 import { focusProductSearchHeaderInput } from "@/lib/product-search-header";
 import {
@@ -17,7 +16,7 @@ import {
   getTopLevelCategories,
 } from "@/features/catalog/lib/catalog-category-tree";
 import { CatalogBreadcrumb } from "@/features/catalog/components/catalog-breadcrumb";
-import { CatalogCategoryDiscovery } from "@/features/catalog/components/catalog-category-discovery";
+import { CatalogCategoryTiles } from "@/features/catalog/components/catalog-category-tiles";
 import { CatalogChildCategories } from "@/features/catalog/components/catalog-child-categories";
 import { CatalogEmptyStates } from "@/features/catalog/components/catalog-empty-states";
 import { CatalogListingLayout } from "@/features/catalog/components/catalog-listing-layout";
@@ -26,19 +25,25 @@ import {
   CatalogDiscoverySkeleton,
   CatalogSidebarSkeleton,
 } from "@/features/catalog/components/catalog-page-skeletons";
-import { CatalogPagination } from "@/features/catalog/components/CatalogPagination";
+import { CatalogInfiniteScrollSentinel } from "@/features/catalog/components/catalog-infinite-scroll-sentinel";
 import { CatalogStoreBanner } from "@/features/catalog/components/catalog-store-banner";
 import { CategorySidebar } from "@/features/categories/components/CategorySidebar";
 import { useCategories } from "@/features/categories/hooks/useCategories";
 import { ProductGrid } from "@/features/products/components/ProductGrid";
+import { StorefrontCouponsStrip } from "@/features/promotions/components/storefront-coupons-strip";
+import type { CmsProductsCatalogBanner } from "@/schemas/cms";
 
 /*
  * صفحة الكتالوج (/products):
- * — الجوال (< lg): رأس هيرو (عنوان + عدد + ترتيب) → سكة لاصقة (دوائر) → بانر → شبكة؛ الفلتر من أيقونة الهيدر + درج التصفية.
- * — ديسكتوب (lg+): رأس هيرو مع ترتيب في الصف نفسه → مسار → بانر | عمود شجرة + فلتر | شبكة 3–5 أعمدة.
+ * — الجوال (< lg): رأس هيرو → سكة بلاطات فئات (نفس About/التصنيفات) → بانر → شبكة؛ التمرير للأسفل يحمّل الصفحة التالية تلقائياً.
+ * — ديسكتوب (lg+): رأس + مسار → بانر | شجرة تصنيفات + فلتر | شبكة 3–5 أعمدة مع نفس التحميل التلقائي.
  * ?category= يحدّد التصنيف النشط دون تغيير المسار.
  */
-export function ProductsPageContent() {
+export function ProductsPageContent({
+  catalogBanner,
+}: {
+  catalogBanner: CmsProductsCatalogBanner;
+}) {
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (window.location.hash !== "#catalog-search") return;
@@ -49,7 +54,11 @@ export function ProductsPageContent() {
   }, []);
 
   const {
-    productsQuery,
+    productsInfiniteQuery,
+    catalogItems,
+    hasNextCatalogPage,
+    fetchNextCatalogPage,
+    isFetchingNextCatalogPage,
     searchParams,
     catalogParams,
     activeCategoryId,
@@ -96,35 +105,33 @@ export function ProductsPageContent() {
 
   const pageTitle = selectedCategory?.name ?? "كل المنتجات";
 
+  const catalogScrollKey = useMemo(() => {
+    const sp = new URLSearchParams(searchParams.toString());
+    sp.delete("page");
+    return sp.toString();
+  }, [searchParams]);
+
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, [searchParams]);
+  }, [catalogScrollKey]);
 
   const { getCartLineQuantity, setProductLineQuantity } = useCart();
 
-  const getPageHref = useCallback(
-    (page: number) => {
-      const sp = new URLSearchParams(searchParams.toString());
-      if (page <= 1) sp.delete("page");
-      else sp.set("page", String(page));
-      const q = sp.toString();
-      return q ? `${ROUTES.PRODUCTS}?${q}` : ROUTES.PRODUCTS;
-    },
-    [searchParams],
-  );
-
-  const pagedItems = productsQuery.data?.items ?? [];
-  const totalPages = productsQuery.data?.totalPages ?? 1;
-  const currentCatalogPage = catalogParams.page ?? 1;
-  const fromApiCache = productsQuery.data?.responseSource === "cache-fallback";
+  const pagedItems = catalogItems;
+  const fromApiCache =
+    productsInfiniteQuery.data?.pages.some(
+      (page) => page.responseSource === "cache-fallback",
+    ) ?? false;
   const showStaleNotice =
     (fromApiCache && pagedItems.length > 0) ||
     (offline && pagedItems.length > 0) ||
-    (productsQuery.isError && pagedItems.length > 0);
+    (productsInfiniteQuery.isError && pagedItems.length > 0);
   const staleVariant =
     offline && pagedItems.length > 0 ? "offline-cache" : "api-fallback";
-  const catalogFatalError = productsQuery.isError && pagedItems.length === 0;
-  const isLoadingGrid = productsQuery.isPending && pagedItems.length === 0;
+  const catalogFatalError =
+    productsInfiniteQuery.isError && pagedItems.length === 0;
+  const isLoadingGrid =
+    productsInfiniteQuery.isPending && pagedItems.length === 0;
   const emptyVariant =
     selectedCategory &&
     !catalogParams.search &&
@@ -136,8 +143,8 @@ export function ProductsPageContent() {
 
   const catalogGrid = catalogFatalError ? (
     <ErrorState
-      message={productsQuery.error.message}
-      onRetry={() => void productsQuery.refetch()}
+      message={productsInfiniteQuery.error?.message ?? "تعذر تحميل المنتجات"}
+      onRetry={() => void productsInfiniteQuery.refetch()}
     />
   ) : (
     <>
@@ -165,10 +172,10 @@ export function ProductsPageContent() {
         }
       />
       {!isLoadingGrid && !catalogFatalError && pagedItems.length > 0 ? (
-        <CatalogPagination
-          currentPage={currentCatalogPage}
-          totalPages={totalPages}
-          getHref={getPageHref}
+        <CatalogInfiniteScrollSentinel
+          hasMore={hasNextCatalogPage}
+          isLoadingMore={isFetchingNextCatalogPage}
+          onLoadMore={fetchNextCatalogPage}
         />
       ) : null}
     </>
@@ -187,32 +194,31 @@ export function ProductsPageContent() {
         activeCategoryId={activeCategoryId ?? null}
         allProductsActive={false}
       />
-    ) : productNavCategories.length > 0 ? (
-      <CatalogCategoryDiscovery
-        categories={productNavCategories}
+    ) : (
+      <CatalogCategoryTiles
         activeCategoryId={activeCategoryId ?? null}
         allProductsActive={allActive}
-        variant="visual"
       />
-    ) : null;
+    );
 
   return (
     <div className="flex min-h-0 min-w-0 flex-1 flex-col">
       <Container className="flex min-h-0 flex-1 flex-col sm:px-2 lg:px-8 lg:pb-10 lg:pt-2">
         <CatalogListingLayout
           header={
-            <CatalogPageHeader
-              title={pageTitle}
-              totalCount={productsQuery.data?.total ?? null}
-            />
+            <CatalogPageHeader title={pageTitle} />
           }
           breadcrumb={
             <CatalogBreadcrumb categoryName={selectedCategory?.name ?? null} />
           }
           mobileDiscovery={discoveryRail}
           banner={
-            <ScrollReveal>
-              <CatalogStoreBanner selectedCategory={selectedCategory} />
+            <ScrollReveal className="space-y-3">
+              <CatalogStoreBanner
+                selectedCategory={selectedCategory}
+                catalogBanner={catalogBanner}
+              />
+              <StorefrontCouponsStrip className="hidden lg:block" />
             </ScrollReveal>
           }
           childCategories={

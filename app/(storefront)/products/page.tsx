@@ -3,6 +3,7 @@ import { connection } from "next/server";
 import { Suspense } from "react";
 import { ProductsCatalogSkeleton } from "@/components/pages/ProductsCatalogSkeleton";
 import { ProductsPageContent } from "@/components/pages/ProductsPageContent";
+import { getPublicSiteContent } from "@/features/cms/services/getPublicSiteContent";
 import { SITE_BRAND_TITLE_AR } from "@/lib/constants";
 import { getSiteUrl } from "@/lib/site";
 
@@ -34,10 +35,11 @@ export const metadata: Metadata = {
 
 export default async function ProductsPage() {
   await connection();
+  const { productsCatalogBanner } = await getPublicSiteContent();
 
   return (
     <Suspense fallback={<ProductsCatalogSkeleton />}>
-      <ProductsPageContent />
+      <ProductsPageContent catalogBanner={productsCatalogBanner} />
     </Suspense>
   );
 }

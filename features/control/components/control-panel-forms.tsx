@@ -12,23 +12,33 @@ import { SOCIAL_ICON_PRESETS, isKnownSocialIconKey } from "@/lib/social-icon-pre
 import { SOCIAL_LINKS, type SocialLink } from "@/lib/social-links";
 import type {
   CmsHeaderCategoryStrip,
+  CmsProductsCatalogBanner,
+  CmsStorefrontCoupon,
+  CmsStorefrontCouponsDoc,
   CmsHomeCategoryScroller,
   CmsHomeHeroDoc,
   CmsHomeSpotlightPlacement,
   CmsRetailersDoc,
   CmsSectionBannersDoc,
   CmsSpotlightsDoc,
+  CmsStorefrontPromoBar,
   CmsTopAnnouncementBar,
 } from "@/schemas/cms";
 import {
   CMS_DEFAULT_HOME_SPOTLIGHT_PLACEMENT,
+  CMS_DEFAULT_PRODUCTS_CATALOG_BANNER,
+  CMS_DEFAULT_STOREFRONT_COUPONS,
   cmsHeaderCategoryStripSchema,
+  cmsProductsCatalogBannerSchema,
+  cmsStorefrontCouponsDocSchema,
   cmsHomeCategoryScrollerSchema,
   cmsRetailersDocSchema,
   cmsSectionBannersDocSchema,
   cmsSocialLinkSchema,
   cmsSpotlightsDocSchema,
+  cmsStorefrontPromoBarSchema,
   cmsTopAnnouncementBarSchema,
+  CMS_DEFAULT_STOREFRONT_PROMO_BAR,
 } from "@/schemas/cms";
 import { z } from "zod";
 
@@ -1556,6 +1566,406 @@ export function HeaderCategoryStripForm({
         </Button>
         <Button type="button" disabled={disabled} onClick={() => void handleSave()}>
           {disabled ? "جاري الحفظ…" : "حفظ شريط الأيقونات"}
+        </Button>
+      </div>
+    </section>
+  );
+}
+
+export function ProductsCatalogBannerForm({
+  initial,
+  disabled,
+  onSave,
+}: {
+  initial: CmsProductsCatalogBanner;
+  disabled: boolean;
+  onSave: (doc: CmsProductsCatalogBanner) => void;
+}) {
+  const [enabled, setEnabled] = useState(initial.enabled);
+  const [imageUrl, setImageUrl] = useState(initial.imageUrl);
+  const [eyebrow, setEyebrow] = useState(initial.eyebrow ?? "");
+  const [title, setTitle] = useState(initial.title);
+  const [description, setDescription] = useState(initial.description ?? "");
+  const [href, setHref] = useState(initial.href ?? "");
+
+  useEffect(() => {
+    setEnabled(initial.enabled);
+    setImageUrl(initial.imageUrl);
+    setEyebrow(initial.eyebrow ?? "");
+    setTitle(initial.title);
+    setDescription(initial.description ?? "");
+    setHref(initial.href ?? "");
+  }, [initial]);
+
+  function handleSave() {
+    const doc: CmsProductsCatalogBanner = {
+      enabled,
+      imageUrl: imageUrl.trim(),
+      eyebrow: eyebrow.trim() || undefined,
+      title: title.trim(),
+      description: description.trim() || undefined,
+      href: href.trim() || undefined,
+    };
+    const parsed = cmsProductsCatalogBannerSchema.safeParse(doc);
+    if (!parsed.success) {
+      toast.error(parsed.error.issues.map((i) => i.message).join(" — "));
+      return;
+    }
+    onSave(parsed.data);
+  }
+
+  return (
+    <section className="space-y-4 rounded-2xl border border-border bg-white p-5 shadow-sm">
+      <div>
+        <h2 className="font-display text-lg font-bold">بانر صفحة المنتجات</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          يظهر في كتالوج المنتجات (/products) عندما لا يكون هناك تصنيف محدّد في الرابط. عند اختيار
+          تصنيف يُعرض بانر التصنيف من ووكومرس بدلاً منه.
+        </p>
+      </div>
+      <label className="flex items-center gap-2">
+        <input
+          type="checkbox"
+          checked={enabled}
+          disabled={disabled}
+          onChange={(e) => setEnabled(e.target.checked)}
+        />
+        <span className="text-sm font-medium">إظهار البانر</span>
+      </label>
+      <ManagedImageUploadField
+        label="صورة البانر"
+        value={imageUrl}
+        onChange={setImageUrl}
+        disabled={disabled}
+        placeholder="/images/banner-section/01-kitchen.jpeg"
+        helper="الصورة العريضة فوق شبكة المنتجات — يُفضّل نسبة قريبة من 16:5."
+        buttonLabel="رفع صورة البانر"
+        previewClassName="max-h-32 w-full max-w-md"
+        previewImageClassName="h-24 w-full object-cover"
+      />
+      <div>
+        <label className="text-sm font-medium">سطر علوي صغير (اختياري)</label>
+        <ControlFieldHelp>مثل: «أجهزة منزلية أصلية» — يظهر فوق العنوان الرئيسي.</ControlFieldHelp>
+        <input
+          value={eyebrow}
+          onChange={(e) => setEyebrow(e.target.value)}
+          disabled={disabled}
+          className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm"
+          placeholder="أجهزة منزلية أصلية"
+        />
+      </div>
+      <div>
+        <label className="text-sm font-medium">العنوان الرئيسي</label>
+        <input
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          disabled={disabled}
+          required
+          className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm"
+          placeholder="اكتشف تشكيلة سوكاني الكاملة"
+        />
+      </div>
+      <div>
+        <label className="text-sm font-medium">الوصف (اختياري)</label>
+        <textarea
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          disabled={disabled}
+          rows={3}
+          className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm"
+          placeholder="مطبخ، عناية شخصية، وتنظيف — …"
+        />
+      </div>
+      <div>
+        <label className="text-sm font-medium">رابط عند النقر (اختياري)</label>
+        <ControlFieldHelp>اتركه فارغاً إن كان البانر للعرض فقط.</ControlFieldHelp>
+        <input
+          value={href}
+          onChange={(e) => setHref(e.target.value)}
+          disabled={disabled}
+          dir="ltr"
+          className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm"
+          placeholder="/offers أو https://..."
+        />
+      </div>
+      <div className="flex flex-wrap gap-2">
+        <Button type="button" disabled={disabled} onClick={() => void handleSave()}>
+          {disabled ? "جاري الحفظ…" : "حفظ بانر المنتجات"}
+        </Button>
+        <Button
+          type="button"
+          variant="secondary"
+          disabled={disabled}
+          onClick={() => {
+            const d = CMS_DEFAULT_PRODUCTS_CATALOG_BANNER;
+            setEnabled(d.enabled);
+            setImageUrl(d.imageUrl);
+            setEyebrow(d.eyebrow ?? "");
+            setTitle(d.title);
+            setDescription(d.description ?? "");
+            setHref(d.href ?? "");
+            onSave(d);
+          }}
+        >
+          استعادة الافتراضي
+        </Button>
+      </div>
+    </section>
+  );
+}
+
+function newCouponId() {
+  return `coupon-${Date.now().toString(36)}`;
+}
+
+export function StorefrontPromoBarForm({
+  initial,
+  disabled,
+  onSave,
+}: {
+  initial: CmsStorefrontPromoBar;
+  disabled: boolean;
+  onSave: (bar: CmsStorefrontPromoBar) => void;
+}) {
+  const [enabled, setEnabled] = useState(initial.enabled);
+
+  useEffect(() => {
+    setEnabled(initial.enabled);
+  }, [initial.enabled]);
+
+  function handleSave() {
+    const parsed = cmsStorefrontPromoBarSchema.safeParse({ enabled });
+    if (!parsed.success) {
+      toast.error(parsed.error.issues.map((x) => x.message).join(" — "));
+      return;
+    }
+    onSave(parsed.data);
+  }
+
+  return (
+    <section className="space-y-4 rounded-2xl border border-border bg-white p-5 shadow-sm">
+      <h2 className="font-display text-lg font-bold">شريط الكوبون العلوي (ليموني)</h2>
+      <p className="text-sm text-muted-foreground">
+        يظهر أعلى الموقع على كل الصفحات (فوق الهيدر). الضغط ينسخ الكود ويخفي الشريط للزائر.
+        فعّل الكوبونات أدناه وحدّد «يظهر في الشريط الليموني» لكل كوبون.
+      </p>
+      <label className="flex items-center gap-2">
+        <input
+          type="checkbox"
+          checked={enabled}
+          disabled={disabled}
+          onChange={(e) => setEnabled(e.target.checked)}
+        />
+        <span className="text-sm font-medium">إظهار شريط الكوبون في واجهة المتجر</span>
+      </label>
+      <div className="flex flex-wrap gap-2">
+        <Button type="button" disabled={disabled} onClick={() => void handleSave()}>
+          {disabled ? "جاري الحفظ…" : "حفظ شريط الكوبون"}
+        </Button>
+        <Button
+          type="button"
+          variant="secondary"
+          disabled={disabled}
+          onClick={() => onSave(CMS_DEFAULT_STOREFRONT_PROMO_BAR)}
+        >
+          إيقاف الشريط (افتراضي)
+        </Button>
+      </div>
+    </section>
+  );
+}
+
+export function StorefrontCouponsForm({
+  initial,
+  disabled,
+  onSave,
+}: {
+  initial: CmsStorefrontCouponsDoc;
+  disabled: boolean;
+  onSave: (doc: CmsStorefrontCouponsDoc) => void;
+}) {
+  const [rows, setRows] = useState<CmsStorefrontCoupon[]>(() =>
+    initial.coupons.length > 0 ? initial.coupons.map((c) => ({ ...c })) : CMS_DEFAULT_STOREFRONT_COUPONS.coupons,
+  );
+
+  useEffect(() => {
+    setRows(
+      initial.coupons.length > 0
+        ? initial.coupons.map((c) => ({ ...c }))
+        : CMS_DEFAULT_STOREFRONT_COUPONS.coupons,
+    );
+  }, [initial]);
+
+  function updateRow(i: number, patch: Partial<CmsStorefrontCoupon>) {
+    setRows((prev) => {
+      const next = [...prev];
+      next[i] = { ...next[i]!, ...patch };
+      return next;
+    });
+  }
+
+  function addRow() {
+    setRows((prev) => [
+      ...prev,
+      {
+        id: newCouponId(),
+        enabled: true,
+        showInAnnouncementBar: false,
+        showInPromoBar: false,
+        headline: "",
+        code: "",
+        order: prev.length,
+      },
+    ]);
+  }
+
+  function removeRow(i: number) {
+    setRows((prev) => (prev.length <= 1 ? prev : prev.filter((_, j) => j !== i)));
+  }
+
+  function handleSave() {
+    const doc: CmsStorefrontCouponsDoc = {
+      coupons: rows.map((r, index) => ({
+        ...r,
+        headline: r.headline.trim(),
+        code: r.code.trim().toUpperCase(),
+        subline: r.subline?.trim() || undefined,
+        order: r.order ?? index,
+      })),
+    };
+    const parsed = cmsStorefrontCouponsDocSchema.safeParse(doc);
+    if (!parsed.success) {
+      toast.error(parsed.error.issues.map((i) => i.message).join(" — "));
+      return;
+    }
+    onSave(parsed.data);
+  }
+
+  return (
+    <section className="space-y-4 rounded-2xl border border-border bg-white p-5 shadow-sm">
+      <div>
+        <h2 className="font-display text-lg font-bold">أكواد الخصم (كوبونات)</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          تظهر في صفحة المنتجات (/products). يمكن إظهار كل كوبون في الشريط الليموني العلوي أو
+          شريط الإعلانات النصي (عند تفعيل كل منهما من لوحة التحكم). الضغط ينسخ الرمز للحافظة.
+        </p>
+      </div>
+
+      <ul className="space-y-4">
+        {rows.map((row, i) => (
+          <li
+            key={row.id}
+            className="space-y-3 rounded-xl border border-border/80 bg-surface-muted/15 p-4"
+          >
+            <div className="flex flex-wrap items-center gap-4">
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={row.enabled}
+                  disabled={disabled}
+                  onChange={(e) => updateRow(i, { enabled: e.target.checked })}
+                />
+                <span className="text-sm font-medium">مفعّل في المتجر</span>
+              </label>
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={row.showInPromoBar}
+                  disabled={disabled}
+                  onChange={(e) =>
+                    updateRow(i, { showInPromoBar: e.target.checked })
+                  }
+                />
+                <span className="text-sm font-medium">يظهر في الشريط الليموني</span>
+              </label>
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={row.showInAnnouncementBar}
+                  disabled={disabled}
+                  onChange={(e) =>
+                    updateRow(i, { showInAnnouncementBar: e.target.checked })
+                  }
+                />
+                <span className="text-sm font-medium">يظهر في شريط الإعلانات</span>
+              </label>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="ms-auto text-red-600"
+                disabled={disabled || rows.length <= 1}
+                onClick={() => removeRow(i)}
+              >
+                حذف
+              </Button>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="sm:col-span-2">
+                <label className="text-sm font-medium">نص العرض</label>
+                <ControlFieldHelp>مثل: خصم 10% على أول طلب</ControlFieldHelp>
+                <input
+                  value={row.headline}
+                  onChange={(e) => updateRow(i, { headline: e.target.value })}
+                  disabled={disabled}
+                  className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">رمز الكوبون</label>
+                <input
+                  value={row.code}
+                  onChange={(e) => updateRow(i, { code: e.target.value.toUpperCase() })}
+                  disabled={disabled}
+                  dir="ltr"
+                  className="mt-1 w-full rounded-lg border border-border px-3 py-2 font-mono text-sm"
+                  placeholder="SOKANY10"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">ترتيب العرض</label>
+                <input
+                  type="number"
+                  min={0}
+                  max={999}
+                  value={row.order ?? i}
+                  onChange={(e) =>
+                    updateRow(i, { order: Number.parseInt(e.target.value, 10) || 0 })
+                  }
+                  disabled={disabled}
+                  className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm"
+                />
+              </div>
+              <div className="sm:col-span-2">
+                <label className="text-sm font-medium">نص إضافي (اختياري)</label>
+                <input
+                  value={row.subline ?? ""}
+                  onChange={(e) => updateRow(i, { subline: e.target.value })}
+                  disabled={disabled}
+                  className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm"
+                />
+              </div>
+            </div>
+          </li>
+        ))}
+      </ul>
+
+      <div className="flex flex-wrap gap-2">
+        <Button type="button" variant="secondary" disabled={disabled} onClick={addRow}>
+          + إضافة كوبون
+        </Button>
+        <Button type="button" disabled={disabled} onClick={() => void handleSave()}>
+          {disabled ? "جاري الحفظ…" : "حفظ الكوبونات"}
+        </Button>
+        <Button
+          type="button"
+          variant="secondary"
+          disabled={disabled}
+          onClick={() => {
+            onSave(CMS_DEFAULT_STOREFRONT_COUPONS);
+          }}
+        >
+          استعادة الافتراضي
         </Button>
       </div>
     </section>

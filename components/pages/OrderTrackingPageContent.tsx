@@ -130,6 +130,7 @@ export function OrderTrackingPageContent() {
   const searchParams = useSearchParams();
   const router = useTransitionRouter();
   const qRaw = searchParams.get("q")?.trim() ?? "";
+  const orderKeyRaw = searchParams.get("k")?.trim() ?? "";
   const [lookupInput, setLookupInput] = useState(qRaw);
   const { getCartLineQuantity, setProductLineQuantity, replaceAllItems } = useCart();
 
@@ -140,8 +141,8 @@ export function OrderTrackingPageContent() {
   }, [lookupInput, router]);
 
   const trackQuery = useQuery({
-    queryKey: ["track-order", qRaw],
-    queryFn: () => trackOrder(qRaw),
+    queryKey: ["track-order", qRaw, orderKeyRaw],
+    queryFn: () => trackOrder(qRaw, orderKeyRaw),
     enabled: qRaw.length >= 2,
     staleTime: STALE_TIME.MEDIUM,
     refetchInterval: (query) => {

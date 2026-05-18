@@ -61,7 +61,7 @@ export function TopHeader({
         />
       </div>
 
-      <div className="mx-auto hidden min-h-[3.5rem] min-w-0 max-w-none items-center gap-3 px-4 py-2 sm:gap-4 sm:px-6 lg:flex lg:gap-5 lg:px-8">
+      <div className="mx-auto hidden min-h-[4rem] min-w-0 max-w-none items-center gap-3 px-4 py-2 sm:gap-4 sm:px-6 lg:flex lg:gap-5 lg:px-8">
         <div className="flex min-w-0 shrink-0 items-center gap-2">{logo}</div>
         {center ? (
           <div className="mx-auto min-w-0 w-full max-w-md flex-1 px-2 lg:max-w-2xl xl:max-w-3xl">

@@ -1,102 +1,63 @@
-import { AboutAfterSalesSection } from "@/features/about/components/about-after-sales-section";
-import { AboutDarkMediaCard } from "@/features/about/components/about-dark-media-card";
-import { AboutEditorialHero } from "@/features/about/components/about-editorial-hero";
-import { AboutLimeStatRibbon } from "@/features/about/components/about-lime-stat-ribbon";
-import { AboutQuoteBlock } from "@/features/about/components/about-quote-block";
-import { AboutServiceShowcaseCard } from "@/features/about/components/about-service-showcase-card";
-import { AboutStoryboardSection } from "@/features/about/components/about-storyboard-section";
-import { AboutTrustQualityCard } from "@/features/about/components/about-trust-quality-card";
-import { AboutValueFeatureBlock } from "@/features/about/components/about-value-feature-block";
-import { AboutStoryBlock } from "@/features/about/components/AboutStoryBlock";
-import { aboutContent } from "@/features/about/content";
-import { Container } from "@/components/Container";
 import { ScrollReveal } from "@/components/ScrollReveal";
+import { Container } from "@/components/Container";
+import { AboutLandingCategories } from "@/features/about/components/landing/about-landing-categories";
+import { AboutLandingFaq } from "@/features/about/components/landing/about-landing-faq";
+import { AboutLandingFinalCta } from "@/features/about/components/landing/about-landing-final-cta";
+import { AboutLandingHero } from "@/features/about/components/landing/about-landing-hero";
+import { AboutLandingServiceNetwork } from "@/features/about/components/landing/about-landing-service-network";
+import { AboutLandingStatsBar } from "@/features/about/components/landing/about-landing-stats-bar";
+import { AboutLandingStory } from "@/features/about/components/landing/about-landing-story";
+import { AboutLandingTrustBlock } from "@/features/about/components/landing/about-landing-trust-block";
+import { AboutLandingWhoWeAre } from "@/features/about/components/landing/about-landing-who-we-are";
+import { AboutLandingWhyGrid } from "@/features/about/components/landing/about-landing-why-grid";
 
 /*
- * صفحة من نحن (/about): عمود واحد داخل Container بمسافات رأسية (gap-14…md:gap-20).
- * من الأعلى للأسفل: هيرو → ثقة سوكاني (٣ بلاطات) → ستوري بورد أفقي على الجوال → شريط +10 سنوات
- * → «ليه تختار سوكاني؟» (٤ بلاطات) → ميديا داكنة (مؤسسة المغربي) → خدمات المغربي + CTA الفروع
- * → صورة + شريحة «نقاط البيع والموزّعون» → رؤيتنا (نص) → اقتباس ختامي.
- * الاستجابة: الجوال أولاً؛ الستوري بورد scroll-snap أفقي، ومن md شبكة أعمدة.
+ * صفحة من نحن (/about) — هبوط SEO لسوكاني مصر + مؤسسة المغربي:
+ * — خلفية صفحة `bg-page`، Container بعرض المتجر `max-w-6xl`.
+ * — الجوال: أقسام عمودية بمسافات gap-12؛ تمرير أفقي للفئات والجدول الزمني.
+ * — md/lg: شبكات عمودين للهيرو والقصة والخدمة؛ FAQ عمودان؛ فئات 4–8 أعمدة.
+ * — H1 واحد في الهيرو؛ باقي العناوين H2/H3.
  */
 export function AboutPageContent() {
   return (
-    <div className="overflow-x-clip bg-page pb-6 pt-1 md:pb-12 md:pt-2">
-      <Container className="flex flex-col gap-14 sm:gap-16 md:gap-20">
-        {/* كل مكوّن أدناه يشغل كامل عرض الحاوية؛ التباعد الرأسي بين المكوّنات فقط — يظهر تدريجياً عند الاقتراب من الشاشة */}
+    <div className="overflow-x-clip bg-page pb-8 pt-2 md:pb-14 md:pt-3">
+      <Container className="flex max-w-6xl flex-col gap-12 sm:gap-14 md:gap-16 lg:mx-auto">
+        <AboutLandingHero />
+
         <ScrollReveal>
-          <AboutEditorialHero
-            headline={aboutContent.hero.headline}
-            imageSrc={aboutContent.hero.imageSrc}
-            imageAlt={aboutContent.hero.imageAlt}
-          />
+          <AboutLandingWhoWeAre />
         </ScrollReveal>
 
         <ScrollReveal>
-          <AboutTrustQualityCard
-            title={aboutContent.trust.title}
-            body={aboutContent.trust.body}
-            tiles={aboutContent.trust.tiles}
-          />
+          <AboutLandingWhyGrid />
         </ScrollReveal>
 
         <ScrollReveal>
-          <AboutStoryboardSection
-            title={aboutContent.storyboard.title}
-            intro={aboutContent.storyboard.intro}
-            frames={aboutContent.storyboard.frames}
-          />
+          <AboutLandingStory />
         </ScrollReveal>
 
         <ScrollReveal>
-          <AboutLimeStatRibbon value={aboutContent.limeStat.value} label={aboutContent.limeStat.label} />
+          <AboutLandingCategories />
         </ScrollReveal>
 
         <ScrollReveal>
-          <AboutValueFeatureBlock
-            title={aboutContent.value.title}
-            body={aboutContent.value.body}
-            tiles={aboutContent.value.tiles}
-          />
+          <AboutLandingServiceNetwork />
         </ScrollReveal>
 
         <ScrollReveal>
-          <AboutDarkMediaCard
-            title={aboutContent.darkMedia.title}
-            subtitle={aboutContent.darkMedia.subtitle}
-            imageSrc={aboutContent.darkMedia.imageSrc}
-            imageAlt={aboutContent.darkMedia.imageAlt}
-          />
+          <AboutLandingStatsBar />
         </ScrollReveal>
 
         <ScrollReveal>
-          <AboutAfterSalesSection
-            title={aboutContent.afterSales.title}
-            intro={aboutContent.afterSales.intro}
-            rows={aboutContent.afterSales.rows}
-            ctaLabel={aboutContent.afterSales.ctaLabel}
-            ctaHref={aboutContent.afterSales.ctaHref}
-          />
+          <AboutLandingTrustBlock />
         </ScrollReveal>
 
         <ScrollReveal>
-          <AboutServiceShowcaseCard
-            imageSrc={aboutContent.serviceShowcase.imageSrc}
-            imageAlt={aboutContent.serviceShowcase.imageAlt}
-            chipHref={aboutContent.serviceShowcase.chipHref}
-            chipLabel={aboutContent.serviceShowcase.chipLabel}
-          />
+          <AboutLandingFaq />
         </ScrollReveal>
 
         <ScrollReveal>
-          <AboutStoryBlock
-            title={aboutContent.vision.title}
-            paragraphs={[...aboutContent.vision.paragraphs]}
-          />
-        </ScrollReveal>
-
-        <ScrollReveal>
-          <AboutQuoteBlock quote={aboutContent.quote.text} attribution={aboutContent.quote.attribution} />
+          <AboutLandingFinalCta />
         </ScrollReveal>
       </Container>
     </div>

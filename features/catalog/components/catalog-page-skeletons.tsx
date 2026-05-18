@@ -11,16 +11,15 @@ export function CatalogPageHeaderSkeleton() {
     <div
       className={cn(
         surfacePageHeroClass,
-        "!px-4 !py-4 sm:!px-5 sm:!py-5 lg:!px-6 lg:!py-5",
+        "!px-3 !py-2.5 sm:!px-4 sm:!py-3 lg:!px-5 lg:!py-3.5",
         "animate-shimmer bg-gradient-to-r from-image-well via-surface-muted to-image-well bg-[length:200%_100%]",
       )}
       aria-hidden
     >
       <div className="flex min-w-0 items-center justify-between gap-3">
-        <div className="h-7 w-2/3 max-w-xs rounded bg-border/60" />
-        <div className="h-9 w-24 shrink-0 rounded-lg bg-border/50" />
+        <div className="h-6 w-2/3 max-w-xs rounded bg-border/60 sm:h-7" />
+        <div className="h-8 w-20 shrink-0 rounded-lg bg-border/50 sm:h-9 sm:w-24" />
       </div>
-      <div className="mt-2 h-4 w-32 rounded bg-border/40" />
     </div>
   );
 }
@@ -59,5 +58,5 @@ export function CatalogProductGridSkeleton({ count = 8 }: { count?: number }) {
 }
 
 export function CatalogDiscoverySkeleton() {
-  return <CategoryScrollerSkeleton count={6} />;
+  return <CategoryScrollerSkeleton count={8} variant="tiles" />;
 }

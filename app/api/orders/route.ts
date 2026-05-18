@@ -14,6 +14,7 @@ import { toAbsoluteSiteUrl } from "@/lib/site";
 import { revalidateWooOrderTags } from "@/lib/woocommerce-revalidate-broadcast";
 import { forwardOrderCreatedToExternalApi } from "@/features/orders/services/forward-order-to-external-api";
 import { applyWooPaymentGatewayEnvToOrderBody } from "@/lib/woo-order-payment-env";
+import { createOrderPayloadSchema } from "@/schemas/wordpress";
 
 function messageFromWooErrorBody(data: unknown): string {
   if (data && typeof data === "object") {
@@ -39,7 +40,11 @@ function enrichWooOrderForStorefront(data: unknown): unknown {
     return data;
   }
   const trackingUrl = toAbsoluteSiteUrl(
-    `${ROUTES.ORDER_TRACKING}?q=${encodeURIComponent(String(id))}`,
+    `${ROUTES.ORDER_TRACKING}?q=${encodeURIComponent(String(id))}${
+      typeof order.order_key === "string" && order.order_key.trim()
+        ? `&k=${encodeURIComponent(order.order_key.trim())}`
+        : ""
+    }`,
   );
   return {
     ...order,
@@ -79,10 +84,17 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const body: unknown = await request.json();
-    if (body && typeof body === "object" && !Array.isArray(body)) {
-      applyWooPaymentGatewayEnvToOrderBody(body as Record<string, unknown>);
+    const raw: unknown = await request.json();
+    const parsed = createOrderPayloadSchema.safeParse(raw);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: "Invalid order payload", details: parsed.error.flatten() },
+        { status: 400 },
+      );
     }
+    const body: Record<string, unknown> = { ...parsed.data };
+    delete body.set_paid;
+    applyWooPaymentGatewayEnvToOrderBody(body);
     const woo = await createWooClient();
     const response = await woo.post("/orders", body);
     const responseOrder = enrichWooOrderForStorefront(response.data);

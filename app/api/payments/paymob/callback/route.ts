@@ -28,29 +28,93 @@ async function markWooOrderPaid(orderId: number, transactionId?: string) {
   }
 }
 
-export async function GET(request: NextRequest) {
+function queryParams(request: NextRequest): Record<string, string> {
   const params: Record<string, string> = {};
   request.nextUrl.searchParams.forEach((v, k) => {
     params[k] = v;
   });
+  return params;
+}
 
+function verifiedPaymobParams(
+  config: Awaited<ReturnType<typeof resolvePaymobConfig>>,
+  params: Record<string, string>,
+): Record<string, string> | null {
+  const hmac = params.hmac;
+  if (!config?.hmacSecret || !hmac) return null;
+  return verifyPaymobHmac(config.hmacSecret, params, hmac) ? params : null;
+}
+
+type PaymobWebhookBody = {
+  hmac?: string;
+  obj?: {
+    hmac?: string;
+    success?: boolean;
+    id?: number;
+    amount_cents?: number | string;
+    created_at?: string;
+    currency?: string;
+    error_occured?: boolean;
+    has_parent_transaction?: boolean;
+    integration_id?: number | string;
+    is_3d_secure?: boolean;
+    is_auth?: boolean;
+    is_capture?: boolean;
+    is_refunded?: boolean;
+    is_standalone_payment?: boolean;
+    is_voided?: boolean;
+    owner?: number | string;
+    pending?: boolean;
+    order?: { merchant_order_id?: string; id?: number | string };
+    source_data?: { pan?: string; sub_type?: string; type?: string };
+  };
+  type?: string;
+};
+
+function stringValue(value: unknown): string {
+  if (typeof value === "string") return value;
+  if (typeof value === "number" || typeof value === "boolean") return String(value);
+  return "";
+}
+
+function paymobWebhookParams(body: PaymobWebhookBody): Record<string, string> {
+  const obj = body.obj;
+  if (!obj) return {};
+  return {
+    amount_cents: stringValue(obj.amount_cents),
+    created_at: stringValue(obj.created_at),
+    currency: stringValue(obj.currency),
+    error_occured: stringValue(obj.error_occured),
+    has_parent_transaction: stringValue(obj.has_parent_transaction),
+    id: stringValue(obj.id),
+    integration_id: stringValue(obj.integration_id),
+    is_3d_secure: stringValue(obj.is_3d_secure),
+    is_auth: stringValue(obj.is_auth),
+    is_capture: stringValue(obj.is_capture),
+    is_refunded: stringValue(obj.is_refunded),
+    is_standalone_payment: stringValue(obj.is_standalone_payment),
+    is_voided: stringValue(obj.is_voided),
+    order: stringValue(obj.order?.id),
+    owner: stringValue(obj.owner),
+    pending: stringValue(obj.pending),
+    "source_data.pan": stringValue(obj.source_data?.pan),
+    "source_data.sub_type": stringValue(obj.source_data?.sub_type),
+    "source_data.type": stringValue(obj.source_data?.type),
+    success: stringValue(obj.success),
+    hmac: body.hmac ?? obj.hmac ?? "",
+  };
+}
+
+export async function GET(request: NextRequest) {
+  const params = queryParams(request);
   const config = await resolvePaymobConfig();
-  const success = params.success === "true";
-  let orderId: number | null = null;
+  const verified = verifiedPaymobParams(config, params);
+  const success = verified?.success === "true";
+  let orderId: number | null =
+    verified?.order != null ? parseInt(verified.order, 10) || null : null;
 
-  if (config?.hmacSecret && params.hmac) {
-    const valid = verifyPaymobHmac(config.hmacSecret, params, params.hmac);
-    if (!valid) {
-      console.warn("[paymob/callback] invalid HMAC");
-    }
-  }
-
-  if (success && params.order) {
-    orderId = extractOrderIdFromPaymobRef(`sokany-${params.order}`);
-    if (!orderId) {
-      orderId = parseInt(params.order, 10) || null;
-    }
-    if (orderId) await markWooOrderPaid(orderId, params.transaction ?? undefined);
+  if (!verified) {
+    console.warn("[paymob/callback] missing or invalid HMAC");
   }
 
   const confirmationPath =
@@ -62,18 +126,17 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const body = await request.json().catch(() => ({})) as {
-    obj?: {
-      success?: boolean;
-      id?: number;
-      order?: { merchant_order_id?: string; id?: number };
-    };
-    type?: string;
-  };
+  const body = await request.json().catch(() => ({})) as PaymobWebhookBody;
+  const params = { ...paymobWebhookParams(body), ...queryParams(request) };
+  const config = await resolvePaymobConfig();
+  const verified = verifiedPaymobParams(config, params);
+  if (!verified) {
+    console.warn("[paymob/callback] rejected webhook without valid HMAC");
+    return NextResponse.json({ received: false }, { status: 401 });
+  }
 
   if (body.type === "TRANSACTION" && body.obj) {
     const obj = body.obj;
-    const config = await resolvePaymobConfig();
     if (config && obj.success) {
       const merchantOrderId = obj.order?.merchant_order_id ?? "";
       const orderId = extractOrderIdFromPaymobRef(merchantOrderId);

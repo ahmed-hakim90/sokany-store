@@ -9,8 +9,12 @@ import { getSnapshotCategories } from "@/features/data-snapshot/server";
 import { wooBff502Response } from "@/lib/woo-bff-catch-payload";
 import { shouldUseWooBffMockFallback } from "@/lib/woo-bff-mock-fallback";
 import { API_NO_INDEX_HEADERS } from "@/lib/api-no-index";
+import { enforceCatalogReadRateLimit } from "@/lib/public-api-rate-limit";
 
 export async function GET(request: NextRequest) {
+  const limited = enforceCatalogReadRateLimit(request);
+  if (limited) return limited;
+
   try {
     const { searchParams } = new URL(request.url);
     const params = Object.fromEntries(searchParams.entries());

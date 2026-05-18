@@ -34,6 +34,66 @@ const withBundleAnalyzer = bundleAnalyzer({
   enabled: process.env.ANALYZE === "true",
 });
 
+function frameAncestorsPolicy(): string {
+  const raw = process.env.ALLOWED_FRAME_ANCESTORS?.trim();
+  if (raw) return raw;
+
+  const sources = new Set(["'self'"]);
+  const site = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  if (site) {
+    try {
+      const u = new URL(site);
+      sources.add(u.origin);
+    } catch {
+      /* keep the safe default */
+    }
+  }
+  return Array.from(sources).join(" ");
+}
+
+const securityHeaders = [
+  { key: "X-Content-Type-Options", value: "nosniff" },
+  { key: "X-XSS-Protection", value: "1; mode=block" },
+  {
+    key: "Referrer-Policy",
+    value: "strict-origin-when-cross-origin",
+  },
+  {
+    key: "Content-Security-Policy",
+    value: [
+      "default-src 'self'",
+      "base-uri 'self'",
+      "form-action 'self'",
+      `frame-ancestors ${frameAncestorsPolicy()}`,
+      "object-src 'none'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://www.clarity.ms https://www.gstatic.com https://www.google.com https://www.recaptcha.net",
+      "style-src 'self' 'unsafe-inline'",
+      "img-src 'self' data: blob: https://sokany-eg.com https://www.sokany-eg.com https://firebasestorage.googleapis.com https://storage.googleapis.com https://img.freepik.com https://www.google-analytics.com https://www.googletagmanager.com https://www.clarity.ms",
+      "font-src 'self' data:",
+      "connect-src 'self' https://sokany-eg.com https://www.sokany-eg.com https://firestore.googleapis.com https://firebasestorage.googleapis.com https://firebaseinstallations.googleapis.com https://fcmregistrations.googleapis.com https://www.googleapis.com https://*.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.google-analytics.com https://www.googletagmanager.com https://*.clarity.ms https://*.fawrystaging.com https://*.fawry.com https://atfawry.com https://accept.paymob.com",
+      "frame-src 'self' https://accept.paymob.com https://*.paymob.com https://atfawry.com https://*.fawrystaging.com https://www.google.com https://www.recaptcha.net https://*.firebaseapp.com https://*.web.app",
+      "media-src 'self' blob: https://firebasestorage.googleapis.com https://storage.googleapis.com",
+      "worker-src 'self' blob:",
+      "manifest-src 'self'",
+      "upgrade-insecure-requests",
+    ].join("; "),
+  },
+  {
+    key: "Permissions-Policy",
+    value: [
+      "camera=()",
+      "microphone=()",
+      "geolocation=()",
+      "payment=(self)",
+      "usb=()",
+      "bluetooth=()",
+      "accelerometer=()",
+      "gyroscope=()",
+      "magnetometer=()",
+    ].join(", "),
+  },
+];
+
 const nextConfig: NextConfig = {
   async rewrites() {
     return [{ source: "/sw.js", destination: "/api/pwa-sw" }];
@@ -86,15 +146,7 @@ const nextConfig: NextConfig = {
       },
       {
         source: "/(.*)",
-        headers: [
-          { key: "X-Content-Type-Options", value: "nosniff" },
-          { key: "X-Frame-Options", value: "DENY" },
-          { key: "X-XSS-Protection", value: "1; mode=block" },
-          {
-            key: "Referrer-Policy",
-            value: "strict-origin-when-cross-origin",
-          },
-        ],
+        headers: securityHeaders,
       },
     ];
   },

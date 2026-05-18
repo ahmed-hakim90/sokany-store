@@ -17,6 +17,8 @@ export type CmsPromoFlash = z.infer<typeof cmsPromoFlashSchema>;
 export const cmsAnnouncementItemSchema = z.object({
   text: z.string().min(1).max(500),
   href: z.string().min(1).optional(),
+  /** عند التعيين: النقر ينسخ الكود بدل الانتقال لرابط. */
+  copyCode: z.string().min(1).max(40).optional(),
 });
 
 export type CmsAnnouncementItem = z.infer<typeof cmsAnnouncementItemSchema>;
@@ -37,6 +39,17 @@ export const CMS_DEFAULT_TOP_ANNOUNCEMENT_BAR: CmsTopAnnouncementBar = {
   mode: "marquee",
   carouselIntervalSec: 8,
   items: [],
+};
+
+/** شريط الكوبون الليموني فوق الهيدر — يظهر على كل صفحات المتجر عند التفعيل. */
+export const cmsStorefrontPromoBarSchema = z.object({
+  enabled: z.boolean(),
+});
+
+export type CmsStorefrontPromoBar = z.infer<typeof cmsStorefrontPromoBarSchema>;
+
+export const CMS_DEFAULT_STOREFRONT_PROMO_BAR: CmsStorefrontPromoBar = {
+  enabled: false,
 };
 
 /** روابط السوشيال في الفوتر وـ JSON-LD — إن وُجدت في CMS تُستخدم بدل القيم الثابتة. */
@@ -254,6 +267,90 @@ export const CMS_DEFAULT_PRODUCT_LANDING_PAGE: CmsProductLandingPage = {
   customDescription: undefined,
 };
 
+/** بانر صفحة الكتالوج (/products) عند عدم اختيار تصنيف — يُدار من تبويب «عام» في لوحة التحكم. */
+export const cmsProductsCatalogBannerSchema = z
+  .object({
+    enabled: z.boolean(),
+    imageUrl: publicAssetOrUrlSchema.default(""),
+    eyebrow: z.string().max(120).optional(),
+    title: z.string().min(1).max(200),
+    description: z.string().max(500).optional(),
+    href: z
+      .string()
+      .max(500)
+      .refine(
+        (h) => {
+          const t = h.trim();
+          if (!t) return true;
+          if (t.startsWith("/") && !t.startsWith("//") && !t.includes("..")) return true;
+          try {
+            const url = new URL(t);
+            return url.protocol === "https:" || url.protocol === "http:";
+          } catch {
+            return false;
+          }
+        },
+        "مسار داخلي أو رابط URL صالح",
+      )
+      .optional(),
+  })
+  .refine((value) => !value.enabled || value.imageUrl.trim().length > 0, {
+    path: ["imageUrl"],
+    message: "صورة البانر مطلوبة عند التفعيل",
+  });
+
+export type CmsProductsCatalogBanner = z.infer<typeof cmsProductsCatalogBannerSchema>;
+
+export const CMS_DEFAULT_PRODUCTS_CATALOG_BANNER: CmsProductsCatalogBanner = {
+  enabled: true,
+  imageUrl: "/images/banner-section/01-kitchen.jpeg",
+  eyebrow: "أجهزة منزلية أصلية",
+  title: "اكتشف تشكيلة سوكاني الكاملة",
+  description:
+    "مطبخ، عناية شخصية، وتنظيف — تصفّح حسب القسم أو استخدم الفلتر للوصول أسرع.",
+  href: undefined,
+};
+
+/** كوبون خصم يظهر في صفحة المنتجات واختيارياً في الشريط الإعلاني العلوي. */
+export const cmsStorefrontCouponSchema = z.object({
+  id: z.string().min(1).max(80),
+  enabled: z.boolean(),
+  /** إظهار في `TopAnnouncementBar` فوق الهيدر. */
+  showInAnnouncementBar: z.boolean(),
+  /** إظهار في شريط الكوبون الليموني العلوي (`StorefrontPromoBar`). */
+  showInPromoBar: z.boolean().default(false),
+  headline: z.string().min(1).max(160),
+  code: z
+    .string()
+    .min(2)
+    .max(40)
+    .regex(/^[A-Za-z0-9_-]+$/, "رمز الكوبون: حروف إنجليزية وأرقام فقط"),
+  subline: z.string().max(200).optional(),
+  order: z.number().int().min(0).max(999).optional(),
+});
+
+export type CmsStorefrontCoupon = z.infer<typeof cmsStorefrontCouponSchema>;
+
+export const cmsStorefrontCouponsDocSchema = z.object({
+  coupons: z.array(cmsStorefrontCouponSchema).max(24),
+});
+
+export type CmsStorefrontCouponsDoc = z.infer<typeof cmsStorefrontCouponsDocSchema>;
+
+export const CMS_DEFAULT_STOREFRONT_COUPONS: CmsStorefrontCouponsDoc = {
+  coupons: [
+    {
+      id: "first-order-10",
+      enabled: true,
+      showInAnnouncementBar: false,
+      showInPromoBar: true,
+      headline: "خصم 10% على أول طلب",
+      code: "SOKANY10",
+      order: 0,
+    },
+  ],
+};
+
 /**
  * `site_config` عبر `safeParse` — `headerCategoryStrip` / `homeCategoryScroller` يُتحققان لاحقاً
  * بـ schemata منفصلة حتى لا تفسد قيمة قديمة باقي الحقول.
@@ -325,6 +422,7 @@ export const CMS_DEFAULT_HOME_PRODUCT_SECTIONS: CmsHomeProductSection[] = [];
 
 export const cmsSiteConfigDocSchema = z.object({
   promoFlash: cmsPromoFlashSchema,
+  storefrontPromoBar: cmsStorefrontPromoBarSchema.optional(),
   topAnnouncementBar: cmsTopAnnouncementBarSchema.optional(),
   socialLinks: z.array(cmsSocialLinkSchema).max(12).optional(),
   branding: cmsSiteBrandingSchema.optional(),
@@ -333,6 +431,8 @@ export const cmsSiteConfigDocSchema = z.object({
   homeCategoryScroller: z.any().optional(),
   homeFeatureVideo: cmsHomeFeatureVideoSchema.optional(),
   productLandingPage: cmsProductLandingPageSchema.optional(),
+  productsCatalogBanner: cmsProductsCatalogBannerSchema.optional(),
+  storefrontCoupons: cmsStorefrontCouponsDocSchema.optional(),
   homeProductSectionsMode: cmsHomeProductSectionsModeSchema.optional(),
   homeProductSections: cmsHomeProductSectionsArraySchema.optional(),
   /** تحكم عام في ظهور مساعد الشات على واجهة المتجر. */

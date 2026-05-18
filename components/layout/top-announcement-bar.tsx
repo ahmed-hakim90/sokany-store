@@ -9,6 +9,7 @@ import {
 } from "@/components/layout/mobile-commerce-surface";
 import { useMobileChromeCollapsedStore } from "@/components/layout/mobile-chrome-collapsed-store";
 import type { CmsTopAnnouncementBar } from "@/schemas/cms";
+import { copyPromoCode } from "@/features/promotions/lib/copy-promo-code";
 import { cn } from "@/lib/utils";
 
 /*
@@ -75,10 +76,12 @@ function AnnouncementChrome({
 function ItemLine({
   text,
   href,
+  copyCode,
   className,
 }: {
   text: string;
   href?: string;
+  copyCode?: string;
   className?: string;
 }) {
   const body = (
@@ -92,6 +95,21 @@ function ItemLine({
       {text}
     </span>
   );
+
+  const code = copyCode?.trim();
+  if (code) {
+    return (
+      <button
+        type="button"
+        className="cursor-pointer border-0 bg-transparent p-0 text-inherit"
+        onClick={() => void copyPromoCode(code)}
+        aria-label={`نسخ كود الخصم ${code}`}
+      >
+        {body}
+      </button>
+    );
+  }
+
   if (!href?.trim()) return body;
   const h = href.trim();
   if (h.startsWith("http://") || h.startsWith("https://")) {
@@ -113,7 +131,7 @@ function MarqueeRow({
   topRowHiddenMobile,
   onDismiss,
 }: {
-  items: { text: string; href?: string }[];
+  items: { text: string; href?: string; copyCode?: string }[];
   topRowHiddenMobile: boolean;
   onDismiss: () => void;
 }) {
@@ -127,7 +145,12 @@ function MarqueeRow({
       <div className="w-full overflow-hidden" dir="ltr">
         <div className="inline-flex min-w-0 shrink-0 items-center gap-10 whitespace-nowrap px-3 animate-storefront-marquee">
           {loop.map((it, i) => (
-            <ItemLine key={`${i}-${it.text}`} text={it.text} href={it.href} />
+            <ItemLine
+              key={`${i}-${it.text}`}
+              text={it.text}
+              href={it.href}
+              copyCode={it.copyCode}
+            />
           ))}
         </div>
       </div>
@@ -141,7 +164,7 @@ function CarouselRow({
   topRowHiddenMobile,
   onDismiss,
 }: {
-  items: { text: string; href?: string }[];
+  items: { text: string; href?: string; copyCode?: string }[];
   intervalSec: number;
   topRowHiddenMobile: boolean;
   onDismiss: () => void;
@@ -185,7 +208,7 @@ function CarouselRow({
       className="flex min-h-10 items-center justify-center py-1.5 pe-10"
       aria-live="polite"
     >
-      <ItemLine text={item.text} href={item.href} />
+      <ItemLine text={item.text} href={item.href} copyCode={item.copyCode} />
     </AnnouncementChrome>
   );
 }
@@ -225,7 +248,11 @@ export function TopAnnouncementBar({ config }: TopAnnouncementBarProps) {
         onDismiss={dismiss}
         className="flex min-h-10 items-center justify-center py-1.5 pe-10"
       >
-        <ItemLine text={items[0].text} href={items[0].href} />
+        <ItemLine
+          text={items[0].text}
+          href={items[0].href}
+          copyCode={items[0].copyCode}
+        />
       </AnnouncementChrome>
     );
   }

@@ -6,7 +6,6 @@ import { usePwaDeferredInstall } from "@/components/PwaDeferredInstallProvider";
 import { useMinLg } from "@/hooks/useMinLg";
 import { isClientRedirectSafeguardEnabled } from "@/lib/client-redirect-safeguard";
 import { PWA_INSTALL_NAME } from "@/lib/constants";
-import { STOREFRONT_Z } from "@/lib/storefront-overlay-z";
 import { cn } from "@/lib/utils";
 
 type BeforeInstallPromptEvent = Event & {
@@ -39,7 +38,7 @@ function subscribeStaticSnapshot() {
 
 function PwaBenefitsList({ className }: { className?: string }) {
   return (
-    <ul className={cn("mt-3 space-y-1.5 text-sm text-muted-foreground", className)}>
+    <ul className={cn("mt-2 space-y-1 text-sm text-muted-foreground", className)}>
       {PWA_BENEFITS.map((line) => (
         <li key={line} className="flex items-center gap-2">
           <span
@@ -52,6 +51,34 @@ function PwaBenefitsList({ className }: { className?: string }) {
         </li>
       ))}
     </ul>
+  );
+}
+
+function PwaInstallMobileSheet({
+  title,
+  children,
+  onDismiss,
+}: {
+  title: string;
+  children: React.ReactNode;
+  onDismiss: () => void;
+}) {
+  return (
+    <div
+      className="mx-auto w-full max-w-[19rem] overflow-hidden rounded-xl border border-border/80 bg-white/98 p-3 shadow-[0_8px_28px_-12px_rgba(15,23,42,0.22)] backdrop-blur-xl"
+      role="status"
+    >
+      <p className="font-display text-sm font-bold leading-snug text-brand-950">{title}</p>
+      <PwaBenefitsList className="text-xs [&_li]:gap-1.5 [&_span]:h-4 [&_span]:w-4 [&_span]:text-[9px]" />
+      <div className="mt-2.5 flex flex-wrap gap-1.5">{children}</div>
+      <button
+        type="button"
+        className="mt-1.5 w-full py-1 text-center text-[11px] font-medium text-muted-foreground"
+        onClick={onDismiss}
+      >
+        ليس الآن
+      </button>
+    </div>
   );
 }
 
@@ -135,25 +162,12 @@ export function PwaInstallPrompt() {
 
     if (!lgUp) {
       return (
-        <div
-          className="pointer-events-auto fixed inset-x-0 bottom-0 max-lg:pb-[env(safe-area-inset-bottom)]"
-          style={{ zIndex: STOREFRONT_Z.pwaPrompt }}
+        <PwaInstallMobileSheet
+          title={`ثبّت ${PWA_INSTALL_NAME} على شاشتك`}
+          onDismiss={dismiss}
         >
-          <div className="rounded-t-3xl border border-border/80 bg-white/98 p-4 shadow-[0_-12px_40px_-12px_rgba(15,23,42,0.25)] backdrop-blur-xl">
-            <p className="font-display text-base font-bold text-brand-950">
-              ثبّت {PWA_INSTALL_NAME} على شاشتك
-            </p>
-            <PwaBenefitsList />
-            <div className="mt-4 flex flex-wrap gap-2">{installActions}</div>
-            <button
-              type="button"
-              className="mt-2 w-full py-2 text-center text-xs font-medium text-muted-foreground"
-              onClick={dismiss}
-            >
-              ليس الآن
-            </button>
-          </div>
-        </div>
+          {installActions}
+        </PwaInstallMobileSheet>
       );
     }
 
@@ -165,6 +179,19 @@ export function PwaInstallPrompt() {
   }
 
   if (iosHint) {
+    if (!lgUp) {
+      return (
+        <PwaInstallMobileSheet title="أضف المتجر إلى الشاشة الرئيسية" onDismiss={dismiss}>
+          <p className="w-full text-xs leading-relaxed text-muted-foreground">
+            على آيفون: اضغط مشاركة ثم «إضافة إلى الشاشة الرئيسية».
+          </p>
+          <Button type="button" size="sm" variant="ghost" onClick={dismiss}>
+            حسناً
+          </Button>
+        </PwaInstallMobileSheet>
+      );
+    }
+
     return (
       <PwaInstallCard title="أضف المتجر إلى الشاشة الرئيسية" onDismiss={dismiss}>
         <p className="w-full text-sm text-muted-foreground">

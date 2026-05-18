@@ -23,6 +23,10 @@ import { WOO_CACHE_TAG_PRODUCTS } from "@/lib/woocommerce-cache-tags";
 import { API_NO_INDEX_HEADERS } from "@/lib/api-no-index";
 import { filterWcProductsExcludingOutOfStock } from "@/lib/woo-storefront-availability";
 import { fetchWooStorefrontProductsPage } from "@/features/products/services/woo-storefront-product-page";
+import {
+  enforceCatalogReadRateLimit,
+  enforceCatalogSearchRateLimit,
+} from "@/lib/public-api-rate-limit";
 import type { WCCategory } from "@/features/categories/types";
 import type { WCProduct } from "@/features/products/types";
 
@@ -88,6 +92,12 @@ const fetchWooProductsCached = unstable_cache(
 );
 
 export async function GET(request: NextRequest) {
+  const searchTerm = request.nextUrl.searchParams.get("search")?.trim() ?? "";
+  const limited = searchTerm
+    ? enforceCatalogSearchRateLimit(request)
+    : enforceCatalogReadRateLimit(request);
+  if (limited) return limited;
+
   try {
     const { searchParams } = new URL(request.url);
     const params = Object.fromEntries(searchParams.entries());

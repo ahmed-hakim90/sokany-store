@@ -2,7 +2,7 @@
  * BFF: تصنيف واحد بالـ id
  * بالعامية: كاش مع تاجات منتجات + سايت ماب؛ الفallback زي باقي الـ BFF.
  */
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { unstable_cache } from "next/cache";
 import { mockCategories } from "@/features/categories/mock";
 import { getSnapshotCategories } from "@/features/data-snapshot/server";
@@ -14,6 +14,8 @@ import {
   WOO_CACHE_TAG_PRODUCTS,
   WOO_CACHE_TAG_SITEMAP,
 } from "@/lib/woocommerce-cache-tags";
+import { API_NO_INDEX_HEADERS } from "@/lib/api-no-index";
+import { enforceCatalogReadRateLimit } from "@/lib/public-api-rate-limit";
 import type { WCCategory } from "@/features/categories/types";
 
 type RouteContext = { params: Promise<{ id: string }> };
@@ -31,11 +33,14 @@ const fetchWooCategoryByIdCached = unstable_cache(
   },
 );
 
-export async function GET(_request: Request, context: RouteContext) {
+export async function GET(request: NextRequest, context: RouteContext) {
+  const limited = enforceCatalogReadRateLimit(request);
+  if (limited) return limited;
+
   const { id } = await context.params;
   try {
     const data = await fetchWooCategoryByIdCached(id);
-    return NextResponse.json(data);
+    return NextResponse.json(data, { headers: API_NO_INDEX_HEADERS });
   } catch (error) {
     if (!shouldUseWooBffMockFallback(error)) {
       return await wooBff502Response(error);
@@ -43,8 +48,11 @@ export async function GET(_request: Request, context: RouteContext) {
     const source = getSnapshotCategories() ?? mockCategories;
     const raw = source.find((c) => String(c.id) === id);
     if (!raw) {
-      return NextResponse.json({ error: "Category not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Category not found" },
+        { status: 404, headers: API_NO_INDEX_HEADERS },
+      );
     }
-    return NextResponse.json(raw);
+    return NextResponse.json(raw, { headers: API_NO_INDEX_HEADERS });
   }
 }

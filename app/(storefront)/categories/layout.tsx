@@ -7,15 +7,13 @@ import { Container } from "@/components/Container";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorState } from "@/components/ErrorState";
 import { CategoryBrowseSplitLayout } from "@/features/categories/components/category-browse-split-layout";
+import { CategoriesMobileHeaderRail } from "@/features/categories/components/categories-mobile-header-rail";
+import { CategoryTilesGrid } from "@/features/categories/components/category-tiles-grid";
 import { CategoryScrollerSkeleton } from "@/features/categories/components/CategoryScrollerSkeleton";
-import { StickyBelowHeaderRail } from "@/features/categories/components/sticky-below-header-rail";
+import { featuredCategoryTiles } from "@/features/categories/content/featured-category-tiles";
 import { useCategories } from "@/features/categories/hooks/useCategories";
+import { mergeFeaturedCategoryTilesWithApi } from "@/features/categories/lib/merge-featured-category-tiles";
 import type { Category } from "@/features/categories/types";
-import {
-  findCategoryBySlug,
-  getCategoryHorizontalNavCategories,
-  getTopLevelCategories,
-} from "@/features/catalog/lib/catalog-category-tree";
 
 function activeSlugFromPathname(pathname: string): string {
   if (pathname === "/categories" || pathname === "/categories/") return "";
@@ -28,16 +26,10 @@ function sidebarCategoriesList(data: Category[]) {
   return data.filter((c) => c.count > 0);
 }
 
-function mobileRailCategoriesList(data: Category[], activeSlug: string): Category[] {
-  const sidebar = sidebarCategoriesList(data);
-  /** مطابقة صفحة المنتجات / «وصل حديثاً»: على الفهرس السكة = تصنيفات المستوى الأعلى فقط — لا القائمة المسطّحة كاملة. */
-  if (!activeSlug) return getTopLevelCategories(sidebar);
-  const active = findCategoryBySlug(data, activeSlug);
-  if (!active) return sidebar;
-  const peers = getCategoryHorizontalNavCategories(data, active);
-  return peers.length > 0 ? peers : sidebar;
-}
-
+/*
+ * تخطيط التصنيفات: على الموبايل سكة بلاطات أفقية (نفس شكل About، حجم مضغوط) تحت الهيدر؛
+ * من lg شريط جانبي نصي + المحتوى داخل الحاوية.
+ */
 export default function CategoriesLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const activeSlug = activeSlugFromPathname(pathname);
@@ -46,27 +38,35 @@ export default function CategoriesLayout({ children }: { children: ReactNode }) 
     () => (query.data ? sidebarCategoriesList(query.data) : []),
     [query.data],
   );
-  const railCategories = useMemo(
-    () => (query.data ? mobileRailCategoriesList(query.data, activeSlug) : []),
-    [query.data, activeSlug],
+  const featuredTiles = useMemo(
+    () => mergeFeaturedCategoryTilesWithApi(featuredCategoryTiles, query.data),
+    [query.data],
   );
-  const activeCategory = useMemo(() => {
-    if (!query.data || !activeSlug) return null;
-    return findCategoryBySlug(query.data, activeSlug);
-  }, [query.data, activeSlug]);
+
+  const mobileRail =
+    query.isPending ? (
+      <CategoriesMobileHeaderRail>
+        <CategoryScrollerSkeleton variant="tiles" />
+      </CategoriesMobileHeaderRail>
+    ) : query.data?.length ? (
+      <CategoriesMobileHeaderRail>
+        <CategoryTilesGrid
+          tiles={featuredTiles}
+          size="compact"
+          layout="scroll-rail"
+          title="تسوق حسب الفئة"
+        />
+      </CategoriesMobileHeaderRail>
+    ) : null;
 
   return (
     <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+      {mobileRail}
       <Container className="flex min-h-0 flex-1 flex-col px-3 sm:px-2 lg:px-6 lg:py-6">
         {query.isPending ? (
-          <div className="mt-6 flex min-h-0 flex-1 flex-col gap-3">
-            <StickyBelowHeaderRail>
-              <CategoryScrollerSkeleton />
-            </StickyBelowHeaderRail>
-            <div className="min-w-0">{children}</div>
-          </div>
+          <div className="min-w-0">{children}</div>
         ) : query.isError ? (
-          <div className="mt-6">
+          <div className="mt-6 lg:mt-0">
             <ErrorState
               message={query.error.message}
               onRetry={() => void query.refetch()}
@@ -74,7 +74,7 @@ export default function CategoriesLayout({ children }: { children: ReactNode }) 
             <div className="mt-8 min-w-0">{children}</div>
           </div>
         ) : !query.data?.length ? (
-          <div className="mt-6">
+          <div className="mt-6 lg:mt-0">
             <EmptyState
               title="لا توجد تصنيفات"
               description="حاول لاحقاً أو تواصل مع الدعم."
@@ -84,12 +84,9 @@ export default function CategoriesLayout({ children }: { children: ReactNode }) 
         ) : (
           <CategoryBrowseSplitLayout
             categories={sidebarCategories}
-            mobileRailCategories={railCategories}
             activeSlug={activeSlug}
             showNavChrome
-            mobileRailLinkMode="productsQuery"
-            mobileRailActiveCategoryId={activeCategory?.id ?? null}
-            mobileRailAllProductsActive={!activeSlug}
+            showMobileRail={false}
             renderMainContent={() => children}
           />
         )}

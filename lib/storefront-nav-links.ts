@@ -8,6 +8,7 @@ export const desktopPrimaryBarExtraLinks = [
 /** روابط متجر ثانوية تظهر داخل قائمة «المزيد» في الديسكتوب. */
 export const desktopSecondaryNavLinks = [
   { href: ROUTES.ABOUT, label: "من نحن" },
+  { href: ROUTES.WARRANTY, label: "الضمان وطرق الاستخدام" },
   { href: ROUTES.SERVICE_CENTERS, label: "الفروع" },
   { href: ROUTES.RETAILERS, label: "الموزعون المعتمدون" },
   { href: ROUTES.MY_ORDERS, label: "طلباتي" },
@@ -18,7 +19,7 @@ export const servicesDropdownLinks = [
   { href: ROUTES.CONTACT, label: "تواصل معنا" },
   { href: ROUTES.TERMS, label: "الشروط والأحكام" },
   { href: ROUTES.RETURNS_POLICY, label: "سياسة الاسترجاع والاستبدال" },
-  { href: ROUTES.WARRANTY, label: "طرق الاستخدام" },
+  { href: ROUTES.WARRANTY, label: "الضمان وطرق الاستخدام" },
   { href: ROUTES.PRIVACY, label: "سياسة الخصوصية" },
 ] as const;
 

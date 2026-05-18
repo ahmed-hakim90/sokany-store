@@ -4,7 +4,7 @@
  *
  * شوف كمان: `@/features/products/services/getProductByIdMeta.ts`
  */
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { unstable_cache } from "next/cache";
 import { mockProducts } from "@/features/products/mock";
 import { getSnapshotProducts } from "@/features/data-snapshot/server";
@@ -17,6 +17,7 @@ import {
   wooProductDetailTag,
   wooProductSlugTag,
 } from "@/lib/woocommerce-cache-tags";
+import { enforceCatalogReadRateLimit } from "@/lib/public-api-rate-limit";
 import type { WCProduct } from "@/features/products/types";
 
 type RouteContext = { params: Promise<{ id: string }> };
@@ -79,7 +80,10 @@ function fetchWooProductBySlugCached(slug: string): Promise<WCProduct | null> {
   )();
 }
 
-export async function GET(_request: Request, context: RouteContext) {
+export async function GET(request: NextRequest, context: RouteContext) {
+  const limited = enforceCatalogReadRateLimit(request);
+  if (limited) return limited;
+
   const { id } = await context.params;
   const segment = id.trim();
   try {

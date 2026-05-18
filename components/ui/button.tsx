@@ -45,6 +45,14 @@ export const commerceLinkClassName = cn(
   "inline-flex min-w-[11rem] px-8",
 );
 
+/** For server `Link` CTAs that match `variant="commerceDark"` + `size="lg"`. */
+export const commerceDarkLinkClassName = cn(
+  base,
+  variantClasses.commerceDark,
+  sizeClasses.lg,
+  "inline-flex min-w-[11rem] px-8",
+);
+
 export type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: ButtonVariant;
   size?: ButtonSize;

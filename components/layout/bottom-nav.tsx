@@ -30,7 +30,7 @@ import { cn } from "@/lib/utils";
 
 const linkItems = [
   { href: ROUTES.HOME, label: "الرئيسية", key: "home" },
-  { href: ROUTES.CATEGORIES, label: "التصنيفات", key: "categories" },
+  { href: ROUTES.PRODUCTS, label: "المنتجات", key: "products" },
   { href: ROUTES.CART, label: "السلة", key: "cart" },
   { href: ROUTES.MY_ORDERS, label: "طلباتي", key: "orders" },
 ] as const;
@@ -39,20 +39,23 @@ type NavLinkKey = (typeof linkItems)[number]["key"];
 
 const iconByKey: Record<NavLinkKey, LucideIcon> = {
   home: Home,
-  categories: LayoutGrid,
+  products: LayoutGrid,
   cart: ShoppingCart,
   orders: ClipboardList,
 };
 
 const iconGlyphClass =
-  "h-[1.125rem] w-[1.125rem] shrink-0 stroke-[2.05] motion-reduce:transition-none";
+  "h-5 w-5 shrink-0 stroke-[2.35] motion-reduce:transition-none";
+
+const bottomNavLabelClass =
+  "line-clamp-1 text-center text-xs font-bold leading-tight tracking-[-0.01em]";
 
 function tabIsActive(pathname: string | null, key: NavLinkKey, href: string) {
   const p = pathname ?? "";
   if (key === "home") return p === ROUTES.HOME;
-  if (key === "categories") {
+  if (key === "products") {
     return (
-      p === ROUTES.CATEGORIES || p.startsWith(`${ROUTES.CATEGORIES}/`)
+      p === ROUTES.PRODUCTS || p.startsWith(`${ROUTES.PRODUCTS}/`)
     );
   }
   if (key === "cart") {
@@ -99,10 +102,7 @@ function BottomNavLinkContents({
         ) : null}
       </span>
       <span
-        className={cn(
-          "line-clamp-1 text-center text-[10px] font-semibold leading-3 tracking-[-0.01em]",
-          active ? "text-brand-950" : "text-current",
-        )}
+        className={cn(bottomNavLabelClass, active ? "text-brand-950" : "text-current")}
       >
         {label}
       </span>
@@ -129,7 +129,7 @@ export function BottomNavInner() {
 
   const tabClass = (active: boolean) =>
     cn(
-      "flex min-h-[3.875rem] w-full flex-col items-center justify-center gap-0.5 rounded-none border-transparent px-[2px] py-1.5 text-[10px] font-semibold leading-tight outline-none ring-1 ring-transparent transition-[color,background-color,filter] duration-200 ease-out active:brightness-[0.97] motion-reduce:transition-none",
+      "flex min-h-[3rem] w-full flex-col items-center justify-center gap-0.5 rounded-none border-transparent px-[2px] py-0.5 text-xs font-bold leading-tight outline-none ring-1 ring-transparent transition-[color,background-color,filter] duration-200 ease-out active:brightness-[0.97] motion-reduce:transition-none",
       active
         ? "text-brand-950"
         : headerHidden
@@ -139,7 +139,7 @@ export function BottomNavInner() {
 
   const tabIconShellClass = (active: boolean) =>
     cn(
-      "relative inline-flex h-9 min-w-10 max-w-none items-center justify-center rounded-xl px-1.5 text-current motion-reduce:transition-none",
+      "relative inline-flex h-8 min-w-9 max-w-none items-center justify-center rounded-lg px-1 text-current motion-reduce:transition-none",
       active
         ? "bg-brand-400/94 text-brand-950 shadow-[0_6px_16px_-8px_rgba(15,23,42,0.45)] ring-1 ring-brand-600/30"
         : "bg-transparent text-current",
@@ -148,7 +148,7 @@ export function BottomNavInner() {
 
   return (
     <nav aria-label="التنقل السفلي" className="bg-transparent">
-      <ul className="flex w-full touch-pan-x items-start justify-between gap-0 px-2 py-2 sm:px-3 md:justify-evenly md:gap-1">
+      <ul className="flex w-full touch-pan-x items-start justify-between gap-0 px-2 py-1 sm:px-3 md:justify-evenly md:gap-1">
         {linkItems.map(({ href, label, key }) => {
           const Icon = iconByKey[key];
           const active = tabIsActive(pathname, key, href);
@@ -215,7 +215,7 @@ export function BottomNavInner() {
               </span>
               <span
                 className={cn(
-                  "line-clamp-1 text-center text-[10px] font-semibold leading-3 tracking-[-0.01em]",
+                  bottomNavLabelClass,
                   drawerOpen ? "text-brand-950" : "text-current",
                 )}
               >

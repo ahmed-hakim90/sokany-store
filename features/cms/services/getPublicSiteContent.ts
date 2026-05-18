@@ -4,6 +4,7 @@ import { unstable_cache } from "next/cache";
 import { getBannerSectionOrderedImages } from "@/features/home/services/getBannerSectionOrderedImages";
 import { getHeroSlides } from "@/features/home/services/getHeroSlides";
 import { mergeSpotlightsDocWithLegacySitePromo } from "@/features/cms/lib/merge-spotlights-legacy-promo";
+import { mergeAnnouncementBarWithCoupons } from "@/features/promotions/lib/storefront-coupons";
 import { CMS_DOC_IDS, STOREFRONT_CMS_COLLECTION } from "@/features/cms/lib/collections";
 import { branchesData } from "@/features/branches/data";
 import {
@@ -33,7 +34,13 @@ import {
   CMS_DEFAULT_HOME_PRODUCT_SECTIONS_MODE,
   CMS_DEFAULT_ASSISTANT_CONFIG,
   CMS_DEFAULT_PRODUCT_LANDING_PAGE,
+  CMS_DEFAULT_PRODUCTS_CATALOG_BANNER,
+  CMS_DEFAULT_STOREFRONT_COUPONS,
+  CMS_DEFAULT_STOREFRONT_PROMO_BAR,
+  cmsStorefrontPromoBarSchema,
   cmsProductLandingPageSchema,
+  cmsProductsCatalogBannerSchema,
+  cmsStorefrontCouponsDocSchema,
   cmsHomeProductSectionsArraySchema,
   cmsHomeProductSectionsModeSchema,
   cmsHomeFeatureVideoSchema,
@@ -44,7 +51,10 @@ import {
   type CmsHomeProductSectionsMode,
   type CmsAssistantConfig,
   type CmsProductLandingPage,
+  type CmsProductsCatalogBanner,
+  type CmsStorefrontCoupon,
   type CmsPromoFlash,
+  type CmsStorefrontPromoBar,
   type CmsTopAnnouncementBar,
   type CmsSiteBranding,
 } from "@/schemas/cms";
@@ -59,6 +69,8 @@ export type PublicBranchesData = {
 export type PublicSiteContent = {
   source: "firestore" | "fallback";
   promoFlash: CmsPromoFlash;
+  /** شريط كوبون ليموني فوق الهيدر — يظهر على كل صفحات المتجر. */
+  storefrontPromoBar: CmsStorefrontPromoBar;
   /** شريط إعلان فوق الهيدر (مارquee / كاروسيل). */
   topAnnouncementBar: CmsTopAnnouncementBar;
   /** روابط السوشيال — من CMS أو الافتراضي في `lib/social-links`. */
@@ -84,6 +96,10 @@ export type PublicSiteContent = {
   homeFeatureVideo: CmsHomeFeatureVideo;
   /** صفحة هبوط لمنتج واحد مع عداد فلاش اختياري. */
   productLandingPage: CmsProductLandingPage;
+  /** بانر الكتالوج العام على `/products` (بدون ?category=). */
+  productsCatalogBanner: CmsProductsCatalogBanner;
+  /** أكواد الخصم — صفحة المنتجات والشريط الإعلاني. */
+  storefrontCoupons: CmsStorefrontCoupon[];
   /** أقسام منتجات الهوم من `site_config` — الوضع الافتراضي `auto`. */
   homeProductSectionsMode: CmsHomeProductSectionsMode;
   homeProductSections: CmsHomeProductSection[];
@@ -153,6 +169,14 @@ function mergeTopAnnouncementBar(
   };
 }
 
+function mergeStorefrontPromoBar(
+  parsed: CmsStorefrontPromoBar | undefined,
+  fallback: CmsStorefrontPromoBar,
+): CmsStorefrontPromoBar {
+  if (!parsed) return fallback;
+  return { enabled: parsed.enabled };
+}
+
 function mergeSocialLinks(parsed: SocialLink[] | undefined): SocialLink[] {
   if (parsed && parsed.length > 0) {
     return parsed.map((s) => ({
@@ -215,6 +239,27 @@ function mergeProductLandingPage(
   return r.data;
 }
 
+function mergeStorefrontCoupons(
+  raw: unknown,
+  fallback: CmsStorefrontCoupon[],
+): CmsStorefrontCoupon[] {
+  const r = cmsStorefrontCouponsDocSchema.safeParse(raw);
+  if (!r.success) return fallback;
+  return r.data.coupons.map((c) => ({
+    ...c,
+    showInPromoBar: c.showInPromoBar ?? false,
+  }));
+}
+
+function mergeProductsCatalogBanner(
+  raw: unknown,
+  fallback: CmsProductsCatalogBanner,
+): CmsProductsCatalogBanner {
+  const r = cmsProductsCatalogBannerSchema.safeParse(raw);
+  if (!r.success) return fallback;
+  return r.data;
+}
+
 function mergeHomeProductSectionsMode(
   raw: unknown,
   fallback: CmsHomeProductSectionsMode,
@@ -252,6 +297,7 @@ async function fetchPublicSiteContentUncached(): Promise<PublicSiteContent> {
     source: "fallback",
     promoFlash: defaultPromoFlash(),
     topAnnouncementBar: defaultTopAnnouncementBar(),
+    storefrontPromoBar: { ...CMS_DEFAULT_STOREFRONT_PROMO_BAR },
     socialLinks: mergeSocialLinks(undefined),
     branding: resolveSiteBranding(undefined),
     heroSlides: fsHero,
@@ -269,6 +315,8 @@ async function fetchPublicSiteContentUncached(): Promise<PublicSiteContent> {
     homeCategoryScroller: { ...CMS_DEFAULT_HOME_CATEGORY_SCROLLER },
     homeFeatureVideo: { ...CMS_DEFAULT_HOME_FEATURE_VIDEO },
     productLandingPage: { ...CMS_DEFAULT_PRODUCT_LANDING_PAGE },
+    productsCatalogBanner: { ...CMS_DEFAULT_PRODUCTS_CATALOG_BANNER },
+    storefrontCoupons: [...CMS_DEFAULT_STOREFRONT_COUPONS.coupons],
     homeProductSectionsMode: CMS_DEFAULT_HOME_PRODUCT_SECTIONS_MODE,
     homeProductSections: [...CMS_DEFAULT_HOME_PRODUCT_SECTIONS],
     assistant: { ...CMS_DEFAULT_ASSISTANT_CONFIG },
@@ -279,7 +327,13 @@ async function fetchPublicSiteContentUncached(): Promise<PublicSiteContent> {
   };
 
   if (!process.env.FIREBASE_SERVICE_ACCOUNT_JSON?.trim()) {
-    return staticBundle;
+    return {
+      ...staticBundle,
+      topAnnouncementBar: mergeAnnouncementBarWithCoupons(
+        staticBundle.topAnnouncementBar,
+        staticBundle.storefrontCoupons,
+      ),
+    };
   }
 
   try {
@@ -316,9 +370,29 @@ async function fetchPublicSiteContentUncached(): Promise<PublicSiteContent> {
       staticBundle.promoFlash,
     );
 
-    const topAnnouncementBar = mergeTopAnnouncementBar(
-      siteParsed?.success ? siteParsed.data.topAnnouncementBar : undefined,
-      staticBundle.topAnnouncementBar,
+    const storefrontCoupons = mergeStorefrontCoupons(
+      siteParsed?.success
+        ? (siteParsed.data as { storefrontCoupons?: unknown }).storefrontCoupons
+        : undefined,
+      staticBundle.storefrontCoupons,
+    );
+
+    const storefrontPromoBarParsed = cmsStorefrontPromoBarSchema.safeParse(
+      siteParsed?.success
+        ? (siteParsed.data as { storefrontPromoBar?: unknown }).storefrontPromoBar
+        : undefined,
+    );
+    const storefrontPromoBar = mergeStorefrontPromoBar(
+      storefrontPromoBarParsed.success ? storefrontPromoBarParsed.data : undefined,
+      staticBundle.storefrontPromoBar,
+    );
+
+    const topAnnouncementBar = mergeAnnouncementBarWithCoupons(
+      mergeTopAnnouncementBar(
+        siteParsed?.success ? siteParsed.data.topAnnouncementBar : undefined,
+        staticBundle.topAnnouncementBar,
+      ),
+      storefrontCoupons,
     );
 
     const socialLinks = mergeSocialLinks(
@@ -360,6 +434,13 @@ async function fetchPublicSiteContentUncached(): Promise<PublicSiteContent> {
         ? (siteParsed.data as { productLandingPage?: unknown }).productLandingPage
         : undefined,
       staticBundle.productLandingPage,
+    );
+
+    const productsCatalogBanner = mergeProductsCatalogBanner(
+      siteParsed?.success
+        ? (siteParsed.data as { productsCatalogBanner?: unknown }).productsCatalogBanner
+        : undefined,
+      staticBundle.productsCatalogBanner,
     );
 
     const homeProductSectionsMode = mergeHomeProductSectionsMode(
@@ -474,6 +555,7 @@ async function fetchPublicSiteContentUncached(): Promise<PublicSiteContent> {
     return {
       source: usedFirestore ? "firestore" : "fallback",
       promoFlash,
+      storefrontPromoBar,
       topAnnouncementBar,
       socialLinks,
       branding,
@@ -482,6 +564,8 @@ async function fetchPublicSiteContentUncached(): Promise<PublicSiteContent> {
       homeCategoryScroller,
       homeFeatureVideo,
       productLandingPage,
+      productsCatalogBanner,
+      storefrontCoupons,
       homeProductSectionsMode,
       homeProductSections,
       assistant,
@@ -496,13 +580,19 @@ async function fetchPublicSiteContentUncached(): Promise<PublicSiteContent> {
     };
   } catch (e) {
     console.error("[cms] fetch failed, using static files", e);
-    return staticBundle;
+    return {
+      ...staticBundle,
+      topAnnouncementBar: mergeAnnouncementBarWithCoupons(
+        staticBundle.topAnnouncementBar,
+        staticBundle.storefrontCoupons,
+      ),
+    };
   }
 }
 
 const getCachedPublicSiteContent = unstable_cache(
   async () => fetchPublicSiteContentUncached(),
-  ["storefront-cms-v6"],
+  ["storefront-cms-v9"],
   { revalidate: 60, tags: [CMS_CACHE_TAG] },
 );
 

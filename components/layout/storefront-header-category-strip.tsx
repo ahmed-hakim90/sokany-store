@@ -19,12 +19,20 @@ export type StorefrontHeaderCategoryStripProps = {
  * شريط اختصارات التصنيفات (دوائر أيقونات) — تحت كتلة الهيدر اللاصقة، خارج `TopHeader` /
  * `Navbar`، على كل الصفحات ما عدا الدفع.
  */
+function isCategoriesBrowsePath(pathname: string): boolean {
+  return (
+    pathname === ROUTES.CATEGORIES || pathname.startsWith(`${ROUTES.CATEGORIES}/`)
+  );
+}
+
 export function StorefrontHeaderCategoryStrip({
   config,
   className,
 }: StorefrontHeaderCategoryStripProps) {
   const pathname = usePathname();
   if (pathname === ROUTES.CHECKOUT) return null;
+  /** سكة التصنيفات الكاملة (دوائر + تسميات) تُعرض من `categories/layout` مباشرة تحت الهيدر. */
+  if (isCategoriesBrowsePath(pathname)) return null;
   if (!config.enabled || config.items.length === 0) return null;
 
   return (

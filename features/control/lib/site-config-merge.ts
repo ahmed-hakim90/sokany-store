@@ -7,7 +7,11 @@ import {
   CMS_DEFAULT_HOME_PRODUCT_SECTIONS_MODE,
   CMS_DEFAULT_HEADER_CATEGORY_STRIP,
   CMS_DEFAULT_PRODUCT_LANDING_PAGE,
+  CMS_DEFAULT_PRODUCTS_CATALOG_BANNER,
+  CMS_DEFAULT_STOREFRONT_COUPONS,
   CMS_DEFAULT_TOP_ANNOUNCEMENT_BAR,
+  CMS_DEFAULT_STOREFRONT_PROMO_BAR,
+  cmsStorefrontCouponsDocSchema,
   cmsHomeProductSectionsArraySchema,
   cmsSiteConfigDocSchema,
 } from "@/schemas/cms";
@@ -65,6 +69,10 @@ export function mergeSiteConfigPatch(
         headline: undefined,
         subline: undefined,
       },
+    storefrontPromoBar:
+      patch.storefrontPromoBar ??
+      current?.storefrontPromoBar ??
+      CMS_DEFAULT_STOREFRONT_PROMO_BAR,
     topAnnouncementBar:
       patch.topAnnouncementBar ??
       current?.topAnnouncementBar ??
@@ -92,6 +100,15 @@ export function mergeSiteConfigPatch(
       patch.productLandingPage !== undefined
         ? patch.productLandingPage
         : current?.productLandingPage ?? CMS_DEFAULT_PRODUCT_LANDING_PAGE,
+    productsCatalogBanner:
+      patch.productsCatalogBanner !== undefined
+        ? patch.productsCatalogBanner
+        : current?.productsCatalogBanner ?? CMS_DEFAULT_PRODUCTS_CATALOG_BANNER,
+    storefrontCoupons: cmsStorefrontCouponsDocSchema.parse(
+      patch.storefrontCoupons !== undefined
+        ? patch.storefrontCoupons
+        : (current?.storefrontCoupons ?? CMS_DEFAULT_STOREFRONT_COUPONS),
+    ),
     homeProductSectionsMode:
       patch.homeProductSectionsMode ??
       current?.homeProductSectionsMode ??

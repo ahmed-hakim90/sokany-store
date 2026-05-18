@@ -24,6 +24,8 @@ export type CategoryBrowseSplitLayoutProps = {
   mobileRailAllProductsActive?: boolean;
   activeSlug: string;
   showNavChrome: boolean;
+  /** عند `false` تُعرض سكة الموبايل من `categories/layout` تحت الهيدر مباشرة. */
+  showMobileRail?: boolean;
   /** يُعرض فوق المحتوى الرئيسي من `lg` فما فوق (مثلاً فلاتر إضافية). */
   desktopTopContent?: ReactNode;
   /** يُستدعى مرة واحدة؛ استخدم `hidden lg:block` داخل المحتوى عند الحاجة. */
@@ -38,6 +40,7 @@ export function CategoryBrowseSplitLayout({
   mobileRailAllProductsActive = false,
   activeSlug,
   showNavChrome,
+  showMobileRail = true,
   desktopTopContent,
   renderMainContent,
 }: CategoryBrowseSplitLayoutProps) {
@@ -47,15 +50,15 @@ export function CategoryBrowseSplitLayout({
   return (
     <>
       {/*
-       * تحت lg: سكة أفقية لاصقة — القائمة والمنطق يطابقان الكتالوج عند `mobileRailLinkMode="productsQuery"` (أعلى مستوى ثم أقران/أبناء حسب الشجرة)؛ روابط `/products?category=`؛ زر «الكل» → `/products`.
-       * من lg: sidebar كامل بروابط `/categories/...` كما هو؛ المحتوى بدون حد أقصى للارتفاع حتى يبقى الفوتر أسفل الصفحة.
+       * تحت lg: سكة بلاطات لاصقة (إن `showMobileRail`) — على `/categories` تُعرض من `categories/layout` تحت الهيدر مباشرة.
+       * من lg: sidebar كامل بروابط `/categories/...`؛ المحتوى بدون حد أقصى للارتفاع حتى يبقى الفوتر أسفل الصفحة.
        */}
       <div
         className={cn(
           "flex min-h-0 flex-1 flex-col gap-2 sm:px-2 lg:px-1",
         )}
       >
-        {showNavChrome ? (
+        {showNavChrome && showMobileRail ? (
           <div className="w-full min-w-0 shrink-0 lg:hidden">
             <StickyBelowHeaderRail>
               <CategorySidebar

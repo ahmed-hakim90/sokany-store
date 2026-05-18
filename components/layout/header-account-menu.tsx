@@ -118,7 +118,7 @@ export function HeaderAccountMenu() {
               <Link href={ROUTES.LOGIN} role="menuitem" className={cn(menuItemClass, "bg-brand-50/80 font-semibold")} onClick={close}>
                 إنشاء حساب
               </Link>
-              <Link href={ROUTES.MY_ORDERS} role="menuitem" className={menuItemClass} onClick={close}>
+              <Link href={ROUTES.ORDER_TRACKING} role="menuitem" className={menuItemClass} onClick={close}>
                 تتبع الطلب
               </Link>
               <Link href={ROUTES.WISHLIST} role="menuitem" className={menuItemClass} onClick={close}>

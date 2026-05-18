@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { Link } from "next-view-transitions";
+import { Search } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { AppImage } from "@/components/AppImage";
@@ -15,7 +16,6 @@ import {
   NavbarSearchRowSkeleton,
 } from "@/components/layout/navbar-search";
 import { MobileStorefrontHeaderToolbar } from "@/components/layout/mobile-storefront-header-toolbar";
-import { CatalogFilterDrawerTrigger } from "@/features/catalog/components/CatalogFilterDrawerTrigger";
 import { useMobileChromeCollapsedStore } from "@/components/layout/mobile-chrome-collapsed-store";
 import { DesktopCategoryMegaNav } from "@/components/layout/desktop-category-mega-nav";
 import { HeaderAccountMenu } from "@/components/layout/header-account-menu";
@@ -25,6 +25,7 @@ import { HOME_CATEGORIES_QUERY_PARAMS } from "@/features/home/lib/home-page-prod
 import { mockCategories } from "@/features/categories/mock";
 import type { Category } from "@/features/categories/types";
 import { useCartDrawerOpenStore } from "@/features/cart/store/useCartDrawerOpenStore";
+import { useSearchOverlayOpenStore } from "@/features/search/store/useSearchOverlayOpenStore";
 import { useWishlistDrawerOpenStore } from "@/features/wishlist/store/useWishlistDrawerOpenStore";
 import { useCart } from "@/hooks/useCart";
 import { useWishlist } from "@/hooks/useWishlist";
@@ -62,8 +63,8 @@ function getServerHydrationSnapshot() {
 /**
  * Navbar — بحث وفلترة وسلة وفئات؛ الديسكتوب يبقى كما هو؛ موبايل:
  * —
- * الهوية الثلاثية: المفضّلة (الجانب البصري الأيسر في RTL)، الشعار، كتلة الخط الساخن (الرقم «‎17355‎» + «خدمة العملاء» وربط اتصال ‎tel‎ بدون أيقونة).
- * تحت ذلك: عمود عمودية — حقل بحث حبّوي، شرائح اختصارات أفقية (عروض/الكتالوج…) + «المزيد» يستدعي نفس درج الخدمات، وأخيرًا بطاقة عدم اتصال مدمجة.
+ * الهوية الثلاثية: بحث (أيقونة) + المفضّلة (الجانب البصري الأيسر في RTL)، الشعار، كتلة الخط الساخن.
+ * تحت ذلك: شرائح اختصارات أفقية (عروض/الكتالوج…) + «المزيد» يستدعي نفس درج الخدمات، وأخيرًا بطاقة عدم اتصال مدمجة.
  */
 
 /** أوضاع الزّرّ الدائري الموحَّدة لموبايل (ميزة تسوق/ميزة عميل). — يحتاج ‎relative‎ لعلامات العدّ. */
@@ -72,6 +73,14 @@ const mobileCommerceIconOrbClass =
 
 const mobileCheckoutBackOrbClass =
   "relative inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/55 bg-[color-mix(in_srgb,white_88%,transparent)] text-brand-900 shadow-inner outline-none transition-[background-color,color,transform] duration-200 hover:bg-white/95 active:scale-[0.96] motion-reduce:transition-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-500";
+
+/** أبعاد صورة الشعار في الهيدر (ديسكتوب + موبايل). */
+const headerLogoImageBoxClass =
+  "relative h-16 w-36 overflow-hidden sm:h-[4.25rem] sm:w-44";
+const headerLogoImageBoxMobileClass =
+  "relative mx-auto h-16 w-36 max-w-full overflow-hidden sm:h-16 sm:w-40";
+const headerLogoImageSizesDesktop = "(max-width: 1023px) 144px, 176px";
+const headerLogoImageSizesMobile = "(max-width: 640px) 144px, 160px";
 
 export type NavbarProps = {
   /** من CMS أو الافتراضي من الثوابت عند عدم التمرير. */
@@ -165,6 +174,7 @@ export function Navbar({
   const openDesktopWishlistDrawer = useWishlistDrawerOpenStore((s) => s.openDrawer);
   const closeDesktopWishlistDrawer = useWishlistDrawerOpenStore((s) => s.closeDrawer);
   const desktopWishlistDrawerOpen = useWishlistDrawerOpenStore((s) => s.open);
+  const openSearchOverlay = useSearchOverlayOpenStore((s) => s.openOverlay);
   const mobileTopRowHidden = useMobileChromeCollapsedStore(
     (s) => s.headerHidden,
   );
@@ -187,16 +197,10 @@ export function Navbar({
   const isRetailers =
     pathname === ROUTES.RETAILERS ||
     pathname.startsWith(`${ROUTES.RETAILERS}/`);
-  const showCatalogFilterTrigger =
-    pathname === ROUTES.PRODUCTS ||
-    pathname === ROUTES.SEARCH ||
-    pathname === ROUTES.CATEGORIES ||
-    pathname.startsWith(`${ROUTES.CATEGORIES}/`);
-
   const [logoLoadFailed, setLogoLoadFailed] = useState(false);
   const showHeaderWordmarkText = logoDisabled || logoLoadFailed;
   const headerBrandTextClass =
-    "truncate font-display text-base font-semibold tracking-tight text-brand-950 sm:text-lg";
+    "truncate font-display text-lg font-semibold tracking-tight text-brand-950 sm:text-xl";
 
   // لوجو السايت في التوب ناف بار — بدون صورة: اسم الموقع (أو تعطيل اللوجو عبر env فارغ)
   const logo = (
@@ -204,12 +208,12 @@ export function Navbar({
       {showHeaderWordmarkText ? (
         <span className={cn(headerBrandTextClass, "max-w-[11rem]")}>{siteName}</span>
       ) : (
-        <div className="relative h-14 w-32 overflow-hidden sm:h-[3.75rem] sm:w-36">
+        <div className={headerLogoImageBoxClass}>
           <AppImage
             src={logoPath}
             alt={siteName}
             fill
-            sizes="100%"
+            sizes={headerLogoImageSizesDesktop}
             className="object-contain"
             priority={logoImagePriority}
             fetchPriority={isHome ? "low" : "high"}
@@ -325,18 +329,18 @@ export function Navbar({
         <span
           className={cn(
             headerBrandTextClass,
-            "text-center text-[0.9375rem] sm:text-base",
+            "text-center text-base sm:text-lg",
           )}
         >
           {siteName}
         </span>
       ) : (
-        <div className="relative mx-auto h-14 w-32 max-w-full overflow-hidden sm:h-14 sm:w-36">
+        <div className={headerLogoImageBoxMobileClass}>
           <AppImage
             src={logoPath}
             alt={siteName}
             fill
-            sizes="(max-width: 640px) 128px, 144px"
+            sizes={headerLogoImageSizesMobile}
             className="object-contain"
             priority={logoImagePriority}
             fetchPriority={isHome ? "low" : "high"}
@@ -356,18 +360,18 @@ export function Navbar({
         <span
           className={cn(
             headerBrandTextClass,
-            "text-center text-[0.9375rem] sm:text-base",
+            "text-center text-base sm:text-lg",
           )}
         >
           {siteName}
         </span>
       ) : (
-        <div className="relative mx-auto h-14 w-32 max-w-full overflow-hidden sm:h-14 sm:w-32">
+        <div className={headerLogoImageBoxMobileClass}>
           <AppImage
             src={logoPath}
             alt={siteName}
             fill
-            sizes="(max-width: 640px) 128px, 144px"
+            sizes={headerLogoImageSizesMobile}
             className="object-contain"
             priority={logoImagePriority}
             fetchPriority={isHome ? "low" : "high"}
@@ -379,20 +383,29 @@ export function Navbar({
     </Link>
   );
 
+  const mobileSearchButton = (
+    <button
+      type="button"
+      className={cn(mobileCommerceIconOrbClass)}
+      aria-label="بحث في المنتجات"
+      onClick={() => openSearchOverlay()}
+    >
+      <Search className="h-[18px] w-[18px]" strokeWidth={2.05} aria-hidden />
+    </button>
+  );
+
   const mobileTrailing = isAbout ? (
     <MobileCartLink totalItems={totalItems} />
   ) : (
-    mobileWishlistButton
+    <div className="flex items-center gap-1.5">
+      {mobileSearchButton}
+      {mobileWishlistButton}
+    </div>
   );
 
-  const searchWithFilter = (
+  const desktopSearch = (
     <Suspense fallback={<NavbarSearchRowSkeleton />}>
-      <div className="flex min-w-0 w-full items-center gap-2">
-        <div className="min-w-0 flex-1">
-          <NavbarSearch quickKeywords={searchQuickKeywords} />
-        </div>
-        {showCatalogFilterTrigger ? <CatalogFilterDrawerTrigger /> : null}
-      </div>
+      <NavbarSearch quickKeywords={searchQuickKeywords} />
     </Suspense>
   );
 
@@ -411,20 +424,13 @@ export function Navbar({
     <>
       <TopHeader
         logo={logo}
-        center={searchWithFilter}
+        center={desktopSearch}
         desktopSubheader={desktopSubheader}
         trailing={trailing}
         mobileWordmark={mobileWordmark}
         mobileLeading={mobileLeading}
         mobileTrailing={mobileTrailing}
-        mobileToolbarBelow={
-          !isCheckout ? (
-            <MobileStorefrontHeaderToolbar
-              searchQuickKeywords={searchQuickKeywords}
-              showCatalogFilterTrigger={showCatalogFilterTrigger}
-            />
-          ) : undefined
-        }
+        mobileToolbarBelow={!isCheckout ? <MobileStorefrontHeaderToolbar /> : undefined}
         mobileSecondary={mobileSecondary}
         mobileTopRowCollapsed={!isCheckout && mobileTopRowHidden}
       />

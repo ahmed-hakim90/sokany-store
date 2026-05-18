@@ -21,6 +21,8 @@ import {
 import { MobileAccordionSection } from "@/components/ui/mobile-accordion-section";
 import { IconButton } from "@/components/ui/icon-button";
 import { CategoryIcon } from "@/features/categories/category-icon-registry";
+import { StorefrontCouponCard } from "@/features/promotions/components/storefront-coupon-card";
+import { useEnabledStorefrontCoupons } from "@/features/promotions/components/storefront-coupons-context";
 import type { Category } from "@/features/categories/types";
 import { CONTACT_EMAIL, PRODUCTS_ALL_CATALOG_HREF, ROUTES } from "@/lib/constants";
 import { STOREFRONT_Z } from "@/lib/storefront-overlay-z";
@@ -372,22 +374,25 @@ export function MobileNavDrawer({
                   </p>
                 </nav>
 
-                <div className="sticky bottom-0 z-[1] mt-3 rounded-xl border border-brand-500/35 bg-brand-500 px-3 py-3 shadow-[0_-8px_24px_-8px_rgba(15,23,42,0.12)]">
-                  <p className="text-sm font-bold text-brand-950">
-                    خصم 10% على أول طلب
-                  </p>
-                  <p className="mt-1 text-xs text-brand-900/90">
-                    استخدم الكود:{" "}
-                    <span className="rounded bg-brand-500 px-1.5 py-0.5 font-mono text-xs font-bold text-black">
-                      SOKANY10
-                    </span>
-                  </p>
-                </div>
+                <MobileNavCouponsFooter />
               </div>
         </div>
       </FocusTrap>
     </div>,
     document.body,
+  );
+}
+
+function MobileNavCouponsFooter() {
+  const coupons = useEnabledStorefrontCoupons();
+  if (coupons.length === 0) return null;
+
+  return (
+    <div className="sticky bottom-0 z-[1] mt-3 space-y-2">
+      {coupons.map((coupon) => (
+        <StorefrontCouponCard key={coupon.id} coupon={coupon} variant="dock" />
+      ))}
+    </div>
   );
 }
 

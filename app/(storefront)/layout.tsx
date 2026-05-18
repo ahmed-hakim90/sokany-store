@@ -27,11 +27,13 @@ export default async function StorefrontLayout({
       />
       <WebSiteJsonLd name={b.siteBrandTitleAr} description={b.pwaDescription} />
       <SiteShell
+        storefrontPromoBar={siteChrome.storefrontPromoBar}
         topAnnouncementBar={siteChrome.topAnnouncementBar}
         socialLinks={siteChrome.socialLinks}
         branding={b}
         searchQuickKeywords={siteChrome.searchQuickKeywords}
         headerCategoryStrip={siteChrome.headerCategoryStrip}
+        storefrontCoupons={siteChrome.storefrontCoupons}
         assistantEnabled={siteChrome.assistant.enabled}
       >
         {children}

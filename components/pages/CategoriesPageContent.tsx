@@ -1,18 +1,17 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
-import { useSearchParams } from "next/navigation";
+import { useMemo } from "react";
 import { useTransitionRouter } from "next-view-transitions";
 import { Button } from "@/components/Button";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorState } from "@/components/ErrorState";
 import { ScrollReveal } from "@/components/ScrollReveal";
 import { useCart } from "@/hooks/useCart";
+import { useFlattenedInfiniteProducts } from "@/hooks/useFlattenedInfiniteProducts";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 import { StorefrontStaleDataNotice } from "@/components/storefront-stale-data-notice";
 import { DEFAULT_PER_PAGE, ROUTES } from "@/lib/constants";
-import { CatalogPagination } from "@/features/catalog/components/CatalogPagination";
-import { useProducts } from "@/features/products/hooks/useProducts";
+import { CatalogInfiniteScrollSentinel } from "@/features/catalog/components/catalog-infinite-scroll-sentinel";
 import { ProductGrid } from "@/features/products/components/ProductGrid";
 import { ProductSkeleton } from "@/features/products/components/ProductSkeleton";
 import type { Product } from "@/features/products/types";
@@ -31,50 +30,47 @@ function CategoriesIntro() {
 }
 
 /*
- * قسم «منتجات متاحة»: شبكة المنتجات داخل العمود الرئيسي.
+ * قسم «منتجات متاحة»: شبكة المنتجات داخل العمود الرئيسي — تمرير لانهائي.
  */
 function AvailableProductsSection({
-  productsQuery,
+  items,
+  infiniteQuery,
+  responseFromCache,
+  hasNextPage,
+  fetchNextPage,
+  isFetchingNextPage,
   getCartLineQuantity,
   onCartLineQuantityChange,
   router,
-  page,
 }: {
-  productsQuery: ReturnType<typeof useProducts>;
+  items: Product[];
+  infiniteQuery: ReturnType<typeof useFlattenedInfiniteProducts>["infiniteQuery"];
+  responseFromCache: boolean;
+  hasNextPage: boolean;
+  fetchNextPage: () => void;
+  isFetchingNextPage: boolean;
   getCartLineQuantity: (productId: number) => number;
   onCartLineQuantityChange: (product: Product, next: number) => void;
   router: ReturnType<typeof useTransitionRouter>;
-  page: number;
 }) {
-  const items = productsQuery.data?.items ?? [];
   const { offline } = useNetworkStatus();
-  const fromApiCache = productsQuery.data?.responseSource === "cache-fallback";
   const showStaleNotice =
-    (fromApiCache && items.length > 0) ||
+    (responseFromCache && items.length > 0) ||
     (offline && items.length > 0) ||
-    (productsQuery.isError && items.length > 0);
+    (infiniteQuery.isError && items.length > 0);
   const staleVariant =
     offline && items.length > 0 ? "offline-cache" : "api-fallback";
-  const fatal = productsQuery.isError && items.length === 0;
-  const totalPages = productsQuery.data?.totalPages ?? 1;
+  const fatal = infiniteQuery.isError && items.length === 0;
+
   return (
     <section
-      className="space-y-3 rounded-2xl  lg:p-0"
+      className="space-y-3 rounded-2xl lg:p-0"
       aria-labelledby="categories-available-products-title"
     >
-      {/* <div className="flex flex-col items-center gap-2 text-center">
-        <h2
-          id="categories-available-products-title"
-          className="text-base font-bold tracking-tight text-black sm:text-lg md:text-xl"
-        >
-          منتجات متاحة
-        </h2>
-      </div> */}
-
       {fatal ? (
         <ErrorState
-          message={productsQuery.error.message}
-          onRetry={() => void productsQuery.refetch()}
+          message={infiniteQuery.error?.message ?? "تعذر تحميل المنتجات"}
+          onRetry={() => void infiniteQuery.refetch()}
         />
       ) : (
         <>
@@ -85,7 +81,7 @@ function AvailableProductsSection({
           ) : null}
           <ProductGrid
             status={
-              productsQuery.isPending && items.length === 0
+              infiniteQuery.isPending && items.length === 0
                 ? "loading"
                 : !items.length
                   ? "empty"
@@ -110,11 +106,11 @@ function AvailableProductsSection({
               />
             }
           />
-          {!productsQuery.isPending && !fatal && items.length > 0 ? (
-            <CatalogPagination
-              currentPage={page}
-              totalPages={totalPages}
-              getHref={(p) => (p <= 1 ? ROUTES.CATEGORIES : `${ROUTES.CATEGORIES}?page=${p}`)}
+          {!infiniteQuery.isPending && !fatal && items.length > 0 ? (
+            <CatalogInfiniteScrollSentinel
+              hasMore={hasNextPage}
+              isLoadingMore={isFetchingNextPage}
+              onLoadMore={fetchNextPage}
             />
           ) : null}
         </>
@@ -143,32 +139,23 @@ export function CategoriesPageLoadingFallback() {
 }
 
 /*
- * محتوى فهرس التصنيفات (/categories): يُلفّه `categories/layout.tsx` بشريط جانبي كامل على الديسكتوب، وسكة موبايل مطابقة للكتالوج (تصنيفات المستوى الأعلى + روابط `/products?category=`).
- * المقدمة تظهر من lg؛ تحتها قسم المنتجات الشائعة.
+ * محتوى فهرس التصنيفات (/categories):
+ * — الجوال: سكة بلاطات الفئات في `categories/layout` تحت الهيدر؛ هنا شبكة المنتجات بالتمرير اللانهائي.
+ * — lg+: مقدمة + شريط جانبي نصي (من التخطيط) + نفس شبكة المنتجات.
  */
 export function CategoriesPageContent() {
   const router = useTransitionRouter();
-  const searchParams = useSearchParams();
-  const page = useMemo(
-    () => Math.max(1, parseInt(searchParams.get("page") ?? "1", 10) || 1),
-    [searchParams],
-  );
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    window.scrollTo(0, 0);
-  }, [searchParams]);
 
   const productParams = useMemo(
     () => ({
-      page,
       per_page: DEFAULT_PER_PAGE,
       orderby: "popularity" as const,
       order: "desc" as const,
     }),
-    [page],
+    [],
   );
-  const productsQuery = useProducts(productParams);
+
+  const catalogInfinite = useFlattenedInfiniteProducts(productParams);
   const { getCartLineQuantity, setProductLineQuantity } = useCart();
 
   return (
@@ -182,11 +169,15 @@ export function CategoriesPageContent() {
       <div className="mt-0 lg:mt-8">
         <ScrollReveal>
           <AvailableProductsSection
-            productsQuery={productsQuery}
+            items={catalogInfinite.items}
+            infiniteQuery={catalogInfinite.infiniteQuery}
+            responseFromCache={catalogInfinite.responseFromCache}
+            hasNextPage={catalogInfinite.hasNextPage}
+            fetchNextPage={catalogInfinite.fetchNextPage}
+            isFetchingNextPage={catalogInfinite.isFetchingNextPage}
             getCartLineQuantity={getCartLineQuantity}
             onCartLineQuantityChange={setProductLineQuantity}
             router={router}
-            page={page}
           />
         </ScrollReveal>
       </div>

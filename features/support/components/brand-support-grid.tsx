@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 export const BRAND_SUPPORT_TILES = [
   {
     href: ROUTES.WARRANTY,
-    label: "طرق الاستخدام",
+    label: "الضمان وطرق الاستخدام",
     description: "دليل الاستخدام ومراكز الخدمة المعتمدة",
     icon: BookOpen,
   },
@@ -27,7 +27,7 @@ export const BRAND_SUPPORT_TILES = [
     icon: Headphones,
   },
   {
-    href: ROUTES.TERMS,
+    href: `${ROUTES.ABOUT}#faq`,
     label: "الأسئلة الشائعة",
     description: "إجابات سريعة لأكثر الأسئلة",
     icon: HelpCircle,

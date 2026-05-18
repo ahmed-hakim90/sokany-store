@@ -16,6 +16,8 @@ import { getReviewEligibility } from "@/lib/review-purchase-eligibility";
 import { WOO_BFF_UNSTABLE_CACHE_REVALIDATE_SEC } from "@/lib/woo-bff-revalidate";
 import { WOO_CACHE_TAG_REVIEWS } from "@/lib/woocommerce-cache-tags";
 import { revalidateWooReviewTags } from "@/lib/woocommerce-revalidate-broadcast";
+import { API_NO_INDEX_HEADERS } from "@/lib/api-no-index";
+import { enforceCatalogReadRateLimit } from "@/lib/public-api-rate-limit";
 
 type CachedWooListResponse = {
   data: unknown;
@@ -54,6 +56,9 @@ const fetchWooReviewsCached = unstable_cache(
 );
 
 export async function GET(request: NextRequest) {
+  const limited = enforceCatalogReadRateLimit(request);
+  if (limited) return limited;
+
   try {
     const { searchParams } = new URL(request.url);
     const params = toWooReviewListParams(searchParams);
@@ -62,6 +67,7 @@ export async function GET(request: NextRequest) {
       headers: {
         "X-WP-Total": cached.total,
         "X-WP-TotalPages": cached.totalPages,
+        ...API_NO_INDEX_HEADERS,
       },
     });
   } catch (error) {

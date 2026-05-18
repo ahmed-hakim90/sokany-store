@@ -11,8 +11,8 @@
 import { startTransition, useCallback, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { DEFAULT_PER_PAGE, ROUTES } from "@/lib/constants";
+import { useFlattenedInfiniteProducts } from "@/hooks/useFlattenedInfiniteProducts";
 import { useCategories } from "@/features/categories/hooks/useCategories";
-import { useProducts } from "@/features/products/hooks/useProducts";
 import type { ProductQueryParams } from "@/types";
 
 function parseNumber(value: string | null): number | undefined {
@@ -68,7 +68,21 @@ export function useProductsCatalog() {
     };
   }, [searchParams]);
 
-  const productsQuery = useProducts(params);
+  const infiniteBaseParams = useMemo(() => {
+    const { page: _page, ...rest } = params;
+    return rest;
+  }, [params]);
+
+  const {
+    infiniteQuery: productsInfiniteQuery,
+    items: catalogItems,
+    total: catalogTotal,
+    totalPages: catalogTotalPages,
+    hasNextPage: hasNextCatalogPage,
+    fetchNextPage: fetchNextCatalogPage,
+    isFetchingNextPage: isFetchingNextCatalogPage,
+  } = useFlattenedInfiniteProducts(infiniteBaseParams);
+
   const categoriesQuery = useCategories();
 
   const isFeatured = searchParams.get("featured") === "true";
@@ -147,14 +161,20 @@ export function useProductsCatalog() {
   );
 
   return {
-    productsQuery,
+    productsInfiniteQuery,
+    catalogItems,
+    catalogTotal,
+    catalogTotalPages,
+    hasNextCatalogPage,
+    fetchNextCatalogPage,
+    isFetchingNextCatalogPage,
     categoriesQuery,
     isFeatured,
     activeCategoryId,
     allActive,
     pushFilters,
     searchParams,
-    /** معاملات الكتالوج الحالية (للتصفح بالصفحات وغيره). */
+    /** معاملات الكتالوج الحالية (فلاتر + ترتيب؛ الصفحة تُدار داخلياً للتمرير اللانهائي). */
     catalogParams: params,
   };
 }
