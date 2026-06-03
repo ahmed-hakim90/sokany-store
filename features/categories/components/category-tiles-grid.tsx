@@ -216,7 +216,7 @@ export function CategoryTilesGrid({
     <section className={cn("space-y-5", className)} aria-labelledby={titleId}>
       <h2
         id={titleId}
-        className="font-display text-2xl font-bold text-brand-950 sm:text-[1.65rem]"
+        className="font-display text-2xl font-bold  text-brand-950 sm:text-[1.65rem]"
       >
         {title}
       </h2>
