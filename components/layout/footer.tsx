@@ -193,12 +193,7 @@ export function Footer({
                 ))}
               </ul>
             </FooterCollapsibleSection>
-            <FooterCollapsibleSection
-              title={FOOTER_LINK_GROUPS.legal.title}
-              titleClassName="lg:mt-6 lg:text-sm"
-            >
-              <FooterInlineLinks items={FOOTER_LINK_GROUPS.legal.links} />
-            </FooterCollapsibleSection>
+           
           </div>
 
           <div className="order-3 min-w-0 lg:order-3" id="service">
@@ -211,6 +206,12 @@ export function Footer({
                 </p>
                 <p>القاهرة، مصر — دعم العملاء 10:00–18:00.</p>
               </div>
+            </FooterCollapsibleSection>
+            <FooterCollapsibleSection
+              title={FOOTER_LINK_GROUPS.legal.title}
+              titleClassName="lg:mt-6 lg:text-sm"
+            >
+              <FooterInlineLinks items={FOOTER_LINK_GROUPS.legal.links} />
             </FooterCollapsibleSection>
           </div>
 
