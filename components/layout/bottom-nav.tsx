@@ -91,7 +91,7 @@ function BottomNavLinkContents({
     >
       <span className={tabIconShellClassName(active)}>
         <Icon className={iconGlyphClass} aria-hidden />
-        {isCart && totalItems > 0 ? (
+        {/* {isCart && totalItems > 0 ? (
           <span
             className={cn(
               "absolute -end-1 -top-1 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-brand-500 px-0.5 text-[8px] font-bold leading-none text-black ring-[2px]",
@@ -100,7 +100,7 @@ function BottomNavLinkContents({
           >
             {totalItems > 99 ? "99+" : totalItems}
           </span>
-        ) : null}
+        ) : null} */}
       </span>
       <span
         className={cn(bottomNavLabelClass, active ? "text-brand-950" : "text-current")}
