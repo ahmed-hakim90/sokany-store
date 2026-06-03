@@ -151,7 +151,7 @@ export function MobileCartBottomSheet({
               />
             )}
             {/* <CartUpsellSection className="pb-0" /> */}
-            <CartPromoRow />
+            {/* <CartPromoRow /> */}
           </div>
 
           <CartDrawerPeekFooter
