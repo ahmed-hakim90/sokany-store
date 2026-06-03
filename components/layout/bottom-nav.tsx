@@ -11,6 +11,7 @@ import {
   ClipboardList,
   Home,
   LayoutGrid,
+  MapPin,
   Menu,
   ShoppingCart,
 } from "lucide-react";
@@ -31,8 +32,8 @@ import { cn } from "@/lib/utils";
 const linkItems = [
   { href: ROUTES.HOME, label: "الرئيسية", key: "home" },
   { href: ROUTES.PRODUCTS, label: "المنتجات", key: "products" },
-  { href: ROUTES.CART, label: "السلة", key: "cart" },
-  { href: ROUTES.MY_ORDERS, label: "طلباتي", key: "orders" },
+  { href: ROUTES.SERVICE_CENTERS, label: "الفروع", key: "branches" },
+  { href: ROUTES.ABOUT, label: "عن سوكاني", key: "about" },
 ] as const;
 
 type NavLinkKey = (typeof linkItems)[number]["key"];
@@ -40,8 +41,8 @@ type NavLinkKey = (typeof linkItems)[number]["key"];
 const iconByKey: Record<NavLinkKey, LucideIcon> = {
   home: Home,
   products: LayoutGrid,
-  cart: ShoppingCart,
-  orders: ClipboardList,
+  branches: MapPin,
+  about: ClipboardList,
 };
 
 const iconGlyphClass =
@@ -118,10 +119,6 @@ export function BottomNavInner() {
   const pathname = usePathname();
   const { totalItems } = useCart();
   const headerHidden = useMobileChromeCollapsedStore((s) => s.headerHidden);
-  const cartPeekHidden = useMobileChromeCollapsedStore((s) => s.cartPeekHidden);
-  const showCartPeekOnly = useMobileChromeCollapsedStore(
-    (s) => s.showCartPeekOnly,
-  );
 
   const menuRef = useRef<HTMLButtonElement>(null);
   const drawerOpen = useMobileNavDrawerOpenStore((s) => s.open);
@@ -167,12 +164,6 @@ export function BottomNavInner() {
                   "focus-visible:ring-brand-400/95",
                 )}
                 {...(isCart ? { "data-cart-fly-target": "mobile" as const } : {})}
-                onClick={(e) => {
-                  if (isCart && cartPeekHidden) {
-                    e.preventDefault();
-                    showCartPeekOnly();
-                  }
-                }}
               >
                 <BottomNavLinkContents
                   active={active}

@@ -19,15 +19,15 @@ const POST_RESET_COOLDOWN_MS = 320;
 const COLLAPSE_AFTER_SCROLL_IDLE_MS = 180;
 
 /**
- * موبايل: سكرول للأسفل يطوي **صف الشعار** في الهيدر ويخفِي ملخص السلة.
- * **مربع البحث** و**شريط التصنيفات** يبقون ظاهرين.
+ * موبايل: سكرول للأسفل يطوي **صف الشعار** في الهيدر فقط.
+ * كبسولة السلة تبقى ظاهرة؛ **مربع البحث** و**شريط التصنيفات** يبقون ظاهرين.
  * الإظهار عند أعلى الصفحة أو تغيير المسار.
  */
 export function MobileScrollCollapseController() {
   const pathname = usePathname();
   const resetChrome = useMobileChromeCollapsedStore((s) => s.resetChrome);
-  const hideChromeFromScroll = useMobileChromeCollapsedStore(
-    (s) => s.hideChromeFromScroll,
+  const hideHeaderFromScroll = useMobileChromeCollapsedStore(
+    (s) => s.hideHeaderFromScroll,
   );
   const lastYRef = useRef(0);
   const hideCooldownUntilRef = useRef(0);
@@ -59,7 +59,7 @@ export function MobileScrollCollapseController() {
         if (!mq.matches) return;
         const y = window.scrollY ?? document.documentElement.scrollTop ?? 0;
         if (y >= HIDE_CHROME_MIN_Y) {
-          hideChromeFromScroll();
+          hideHeaderFromScroll();
         }
       }, COLLAPSE_AFTER_SCROLL_IDLE_MS);
     };
@@ -112,7 +112,7 @@ export function MobileScrollCollapseController() {
       window.removeEventListener("scroll", onScroll);
       mq.removeEventListener("change", onMqChange);
     };
-  }, [resetChrome, hideChromeFromScroll]);
+  }, [resetChrome, hideHeaderFromScroll]);
 
   return null;
 }

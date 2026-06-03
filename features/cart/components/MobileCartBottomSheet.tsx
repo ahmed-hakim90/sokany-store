@@ -1,39 +1,38 @@
 "use client";
 
+/**
+ * سلة موبايل — كبسولة ثابتة + drawer
+ * بالعامية: كبسولة حمراء فوق التبويب السفلي طول ما في أصناف؛ الضغط يفتح ورقة تعديل السلة (vaul) من غير بوب أب ملخص عريض.
+ *
+ * تخطيط (موبايل فقط، max-lg):
+ * - عمود الكروم: كبسولة مدمجة (صور + «عرض السلة») ثم bottom nav.
+ * - الـ drawer: ورقة من الأسفل بقائمة الأصناف و«إتمام الطلب».
+ */
 import { useCallback, useEffect, useState, startTransition } from "react";
-import { ArrowLeft } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useTransitionRouter } from "next-view-transitions";
 import { Drawer } from "vaul";
 import { useCart } from "@/hooks/useCart";
-import { formatPriceAmountCheckout } from "@/lib/format";
 import { ROUTES } from "@/lib/constants";
-import { cn, formatPrice } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import {
-  CART_CHECKOUT_CTA_LABEL,
   CartDrawerLines,
   CartDrawerLinesSkeleton,
   CartDrawerPeekFooter,
-  cartCheckoutPillButtonClassName,
-  cartCheckoutPillIconClassName,
   getCartDrawerDiscount,
 } from "@/features/cart/components/cart-drawer-body";
+import { MobileCartCompactPeek } from "@/features/cart/components/mobile-cart-compact-peek";
 import { CartFreeShippingProgressBar } from "@/features/cart/components/cart-free-shipping-progress";
 import { CartPromoRow } from "@/features/cart/components/cart-promo-row";
 import { CartUpsellSection } from "@/features/cart/components/cart-upsell-section";
-import { mobileCommercePeekSurfaceClass } from "@/components/layout/mobile-commerce-surface";
-import { useMobileChromeCollapsedStore } from "@/components/layout/mobile-chrome-collapsed-store";
 import { getCartShippingUi } from "@/lib/cart-shipping-ui";
 
 type MobileCartBottomSheetProps = {
   showCartSummary: boolean;
-  /** يخفي شريط الملخص فوق الـ bottom nav (مثلاً عند سكرول للأسفل) مع بقاء الـ drawer يعمل إن وُجد. */
-  peekHidden?: boolean;
 };
 
 export function MobileCartBottomSheet({
   showCartSummary,
-  peekHidden = false,
 }: MobileCartBottomSheetProps) {
   const pathname = usePathname();
   const router = useTransitionRouter();
@@ -46,7 +45,6 @@ export function MobileCartBottomSheet({
     removeProduct,
     updatingLineId,
   } = useCart();
-  const hideCartPeekOnly = useMobileChromeCollapsedStore((s) => s.hideCartPeekOnly);
   const [open, setOpen] = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
 
@@ -74,13 +72,14 @@ export function MobileCartBottomSheet({
     router.push(ROUTES.CHECKOUT);
   }, [router]);
 
+  const openDrawer = useCallback(() => {
+    if (!hasHydrated) return;
+    setOpen(true);
+  }, [hasHydrated]);
+
   if (!showCartSummary) return null;
 
   const lineCount = items.length;
-  const qtyLabel =
-    lineCount > 0
-      ? `${lineCount} صنف • ${totalItems} قطعة`
-      : `${totalItems} قطعة`;
   const discount = getCartDrawerDiscount(items);
   const displaySubtotal = totalPrice + discount;
   const shippingUi = getCartShippingUi(totalPrice);
@@ -93,84 +92,16 @@ export function MobileCartBottomSheet({
       shouldScaleBackground={false}
       dismissible
     >
-      <div className="px-4 pb-0" aria-hidden={peekHidden}>
-        <div
-          className={cn(
-            mobileCommercePeekSurfaceClass,
-            "relative flex min-h-[3.25rem] items-center justify-between gap-3 px-4 py-3 transition-[opacity,transform] duration-200 ease-out motion-reduce:transition-none",
-            peekHidden
-              ? "pointer-events-none translate-y-4 opacity-0"
-              : "translate-y-0 opacity-100",
-          )}
-        >
-          <button
-            type="button"
-            tabIndex={peekHidden ? -1 : undefined}
-            className="absolute end-2 top-2 z-10 inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/95 text-slate-700 shadow-sm ring-1 ring-slate-900/10 transition-colors hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-400"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              setOpen(false);
-              hideCartPeekOnly();
-            }}
-            aria-label="إخفاء ملخص السلة"
-          >
-            <MobileCartCloseIcon className="h-4 w-4" />
-          </button>
-          <Drawer.Trigger asChild disabled={!hasHydrated || peekHidden}>
-            <button
-              type="button"
-              tabIndex={peekHidden ? -1 : undefined}
-              className={cn(
-                "flex min-w-0 flex-1 flex-col items-start gap-1 rounded-2xl pe-7 text-start outline-none ring-brand-500/0 transition-[box-shadow] focus-visible:ring-2 focus-visible:ring-brand-500/40",
-                (!hasHydrated || peekHidden) && "pointer-events-none opacity-80",
-              )}
-              aria-expanded={open}
-              aria-haspopup="dialog"
-              aria-label={open ? "إغلاق تفاصيل السلة" : "فتح تفاصيل السلة"}
-            >
-              <div
-                className="flex w-full min-w-0 items-baseline justify-end gap-1.5"
-                dir="ltr"
-              >
-                <span className="font-display text-2xl font-black tabular-nums tracking-tight text-brand-950">
-                  {formatPriceAmountCheckout(totalPrice)}
-                </span>
-                <span className="translate-y-px text-[0.7rem] font-semibold text-brand-900/65">
-                  ج.م
-                </span>
-              </div>
-              <p className="w-full truncate text-start text-xs text-muted-foreground">
-                {qtyLabel}
-              </p>
-              <span className="sr-only">
-                الإجمالي {formatPrice(totalPrice)} — اضغط لعرض تفاصيل السلة
-              </span>
-            </button>
-          </Drawer.Trigger>
-          <button
-            type="button"
-            tabIndex={peekHidden ? -1 : undefined}
-            className={cn(
-              cartCheckoutPillButtonClassName,
-            )}
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              goCheckout();
-            }}
-          >
-            <span className="max-w-[9rem] truncate sm:max-w-none">
-              {CART_CHECKOUT_CTA_LABEL}
-            </span>
-            <span
-              className={cartCheckoutPillIconClassName}
-              aria-hidden
-            >
-              <ArrowLeft className="size-5 rtl:rotate-180" />
-            </span>
-          </button>
-        </div>
+      <div className="flex justify-center px-4 pb-0">
+        <MobileCartCompactPeek
+          items={items}
+          totalItems={totalItems}
+          totalPrice={totalPrice}
+          hasHydrated={hasHydrated}
+          drawerOpen={open}
+          disabled={!hasHydrated}
+          onClick={openDrawer}
+        />
       </div>
 
       <Drawer.Portal>
@@ -219,7 +150,7 @@ export function MobileCartBottomSheet({
                 onRemove={removeProduct}
               />
             )}
-            <CartUpsellSection className="pb-0" />
+            {/* <CartUpsellSection className="pb-0" /> */}
             <CartPromoRow />
           </div>
 

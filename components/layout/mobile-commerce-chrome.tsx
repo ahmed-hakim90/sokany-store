@@ -2,9 +2,14 @@
 
 /**
  * كروم التجارة للموبايل
- * بالعامية: عمود ثابت تحت المحتوى فيه الـ bottom nav، ملخص سلة ديناميك، وارتفاع محجوز بـ CSS variable علشان الـ toast والـ floating actions ما يتداخلش مع بعض.
+ * بالعامية: عمود ثابت تحت المحتوى — كبسولة سلة حمراء (طالما في أصناف) ثم bottom nav؛ ارتفاع محجوز بـ CSS variable للـ toast والـ floating actions.
  *
- * شوف كمان: `@/components/layout/bottom-nav.tsx`، `@/components/layout/mobile-chrome-collapsed-store.ts`
+ * تخطيط (max-lg):
+ * - عمود fixed أسفل الشاشة: [كبسولة سلة مدمجة] → [شريط تبويبات] مع safe-area.
+ * - `--mobile-commerce-floating-actions-bottom` يحاذي أزرار الجانب (سوشيال/مساعد) مع صف الكبسولة.
+ * - يُخفى على /cart و/checkout والمساعد؛ السلة تفضل ظاهرة عند السكرول.
+ *
+ * شوف كمان: `@/components/layout/bottom-nav.tsx`، `@/features/cart/components/MobileCartBottomSheet.tsx`
  */
 import { usePathname } from "next/navigation";
 import dynamic from "next/dynamic";
@@ -38,9 +43,9 @@ export function MobileCommerceChrome() {
   const pathname = usePathname();
   const { totalItems } = useCart();
   const headerHidden = useMobileChromeCollapsedStore((s) => s.headerHidden);
-  const cartPeekHidden = useMobileChromeCollapsedStore((s) => s.cartPeekHidden);
   const assistantOpen = useMobileAssistantOpenStore((s) => s.open);
   const rootRef = useRef<HTMLDivElement>(null);
+  const cartPeekRef = useRef<HTMLDivElement>(null);
   const bottomNavRef = useRef<HTMLDivElement>(null);
   const reservedHeightRef = useRef(0);
   const reservedHeightKeyRef = useRef("");
@@ -74,8 +79,14 @@ export function MobileCommerceChrome() {
         bottomNavTop != null
           ? Math.max(0, Math.ceil(window.innerHeight - bottomNavTop))
           : 52;
-      const floatingActionsBottom =
-        showCartSummary && !cartPeekHidden ? measuredHeight : bottomNavBase;
+      let floatingActionsBottom = bottomNavBase;
+      if (showCartSummary && cartPeekRef.current) {
+        const cartBottom = cartPeekRef.current.getBoundingClientRect().bottom;
+        floatingActionsBottom = Math.max(
+          bottomNavBase,
+          Math.ceil(window.innerHeight - cartBottom),
+        );
+      }
 
       reservedHeightRef.current = h;
       document.documentElement.style.setProperty(
@@ -92,6 +103,9 @@ export function MobileCommerceChrome() {
       requestAnimationFrame(syncHeight);
     });
     ro.observe(el);
+    if (cartPeekRef.current) {
+      ro.observe(cartPeekRef.current);
+    }
     if (bottomNavRef.current) {
       ro.observe(bottomNavRef.current);
     }
@@ -108,7 +122,7 @@ export function MobileCommerceChrome() {
         MOBILE_COMMERCE_FLOATING_ACTIONS_BOTTOM_VAR,
       );
     };
-  }, [pathname, showCartSummary, cartPeekHidden]);
+  }, [pathname, showCartSummary]);
 
   return (
     <div
@@ -119,11 +133,11 @@ export function MobileCommerceChrome() {
       {isAssistantPage ? null : (
         <>
           {showCartSummary ? (
-            <div className={cn("pointer-events-auto", mobileCommerceChromeColumnClass)}>
-              <MobileCartBottomSheet
-                showCartSummary={showCartSummary}
-                peekHidden={cartPeekHidden}
-              />
+            <div
+              ref={cartPeekRef}
+              className={cn("pointer-events-auto", mobileCommerceChromeColumnClass)}
+            >
+              <MobileCartBottomSheet showCartSummary={showCartSummary} />
             </div>
           ) : null}
           {hideBottomNav ? null : (

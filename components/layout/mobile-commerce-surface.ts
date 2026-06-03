@@ -32,9 +32,14 @@ export const mobileBottomNavSafeAreaRestClass =
 export const mobileBottomNavSafeAreaCollapsedClass =
   "bg-[color-mix(in_srgb,var(--sokany-accent)_18%,white_82%)] backdrop-blur-2xl backdrop-saturate-125";
 
-/** سطح أخف — شريط peek السلة (`MobileCartBottomSheet`) وشريط الإعلان (`TopAnnouncementBar`). */
+/** سطح أخف — شريط إعلان (`TopAnnouncementBar`)؛ كبسولة السلة تستخدم `mobileCartCompactPeekClass`. */
 export const mobileCommercePeekSurfaceClass =
   "rounded-3xl border border-white/50 bg-white/80 shadow-[0_8px_32px_-10px_rgba(15,23,42,0.14),0_2px_8px_-4px_rgba(15,23,42,0.08)] backdrop-blur-xl backdrop-saturate-150";
+
+/** كبسولة سلة مدمجة فوق الـ bottom nav — `MobileCartCompactPeek`. */
+export const mobileCartCompactPeekClass = cn(
+  "rounded-full bg-destructive shadow-[0_10px_28px_-8px_rgba(190,18,60,0.55),0_4px_12px_-4px_rgba(15,23,42,0.2)]",
+);
 
 /**
  * هيدر موبايل — نفس مزيج الليكويد جلاس مع ‎`mobileCommercePeekSurfaceClass` (‎`MobileCartBottomSheet`‎)؛

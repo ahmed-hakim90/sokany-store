@@ -68,7 +68,7 @@ export async function OfficialWpPageContent({
         />
       </div>
 
-      <p className="mt-8 border-t border-border/80 pt-6 text-center text-xs text-muted-foreground sm:mt-10">
+      {/* <p className="mt-8 border-t border-border/80 pt-6 text-center text-xs text-muted-foreground sm:mt-10">
         المصدر:{" "}
         <a
           href={`${OFFICIAL_SOKANY_SITE_URL}/${slug}/`}
@@ -82,7 +82,7 @@ export async function OfficialWpPageContent({
         <Link href="/" className="font-medium text-brand-800 underline-offset-2 hover:underline">
           العودة للمتجر
         </Link>
-      </p>
+      </p> */}
     </LegalPageShell>
   );
 }

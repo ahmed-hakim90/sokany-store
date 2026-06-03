@@ -2,35 +2,23 @@
 
 /**
  * حالة طي كروم الموبايل عند السكرول
- * بالعامية: سكرول لتحت يخبي صف الشعار وملخص السلة؛ تبويب السلة ممكن يطلع الـ peek من غير ما يرجّع الشعار.
+ * بالعامية: سكرول لتحت يخبي صف الشعار فقط؛ كبسولة السلة تفضل ظاهرة طالما فيها أصناف.
  */
 import { create } from "zustand";
 
 type MobileChromeScrollState = {
   /** يطوي صف الشعار فقط (الموبايل)؛ مربع البحث + التصنيفات يبقون ظاهرين. */
   headerHidden: boolean;
-  /** يخفي شريط ملخص السلة فوق الـ bottom nav. */
-  cartPeekHidden: boolean;
   /** إعادة كامل الواجهة (تغيير صفحة، سطح مكتب، أو أعلى الصفحة). */
   resetChrome: () => void;
-  /** سكرول للأسفل: إخفاء صف الشعار + ملخص السلة. */
-  hideChromeFromScroll: () => void;
-  /** زر الملخص: إخفاء شريط السلة فقط دون طي الهيدر. */
-  hideCartPeekOnly: () => void;
-  /**
-   * تبويب السلة: إظهار شريط الملخص فقط دون إرجاع صف الشعار
-   * (يبقى صف الشعار مطويًا إن وُجد سكرول).
-   */
-  showCartPeekOnly: () => void;
+  /** سكرول للأسفل: إخفاء صف الشعار فقط. */
+  hideHeaderFromScroll: () => void;
 };
 
 export const useMobileChromeCollapsedStore = create<MobileChromeScrollState>(
   (set) => ({
     headerHidden: false,
-    cartPeekHidden: false,
-    resetChrome: () => set({ headerHidden: false, cartPeekHidden: false }),
-    hideChromeFromScroll: () => set({ headerHidden: true, cartPeekHidden: true }),
-    hideCartPeekOnly: () => set({ cartPeekHidden: true }),
-    showCartPeekOnly: () => set({ cartPeekHidden: false }),
+    resetChrome: () => set({ headerHidden: false }),
+    hideHeaderFromScroll: () => set({ headerHidden: true }),
   }),
 );

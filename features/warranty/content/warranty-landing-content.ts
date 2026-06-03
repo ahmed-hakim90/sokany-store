@@ -85,11 +85,11 @@ export const warrantyLandingCoverage: WarrantyCoverageCard[] = [
 
 export const warrantyLandingSteps = [
   { step: 1, title: "شراء المنتج", description: "احتفظ بفاتورة الشراء من قنوات الوكيل الحصري." },
-  { step: 2, title: "تفعيل الضمان", description: "سجّل بيانات الجهاز لتسهيل متابعة الضمان لاحقاً." },
-  { step: 3, title: "طلب الخدمة", description: "اتصل بالخط الساخن 17355 أو تواصل مع أقرب مركز." },
-  { step: 4, title: "الفحص", description: "فحص فني للجهاز لتحديد العطل وخطة الإصلاح." },
-  { step: 5, title: "الصيانة", description: "إصلاح بقطع غيار أصلية وفق معايير العلامة." },
-  { step: 6, title: "الاستلام", description: "استلام جهازك بعد اختبار الجودة والتأكد من الأداء." },
+  // { step: 2, title: "تفعيل الضمان", description: "سجّل بيانات الجهاز لتسهيل متابعة الضمان لاحقاً." },
+  { step: 2, title: "طلب الخدمة", description: "اتصل بالخط الساخن 17355 أو تواصل مع أقرب مركز." },
+  { step: 3, title: "الفحص", description: "فحص فني للجهاز لتحديد العطل وخطة الإصلاح." },
+  { step: 4, title: "الصيانة", description: "إصلاح بقطع غيار أصلية وفق معايير العلامة." },
+  { step: 5, title: "الاستلام", description: "استلام جهازك بعد اختبار الجودة والتأكد من الأداء." },
 ] as const;
 
 export const warrantyLandingWhyCards: WarrantyCoverageCard[] = [
