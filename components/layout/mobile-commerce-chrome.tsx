@@ -147,7 +147,7 @@ export function MobileCommerceChrome() {
               inert={assistantOpen ? true : undefined}
               className={cn(
                 mobileCommerceBottomNavShellClassName(headerHidden),
-                "pointer-events-auto w-full pb-[max(10px,calc(env(safe-area-inset-bottom,0px)+6px))] pt-0 transition-[opacity,filter] duration-200 ease-out motion-reduce:transition-none",
+                "pointer-events-auto w-full   pt-0 transition-[opacity,filter] duration-200 ease-out motion-reduce:transition-none",
                 assistantOpen
                   ? "pointer-events-none opacity-0 blur-[1px]"
                   : "opacity-100 blur-0",

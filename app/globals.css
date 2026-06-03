@@ -58,7 +58,7 @@ html[data-storefront-modal] [data-mobile-commerce-chrome] {
   --radius-editorial: 1.5rem;
   /* Mobile fixed commerce chrome (bottom nav ± cart); overridden by JS when mounted */
   --mobile-commerce-chrome-height: 12rem;
-  --mobile-commerce-floating-actions-bottom: calc(2.2rem + env(safe-area-inset-bottom, 0px));
+  --mobile-commerce-floating-actions-bottom: calc(2.5rem + env(safe-area-inset-bottom, 0px));
 
   /* Motion — shared with lib/motion.ts */
   --motion-duration-instant: 0ms;

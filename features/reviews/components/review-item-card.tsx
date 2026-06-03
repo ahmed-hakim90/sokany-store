@@ -12,11 +12,11 @@ export function ReviewItemCard({ review, className }: ReviewItemCardProps) {
   return (
     <article
       className={cn(
-        "rounded-xl border border-black/[0.06] bg-white p-4 shadow-[0_2px_16px_-4px_rgba(15,23,42,0.07)]",
+        "rounded-xl border border-black/[0.06] text-center bg-white p-4 shadow-[0_2px_16px_-4px_rgba(15,23,42,0.07)]",
         className,
       )}
     >
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
+      <div className="flex flex-col gap-2  sm:flex-row sm:items-start sm:justify-between sm:gap-3">
         <div className="min-w-0">
           <p className="text-sm font-semibold text-brand-950">{review.reviewer}</p>
           <time
@@ -26,7 +26,7 @@ export function ReviewItemCard({ review, className }: ReviewItemCardProps) {
             {formatReviewDate(review.dateCreated)}
           </time>
         </div>
-        <ReviewRatingReadonly rating={review.rating} className="shrink-0 sm:ms-auto" size="md" />
+        <ReviewRatingReadonly rating={review.rating} className="mx-auto shrink-0 sm:ms-auto" size="md" />
       </div>
       <p className="mt-3 break-words text-sm text-zinc-700">{review.review}</p>
     </article>
