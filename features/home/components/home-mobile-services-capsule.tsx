@@ -18,11 +18,11 @@ const SERVICES: {
     subtitle: "استرداد المشتريات خلال ١٤ يوما.",
     icon: RotateCcw,
   },
-  {
-    title: "تقسيط مريح",
-    subtitle: "اقساط مريحه تصل الي ٢٤ شهرا.",
-    icon: CreditCard,
-  },
+  // {
+  //   title: "تقسيط مريح",
+  //   subtitle: "اقساط مريحه تصل الي ٢٤ شهرا.",
+  //   icon: CreditCard,
+  // },
   {
     title: "شحن محلي",
     subtitle: "شحن مجاني للطلبات فوق ٢٠٠٠ جنية",

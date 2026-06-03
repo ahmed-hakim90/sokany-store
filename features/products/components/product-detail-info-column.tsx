@@ -137,9 +137,9 @@ export const ProductDetailInfoColumn = forwardRef<
       <p className="mt-2 text-xs text-slate-500">
         الأسعار تشمل ضريبة القيمة المضافة عند تطبيقها. الشحن يُحسب عند إتمام الطلب.
       </p>
-      {product.price >= 500 ? (
+      {/* {product.price >= 500 ? (
         <p className="mt-2 text-xs font-medium text-slate-600">تقسيط حتى 24 شهر</p>
-      ) : null}
+      ) : null} */}
     </>
   );
 
