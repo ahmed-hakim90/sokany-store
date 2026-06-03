@@ -59,11 +59,11 @@ function tabIsActive(pathname: string | null, key: NavLinkKey, href: string) {
       p === ROUTES.PRODUCTS || p.startsWith(`${ROUTES.PRODUCTS}/`)
     );
   }
-  if (key === "cart") {
+  if (key === "branches") {
     return p === href || p.startsWith(`${href}/`);
   }
-  /* orders */
-  return p === ROUTES.MY_ORDERS || p.startsWith(`${ROUTES.MY_ORDERS}/`);
+  /* about */
+  return p === ROUTES.ABOUT || p.startsWith(`${ROUTES.ABOUT}/`);
 }
 
 function BottomNavLinkContents({
@@ -149,7 +149,7 @@ export function BottomNavInner() {
         {linkItems.map(({ href, label, key }) => {
           const Icon = iconByKey[key];
           const active = tabIsActive(pathname, key, href);
-          const isCart = key === "cart";
+          const isCart = key == "branches";
 
           return (
             <li key={key} className="flex min-w-0 flex-[1_1_0] justify-center md:max-w-[5.85rem]">
