@@ -18,6 +18,7 @@ import { CheckoutStepCard } from "@/features/checkout/components/checkout-step-c
 import { CheckoutSupportFooter } from "@/features/checkout/components/checkout-support-footer";
 import { CheckoutTrustStrip } from "@/features/checkout/components/checkout-trust-strip";
 import { useCheckoutForm } from "@/features/checkout/hooks/useCheckoutForm";
+import { useCartCommerceSync } from "@/hooks/useCartCommerceSync";
 import { surfacePanelClass } from "@/lib/storefront-surfaces";
 import { cn } from "@/lib/utils";
 
@@ -31,6 +32,7 @@ import { cn } from "@/lib/utils";
 export function CheckoutForm() {
   const submitButtonRef = useRef<HTMLButtonElement | null>(null);
   const [mobileDockVisible, setMobileDockVisible] = useState(true);
+  useCartCommerceSync(true);
   const {
     values,
     errors,
@@ -174,8 +176,8 @@ export function CheckoutForm() {
         role="group"
         aria-label="إتمام الطلب"
       >
-        {summaryColumn}
         {formColumn}
+        {summaryColumn}
       </div>
       <CheckoutMobileSubmitDock
         total={orderTotal}

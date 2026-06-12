@@ -15,7 +15,9 @@ import { CartMobileCheckoutDock } from "@/features/cart/components/cart-mobile-c
 import { CartPromoRow } from "@/features/cart/components/cart-promo-row";
 import { CartSummaryPanel } from "@/features/cart/components/CartSummaryPanel";
 import { CartUpsellSection } from "@/features/cart/components/cart-upsell-section";
+import { cartItemLineKey } from "@/features/cart/lib/cart-line-key";
 import { useCart } from "@/hooks/useCart";
+import { useCartCommerceSync } from "@/hooks/useCartCommerceSync";
 import { getCartShippingUi } from "@/lib/cart-shipping-ui";
 import { ROUTES } from "@/lib/constants";
 import { surfacePanelClass } from "@/lib/storefront-surfaces";
@@ -36,8 +38,9 @@ import { cn, formatPrice } from "@/lib/utils";
  */
 export function CartPageContent() {
   const router = useTransitionRouter();
-  const { items, totalPrice, isEmpty, updateProductQuantity, removeProduct, updatingLineId } =
+  const { items, totalPrice, isEmpty, updateProductQuantity, removeProduct, updatingLineKey } =
     useCart();
+  useCartCommerceSync(!isEmpty);
 
   const shippingUi = useMemo(() => getCartShippingUi(totalPrice), [totalPrice]);
 
@@ -119,21 +122,22 @@ export function CartPageContent() {
             <div className="min-w-0 space-y-3 sm:space-y-4">
               {items.map((item) => {
                 const lineTotal = item.price * item.quantity;
-                const lineUpdating = updatingLineId === item.productId;
+                const lineKey = cartItemLineKey(item);
+                const lineUpdating = updatingLineKey === lineKey;
                 return (
                 <div
-                  key={item.productId}
+                  key={lineKey}
                   className={cn(
                     surfacePanelClass,
                     "flex flex-col gap-3 p-3 sm:flex-row sm:items-stretch sm:gap-4 sm:p-4",
                   )}
                 >
-                  <div className="relative mx-auto h-20 w-20 shrink-0 overflow-hidden rounded-lg border border-border bg-image-well sm:mx-0 sm:h-24 sm:w-24">
+                  <div className="relative mx-auto h-24 w-24 shrink-0 overflow-hidden rounded-lg border border-border bg-image-well sm:mx-0 sm:h-28 sm:w-28">
                     <AppImage
                       src={item.thumbnail}
                       alt={item.name}
                       fill
-                      sizes="96px"
+                      sizes="(max-width: 640px) 96px, 112px"
                     />
                   </div>
                   <div className="flex min-w-0 flex-1 flex-col gap-2">
@@ -153,7 +157,7 @@ export function CartPageContent() {
                         size="lg"
                         className="shrink-0 text-muted-foreground hover:text-red-600"
                         aria-label={`حذف ${item.name} من السلة`}
-                        onClick={() => removeProduct(item.productId)}
+                        onClick={() => removeProduct(item.productId, item.variationId)}
                       >
                         <CartTrashIcon className="h-5 w-5" />
                       </IconButton>
@@ -179,7 +183,11 @@ export function CartPageContent() {
                             disabled={lineUpdating}
                             touchComfortable
                             onChange={(quantity) =>
-                              updateProductQuantity(item.productId, quantity)
+                              updateProductQuantity(
+                                item.productId,
+                                quantity,
+                                item.variationId,
+                              )
                             }
                           />
                         </div>

@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { MobileSocialSpeedDial } from "@/components/layout/mobile-social-speed-dial";
 import { ScrollToTopButton } from "@/components/layout/scroll-to-top-button";
 import { ROUTES } from "@/lib/constants";
+import { STOREFRONT_Z } from "@/lib/storefront-overlay-z";
 import type { SocialLink } from "@/lib/social-links";
 
 export type MobileFloatingActionsProps = {
@@ -20,10 +21,8 @@ export function MobileFloatingActions({ socialLinks }: MobileFloatingActionsProp
 
   return (
     <div
-      className={
-        "fixed end-4 z-[55] flex flex-col-reverse items-end gap-2 " +
-        "bottom-mobile-floating-actions lg:bottom-8"
-      }
+      className="fixed end-4 flex flex-col-reverse items-end gap-2 bottom-mobile-floating-actions lg:bottom-8"
+      style={{ zIndex: STOREFRONT_Z.floatingActions }}
     >
       <ScrollToTopButton />
       {socialLinks.length > 0 ? (

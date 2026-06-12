@@ -1,5 +1,5 @@
 import { ScrollReveal } from "@/components/ScrollReveal";
-import { Container } from "@/components/Container";
+import { LandingPageHeader } from "@/features/about/components/landing/landing-page-header";
 import { AboutLandingCategories } from "@/features/about/components/landing/about-landing-categories";
 import { AboutLandingFaq } from "@/features/about/components/landing/about-landing-faq";
 import { AboutLandingFinalCta } from "@/features/about/components/landing/about-landing-final-cta";
@@ -12,16 +12,14 @@ import { AboutLandingWhoWeAre } from "@/features/about/components/landing/about-
 import { AboutLandingWhyGrid } from "@/features/about/components/landing/about-landing-why-grid";
 
 /*
- * صفحة من نحن (/about) — هبوط SEO لسوكاني مصر + مؤسسة المغربي:
- * — خلفية صفحة `bg-page`، Container بعرض المتجر `max-w-6xl`.
- * — الجوال: أقسام عمودية بمسافات gap-12؛ تمرير أفقي للفئات والجدول الزمني.
- * — md/lg: شبكات عمودين للهيرو والقصة والخدمة؛ FAQ عمودان؛ فئات 4–8 أعمدة.
- * — H1 واحد في الهيرو؛ باقي العناوين H2/H3.
+ * صفحة "عن سوكاني" — Landing page منفصلة بدون SiteShell.
+ * كل قسم full-bleed يتحكم في خلفيته (dark/light/muted).
  */
 export function AboutPageContent() {
   return (
-    <div className="overflow-x-clip bg-page pb-8 pt-2 md:pb-14 md:pt-3">
-      <Container className="flex max-w-6xl flex-col gap-12 sm:gap-14 md:gap-16 lg:mx-auto">
+    <div className="overflow-x-clip">
+      <LandingPageHeader />
+      <main id="main-content" className="pt-14">
         <AboutLandingHero />
 
         <ScrollReveal>
@@ -33,6 +31,10 @@ export function AboutPageContent() {
         </ScrollReveal>
 
         <ScrollReveal>
+          <AboutLandingStatsBar />
+        </ScrollReveal>
+
+        <ScrollReveal>
           <AboutLandingStory />
         </ScrollReveal>
 
@@ -41,15 +43,11 @@ export function AboutPageContent() {
         </ScrollReveal>
 
         <ScrollReveal>
-          <AboutLandingServiceNetwork />
-        </ScrollReveal>
-
-        <ScrollReveal>
-          <AboutLandingStatsBar />
-        </ScrollReveal>
-
-        <ScrollReveal>
           <AboutLandingTrustBlock />
+        </ScrollReveal>
+
+        <ScrollReveal>
+          <AboutLandingServiceNetwork />
         </ScrollReveal>
 
         <ScrollReveal>
@@ -59,7 +57,7 @@ export function AboutPageContent() {
         <ScrollReveal>
           <AboutLandingFinalCta />
         </ScrollReveal>
-      </Container>
+      </main>
     </div>
   );
 }

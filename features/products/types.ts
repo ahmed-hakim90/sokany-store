@@ -71,9 +71,31 @@ export type ProductImage = {
   alt: string;
 };
 
+export type ProductVariationAttribute = {
+  id: number;
+  name: string;
+  option: string;
+};
+
+/** WooCommerce variation row for variable products. */
+export type ProductVariation = {
+  id: number;
+  sku: string;
+  price: number;
+  regularPrice: number;
+  salePrice: number | null;
+  onSale: boolean;
+  inStock: boolean;
+  stockQuantity: number | null;
+  attributes: ProductVariationAttribute[];
+  image: ProductImage | null;
+};
+
 /** Normalized product for UI / cart (see `mapProduct` in adapters) */
 export type Product = {
   id: number;
+  /** Woo product type: `simple`, `variable`, … */
+  productType: string;
   name: string;
   slug: string;
   description: string;

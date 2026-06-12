@@ -23,9 +23,9 @@ export function CategoryScrollerSkeleton({
         {Array.from({ length: count }).map((_, i) => (
           <div
             key={i}
-            className="flex w-[5.75rem] shrink-0 flex-col overflow-hidden rounded-2xl border border-border/40"
+            className="flex w-[5.5rem] shrink-0 flex-col overflow-hidden rounded-xl border border-border/40"
           >
-            <div className="aspect-square animate-shimmer bg-gradient-to-r from-image-well via-surface-muted to-image-well bg-[length:200%_100%]" />
+            <div className="h-14 w-full animate-shimmer bg-gradient-to-r from-image-well via-surface-muted to-image-well bg-[length:200%_100%]" />
             <div className="px-1.5 py-2">
               <div className="mx-auto h-3 w-12 animate-shimmer rounded bg-border/60" />
             </div>
@@ -35,6 +35,7 @@ export function CategoryScrollerSkeleton({
     );
   }
 
+  /* circles variant: بطاقة كاملة h-[5.5rem] بدون caption منفصل (text overlay) */
   return (
     <div
       className={cn(
@@ -44,14 +45,10 @@ export function CategoryScrollerSkeleton({
       aria-hidden
     >
       {Array.from({ length: count }).map((_, i) => (
-        <div key={i} className="flex shrink-0 flex-col items-center gap-1.5">
-          <div
-            className={cn(
-              "h-14 w-14 shrink-0 animate-shimmer rounded-full bg-gradient-to-r from-image-well via-surface-muted to-image-well bg-[length:200%_100%] sm:h-16 sm:w-16",
-            )}
-          />
-          <div className="h-3 w-12 animate-shimmer rounded bg-border/60 sm:w-14" />
-        </div>
+        <div
+          key={i}
+          className="h-[5.5rem] w-[4.5rem] shrink-0 animate-shimmer rounded-xl bg-gradient-to-r from-image-well via-surface-muted to-image-well bg-[length:200%_100%]"
+        />
       ))}
     </div>
   );

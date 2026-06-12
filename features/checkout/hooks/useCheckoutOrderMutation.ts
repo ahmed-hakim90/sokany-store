@@ -11,6 +11,8 @@ import { clearCheckoutAmendSession, readCheckoutAmendSession } from "@/features/
 import { toCreateOrderPayload } from "@/features/checkout/lib/to-create-order-payload";
 import type { CheckoutFormData } from "@/features/checkout/types";
 import { ONLINE_PAYMENT_METHODS } from "@/features/checkout/types";
+import { syncCartWithServer } from "@/features/cart/lib/sync-cart-with-server";
+import { useCartStore } from "@/features/cart/store/useCartStore";
 import type { CartItem } from "@/features/cart/types";
 import { amendGuestOrder } from "@/features/orders/services/amendGuestOrder";
 import { createOrder } from "@/features/orders/services/createOrder";
@@ -127,12 +129,12 @@ export type CheckoutOrderMutationResult = {
 };
 
 export class CheckoutOrderMutationError extends Error {
-  readonly kind: "checkout" | "payload" | "empty_cart" | "register";
+  readonly kind: "checkout" | "payload" | "empty_cart" | "register" | "cart_sync";
   readonly fieldErrors: Partial<Record<keyof CheckoutFormData, string>>;
   readonly zodError?: ZodError;
 
   constructor(params: {
-    kind: "checkout" | "payload" | "empty_cart" | "register";
+    kind: "checkout" | "payload" | "empty_cart" | "register" | "cart_sync";
     message: string;
     fieldErrors?: Partial<Record<keyof CheckoutFormData, string>>;
     zodError?: ZodError;
@@ -171,6 +173,21 @@ export function useCheckoutOrderMutation() {
         throw new CheckoutOrderMutationError({
           kind: "empty_cart",
           message: "Cart is empty",
+        });
+      }
+
+      const sync = await syncCartWithServer(items);
+      useCartStore.getState().replaceAllItems(sync.items);
+      const commerceItems = sync.items;
+
+      if (commerceItems.length === 0 || sync.hasBlockingIssues) {
+        const message =
+          sync.issues.find((i) => i.kind === "out_of_stock" || i.kind === "not_found")
+            ?.message ??
+          "تعذر إتمام الطلب — راجع السلة بعد تحديث الأسعار أو التوفر.";
+        throw new CheckoutOrderMutationError({
+          kind: "cart_sync",
+          message,
         });
       }
 
@@ -217,7 +234,7 @@ export function useCheckoutOrderMutation() {
         }
       }
 
-      const rawPayload = toCreateOrderPayload(data, items, {
+      const rawPayload = toCreateOrderPayload(data, commerceItems, {
         customerId,
         couponCode,
         firebaseUid,

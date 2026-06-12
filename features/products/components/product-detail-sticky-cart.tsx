@@ -13,6 +13,9 @@ export function ProductDetailStickyCart({
   onAddToCart,
   addToCartLoading = false,
   canInteractCart,
+  displayPrice,
+  displayInStock,
+  canAddToCart = true,
 }: {
   product: Product;
   imageSrc: string;
@@ -20,8 +23,13 @@ export function ProductDetailStickyCart({
   onAddToCart: () => void;
   addToCartLoading?: boolean;
   canInteractCart: boolean;
+  displayPrice?: number;
+  displayInStock?: boolean;
+  canAddToCart?: boolean;
 }) {
-  const show = visible && product.inStock;
+  const inStock = displayInStock ?? product.inStock;
+  const show = visible && inStock;
+  const price = displayPrice ?? product.price;
   if (!show) return null;
 
   return (
@@ -50,9 +58,9 @@ export function ProductDetailStickyCart({
             {product.name}
           </p>
           <PriceText
-            amount={product.price}
+            amount={price}
             compareAt={
-              product.onSale && product.salePrice !== null
+              product.onSale && product.salePrice !== null && price < product.regularPrice
                 ? product.regularPrice
                 : null
             }
@@ -62,8 +70,8 @@ export function ProductDetailStickyCart({
         <Button
           type="button"
           size="lg"
-          className="h-11 shrink-0 gap-0 border-0 bg-gradient-to-b from-brand-400 to-brand-500 px-4 text-base font-bold text-black shadow-md hover:from-brand-300 hover:to-brand-400 sm:px-5"
-          disabled={!canInteractCart}
+          className="h-8 shrink-0 gap-0 border-0 bg-gradient-to-b from-brand-400 to-brand-500 px-3 text-base font-bold text-black shadow-md hover:from-brand-300 hover:to-brand-400 sm:px-2"
+          disabled={!canInteractCart || !canAddToCart}
           loading={addToCartLoading}
           onClick={onAddToCart}
         >

@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef, useState } from "react";
+import { forwardRef, useState, type ReactNode } from "react";
 import {
   MessageCircle,
   ShieldCheck,
@@ -37,6 +37,13 @@ export const ProductDetailInfoColumn = forwardRef<
     addToCartLoading?: boolean;
     onBuyNow?: () => void;
     canInteractCart?: boolean;
+    displayPrice?: number;
+    displayRegularPrice?: number;
+    displayOnSale?: boolean;
+    displayInStock?: boolean;
+    priceRangeLabel?: string | null;
+    selectionHint?: string | null;
+    variationPicker?: ReactNode;
     className?: string;
   }
 >(function ProductDetailInfoColumn(
@@ -48,15 +55,33 @@ export const ProductDetailInfoColumn = forwardRef<
     addToCartLoading = false,
     onBuyNow,
     canInteractCart = true,
+    displayPrice,
+    displayRegularPrice,
+    displayOnSale,
+    displayInStock,
+    priceRangeLabel = null,
+    selectionHint = null,
+    variationPicker,
     className,
   },
   ref,
 ) {
   const [shareCopied, setShareCopied] = useState(false);
   const { hasHydrated: wishlistReady, isInWishlist, toggleProduct } = useWishlist();
+  const activePrice = displayPrice ?? product.price;
+  const activeOnSale = displayOnSale ?? product.onSale;
+  const activeRegular =
+    displayRegularPrice ??
+    (product.onSale && product.salePrice !== null ? product.regularPrice : null);
   const compareAt =
-    product.onSale && product.salePrice !== null ? product.regularPrice : null;
-  const pct = savePercent(product);
+    activeOnSale && activeRegular != null && activeRegular > activePrice
+      ? activeRegular
+      : null;
+  const pct =
+    compareAt != null && compareAt > activePrice
+      ? Math.round((1 - activePrice / compareAt) * 100)
+      : savePercent(product);
+  const inStock = displayInStock ?? product.inStock;
   const categoryLabel = product.categories[0]?.name;
   const ratingLabel = product.rating > 0 ? product.rating.toFixed(1) : "جديد";
   const wishlistPressed = isInWishlist(product.id);
@@ -121,13 +146,19 @@ export const ProductDetailInfoColumn = forwardRef<
   const priceBlock = (
     <>
       <div className="flex flex-wrap items-end justify-between gap-3">
-        <PriceText
-          amount={product.price}
-          compareAt={compareAt}
-          emphasized
-          className="text-slate-950"
-          amountClassName="!text-3xl sm:!text-4xl"
-        />
+        {priceRangeLabel && !compareAt ? (
+          <p className="font-display text-2xl font-bold text-slate-950 sm:text-3xl" dir="ltr">
+            {priceRangeLabel}
+          </p>
+        ) : (
+          <PriceText
+            amount={activePrice}
+            compareAt={compareAt}
+            emphasized
+            className="text-slate-950"
+            amountClassName="!text-3xl sm:!text-4xl"
+          />
+        )}
         {compareAt != null ? (
           <span className="text-sm font-medium text-slate-400 line-through">
             {formatPrice(compareAt)}
@@ -168,8 +199,16 @@ export const ProductDetailInfoColumn = forwardRef<
           </li>
         </ul>
 
+        {variationPicker}
+
+        {selectionHint ? (
+          <p className="mt-3 text-sm font-medium text-amber-800" role="status">
+            {selectionHint}
+          </p>
+        ) : null}
+
         <div className="mt-4 flex flex-wrap items-center gap-3 text-sm">
-          {product.inStock ? (
+          {inStock ? (
             <span className="inline-flex items-center gap-2 font-semibold text-emerald-700">
               <span className="h-2 w-2 rounded-full bg-emerald-500" aria-hidden />
               متوفر في المخزون
@@ -182,7 +221,7 @@ export const ProductDetailInfoColumn = forwardRef<
           ) : null}
         </div>
 
-        {product.inStock ? (
+        {inStock ? (
           <div className="mt-4 flex flex-wrap items-center gap-3">
             <span className="text-sm font-semibold text-slate-700">الكمية</span>
             <QtyControl
@@ -190,7 +229,7 @@ export const ProductDetailInfoColumn = forwardRef<
               min={1}
               max={99}
               onChange={onQuantityChange}
-              disabled={!product.inStock || !canInteractCart}
+              disabled={!inStock || !canInteractCart}
               layout="segmented"
               className="max-w-[11rem]"
             />
@@ -201,7 +240,7 @@ export const ProductDetailInfoColumn = forwardRef<
           <Button
             size="lg"
             className="relative h-12 gap-0 border-0 bg-slate-950 text-base font-bold text-white shadow-md hover:bg-slate-800"
-            disabled={!product.inStock || !canInteractCart}
+            disabled={!inStock || !canInteractCart}
             loading={addToCartLoading}
             onClick={onAddToCart}
             aria-label="أضف إلى السلة"

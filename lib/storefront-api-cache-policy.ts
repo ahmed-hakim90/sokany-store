@@ -47,6 +47,45 @@ export function storefrontApiCacheKey(config: AxiosResponse["config"]): string {
   return `sokany_storefront_api_response_v1:${path}:${params}`;
 }
 
+/** يمسح إدخالات كاش GET المحفوظة في localStorage للمسارات المطابقة. */
+export function clearStorefrontApiCacheForPathPrefix(pathPrefix: string): void {
+  if (typeof window === "undefined" || !window.localStorage) return;
+  const needle = `:${pathPrefix}`;
+  const keysToRemove: string[] = [];
+  for (let i = 0; i < window.localStorage.length; i += 1) {
+    const key = window.localStorage.key(i);
+    if (key?.startsWith("sokany_storefront_api_response_v1") && key.includes(needle)) {
+      keysToRemove.push(key);
+    }
+  }
+  for (const key of keysToRemove) {
+    window.localStorage.removeItem(key);
+  }
+}
+
+export function clearStorefrontApiCacheForProduct(productId: number): void {
+  clearStorefrontApiCacheForPathPrefix(`/products/${productId}`);
+}
+
+export function clearStorefrontApiCacheForCatalog(): void {
+  if (typeof window === "undefined" || !window.localStorage) return;
+  const keysToRemove: string[] = [];
+  for (let i = 0; i < window.localStorage.length; i += 1) {
+    const key = window.localStorage.key(i);
+    if (!key?.startsWith("sokany_storefront_api_response_v1")) continue;
+    if (
+      key.includes(":/products") ||
+      key.includes(":/categories") ||
+      key.includes(":/reviews")
+    ) {
+      keysToRemove.push(key);
+    }
+  }
+  for (const key of keysToRemove) {
+    window.localStorage.removeItem(key);
+  }
+}
+
 export function canFallbackToCachedResponse(error: AxiosError): boolean {
   if (!error.config) return false;
   if (!error.response) return true;

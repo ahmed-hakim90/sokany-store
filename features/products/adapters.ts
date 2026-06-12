@@ -42,6 +42,7 @@ export function mapProduct(raw: WCProduct): Product {
   const thumbnail = images[0]?.src ?? "";
   return {
     id: raw.id,
+    productType: raw.type?.trim() || "simple",
     name: raw.name,
     slug: raw.slug,
     description: normalizeProductDescriptionSource(raw.description),

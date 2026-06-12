@@ -160,7 +160,7 @@ export function CategorySlugPageLoadingFallback() {
 /*
  * محتوى صفحة تصنيف (/categories/[slug]): يُلفّه `categories/layout.tsx` بسكة أفقية لاصقة للجوال تعرض نفس منطق الكتالوج (أعلى مستوى على الفهرس؛ مع slug نشط = نشط + أبناء أو إخوة حسب الشجرة) وروابط `/products?category=`؛ الشريط الجانبي على lg يبقى بمسارات slug.
  * الترتيب تحت السكة: بانر صورة التصنيف → عنوان ووصف ورابط «كل المنتجات» → من lg شريط «أقسام فرعية» (روابط كتالوج مثل صفحة المنتجات) → شبكة المنتجات.
- * الاستثناءات: السكة للجوال/تابلت؛ الفرعية المرئية على الديسكتوب فقط.
+ * الاستثناءات: سكة الجوال (أب + أبناء) في `categories/layout`؛ شرائح «أقسام فرعية» هنا على الديسكتوب فقط.
  * المسافات بين الأقسام مضغوطة (‎`mt-3`‎–‎`mt-5`‎) لتقليل الشريط الرمادي (‎`bg-page`‎) الظاهر بين البانر والبطاقات.
  */
 export function CategorySlugPageContent({ slug }: { slug: string }) {
@@ -245,7 +245,7 @@ export function CategorySlugPageContent({ slug }: { slug: string }) {
         </ScrollReveal>
       </div>
       {childCategories.length > 0 ? (
-        <div className="mt-3 hidden lg:mt-4 lg:block">
+        <div className="mt-3 max-lg:hidden lg:mt-4 lg:block">
           <ScrollReveal>
             <CatalogChildCategories
               subcategories={childCategories}

@@ -48,37 +48,41 @@ export function CategoryVisualCard({
       onFocus={onPrefetch}
       data-category-discovery-active={active ? true : undefined}
       className={cn(
-        "group flex w-[6.75rem] shrink-0 snap-start flex-col overflow-hidden rounded-2xl border bg-white shadow-sm transition-[transform,box-shadow,border-color] duration-200",
-        "hover:-translate-y-0.5 hover:shadow-md",
+        /* بطاقة كاملة الصورة — w-[5.5rem] h-[5.5rem] (مربع تقريباً، نفس حجم rail chip) */
+        "group relative flex w-[5.5rem] h-[5.5rem] shrink-0 snap-start overflow-hidden rounded-xl border shadow-sm transition-all duration-200",
+        "hover:shadow-md",
         active
-          ? "border-brand-950 ring-2 ring-brand-950/20"
-          : "border-border/70",
+          ? "border-brand-500 ring-2 ring-brand-500/30 shadow-md"   /* ليمي بدل أسود */
+          : "border-border/70 hover:border-brand-400",
         className,
       )}
     >
-      <div className="relative aspect-square w-full bg-gradient-to-b from-slate-100 to-slate-200/80">
-        {category.image ? (
-          <AppImage
-            src={category.image}
-            alt=""
-            fill
-            sizes="108px"
-            className="object-contain object-center p-2 transition-transform duration-200 group-hover:scale-[1.03]"
-          />
-        ) : (
-          <span className="absolute inset-0 flex items-center justify-center text-brand-800">
-            <CategoryIcon slug={category.slug} className="h-10 w-10 sm:h-11 sm:w-11" />
-          </span>
-        )}
-      </div>
-      <div className="flex flex-1 flex-col gap-0.5 px-2 pb-2 pt-1.5 text-center">
-        <span className="line-clamp-2 text-[11px] font-bold leading-tight text-brand-950">
-          {category.name}
-        </span>
-        {countLabel ? (
-          <span className="text-[10px] font-medium text-muted-foreground">{countLabel}</span>
-        ) : null}
-      </div>
+      {/* خلفية محايدة */}
+      <div className="absolute inset-0 bg-gradient-to-b from-slate-100 to-slate-200/70" />
+
+      {/* صورة أو أيقونة */}
+      {category.image ? (
+        <AppImage
+          src={category.image}
+          alt=""
+          fill
+          sizes="72px"
+          className="object-contain object-center p-2 transition-transform duration-200 group-hover:scale-[1.04]"
+        />
+      ) : (
+        <div className="absolute inset-0 flex items-center justify-center pb-6">
+          <CategoryIcon slug={category.slug} className="h-9 w-9 text-brand-800 drop-shadow-[0_1px_2px_rgba(15,23,42,0.15)]" />
+        </div>
+      )}
+
+      {/* طبقة active */}
+      {active ? <div className="absolute inset-0 bg-brand-500/10 pointer-events-none" /> : null}
+
+      {/* gradient + نص */}
+      <div className="absolute inset-x-0 bottom-0 h-9 bg-gradient-to-t from-black/70 via-black/30 to-transparent pointer-events-none" />
+      <span className="absolute inset-x-1 bottom-1 line-clamp-2 text-center text-[10px] font-bold leading-tight text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]">
+        {category.name}
+      </span>
     </Link>
   );
 }

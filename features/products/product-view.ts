@@ -7,6 +7,10 @@ export type ProductView = {
   name: string;
   sku: string;
   price: string;
+  regularPrice: string;
+  salePrice: string | null;
+  onSale: boolean;
+  productType: string;
   permalink: string;
   thumbnail: string;
   images: { src: string; alt: string }[];
@@ -24,6 +28,10 @@ export function toProductViewFromProduct(product: Product): ProductView {
     name: product.name,
     sku: product.sku,
     price: String(product.price),
+    regularPrice: String(product.regularPrice),
+    salePrice: product.salePrice != null ? String(product.salePrice) : null,
+    onSale: product.onSale,
+    productType: product.productType,
     permalink: product.permalink,
     thumbnail: t ? toAbsoluteSiteUrl(product.thumbnail) : "",
     images: product.images.map((img) => ({
@@ -41,11 +49,16 @@ export function toProductViewFromProduct(product: Product): ProductView {
 export function toProductView(product: WCProduct): ProductView {
   const shortPlain = stripHtml(product.short_description);
   const descPlain = stripHtml(product.description);
+  const salePriceRaw = product.sale_price.trim();
   return {
     id: product.id,
     name: product.name,
     sku: product.sku,
     price: product.price,
+    regularPrice: product.regular_price,
+    salePrice: salePriceRaw.length > 0 ? salePriceRaw : null,
+    onSale: product.on_sale,
+    productType: product.type?.trim() || "simple",
     permalink: product.permalink,
     thumbnail: toAbsoluteSiteUrl(
       product.images[0]?.src ?? "/images/placeholder.png",

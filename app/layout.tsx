@@ -3,7 +3,6 @@ import { GoogleAnalytics } from "@next/third-parties/google";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { cache } from "react";
 import { headers } from "next/headers";
-import Script from "next/script";
 import { Cairo, Montserrat } from "next/font/google";
 import { ViewTransitions } from "next-view-transitions";
 import { ClientPerformanceMarks } from "@/components/client-performance-marks";
@@ -13,7 +12,7 @@ import { PwaDeferredInstallProvider } from "@/components/PwaDeferredInstallProvi
 import { NetworkStatusProvider } from "@/hooks/useNetworkStatus";
 import { QueryProvider } from "@/providers/QueryProvider";
 import { ToastProvider } from "@/providers/ToastProvider";
-import { CLARITY_PROJECT_ID, GA_MEASUREMENT_ID } from "@/lib/constants";
+import { GA_MEASUREMENT_ID } from "@/lib/constants";
 import { getSiteUrl } from "@/lib/site";
 import "./globals.css";
 
@@ -127,15 +126,6 @@ export default async function RootLayout({
       className={`${cairo.variable} ${montserrat.variable} h-full antialiased`}
     >
       <body className="flex min-h-full min-w-0 flex-col bg-page text-foreground">
-        {CLARITY_PROJECT_ID ? (
-          <Script id="microsoft-clarity" strategy="lazyOnload">
-            {`(function(c,l,a,r,i,t,y){
-                c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
-                t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
-                y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
-            })(window, document, "clarity", "script", "${CLARITY_PROJECT_ID}");`}
-          </Script>
-        ) : null}
         <ViewTransitions>
           <ViewTransitionRejectionHandler />
           <QueryProvider>

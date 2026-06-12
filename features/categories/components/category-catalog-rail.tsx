@@ -65,7 +65,7 @@ function RailTile({ href, active, label, children, onPrefetch }: RailTileProps) 
         >
           {children}
         </div>
-        <span className="line-clamp-2 px-0.5 text-[9px] font-semibold leading-tight text-current">
+        <span className="line-clamp-2 px-0.5 text-[11px] font-semibold leading-tight text-current">
           {label}
         </span>
       </Card>

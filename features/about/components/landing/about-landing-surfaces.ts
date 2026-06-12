@@ -73,6 +73,32 @@ export const aboutLandingOverlayCtaClass = cn(
   "focus-visible:outline-white",
 );
 
-/** Icon tile on value / trust cards. */
+/** Icon tile on value / trust cards (light). */
 export const aboutLandingIconTileClass =
   "inline-flex items-center justify-center rounded-xl border border-brand-600/25 bg-brand-400/40 text-brand-950";
+
+/* ===== Dark landing section system ===== */
+
+export const aboutLandingInnerContainerClass =
+  "mx-auto max-w-6xl px-4 sm:px-6 lg:px-8";
+
+export const aboutLandingDarkSectionClass =
+  "bg-zinc-950 py-16 sm:py-20";
+
+export const aboutLandingLightSectionClass =
+  "bg-white py-16 sm:py-20";
+
+export const aboutLandingMutedSectionClass =
+  "bg-slate-50 py-16 sm:py-20";
+
+export const aboutLandingDarkCardClass =
+  "rounded-2xl border border-zinc-800 bg-zinc-900/80 p-5 sm:p-6 transition-colors hover:border-brand-500/30";
+
+export const aboutLandingDarkIconTileClass =
+  "inline-flex h-12 w-12 items-center justify-center rounded-xl border border-brand-500/25 bg-brand-500/10 text-brand-400";
+
+export const aboutLandingDarkHeadingClass =
+  "text-3xl font-black text-white sm:text-4xl";
+
+export const aboutLandingDarkLeadClass =
+  "text-base text-white/55";

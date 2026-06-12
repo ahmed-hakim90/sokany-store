@@ -92,6 +92,31 @@ export const wpProductAttributeSchema = z.object({
   options: z.array(z.string()).default([]),
 });
 
+export const wpProductVariationAttributeSchema = z.object({
+  id: z.number().default(0),
+  name: z.string(),
+  option: z.string(),
+});
+
+export const wpProductVariationSchema = z
+  .object({
+    id: z.number(),
+    permalink: z.string().optional(),
+    sku: emptyString,
+    price: numericString,
+    regular_price: numericString,
+    sale_price: emptyString,
+    on_sale: z.boolean().default(false),
+    purchasable: z.boolean().default(true),
+    stock_quantity: z.number().nullable().default(null),
+    stock_status: z.enum(["instock", "outofstock", "onbackorder"]),
+    image: wpImageSchema.nullish(),
+    attributes: z.array(wpProductVariationAttributeSchema).default([]),
+  })
+  .passthrough();
+
+export const wpProductVariationsListSchema = z.array(wpProductVariationSchema);
+
 export const wpProductSchema = z.object({
   id: z.number(),
   name: z.string(),

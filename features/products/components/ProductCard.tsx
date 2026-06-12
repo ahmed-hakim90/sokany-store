@@ -177,13 +177,13 @@ const productCardImageClassName =
   "product-card-image transition-transform duration-200 ease-out group-hover/card:scale-[1.03] group-active/card:scale-[0.98] motion-reduce:transition-none motion-reduce:group-hover/card:scale-100";
 
 const productCardSaleBadgeClassName =
-  "pointer-events-none absolute start-2 top-2 z-[3] rounded-full bg-promo-sale-bg/95 px-2.5 py-1 text-[10px] font-bold leading-none text-promo-sale-fg shadow-sm sm:start-2.5 sm:top-2.5 sm:text-[11px]";
+  "pointer-events-none absolute start-2 top-2 z-[3] rounded-full bg-promo-sale-bg/95 px-2.5 py-1 text-[11px] font-bold leading-none text-promo-sale-fg shadow-sm sm:start-2.5 sm:top-2.5 sm:text-xs";
 
 const productCardStatusBadgeClassName =
-  "pointer-events-none absolute start-2 top-2 z-[3] bg-white/92 px-2.5 py-1 text-[10px] shadow-sm ring-1 ring-amber-300/40 backdrop-blur-sm sm:start-2.5 sm:top-2.5 sm:text-[11px]";
+  "pointer-events-none absolute start-2 top-2 z-[3] bg-white/92 px-2.5 py-1 text-[11px] shadow-sm ring-1 ring-amber-300/40 backdrop-blur-sm sm:start-2.5 sm:top-2.5 sm:text-xs";
 
 const productCardAddButtonBaseClassName =
-  "inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg bg-brand-500 font-bold leading-none text-black shadow-[0_8px_18px_-12px_rgba(132,204,22,0.9)] ring-1 ring-black/[0.06] transition-all duration-200 ease-out hover:bg-brand-400 group-hover/card:scale-[1.01] active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 disabled:pointer-events-none disabled:opacity-45 disabled:group-hover/card:scale-100";
+  "inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg bg-zinc-900 font-bold leading-none text-brand-400 shadow-[0_8px_18px_-12px_rgba(0,0,0,0.35)] ring-1 ring-black/[0.08] transition-all duration-200 ease-out hover:bg-zinc-800 hover:text-brand-300 group-hover/card:scale-[1.01] active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-700 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-60 disabled:grayscale-[20%] disabled:group-hover/card:scale-100";
 
 function ProductCardAgentTag({ text }: { text: string }) {
   return (
@@ -191,7 +191,7 @@ function ProductCardAgentTag({ text }: { text: string }) {
       className="pointer-events-none absolute inset-x-0 bottom-0 z-[5] flex translate-y-1/2 justify-center px-2"
       aria-label={text}
     >
-      <span className="inline-flex max-w-[calc(100%-0.75rem)] items-center gap-1 rounded-full bg-white/95 px-2.5 py-1 text-[10px] font-semibold leading-none text-slate-700 shadow-sm ring-1 ring-slate-200/90 sm:text-[11px]">
+      <span className="inline-flex max-w-[calc(100%-0.75rem)] items-center gap-1 rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-semibold leading-none text-slate-700 shadow-sm ring-1 ring-slate-200/90 sm:text-xs">
         <BadgeCheck className="h-3.5 w-3.5 shrink-0 fill-blue-500 text-white" aria-hidden />
         <span className="truncate">{text}</span>
       </span>
@@ -410,9 +410,10 @@ export function ProductCard({
   };
   const lineQty = getCartLineQuantity?.(product.id) ?? 0;
   const showCartQty = Boolean(onCartLineQuantityChange);
-  const cartLineUpdatingId = useCartStore((state) => state.updatingLineId);
+  const cartLineUpdatingKey = useCartStore((state) => state.updatingLineKey);
   const isCartLineUpdating =
-    showCartQty && cartLineUpdatingId === product.id;
+    showCartQty &&
+    cartLineUpdatingKey === `${product.id}:0`;
   const [justAdded, setJustAdded] = useState(false);
   const [quickViewOpen, setQuickViewOpen] = useState(false);
   const [quickViewEverOpened, setQuickViewEverOpened] = useState(false);
@@ -672,8 +673,8 @@ export function ProductCard({
             />
           ) : null}
           {!product.inStock ? (
-            <span className="pointer-events-none absolute start-2 top-2 z-[3] rounded-full bg-slate-900/90 px-2.5 py-1 text-[10px] font-bold leading-none text-white shadow-sm sm:start-2.5 sm:top-2.5 sm:text-[11px]">
-              غير متوفر
+            <span className="pointer-events-none absolute start-2 top-2 z-[3] rounded-full bg-red-600/90 px-2.5 py-1.5 text-[11px] font-bold leading-none text-white shadow-sm sm:start-2.5 sm:top-2.5 sm:text-xs">
+              نفد المخزون
             </span>
           ) : !isDetailed && saleDiscount !== null ? (
             <span
@@ -695,7 +696,7 @@ export function ProductCard({
               −{saleDiscount}%
             </span>
           ) : isDetailed && product.featured ? (
-            <span className="pointer-events-none absolute left-2 top-2 z-[3] rounded-full bg-slate-950 px-2 py-1 text-[10px] font-bold leading-none text-white shadow-sm">
+            <span className="pointer-events-none absolute left-2 top-2 z-[3] rounded-full bg-slate-950 px-2 py-1 text-[11px] font-bold leading-none text-white shadow-sm">
               مميز
             </span>
           ) : null}
@@ -710,7 +711,7 @@ export function ProductCard({
           {hasStatic3D ? (
             <span
               className={cn(
-                "pointer-events-none absolute z-[4] inline-flex items-center gap-1 rounded-full border border-white/70 bg-slate-950/88 px-2 py-1 text-[9px] font-extrabold leading-none text-white shadow-md sm:text-[10px]",
+                "pointer-events-none absolute z-[4] inline-flex items-center gap-1 rounded-full border border-white/70 bg-slate-950/88 px-2 py-1 text-[11px] font-extrabold leading-none text-white shadow-md sm:text-xs",
                 wishlistSlot ? "right-2 top-10" : "right-2 top-2",
               )}
               aria-label="عرض ثلاثي الأبعاد"
@@ -722,12 +723,14 @@ export function ProductCard({
           {hasProductVideo ? (
             <span
               className={cn(
-                "pointer-events-none absolute z-[4] inline-flex items-center gap-1 rounded-full border border-white/70 bg-slate-950/88 px-2 py-1 text-[9px] font-extrabold leading-none text-white shadow-md shadow-slate-900/20 backdrop-blur-sm sm:text-[10px]",
+                "pointer-events-none absolute z-[4] inline-flex items-center gap-1 rounded-full border border-white/70 bg-slate-950/88 px-2 py-1 text-[11px] font-extrabold leading-none text-white shadow-md shadow-slate-900/20 backdrop-blur-sm sm:text-xs",
                 isDetailed
                   ? wishlistSlot
                     ? "bottom-2 right-2"
                     : "right-2 top-2"
-                  : "bottom-2 left-2",
+                  : merchandising.productCardBadgeEnabled
+                    ? "bottom-[1.75rem] left-2"   /* فوق agent tag اللي بيطلع من أسفل الصورة */
+                    : "bottom-2 left-2",
               )}
               aria-label="هذا المنتج له فيديو"
             >
@@ -785,8 +788,8 @@ export function ProductCard({
           )}
         >
           {isDetailed && !product.inStock ? (
-            <span className="text-[10px] font-semibold text-muted-foreground sm:text-[11px]">
-              غير متوفر حالياً
+            <span className="text-[11px] font-semibold text-red-600 sm:text-xs">
+              نفد المخزون حالياً
             </span>
           ) : null}
           {titleLink}
@@ -804,8 +807,8 @@ export function ProductCard({
           {isDetailed && salesCountLine ? (
             <p
               className={cn(
-                "mt-0.5 text-[10px] font-medium text-muted-foreground",
-                "sm:text-[11px]",
+                "mt-0.5 text-[11px] font-medium text-muted-foreground",
+                "sm:text-xs",
               )}
             >
               {salesCountLine}
@@ -814,7 +817,7 @@ export function ProductCard({
           <div
             className={cn(
               "mt-auto",
-              showCartQty ? "pt-0.5" : cn("pt-0.5", isDetailed && "min-h-[3.25rem]"),
+              showCartQty ? "pt-0.5" : cn("pt-0.5", isDetailed ? "min-h-[3.25rem]" : "min-h-[2.75rem]"),
             )}
           >
             {showCartQty ? (
@@ -837,7 +840,7 @@ export function ProductCard({
                     equalSegments
                     className={cn(
                       "w-full max-w-none justify-self-end",
-                      !isDetailed && "h-10 sm:h-10",
+                      !isDetailed && "h-8 sm:h-8",
                     )}
                     disabled={!product.inStock}
                     onChange={(next) => {
@@ -854,8 +857,8 @@ export function ProductCard({
                       productCardAddButtonBaseClassName,
                       justAdded && "border-emerald-600/40 bg-emerald-50 text-emerald-900",
                       isDetailed
-                        ? "h-9 px-2.5 text-[11px] sm:px-4 sm:text-xs"
-                        : "h-10 w-full px-3 text-xs sm:h-10 sm:text-[13px]",
+                        ? "h-8 px-2.5 text-[11px] sm:px-4 sm:text-xs"
+                        : "h-8 w-full px-3 text-[11px] sm:h-8 sm:text-xs",
                     )}
                     onClick={(e) => {
                       e.preventDefault();

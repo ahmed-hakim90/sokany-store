@@ -51,6 +51,8 @@ const POPULAR_CATEGORY_CHIPS = [
 export type NavbarSearchProps = {
   /** من CMS أو القيمة الافتراضية من الخادم. */
   quickKeywords?: readonly string[];
+  /** يُمرَّر على حقل البحث — مفيد لتعديل الارتفاع في سياقات مختلفة */
+  fieldClassName?: string;
 };
 
 function navigateToSearch(router: ReturnType<typeof useTransitionRouter>, q: string) {
@@ -85,6 +87,7 @@ function replaceProductsSearch(
 
 export function NavbarSearch({
   quickKeywords = DEFAULT_SEARCH_QUICK_KEYWORDS,
+  fieldClassName,
 }: NavbarSearchProps = {}) {
   const router = useTransitionRouter();
   const pathname = usePathname();
@@ -228,6 +231,7 @@ export function NavbarSearch({
           "min-w-0 max-w-none lg:h-12 max-lg:h-12 lg:rounded-[1rem]",
           headerProductSearchFieldGlassClass,
           "max-lg:rounded-2xl max-lg:ps-5 max-lg:ring-1 max-lg:ring-black/[0.05]",
+          fieldClassName,
         )}
         compact
         leading={

@@ -135,7 +135,10 @@ export function MobileCommerceChrome() {
           {showCartSummary ? (
             <div
               ref={cartPeekRef}
-              className={cn("pointer-events-auto", mobileCommerceChromeColumnClass)}
+              className={cn(
+                "pointer-events-auto min-h-[3.25rem]",
+                mobileCommerceChromeColumnClass,
+              )}
             >
               <MobileCartBottomSheet showCartSummary={showCartSummary} />
             </div>

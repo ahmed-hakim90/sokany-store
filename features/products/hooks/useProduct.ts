@@ -18,3 +18,14 @@ export function useProduct(id: number) {
     enabled: id > 0,
   });
 }
+
+/** PDP — أحدث سعر/مخزون من السيرفر دون الاعتماد على كاش قديم. */
+export function useProductCommerce(id: number) {
+  return useQuery({
+    queryKey: ["product", id],
+    queryFn: () => getProductById(id, { commerceTrust: true }),
+    staleTime: STALE_TIME.COMMERCE,
+    refetchOnMount: "always",
+    enabled: id > 0,
+  });
+}

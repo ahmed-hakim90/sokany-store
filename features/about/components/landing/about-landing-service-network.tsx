@@ -1,22 +1,26 @@
 import { Link } from "next-view-transitions";
 import { MapPin } from "lucide-react";
 import {
+  aboutLandingInnerContainerClass,
   aboutLandingLeadClass,
+  aboutLandingLightSectionClass,
   aboutLandingOutlineCtaClass,
   aboutLandingPanelClass,
   aboutLandingOverlayCtaClass,
-  aboutLandingSectionTitleClass} from "@/features/about/components/landing/about-landing-surfaces";
+  aboutLandingSectionTitleClass,
+} from "@/features/about/components/landing/about-landing-surfaces";
 import { aboutLandingServiceNetwork } from "@/features/about/content/about-landing-content";
 import { cn } from "@/lib/utils";
 
 /*
- * شبكة الخدمة — خريطة مصر stylized + بطاقات مناطق؛ عمودان من lg.
+ * شبكة الخدمة — قسم فاتح bg-white؛ خريطة مصر + بطاقات مناطق؛ عمودان من lg.
  */
 export function AboutLandingServiceNetwork() {
   const { title, subtitle, mapCaption, mapCta, regions, branchesCta } = aboutLandingServiceNetwork;
 
   return (
-    <section className="space-y-6" aria-labelledby="about-service-title">
+    <section className={`${aboutLandingLightSectionClass} space-y-8`} aria-labelledby="about-service-title">
+      <div className={aboutLandingInnerContainerClass}>
       <div className="space-y-2">
         <h2 id="about-service-title" className={aboutLandingSectionTitleClass}>
           {title}
@@ -62,6 +66,7 @@ export function AboutLandingServiceNetwork() {
         <Link href={branchesCta.href} className={aboutLandingOutlineCtaClass}>
           {branchesCta.label}
         </Link>
+      </div>
       </div>
     </section>
   );

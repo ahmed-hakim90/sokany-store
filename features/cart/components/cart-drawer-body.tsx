@@ -10,6 +10,7 @@ import { QtyControl } from "@/components/ui/qty-control";
 import { IconButton } from "@/components/ui/icon-button";
 import { ROUTES } from "@/lib/constants";
 import { cn, formatPrice } from "@/lib/utils";
+import { cartItemLineKey } from "@/features/cart/lib/cart-line-key";
 import type { CartItem } from "@/features/cart/types";
 
 export type CartLinesVariant = "default" | "premium";
@@ -29,14 +30,14 @@ export function getCartDrawerDiscount(items: CartItem[]): number {
 
 export function CartDrawerLinesSkeleton({ rows = 2 }: { rows?: number }) {
   return (
-    <ul className="space-y-3 pb-3" aria-busy="true" aria-label="جاري تحميل السلة">
+    <ul className="space-y-2 pb-3" aria-busy="true" aria-label="جاري تحميل السلة">
       {Array.from({ length: rows }).map((_, i) => (
         <li
           key={i}
-          className="flex animate-pulse gap-3 rounded-2xl border border-slate-200/90 bg-white/95 p-3"
+          className="flex animate-pulse gap-2.5  border border-slate-200/90 bg-white/95 p-2.5"
         >
-          <div className="h-16 w-16 shrink-0 rounded-lg bg-slate-200" />
-          <div className="min-w-0 flex-1 space-y-2">
+          <div className="h-20 w-20 shrink-0 rounded-lg bg-slate-200" />
+          <div className="min-w-0 flex-1 space-y-1.5 py-0.5">
             <div className="h-3.5 w-[78%] rounded bg-slate-200" />
             <div className="h-8 w-28 rounded-lg bg-slate-100" />
           </div>
@@ -50,14 +51,18 @@ export function CartDrawerLines({
   items,
   onQuantityChange,
   onRemove,
-  updatingLineId = null,
+  updatingLineKey = null,
   listClassName,
   variant = "default",
 }: {
   items: CartItem[];
-  onQuantityChange: (productId: number, quantity: number) => void;
-  onRemove: (productId: number) => void;
-  updatingLineId?: number | null;
+  onQuantityChange: (
+    productId: number,
+    quantity: number,
+    variationId?: number,
+  ) => void;
+  onRemove: (productId: number, variationId?: number) => void;
+  updatingLineKey?: string | null;
   listClassName?: string;
   variant?: CartLinesVariant;
 }) {
@@ -65,16 +70,16 @@ export function CartDrawerLines({
     <ul
       className={
         listClassName ??
-        cn("pb-3", variant === "premium" ? "space-y-3" : "space-y-2.5")
+        cn("pb-3", variant === "premium" ? "space-y-2" : "space-y-2.5")
       }
       role="list"
     >
       {items.map((item) => (
         <CartSheetLine
-          key={item.productId}
+          key={cartItemLineKey(item)}
           item={item}
           variant={variant}
-          isUpdating={updatingLineId === item.productId}
+          isUpdating={updatingLineKey === cartItemLineKey(item)}
           onQuantityChange={onQuantityChange}
           onRemove={onRemove}
         />
@@ -112,7 +117,7 @@ export function CartDrawerPeekFooter({
   return (
     <div
       className={cn(
-        "shrink-0 px-4 pb-4 pt-3",
+        "shrink-0 px-2 pb-2 pt-1",
         premium
           ? "rounded-b-[1.35rem] border-t border-white/40 bg-white/50 backdrop-blur-md"
           : "border-t border-border bg-white shadow-[0_-4px_20px_-6px_rgba(15,23,42,0.08)]",
@@ -260,43 +265,56 @@ const CartSheetLine = memo(function CartSheetLine({
   variant = "default",
 }: {
   item: CartItem;
-  onQuantityChange: (productId: number, quantity: number) => void;
-  onRemove: (productId: number) => void;
+  onQuantityChange: (
+    productId: number,
+    quantity: number,
+    variationId?: number,
+  ) => void;
+  onRemove: (productId: number, variationId?: number) => void;
   isUpdating?: boolean;
   variant?: CartLinesVariant;
 }) {
   const premium = variant === "premium";
+  const lineTotal = item.price * item.quantity;
   return (
     <li
       className={cn(
-        "flex gap-3 p-3",
+        "flex",
+        premium ? "gap-2.5 p-2.5" : "gap-3 p-3",
         premium
-          ? "rounded-2xl border border-slate-200/90 bg-white/95 shadow-[0_8px_24px_-12px_rgba(15,23,42,0.2)] ring-1 ring-slate-900/[0.04] backdrop-blur-sm"
-          : "rounded-xl border border-border/80 bg-white shadow-sm",
+          ? " border border-slate-200/90 bg-white/95 shadow-[0_8px_24px_-12px_rgba(15,23,42,0.2)] ring-1 ring-slate-900/[0.04] backdrop-blur-sm"
+          : " border border-border/80 bg-white shadow-sm",
       )}
     >
       <Link
         href={ROUTES.PRODUCT(item.productId)}
         className={cn(
-          "relative h-16 w-16 shrink-0 overflow-hidden rounded-lg border bg-image-well",
-          premium ? "border-slate-200/80" : "border-border",
+          "relative shrink-0 overflow-hidden rounded-lg border bg-image-well",
+          premium ? "h-20 w-20 border-slate-200/80" : "h-16 w-16 border-border",
         )}
       >
         <AppImage
           src={item.thumbnail}
           alt=""
           fill
-          sizes="64px"
-          className="object-cover"
+          sizes={premium ? "80px" : "64px"}
+          className={premium ? "object-contain p-0.5" : "object-cover"}
         />
       </Link>
-      <div className="flex min-w-0 flex-1 flex-col gap-2">
-        <div className="flex items-start justify-between gap-2">
+      <div
+        className={cn(
+          "flex min-w-0 flex-1 flex-col",
+          premium ? "justify-center gap-1" : "gap-2",
+        )}
+      >
+        <div className="flex items-start justify-between gap-1.5">
           <Link
             href={ROUTES.PRODUCT(item.productId)}
             className={cn(
-              "line-clamp-2 text-start text-sm font-semibold hover:text-brand-600",
-              premium ? "text-slate-900" : "text-foreground",
+              "text-start font-semibold hover:text-brand-600",
+              premium
+                ? "line-clamp-1 text-[13px] leading-snug text-slate-900"
+                : "line-clamp-2 text-sm text-foreground",
             )}
           >
             {item.name}
@@ -307,25 +325,34 @@ const CartSheetLine = memo(function CartSheetLine({
             size="sm"
             className={cn(
               "shrink-0 hover:text-red-600",
-              premium ? "text-slate-400 hover:bg-slate-100" : "text-muted-foreground",
+              premium
+                ? "-mt-0.5 h-8 w-8 text-slate-400 hover:bg-slate-100"
+                : "text-muted-foreground",
             )}
             aria-label={`إزالة ${item.name}`}
-            onClick={() => onRemove(item.productId)}
+            onClick={() => onRemove(item.productId, item.variationId)}
           >
-            <CartTrashIcon />
+            <CartTrashIcon className={premium ? "h-3.5 w-3.5" : undefined} />
           </IconButton>
         </div>
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <span
-            className={cn(
-              "text-sm font-semibold",
-              premium ? "text-slate-600" : "text-brand-900",
-            )}
-            dir="ltr"
-          >
-            {formatPrice(item.price)}
-          </span>
-          <div className="relative">
+        <div className="flex items-center justify-between gap-2">
+          {premium ? (
+            <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0">
+              <span className="text-xs font-semibold text-slate-600" dir="ltr">
+                {formatPrice(item.price)}
+              </span>
+              <PriceText
+                amount={lineTotal}
+                compact
+                className="text-xs font-bold text-slate-900"
+              />
+            </div>
+          ) : (
+            <span className="text-sm font-semibold text-brand-900" dir="ltr">
+              {formatPrice(item.price)}
+            </span>
+          )}
+          <div className="relative shrink-0">
             {isUpdating ? (
               <span
                 className="absolute inset-0 z-10 flex items-center justify-center rounded-full bg-white/85"
@@ -341,20 +368,21 @@ const CartSheetLine = memo(function CartSheetLine({
               disabled={isUpdating}
               touchComfortable={!premium}
               compact={premium}
-              onChange={(q) => onQuantityChange(item.productId, q)}
+              onChange={(q) =>
+                onQuantityChange(item.productId, q, item.variationId)
+              }
             />
           </div>
         </div>
-        <div className="flex justify-end">
-          <PriceText
-            amount={item.price * item.quantity}
-            compact
-            className={cn(
-              "text-xs",
-              premium ? "text-slate-500" : "text-muted-foreground",
-            )}
-          />
-        </div>
+        {!premium ? (
+          <div className="flex justify-end">
+            <PriceText
+              amount={lineTotal}
+              compact
+              className="text-xs text-muted-foreground"
+            />
+          </div>
+        ) : null}
       </div>
     </li>
   );

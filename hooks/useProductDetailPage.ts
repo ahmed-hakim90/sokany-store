@@ -10,7 +10,8 @@ import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/lib/constants";
 import { useCart } from "@/hooks/useCart";
-import { useProduct } from "@/features/products/hooks/useProduct";
+import { useProductCommerce } from "@/features/products/hooks/useProduct";
+import { readUpsellIds } from "@/features/products/lib/product-variations";
 import { useProducts } from "@/features/products/hooks/useProducts";
 import { useReviews } from "@/features/reviews/hooks/useReviews";
 import type { Product } from "@/features/products/types";
@@ -56,8 +57,25 @@ function buildProductSpecs(product: Product): ProductSpecItem[] {
 export function useProductDetailPage(id: number) {
   const router = useRouter();
   const { addProduct } = useCart();
-  const productQuery = useProduct(id);
+  const productQuery = useProductCommerce(id);
   const reviewsQuery = useReviews(id);
+
+  const upsellParams = useMemo(() => {
+    const p = productQuery.data;
+    if (!p) return null;
+    const upsellIds = readUpsellIds(p).filter((rid) => rid !== p.id).slice(0, 6);
+    if (upsellIds.length === 0) return null;
+    return { include: upsellIds.join(","), per_page: 6, page: 1 };
+  }, [productQuery.data]);
+
+  const upsellQuery = useProducts(upsellParams ?? { per_page: 1, page: 1 }, {
+    enabled: Boolean(upsellParams),
+  });
+
+  const upsellProducts = useMemo(() => {
+    const products = upsellQuery.data?.items ?? [];
+    return products.filter((product) => product.id !== id).slice(0, 6);
+  }, [upsellQuery.data, id]);
 
   const relatedParams = useMemo(() => {
     const p = productQuery.data;
@@ -95,6 +113,8 @@ export function useProductDetailPage(id: number) {
     reviewsQuery,
     relatedQuery,
     relatedProducts,
+    upsellQuery,
+    upsellProducts,
     specs,
     addProductToCart: addProduct,
     goToProducts() {

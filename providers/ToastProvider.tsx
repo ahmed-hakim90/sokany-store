@@ -50,7 +50,7 @@ export function ToastProvider() {
       position="bottom-center"
       richColors={false}
       closeButton
-      duration={4000}
+      duration={5500}
       gap={10}
       offset={{ bottom: "1.5rem" }}
       mobileOffset={{ bottom: MOBILE_TOAST_BOTTOM }}

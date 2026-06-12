@@ -138,13 +138,13 @@ export function BottomNavInner() {
     cn(
       "relative inline-flex h-8 min-w-9 max-w-none items-center justify-center rounded-lg px-1 text-current motion-reduce:transition-none",
       active
-        ? "bg-brand text-brand-950 shadow-[0_6px_16px_-8px_rgba(15,23,42,0.45)] ring-1 ring-brand-600/30"
+        ? "bg-brand-300/70 text-brand-950 shadow-sm ring-1 ring-brand-500/25"
         : "bg-transparent text-current",
       "transition-[background-color,color,box-shadow] duration-200 ease-out motion-reduce:transition-none",
     );
 
   return (
-    <nav aria-label="التنقل السفلي" className="bg-brand-500/50">
+    <nav aria-label="التنقل السفلي" className="bg-white/96 backdrop-blur-md border-t border-brand-200/60">
       <ul className="flex w-full touch-pan-x items-start justify-between gap-0 px-2 py-1 sm:px-3 md:justify-evenly md:gap-1">
         {linkItems.map(({ href, label, key }) => {
           const Icon = iconByKey[key];

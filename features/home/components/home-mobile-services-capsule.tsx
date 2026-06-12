@@ -50,10 +50,10 @@ export function HomeMobileServicesCapsule({ className }: HomeMobileServicesCapsu
             >
               <Icon className="h-5 w-5 sm:h-[22px] sm:w-[22px] md:h-6 md:w-6" strokeWidth={1.85} />
             </div>
-            <h3 className="text-[10px] font-bold leading-tight text-gray-900 sm:text-xs md:text-sm">
+            <h3 className="text-[11px] font-bold leading-tight text-gray-900 sm:text-xs md:text-sm">
               {title}
             </h3>
-            <p className="mt-0.5 line-clamp-2 text-[8px] font-medium leading-snug text-gray-500 sm:text-[10px] md:text-xs">
+            <p className="mt-0.5 line-clamp-2 text-[10px] font-medium leading-snug text-gray-500 sm:text-[11px] md:text-xs">
               {subtitle}
             </p>
           </div>

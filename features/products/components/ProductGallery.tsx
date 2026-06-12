@@ -174,7 +174,7 @@ export const ProductGallery = forwardRef<HTMLDivElement, ProductGalleryProps>(
               />
             </div>
             {galleryBadge ? (
-              <span className="pointer-events-none absolute end-3 top-3 z-10 rounded-full bg-brand-500 px-3 py-1.5 font-display text-[10px] font-bold uppercase leading-none tracking-wide text-black shadow-sm">
+              <span className="pointer-events-none absolute end-3 top-3 z-10 rounded-full bg-brand-500 px-3 py-1.5 font-display text-[11px] font-bold uppercase leading-none tracking-wide text-black shadow-sm">
                 {galleryBadge}
               </span>
             ) : null}
@@ -209,14 +209,14 @@ export const ProductGallery = forwardRef<HTMLDivElement, ProductGalleryProps>(
                   : "bottom-3",
               )}
             >
-              <span className="flex items-center gap-1 rounded-full bg-black/55 px-2.5 py-1.5 text-[10px] font-bold text-white backdrop-blur-sm">
+              <span className="flex items-center gap-1 rounded-full bg-black/55 px-2.5 py-1.5 text-[11px] font-bold text-white backdrop-blur-sm">
                 <ZoomIcon className="h-3.5 w-3.5 opacity-90" />
                 تكبير
               </span>
               {list.length > 1 ? (
                 <span
                   dir="ltr"
-                  className="rounded-full bg-white/90 px-2.5 py-1.5 text-[10px] font-extrabold text-slate-950 shadow-sm ring-1 ring-slate-200 backdrop-blur-sm"
+                  className="rounded-full bg-white/90 px-2.5 py-1.5 text-[11px] font-extrabold text-slate-950 shadow-sm ring-1 ring-slate-200 backdrop-blur-sm"
                 >
                   {activeIndex + 1} / {list.length}
                 </span>

@@ -15,6 +15,10 @@ import {
   type QueryKey,
 } from "@tanstack/react-query";
 import { scheduleIdleCallback } from "@/lib/schedule-idle-callback";
+import {
+  clearStorefrontApiCacheForCatalog,
+  clearStorefrontApiCacheForProduct,
+} from "@/lib/storefront-api-cache-policy";
 
 const QUERY_CACHE_STORAGE_KEY = "sokany_storefront_query_cache_v1";
 const QUERY_CACHE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
@@ -56,6 +60,7 @@ export function isPersistableStorefrontQueryKey(queryKey: QueryKey): boolean {
   return (
     root === "products" ||
     root === "product" ||
+    root === "product-variations" ||
     root === "categories" ||
     root === "reviews"
   );
@@ -245,6 +250,7 @@ export function invalidateStorefrontQueriesFromWooEvent(
     normalized.scope === "categories" ||
     normalized.scope === "all"
   ) {
+    clearStorefrontApiCacheForCatalog();
     void queryClient.invalidateQueries({
       queryKey: ["categories"],
       refetchType: "active",
@@ -253,8 +259,13 @@ export function invalidateStorefrontQueriesFromWooEvent(
 
   if (normalized.scope === "products" || normalized.scope === "all") {
     if (resourceId !== undefined) {
+      clearStorefrontApiCacheForProduct(resourceId);
       void queryClient.invalidateQueries({
         queryKey: ["product", resourceId],
+        refetchType: "active",
+      });
+      void queryClient.invalidateQueries({
+        queryKey: ["product-variations", resourceId],
         refetchType: "active",
       });
       void queryClient.invalidateQueries({
@@ -262,6 +273,7 @@ export function invalidateStorefrontQueriesFromWooEvent(
         refetchType: "active",
       });
     } else {
+      clearStorefrontApiCacheForCatalog();
       void queryClient.invalidateQueries({
         queryKey: ["product"],
         refetchType: "active",

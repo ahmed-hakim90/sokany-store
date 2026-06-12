@@ -13,10 +13,10 @@ const statIcons = [Package, Tags, MapPin, Store, Headphones] as const;
 export function AboutLandingStatsBar() {
   return (
     <section
-      className="rounded-2xl border-2 border-brand-500/60 bg-gradient-to-r from-brand-950 via-brand-900 to-brand-950 px-4 py-6 text-white shadow-[0_16px_40px_-20px_rgba(10,10,10,0.55)] sm:px-6"
+      className="bg-gradient-to-r from-brand-950 via-brand-900 to-brand-950 px-4 py-12 text-white sm:px-6"
       aria-label="أرقام سوكاني مصر"
     >
-      <ul className="flex gap-6 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] sm:grid sm:grid-cols-5 sm:overflow-visible [&::-webkit-scrollbar]:hidden">
+      <ul className="mx-auto max-w-6xl flex gap-6 overflow-x-auto px-4 sm:px-6 [-ms-overflow-style:none] [scrollbar-width:none] sm:grid sm:grid-cols-5 sm:overflow-visible [&::-webkit-scrollbar]:hidden">
         {aboutLandingStats.map((stat, index) => {
           const Icon = statIcons[index] ?? Package;
           return (

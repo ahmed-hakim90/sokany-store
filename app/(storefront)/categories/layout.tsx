@@ -6,8 +6,13 @@ import { usePathname } from "next/navigation";
 import { Container } from "@/components/Container";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorState } from "@/components/ErrorState";
+import {
+  findCategoryBySlug,
+  getCategoryHorizontalNavCategories,
+} from "@/features/catalog/lib/catalog-category-tree";
 import { CategoryBrowseSplitLayout } from "@/features/categories/components/category-browse-split-layout";
 import { CategoriesMobileHeaderRail } from "@/features/categories/components/categories-mobile-header-rail";
+import { CategorySidebar } from "@/features/categories/components/CategorySidebar";
 import { CategoryTilesGrid } from "@/features/categories/components/category-tiles-grid";
 import { CategoryScrollerSkeleton } from "@/features/categories/components/CategoryScrollerSkeleton";
 import { featuredCategoryTiles } from "@/features/categories/content/featured-category-tiles";
@@ -27,8 +32,10 @@ function sidebarCategoriesList(data: Category[]) {
 }
 
 /*
- * تخطيط التصنيفات: على الموبايل سكة بلاطات أفقية (نفس شكل About، حجم مضغوط) تحت الهيدر؛
- * من lg شريط جانبي نصي + المحتوى داخل الحاوية.
+ * تخطيط التصنيفات (موبايل):
+ * - `/categories`: سكة بلاطات «تسوق حسب الفئة» (هوم).
+ * - `/categories/[slug]`: سكة دائرية للتصنيف النشط + أبناؤه (أو إخوته)، مثل `/products?category=`.
+ * ديسكتوب: شريط جانبي نصي + المحتوى.
  */
 export default function CategoriesLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -42,22 +49,41 @@ export default function CategoriesLayout({ children }: { children: ReactNode }) 
     () => mergeFeaturedCategoryTilesWithApi(featuredCategoryTiles, query.data),
     [query.data],
   );
+  const activeCategory = useMemo(
+    () =>
+      query.data && activeSlug
+        ? findCategoryBySlug(query.data, activeSlug)
+        : null,
+    [query.data, activeSlug],
+  );
+  const slugMobileRailCategories = useMemo(() => {
+    if (!activeCategory || !query.data) return [];
+    return getCategoryHorizontalNavCategories(query.data, activeCategory);
+  }, [activeCategory, query.data]);
 
-  const mobileRail =
-    query.isPending ? (
-      <CategoriesMobileHeaderRail>
-        <CategoryScrollerSkeleton variant="tiles" />
-      </CategoriesMobileHeaderRail>
-    ) : query.data?.length ? (
-      <CategoriesMobileHeaderRail>
-        <CategoryTilesGrid
-          tiles={featuredTiles}
-          size="compact"
-          layout="scroll-rail"
-          title="تسوق حسب الفئة"
-        />
-      </CategoriesMobileHeaderRail>
-    ) : null;
+  const mobileRail = query.isPending ? (
+    <CategoriesMobileHeaderRail>
+      <CategoryScrollerSkeleton variant="tiles" />
+    </CategoriesMobileHeaderRail>
+  ) : activeSlug && activeCategory && slugMobileRailCategories.length > 0 ? (
+    <CategoriesMobileHeaderRail>
+      <CategorySidebar
+        variant="rail"
+        linkMode="slug"
+        categories={slugMobileRailCategories}
+        activeSlug={activeSlug}
+      />
+    </CategoriesMobileHeaderRail>
+  ) : query.data?.length ? (
+    <CategoriesMobileHeaderRail>
+      <CategoryTilesGrid
+        tiles={featuredTiles}
+        size="compact"
+        layout="scroll-rail"
+        title="تسوق حسب الفئة"
+      />
+    </CategoriesMobileHeaderRail>
+  ) : null;
 
   return (
     <div className="flex min-h-0 min-w-0 flex-1 flex-col">

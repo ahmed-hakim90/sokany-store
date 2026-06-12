@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { ChevronUp } from "lucide-react";
+import { useMobileChromeCollapsedStore } from "@/components/layout/mobile-chrome-collapsed-store";
 import { Button } from "@/components/ui/button";
+import { getWindowScrollY, scrollWindowToTop } from "@/lib/scroll-to-top";
 import { cn } from "@/lib/utils";
 
 const SCROLL_THRESHOLD_PX = 320;
@@ -10,11 +12,11 @@ const SCROLL_THRESHOLD_PX = 320;
 /** زر التمرير لأعلى بدون غلاف `fixed` — يُوضَع داخل [`MobileFloatingActions`](./mobile-floating-actions.tsx). */
 export function ScrollToTopButton() {
   const [visible, setVisible] = useState(false);
+  const resetChrome = useMobileChromeCollapsedStore((s) => s.resetChrome);
 
   useEffect(() => {
     const onScroll = () => {
-      const y = window.scrollY ?? document.documentElement.scrollTop ?? 0;
-      setVisible(y > SCROLL_THRESHOLD_PX);
+      setVisible(getWindowScrollY() > SCROLL_THRESHOLD_PX);
     };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -26,7 +28,7 @@ export function ScrollToTopButton() {
       className={cn(
         "flex justify-end transition-[opacity,max-height] duration-200",
         visible
-          ? "max-h-14 opacity-100"
+          ? "pointer-events-auto max-h-14 opacity-100"
           : "pointer-events-none max-h-0 overflow-hidden opacity-0",
       )}
     >
@@ -34,17 +36,15 @@ export function ScrollToTopButton() {
         type="button"
         variant="secondary"
         size="sm"
-        className="h-11 w-11 min-w-11 shrink-0 rounded-full p-0 shadow-md"
+        className="relative z-[1] h-11 w-11 min-w-11 shrink-0 rounded-full p-0 shadow-md"
         tabIndex={visible ? 0 : -1}
         aria-label="العودة إلى أعلى الصفحة"
         onClick={() => {
           const reduced =
             typeof window.matchMedia === "function" &&
             window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-          window.scrollTo({
-            top: 0,
-            behavior: reduced ? "auto" : "smooth",
-          });
+          scrollWindowToTop(reduced ? "auto" : "smooth");
+          resetChrome();
         }}
       >
         <ChevronUp className="h-5 w-5 shrink-0" aria-hidden />

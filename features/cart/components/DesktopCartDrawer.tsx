@@ -31,7 +31,7 @@ export function DesktopCartDrawer() {
   const open = useCartDrawerOpenStore((s) => s.open);
   const setOpen = useCartDrawerOpenStore((s) => s.setOpen);
   const closeDrawer = useCartDrawerOpenStore((s) => s.closeDrawer);
-  const { hasHydrated, items, totalPrice, updateProductQuantity, removeProduct, updatingLineId } =
+  const { hasHydrated, items, totalPrice, updateProductQuantity, removeProduct, updatingLineKey } =
     useCart();
   const [checkoutLoading, setCheckoutLoading] = useState(false);
 
@@ -143,7 +143,7 @@ export function DesktopCartDrawer() {
                   <CartDrawerLines
                     items={items}
                     variant="premium"
-                    updatingLineId={updatingLineId}
+                    updatingLineKey={updatingLineKey}
                     onQuantityChange={updateProductQuantity}
                     onRemove={removeProduct}
                   />

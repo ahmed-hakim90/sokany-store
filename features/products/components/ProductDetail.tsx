@@ -4,32 +4,26 @@
  * كتلة PDP (معرض + معلومات + شريط لاصق)
  * بالعامية: يظبط الكمية، يشغّل أنيميشن الطيران للسلة لو الحركة مسموحة، ويعرض `ProductDetailStickyCart` لما منطقة الشراء تطلع من الشاشة.
  */
-import { useCallback, useEffect, useRef, useState } from "react";
-import { Link } from "next-view-transitions";
-import {
-  Banknote,
-  Building2,
-  FileCheck2,
-  RotateCcw,
-  ShieldCheck,
-  Truck,
-} from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ProductDetailInfoColumn } from "@/features/products/components/product-detail-info-column";
 import { ProductDetailStickyCart } from "@/features/products/components/product-detail-sticky-cart";
 import { Product3DButton } from "@/features/products/components/Product3DButton";
 import { ProductGallery } from "@/features/products/components/ProductGallery";
 import { ProductDetailBreadcrumbs } from "@/features/products/components/product-detail-breadcrumbs";
+import { ProductTrustStrip } from "@/features/products/components/product-trust-strip";
 import { ProductDetailContentSections } from "@/features/products/components/product-detail-content-sections";
+import { ProductVariationPicker } from "@/features/products/components/product-variation-picker";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import type { ProductTrustSummary } from "@/components/pages/ProductDetailPageContent";
 import type { ProductSpecItem } from "@/features/products/components/ProductSpecsList";
 import { getProductGalleryBadge } from "@/features/products/lib/product-gallery-badge";
 import { getProductBenefitBullets } from "@/features/products/lib/product-merchandising";
 import { useProduct3DModel } from "@/features/products/hooks/useProduct3DModel";
+import { useProductVariationSelection } from "@/features/products/hooks/useProductVariationSelection";
 import type { Product } from "@/features/products/types";
+import type { AddProductLineOptions } from "@/hooks/useCart";
 import { playCartFlyAnimation } from "@/lib/cart-fly-animation";
-import { ROUTES } from "@/lib/constants";
-import { cn } from "@/lib/utils";
+import { cn, formatPrice } from "@/lib/utils";
 
 export function ProductDetail({
   product,
@@ -40,14 +34,23 @@ export function ProductDetail({
   trustSummary,
 }: {
   product: Product;
-  onAddToCart: (product: Product, quantity: number) => void;
-  onBuyNow?: (product: Product, quantity: number) => void;
+  onAddToCart: (
+    product: Product,
+    quantity: number,
+    options?: AddProductLineOptions,
+  ) => void;
+  onBuyNow?: (
+    product: Product,
+    quantity: number,
+    options?: AddProductLineOptions,
+  ) => void;
   specs?: ProductSpecItem[];
   canInteractCart?: boolean;
   trustSummary?: ProductTrustSummary;
 }) {
   const [quantity, setQuantity] = useState(1);
   const [cartAdding, setCartAdding] = useState(false);
+  const variation = useProductVariationSelection(product);
   const [flyImageSrc, setFlyImageSrc] = useState(
     () => product.images[0]?.src ?? product.thumbnail,
   );
@@ -60,6 +63,27 @@ export function ProductDetail({
   const product3DModel = product3DModelQuery.data ?? null;
   const product3DPosterSrc = product.images[0]?.src ?? product.thumbnail;
   const benefits = getProductBenefitBullets(product, 4);
+
+  const optionsByName = useMemo(() => {
+    const map: Record<string, string[]> = {};
+    for (const attr of product.attributes) {
+      if (attr.variation && attr.options.length > 0) {
+        map[attr.name] = attr.options;
+      }
+    }
+    return map;
+  }, [product.attributes]);
+
+  const priceRangeLabel = useMemo(() => {
+    if (!variation.isVariable || !variation.priceRange) return null;
+    const { low, high } = variation.priceRange;
+    if (low === high) return formatPrice(low);
+    return `${formatPrice(low)} – ${formatPrice(high)}`;
+  }, [variation.isVariable, variation.priceRange]);
+
+  useEffect(() => {
+    setFlyImageSrc(variation.displayThumbnail);
+  }, [variation.displayThumbnail]);
 
   useEffect(() => {
     const el = purchaseRef.current;
@@ -76,22 +100,49 @@ export function ProductDetail({
     return () => io.disconnect();
   }, [product.id]);
 
+  const runAddToCart = useCallback(() => {
+    if (!variation.canAddToCart) return;
+    onAddToCart(product, quantity, variation.buildAddOptions());
+  }, [onAddToCart, product, quantity, variation]);
+
   const handleAddToCart = useCallback(() => {
-    if (cartAdding) return;
+    if (cartAdding || !variation.canAddToCart) return;
     setCartAdding(true);
-    onAddToCart(product, quantity);
+    runAddToCart();
     void playCartFlyAnimation({
       fromElement: galleryRef.current,
       imageSrc: flyImageSrc,
       prefersReducedMotion: Boolean(reduceMotion),
     }).finally(() => setCartAdding(false));
-  }, [cartAdding, flyImageSrc, onAddToCart, product, quantity, reduceMotion]);
+  }, [
+    cartAdding,
+    flyImageSrc,
+    reduceMotion,
+    runAddToCart,
+    variation.canAddToCart,
+  ]);
+
+  const handleBuyNow = useCallback(() => {
+    if (!onBuyNow || !variation.canAddToCart) return;
+    onBuyNow(product, quantity, variation.buildAddOptions());
+  }, [onBuyNow, product, quantity, variation]);
+
+  const variationPicker = variation.isVariable ? (
+    <ProductVariationPicker
+      attributeNames={variation.attributeNames}
+      optionsByName={optionsByName}
+      selected={variation.selectedAttributes}
+      onSelect={variation.selectAttribute}
+      disabled={variation.variationsQuery.isPending}
+      className="mt-4 border-t border-slate-100 pt-4"
+    />
+  ) : null;
 
   return (
     <div
       className={cn(
         "min-w-0 space-y-6 sm:space-y-8 lg:space-y-10",
-        stickyCartVisible && product.inStock && "pb-24 max-lg:pb-mobile-commerce",
+        stickyCartVisible && variation.displayInStock && "pb-24 max-lg:pb-mobile-commerce",
       )}
     >
       <ProductDetailBreadcrumbs product={product} className="text-xs sm:text-sm" />
@@ -105,7 +156,7 @@ export function ProductDetail({
             ref={galleryRef}
             images={product.images}
             productName={product.name}
-            fallbackSrc={product.thumbnail}
+            fallbackSrc={variation.displayThumbnail}
             priority
             galleryBadge={badge}
             floatingAction={
@@ -129,9 +180,16 @@ export function ProductDetail({
             onAddToCart={handleAddToCart}
             addToCartLoading={cartAdding}
             onBuyNow={
-              onBuyNow && product.inStock ? () => onBuyNow(product, quantity) : undefined
+              onBuyNow && variation.displayInStock ? handleBuyNow : undefined
             }
-            canInteractCart={canInteractCart && !cartAdding}
+            canInteractCart={canInteractCart && !cartAdding && variation.canAddToCart}
+            displayPrice={variation.displayPrice}
+            displayRegularPrice={variation.displayRegularPrice}
+            displayOnSale={variation.displayOnSale}
+            displayInStock={variation.displayInStock}
+            priceRangeLabel={priceRangeLabel}
+            selectionHint={variation.selectionHint}
+            variationPicker={variationPicker}
           />
         </div>
       </div>
@@ -149,94 +207,13 @@ export function ProductDetail({
         product={product}
         imageSrc={flyImageSrc}
         visible={stickyCartVisible}
+        displayPrice={variation.displayPrice}
+        displayInStock={variation.displayInStock}
+        canAddToCart={variation.canAddToCart}
         onAddToCart={handleAddToCart}
         addToCartLoading={cartAdding}
-        canInteractCart={canInteractCart && !cartAdding}
+        canInteractCart={canInteractCart && !cartAdding && variation.canAddToCart}
       />
     </div>
   );
 }
-
-function ProductTrustStrip({
-  trustSummary,
-}: {
-  trustSummary?: ProductTrustSummary;
-}) {
-  const branchTotal =
-    (trustSummary?.salesBranchesCount ?? 0) +
-    (trustSummary?.serviceBranchesCount ?? 0);
-  const items = [
-    {
-      title: "ضمان الوكيل",
-      body: "سنة ضد عيوب الصناعة",
-      icon: ShieldCheck,
-      href: ROUTES.WARRANTY,
-    },
-    {
-      title: "دفع عند الاستلام",
-      body: "ادفع عند استلام طلبك",
-      icon: Banknote,
-      href: ROUTES.CHECKOUT,
-    },
-    {
-      title: "استبدال واسترجاع",
-      body: "حسب الشروط خلال 14 يوم",
-      icon: RotateCcw,
-      href: ROUTES.RETURNS_POLICY,
-    },
-    {
-      title: "توصيل سريع",
-      body: "خلال 1-3 أيام عمل",
-      icon: Truck,
-      href: ROUTES.CONTACT,
-    },
-  ];
-
-  return (
-    <section
-      className="grid gap-3 rounded-3xl border border-slate-200 bg-white p-3 shadow-[0_14px_44px_-34px_rgba(15,23,42,0.42)] sm:grid-cols-2 lg:grid-cols-4"
-      aria-label="مزايا الشراء والثقة"
-    >
-      {items.map((item) => {
-        const Icon = item.icon;
-        return (
-          <Link
-            key={item.title}
-            href={item.href}
-            className="group flex min-w-0 items-center gap-3 rounded-2xl border border-slate-100 bg-slate-50/60 p-4 transition-colors hover:bg-white hover:shadow-sm"
-          >
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white text-slate-900 ring-1 ring-slate-200">
-              <Icon className="h-5 w-5" aria-hidden />
-            </span>
-            <span className="min-w-0">
-              <span className="block font-display text-sm font-bold text-slate-950">
-                {item.title}
-              </span>
-              <span className="mt-1 block text-xs leading-5 text-slate-500">
-                {item.body}
-              </span>
-            </span>
-          </Link>
-        );
-      })}
-      <Link
-        href={ROUTES.SERVICE_CENTERS}
-        className="group flex min-w-0 items-center gap-3 rounded-2xl border border-slate-100 bg-slate-50/60 p-4 transition-colors hover:bg-white hover:shadow-sm sm:col-span-2 lg:col-span-4"
-      >
-        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white text-slate-900 ring-1 ring-slate-200">
-          <Building2 className="h-5 w-5" aria-hidden />
-        </span>
-        <span className="min-w-0">
-          <span className="block font-display text-sm font-bold text-slate-950">
-            {branchTotal > 0 ? `${branchTotal} فرع ومركز خدمة` : "فروع ومراكز خدمة"}
-          </span>
-          <span className="mt-1 block text-xs leading-5 text-slate-500">
-            بيع وصيانة ودعم داخل مصر، والتفاصيل النهائية حسب فاتورة الشراء.
-          </span>
-        </span>
-        <FileCheck2 className="ms-auto hidden h-5 w-5 text-slate-300 sm:block" aria-hidden />
-      </Link>
-    </section>
-  );
-}
-

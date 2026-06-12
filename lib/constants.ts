@@ -54,6 +54,8 @@ export const DEFAULT_PER_PAGE = 20;
 export const VIRTUAL_PRODUCT_THRESHOLD = 48;
 export const STALE_TIME = {
   SHORT: 30_000,
+  /** PDP / سلة / checkout — لا نعتمد على بيانات قديمة في Query. */
+  COMMERCE: 0,
   MEDIUM: 5 * 60_000,
   LONG: 30 * 60_000,
 } as const;
@@ -136,14 +138,6 @@ export const WHATSAPP_SUPPORT_URL =
 
 /** Prefix for header product search input `id` (suffix from `useId()`; two instances may exist). */
 export const GLOBAL_PRODUCT_SEARCH_INPUT_ID = "global-product-search";
-
-/**
- * Microsoft Clarity project ID. Set `NEXT_PUBLIC_CLARITY_PROJECT_ID=` (empty) to disable.
- * When the env var is omitted, the production project id is used.
- */
-const rawClarityId = process.env.NEXT_PUBLIC_CLARITY_PROJECT_ID;
-export const CLARITY_PROJECT_ID =
-  rawClarityId === undefined ? "wen7myivca" : rawClarityId.trim();
 
 /**
  * Google Analytics 4 measurement ID (`G-xxxxxxxxxx`).

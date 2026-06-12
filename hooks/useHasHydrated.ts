@@ -17,13 +17,18 @@ type PersistStore = {
 };
 
 export function useHasHydrated(store: PersistStore) {
-  const [hasHydrated, setHasHydrated] = useState(
-    () => store.persist?.hasHydrated() ?? true,
-  );
+  const [hasHydrated, setHasHydrated] = useState(false);
 
   useEffect(() => {
     const persist = store.persist;
-    if (!persist) return;
+    if (!persist) {
+      setHasHydrated(true);
+      return;
+    }
+
+    if (persist.hasHydrated()) {
+      setHasHydrated(true);
+    }
 
     const unsubscribeHydrate = persist.onHydrate(() => setHasHydrated(false));
     const unsubscribeFinish = persist.onFinishHydration(() =>

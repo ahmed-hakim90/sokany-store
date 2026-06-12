@@ -1,19 +1,23 @@
 import { AppImage } from "@/components/AppImage";
 import {
   aboutLandingBodyClass,
+  aboutLandingInnerContainerClass,
+  aboutLandingLightSectionClass,
   aboutLandingMediaFrameClass,
-  aboutLandingSectionTitleClass, aboutLandingSectionStackClass} from "@/features/about/components/landing/about-landing-surfaces";
+  aboutLandingSectionTitleClass,
+} from "@/features/about/components/landing/about-landing-surfaces";
 import { aboutLandingWhoWeAre } from "@/features/about/content/about-landing-content";
 import { cn } from "@/lib/utils";
 
 /*
- * من هي مؤسسة المغربي — عمودان على md؛ شريط زمني أفقي scroll على الجوال.
+ * من هي مؤسسة المغربي — قسم فاتح bg-white؛ عمودان على md؛ شريط زمني أفقي.
  */
 export function AboutLandingWhoWeAre() {
   const { title, paragraphs, imageSrc, imageAlt, timeline } = aboutLandingWhoWeAre;
 
   return (
-    <section className={aboutLandingSectionStackClass} aria-labelledby="about-who-title">
+    <section className={`${aboutLandingLightSectionClass} space-y-10`} aria-labelledby="about-who-title">
+      <div className={aboutLandingInnerContainerClass}>
       <div className="grid gap-8 md:grid-cols-2 md:items-center md:gap-10">
         <div
           className={cn(
@@ -61,6 +65,7 @@ export function AboutLandingWhoWeAre() {
           </li>
         ))}
       </ol>
+      </div>
     </section>
   );
 }

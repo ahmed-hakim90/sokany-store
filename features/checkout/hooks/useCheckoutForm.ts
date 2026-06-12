@@ -213,6 +213,8 @@ export function useCheckoutForm() {
                 toast.error(
                   error.fieldErrors.accountPassword ?? "تعذر إنشاء الحساب.",
                 );
+              } else if (error.kind === "cart_sync") {
+                toast.error(error.message, { id: "checkout-cart-sync" });
               }
               return;
             }

@@ -43,7 +43,7 @@ export function MobileCartBottomSheet({
     totalPrice,
     updateProductQuantity,
     removeProduct,
-    updatingLineId,
+    updatingLineKey,
   } = useCart();
   const [open, setOpen] = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
@@ -135,7 +135,7 @@ export function MobileCartBottomSheet({
             اسحب للأسفل للإغلاق أو زر الإغلاق أعلاه
           </p>
 
-          <div className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain bg-slate-100/50 px-3 py-2 sm:px-4">
+          <div className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain bg-slate-100/50  sm:px-4">
             {shippingUi.progress ? (
               <CartFreeShippingProgressBar progress={shippingUi.progress} />
             ) : null}
@@ -145,12 +145,12 @@ export function MobileCartBottomSheet({
               <CartDrawerLines
                 variant="premium"
                 items={items}
-                updatingLineId={updatingLineId}
+                updatingLineKey={updatingLineKey}
                 onQuantityChange={updateProductQuantity}
                 onRemove={removeProduct}
               />
             )}
-            {/* <CartUpsellSection className="pb-0" /> */}
+            <CartUpsellSection className="mx-2 mb-2 pb-0" />
             {/* <CartPromoRow /> */}
           </div>
 

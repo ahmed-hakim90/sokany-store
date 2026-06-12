@@ -119,16 +119,21 @@ export function CatalogCategoryDiscovery({
               scroll={false}
               data-category-discovery-active={allProductsActive ? true : undefined}
               className={cn(
-                "flex w-[6.75rem] shrink-0 snap-start flex-col items-center justify-center rounded-2xl border bg-white px-2 py-4 text-center shadow-sm transition-colors",
+                "relative flex w-[5.5rem] h-[5.5rem] shrink-0 snap-start overflow-hidden rounded-xl border shadow-sm transition-all duration-200",
                 allProductsActive
-                  ? "border-brand-950 bg-brand-950 text-accent"
-                  : "border-border/70 text-brand-950 hover:bg-surface-muted/40",
+                  ? "border-brand-500 ring-2 ring-brand-500/30 shadow-md"
+                  : "border-border/70 hover:border-brand-400",
               )}
               onMouseEnter={() =>
                 void prefetchProducts({ page: 1, per_page: DEFAULT_PER_PAGE })
               }
             >
-              <span className="text-[11px] font-bold">كل المنتجات</span>
+              <div className="absolute inset-0 bg-gradient-to-b from-brand-200 to-brand-400" />
+              {allProductsActive ? <div className="absolute inset-0 bg-brand-500/15 pointer-events-none" /> : null}
+              <div className="absolute inset-x-0 bottom-0 h-9 bg-gradient-to-t from-black/70 via-black/30 to-transparent pointer-events-none" />
+              <span className="absolute inset-x-1 bottom-1 line-clamp-2 text-center text-[10px] font-bold leading-tight text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]">
+                كل المنتجات
+              </span>
             </Link>
             {categories.map((category) => (
               <CategoryVisualCard

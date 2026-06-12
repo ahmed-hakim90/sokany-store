@@ -2,18 +2,22 @@ import { BadgeCheck } from "lucide-react";
 import { AppImage } from "@/components/AppImage";
 import {
   aboutLandingBodyClass,
+  aboutLandingInnerContainerClass,
+  aboutLandingLightSectionClass,
   aboutLandingMediaFrameClass,
-  aboutLandingSectionTitleClass} from "@/features/about/components/landing/about-landing-surfaces";
+  aboutLandingSectionTitleClass,
+} from "@/features/about/components/landing/about-landing-surfaces";
 import { aboutLandingStory } from "@/features/about/content/about-landing-content";
 
 /*
- * قصة سوكاني + المغربي — نص وشارات ثقة + صورة؛ عمودان من md.
+ * قصة سوكاني + المغربي — قسم فاتح bg-white؛ عمودان من md.
  */
 export function AboutLandingStory() {
   const { title, paragraphs, imageSrc, imageAlt, badges } = aboutLandingStory;
 
   return (
-    <section className="grid gap-8 md:grid-cols-2 md:items-center md:gap-10" aria-labelledby="about-story-title">
+    <section className={aboutLandingLightSectionClass} aria-labelledby="about-story-title">
+      <div className={`${aboutLandingInnerContainerClass} grid gap-8 md:grid-cols-2 md:items-center md:gap-10`}>
       <div className="space-y-5">
         <h2 id="about-story-title" className={aboutLandingSectionTitleClass}>
           {title}
@@ -45,6 +49,7 @@ export function AboutLandingStory() {
           sizes="(max-width: 768px) 100vw, 45vw"
           className="object-cover"
         />
+      </div>
       </div>
     </section>
   );

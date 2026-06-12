@@ -55,7 +55,7 @@ export const MobileCartCompactPeek = forwardRef<
       {...buttonProps}
       className={cn(
         mobileCartCompactPeekClass,
-        "inline-flex bg-brand-500  max-w-full min-w-0 items-center gap-3 px-3 py-2 outline-none transition-[transform,box-shadow] active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-brand-500/80 focus-visible:ring-offset-2 focus-visible:ring-offset-brand-500 disabled:pointer-events-none disabled:opacity-80" 
+        "inline-flex min-h-[52px] bg-brand-500 max-w-full min-w-0 items-center gap-3 px-3 py-2 outline-none transition-[transform,box-shadow] active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-brand-500/80 focus-visible:ring-offset-2 focus-visible:ring-offset-brand-500 disabled:pointer-events-none disabled:opacity-80"
       )}
       aria-expanded={drawerOpen}
       aria-haspopup="dialog"

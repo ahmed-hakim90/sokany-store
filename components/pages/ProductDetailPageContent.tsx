@@ -7,6 +7,7 @@ import { Button } from "@/components/Button";
 import { Container } from "@/components/Container";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorState } from "@/components/ErrorState";
+import type { AddProductLineOptions } from "@/hooks/useCart";
 import { useCart } from "@/hooks/useCart";
 import { useProductDetailPage } from "@/hooks/useProductDetailPage";
 import { ROUTES } from "@/lib/constants";
@@ -83,6 +84,8 @@ export function ProductDetailPageContent({
     reviewsQuery,
     relatedQuery,
     relatedProducts,
+    upsellQuery,
+    upsellProducts,
     specs,
     goToProducts,
   } = useProductDetailPage(id);
@@ -100,16 +103,29 @@ export function ProductDetailPageContent({
     reviewElig.data?.canReview;
 
   const addProductToCart = useCallback(
-    (product: Product, quantity: number) => {
-      const current = getCartLineQuantity(product.id);
-      setProductLineQuantity(product, current + Math.max(1, quantity));
+    (
+      product: Product,
+      quantity: number,
+      options?: AddProductLineOptions,
+    ) => {
+      const variationId = options?.variationId;
+      const current = getCartLineQuantity(product.id, variationId);
+      setProductLineQuantity(
+        product,
+        current + Math.max(1, quantity),
+        options,
+      );
     },
     [getCartLineQuantity, setProductLineQuantity],
   );
 
   const buyNow = useCallback(
-    (product: Product, quantity: number) => {
-      setProductLineQuantity(product, quantity);
+    (
+      product: Product,
+      quantity: number,
+      options?: AddProductLineOptions,
+    ) => {
+      setProductLineQuantity(product, quantity, options);
       router.push(ROUTES.CHECKOUT);
     },
     [router, setProductLineQuantity],
@@ -265,6 +281,36 @@ export function ProductDetailPageContent({
               </div>
             </div>
           </section>
+
+          {upsellProducts.length > 0 ? (
+            <section className="mt-10 min-w-0">
+              <div
+                className={cn(
+                  surfacePanelClass,
+                  "mx-auto w-full min-w-0 max-w-7xl rounded-3xl p-4 sm:p-5",
+                )}
+              >
+                <div className="flex min-w-0 flex-wrap items-center justify-between gap-4">
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                      يُشترى معاً
+                    </p>
+                    <h2 className="mt-1 font-display text-lg font-bold tracking-tight sm:text-xl">
+                      منتجات مقترحة
+                    </h2>
+                  </div>
+                </div>
+                <div className="mt-6">
+                  <ProductCarouselRow
+                    status={upsellQuery.isPending ? "loading" : "ready"}
+                    products={upsellProducts}
+                    getCartLineQuantity={getCartLineQuantity}
+                    onCartLineQuantityChange={setProductLineQuantity}
+                  />
+                </div>
+              </div>
+            </section>
+          ) : null}
 
           {/* منتجات مشابهة: كارت مستقل بأسفل صفحة المنتج مثل مرجع التصميم */}
           <section className="mt-10 min-w-0">

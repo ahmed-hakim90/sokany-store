@@ -57,7 +57,8 @@ html[data-storefront-modal] [data-mobile-commerce-chrome] {
   /* Editorial cards / hero radii (~24px) */
   --radius-editorial: 1.5rem;
   /* Mobile fixed commerce chrome (bottom nav ± cart); overridden by JS when mounted */
-  --mobile-commerce-chrome-height: 12rem;
+  /* ضبطنا الـ fallback على 4rem (~64px) قريب من ارتفاع الـ bottom nav الحقيقي بدل 12rem اللي كانت تعمل فراغ كبير قبل ما JS يشتغل */
+  --mobile-commerce-chrome-height: 4rem;
   --mobile-commerce-floating-actions-bottom: calc(2.5rem + env(safe-area-inset-bottom, 0px));
 
   /* Motion — shared with lib/motion.ts */

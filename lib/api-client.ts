@@ -17,6 +17,7 @@ import {
   isStorefrontCacheableGet,
   storefrontApiCacheKey,
 } from "@/lib/storefront-api-cache-policy";
+import { isCommerceTrustRequest } from "@/lib/storefront-commerce-fetch";
 
 const STOREFRONT_API_CACHE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -47,7 +48,13 @@ function headersToRecord(headers: unknown): Record<string, string> {
 }
 
 function writeStorefrontApiCache(response: AxiosResponse): void {
-  if (!canUseStorage() || !isStorefrontCacheableGet(response.config)) return;
+  if (
+    !canUseStorage() ||
+    !isStorefrontCacheableGet(response.config) ||
+    isCommerceTrustRequest(response.config)
+  ) {
+    return;
+  }
   try {
     const cached: CachedApiResponse = {
       cachedAt: Date.now(),
@@ -113,7 +120,11 @@ apiClient.interceptors.response.use(
   },
   (error: AxiosError) => {
     const config = error.config;
-    if (canFallbackToCachedResponse(error) && config) {
+    if (
+      canFallbackToCachedResponse(error) &&
+      config &&
+      !isCommerceTrustRequest(config)
+    ) {
       const cached = readStorefrontApiCache(config);
       if (cached) {
         return Promise.resolve({
