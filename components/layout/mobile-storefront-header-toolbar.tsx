@@ -23,9 +23,9 @@ export function MobileStorefrontHeaderToolbar() {
         </Suspense>
       ) : (
         /* أعلى الصفحة → شرائح الاختصارات */
-        <Suspense fallback={null}>
-          <MobileHeaderQuickActions />
-        </Suspense>
+        <Suspense fallback={<NavbarSearchRowSkeleton />}>
+        <NavbarSearch fieldClassName="max-lg:!h-9" />
+      </Suspense>
       )}
       <MobileOfflineInlineAlert />
     </div>

@@ -47,10 +47,10 @@ html[data-storefront-modal] [data-mobile-commerce-chrome] {
   --sokany-gray-3: #808080;
   --sokany-white: #ffffff;
   /* Cool-tint page canvas (soft blue-gray) */
-  --page: #edf1f6;
+  --page: #ffffff;
   /* Neutral chrome behind product/category thumbnails */
   --image-well: #eef1f4;
-  --sokany-muted-bg: #e2e8ef;
+  --sokany-muted-bg: #ffffff;
   --sokany-border: #d5dde8;
   /* Legacy olive (prefer lime/black in UI; kept for gradual migration) */
   --sokany-olive: #556b2f;

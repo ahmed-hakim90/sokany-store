@@ -28,11 +28,11 @@ import { useCart } from "@/hooks/useCart";
 import { ROUTES } from "@/lib/constants";
 import { bottomNavItemPressableClass } from "@/lib/nav-link-interaction";
 import { cn } from "@/lib/utils";
-
+import { BadgePercent } from "lucide-react";
 const linkItems = [
   { href: ROUTES.HOME, label: "الرئيسية", key: "home" },
-  { href: ROUTES.PRODUCTS, label: "المنتجات", key: "products" },
-  { href: ROUTES.SERVICE_CENTERS, label: "الفروع", key: "branches" },
+  { href: ROUTES.OFFERS, label: "العروض", key: "offers" },
+  { href: ROUTES.SERVICE_CENTERS, label: "الصيانة", key: "branches" },
   { href: ROUTES.ABOUT, label: "عن سوكاني", key: "about" },
 ] as const;
 
@@ -40,7 +40,7 @@ type NavLinkKey = (typeof linkItems)[number]["key"];
 
 const iconByKey: Record<NavLinkKey, LucideIcon> = {
   home: Home,
-  products: LayoutGrid,
+  offers: BadgePercent,
   branches: MapPin,
   about: ClipboardList,
 };
